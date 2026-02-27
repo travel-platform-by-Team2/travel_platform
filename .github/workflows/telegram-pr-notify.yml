@@ -20,7 +20,7 @@ jobs:
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
 
-          TEXT="📢 새 PR 생성됨%0A📦 Repo: ${REPO}%0A🌿 ${HEAD_BRANCH} → ${BASE_BRANCH}%0A#️⃣ PR: #${PR_NUMBER}%0A📝 제목: ${PR_TITLE}%0A👤 작성자: ${PR_AUTHOR}%0A🔗 ${PR_URL}"
+          TEXT="📢 새 PR 생성됨%0A🌿 ${HEAD_BRANCH} → ${BASE_BRANCH}%0A#️⃣ PR: #${PR_NUMBER}%0A📝 제목: ${PR_TITLE}%0A👤 작성자: ${PR_AUTHOR}%0A🔗 ${PR_URL}"
 
           echo "text=$TEXT" >> $GITHUB_OUTPUT
 
