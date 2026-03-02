@@ -1,9 +1,14 @@
 package com.example.travel_platform.user;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
-import com.example.travel_platform.core.handler.ex.*;
-import lombok.RequiredArgsConstructor;
+
+import com.example.travel_platform.core.handler.ex.Exception400;
+import com.example.travel_platform.core.handler.ex.Exception401;
+
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
@@ -12,23 +17,34 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void 회원가입(UserRequest.SaveDTO requestDTO) {
-        // 중복 체크
-        if (userRepository.findByUsername(requestDTO.getUsername()).isPresent())
-            throw new Exception401("이미 존재하는 유저네임입니다.");
-        // 회원가입
-        User user = requestDTO.toEntity();
+    public void 회원가입(String username, String password, String email) {
+        // 1. 유저네임 중복 체크 (필터링)!!
+        Optional<User> optUser = userRepository.findByUsername(username);
+
+        if (optUser.isPresent()) {
+            throw new Exception400("유저 네임이 중복되었습니다!!!");
+        }
+
+        // 2. 비영속 객체
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setEmail(email);
+
+        // 3. save() 호출
         userRepository.save(user);
+
     }
 
-    public User 로그인(UserRequest.LoginDTO requestDTO) {
-        // 유저 조회
-        User user = userRepository.findByUsername(requestDTO.getUsername())
-                .orElseThrow(() -> new Exception404("유저네임을 찾을 수 없습니다."));
-        // 비밀번호 확인
-        if (!user.getPassword().equals(requestDTO.getPassword())) {
-            throw new Exception401("비밀번호가 일치하지 않습니다.");
+    public User 로그인(String username, String password) {
+        User findUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new Exception400("username을 찾을 수가 없어요"));
+
+        if (!findUser.getPassword().equals(password)) {
+            throw new Exception401("패스워드가 일치하지 않아요");
         }
-        return user;
+
+        return findUser;
     }
+
 }

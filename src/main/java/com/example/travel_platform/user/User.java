@@ -1,37 +1,42 @@
 package com.example.travel_platform.user;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@NoArgsConstructor
-@Data
+@NoArgsConstructor // object mapping을 hibernate가 할 때 디폴트 생성자를 new 한다
+@Getter
+@Setter
 @Entity
 @Table(name = "user_tb")
 public class User {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 자동 증가
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String username;
+    @Column(unique = true) // pk, uk(unique) 일때 인덱스를 만들어준다
+    private String username; // unique 제약조건 추가 (username은 중복되면 안됨)
+
+    @Column(nullable = false, length = 100) // not null 제약조건 추가 (password는 null이 되면 안됨) length는 10자 이하
     private String password;
     private String email;
 
-    @CreationTimestamp // 자동으로 현재 시간 저장
-    private Timestamp createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-    @Builder
-    public User(Integer id, String username, String password, String email, Timestamp createdAt) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.createdAt = createdAt;
+    @Override
+    public String toString() {
+        return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
+                + ", createdAt=" + createdAt + "]";
     }
-
-    // 객체 생성을 위한 생성자
 
 }
