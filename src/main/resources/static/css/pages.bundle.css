@@ -1,0 +1,363 @@
+﻿/* pages.bundle.css - deployment bundle */
+/* Per-page source CSS files are intentionally removed in this output. */
+
+/* ===== booking-checkout.css ===== */
+/* Booking checkout page */
+.page-booking-checkout .section-panel {
+  height: 100%;
+}
+
+.page-booking-checkout aside.section-panel {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.page-booking-checkout .list-group-item {
+  border-color: #edf2f7;
+}
+
+@media (max-width: 991.98px) {
+  .page-booking-checkout aside.section-panel {
+    position: static;
+  }
+}
+
+/* ===== booking-complete.css ===== */
+/* Booking complete page */
+.page-booking-complete .layout-center-row > .col-lg-8 {
+  max-width: 46rem;
+}
+
+.page-booking-complete .section-panel {
+  box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.08);
+}
+
+.page-booking-complete .display-5 {
+  line-height: 1;
+}
+
+/* ===== calendar.css ===== */
+/* Calendar page */
+.page-calendar .section-panel {
+  overflow: hidden;
+}
+
+.page-calendar .table {
+  margin-bottom: 0;
+  min-width: 780px;
+}
+
+.page-calendar .table td {
+  vertical-align: top;
+  min-height: 110px;
+}
+
+.page-calendar .calendar-day-cell {
+  height: 110px;
+}
+
+.page-calendar .badge {
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+/* ===== calendar-add-event.css ===== */
+/* Calendar add event page */
+.page-calendar-add-event .layout-center-row > .col-lg-8 {
+  max-width: 52rem;
+}
+
+.page-calendar-add-event .section-panel {
+  box-shadow: 0 0.4rem 1rem rgba(15, 23, 42, 0.06);
+}
+
+.page-calendar-add-event textarea {
+  min-height: 10rem;
+  resize: vertical;
+}
+
+/* ===== chatbot-demo.css ===== */
+/* Chatbot demo page */
+.page-chatbot-demo .hero-soft {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.page-chatbot-demo .app-main {
+  padding-bottom: 1rem;
+}
+
+/* ===== community-create.css ===== */
+/* Community create page */
+.page-community-create .layout-center-row > .col-lg-9 {
+  max-width: 64rem;
+}
+
+.page-community-create .section-panel {
+  box-shadow: 0 0.4rem 1rem rgba(15, 23, 42, 0.06);
+}
+
+.page-community-create textarea {
+  min-height: 18rem;
+  resize: vertical;
+}
+
+/* ===== community-detail.css ===== */
+/* Community detail page */
+.page-community-detail article {
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.page-community-detail .vstack .border {
+  border-color: #e2e8f0 !important;
+}
+
+.page-community-detail textarea {
+  resize: vertical;
+}
+
+/* ===== community-edit.css ===== */
+/* Community edit page */
+.page-community-edit .layout-center-row > .col-lg-9 {
+  max-width: 64rem;
+}
+
+.page-community-edit .section-panel {
+  box-shadow: 0 0.4rem 1rem rgba(15, 23, 42, 0.06);
+}
+
+.page-community-edit textarea {
+  min-height: 18rem;
+  resize: vertical;
+}
+
+/* ===== community-list.css ===== */
+/* Community list page */
+.page-community-list .table {
+  margin-bottom: 0;
+}
+
+.page-community-list .table td,
+.page-community-list .table th {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.page-community-list .table td:nth-child(2),
+.page-community-list .table th:nth-child(2) {
+  width: 45%;
+  white-space: normal;
+}
+
+/* ===== header-login-demo.css ===== */
+/* Header login demo page */
+.page-header-login-demo .app-main {
+  display: flex;
+  align-items: center;
+}
+
+.page-header-login-demo .section-card {
+  width: 100%;
+  min-height: 220px;
+  padding: 2rem;
+}
+
+/* ===== header-logout-demo.css ===== */
+/* Header logout demo page */
+.page-header-logout-demo .app-main {
+  display: flex;
+  align-items: center;
+}
+
+.page-header-logout-demo .section-card {
+  width: 100%;
+  min-height: 220px;
+  padding: 2rem;
+}
+
+/* ===== login.css ===== */
+/* Login page */
+.page-login .login-column {
+  width: 100%;
+  max-width: 34rem;
+}
+
+.page-login .login-card {
+  box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.06);
+}
+
+@media (min-width: 768px) {
+  .page-login .login-card {
+    max-width: 34rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ===== main-index.css ===== */
+/* Main index page */
+.page-main-index .section-panel {
+  overflow: hidden;
+}
+
+.page-main-index .card-img-top {
+  height: 12rem;
+  object-fit: cover;
+}
+
+.page-main-index .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.page-main-index .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.6rem 1.2rem rgba(15, 23, 42, 0.1);
+}
+
+/* ===== map-detail.css ===== */
+/* Map detail page */
+.page-map-detail .ratio {
+  min-height: 360px;
+}
+
+.page-map-detail .list-group-item {
+  border-color: #e8edf3;
+}
+
+.page-map-detail .list-group-item small {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+/* ===== map-poi-panel.css ===== */
+/* Map POI panel page */
+.page-map-poi-panel .ratio {
+  min-height: 360px;
+}
+
+.page-map-poi-panel aside p {
+  line-height: 1.65;
+}
+
+.page-map-poi-panel .badge {
+  font-weight: 600;
+}
+
+/* ===== mypage.css ===== */
+/* My page */
+.page-mypage .section-panel {
+  height: 100%;
+}
+
+.page-mypage .rounded-circle {
+  object-fit: cover;
+  background: #e9ecef;
+}
+
+.page-mypage .list-group-item {
+  border-color: #edf2f7;
+}
+
+/* ===== signup.css ===== */
+/* Signup page */
+.page-signup .layout-center-row > .col-lg-7 {
+  max-width: 52rem;
+}
+
+.page-signup .section-panel {
+  box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.06);
+}
+
+.page-signup .form-label {
+  font-weight: 600;
+}
+
+.page-signup .form-check-label {
+  color: #4b5563;
+}
+
+/* ===== trip-plan-add-place.css ===== */
+/* Trip plan add place page */
+.page-trip-plan-add-place .section-panel {
+  height: 100%;
+}
+
+.page-trip-plan-add-place .list-group {
+  max-height: 26rem;
+  overflow: auto;
+}
+
+.page-trip-plan-add-place .list-group-item {
+  border-color: #e8edf3;
+}
+
+/* ===== trip-plan-create.css ===== */
+/* Trip plan create page */
+.page-trip-plan-create .layout-center-row > .col-lg-8 {
+  max-width: 56rem;
+}
+
+.page-trip-plan-create .form-label {
+  font-weight: 600;
+}
+
+.page-trip-plan-create textarea {
+  resize: vertical;
+  min-height: 8rem;
+}
+
+/* ===== trip-plan-detail.css ===== */
+/* Trip plan detail page */
+.page-trip-plan-detail .list-group-item {
+  gap: 0.75rem;
+}
+
+.page-trip-plan-detail .badge {
+  font-weight: 500;
+}
+
+.page-trip-plan-detail .section-panel + .section-panel {
+  margin-top: 1rem;
+}
+
+/* ===== trip-plan-list.css ===== */
+/* Trip plan list page */
+.page-trip-plan-list .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.page-trip-plan-list .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.6rem 1.2rem rgba(15, 23, 42, 0.1);
+}
+
+.page-trip-plan-list .badge {
+  font-weight: 500;
+}
+
+/* ===== calendar-overflow-fix ===== */
+/* Ensure the 6th calendar row remains visible/scrollable */
+body.page-body-overflow-hidden-shell {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body.page-body-overflow-hidden-shell > .calendar-add-event-div-01 {
+  min-height: 0;
+  overflow: visible;
+}
+
+body.page-body-overflow-hidden-shell > .calendar-add-event-div-01 > .chat-panel-scroll-shell,
+body.page-body-overflow-hidden-shell > .calendar-add-event-div-01 > .chat-panel-scroll-shell-rel {
+  min-height: 0;
+  height: auto;
+  overflow-y: auto;
+}
+
+
+
+

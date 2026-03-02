@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">샘플 프로필 이미지</title>
+  <desc id="desc">더미 아바타 이미지 자리표시자</desc>
+  <rect width="256" height="256" fill="#e5e7eb"/>
+  <circle cx="128" cy="96" r="44" fill="#9ca3af"/>
+  <path d="M40 236c8-44 44-72 88-72s80 28 88 72" fill="#9ca3af"/>
+</svg>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TravelKorea - 회원가입</title>
+  {{>partials/head-assets}}
+</head>
+<body class="page-body-smooth">
+  {{>partials/header}}
+
+<div class="signup-div-01">
+<div class="signup-shell">
+<div class="signup-div-02">
+<div class="signup-div-03" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCH9YxOuRCRLUwymyLD2mqtYV6GTiLkWf0gtiLyOZFJZlefvHZu5_ciaufbeIOZZzw72Zv0JiiDBh3wmVpw96mH1dHylms6kCtUPtd47YdhlLhdwoen2No4JD5Hw9rpTJldAD5PtstCJdzaNhXPELSvBQL4gZKOGX8XzirnaMK09_azBMNeRSsIVKmSc6WaFBmxJ4_QD6Ife67JXRbom5KjKzXo3Ac-JISQ5FzXDC4SyzcOKVep4c2r77KbmnuIqabej1Dw-6carjc');">
+<div class="signup-div-04">
+<h3 class="signup-h3-01">새로운 여정의 시작</h3>
+<p class="signup-p-01">TravelKorea와 함께 잊지 못할 추억을 만들어보세요.</p>
+</div>
+</div>
+</div>
+<div class="signup-div-05">
+<div class="signup-form-shell">
+<div class="mb-8">
+<h1 class="signup-h1-01">회원가입</h1>
+<p class="calendar-add-event-span-02">기본 정보를 입력하고 서비스를 이용해보세요.</p>
+</div>
+<div class="login-form-01">
+<div class="signup-div-06">
+<label class="text-sm-strong">이름</label>
+<input class="signup-input-default" placeholder="이름을 입력해주세요" type="text"/>
+</div>
+<div class="signup-div-06">
+<label class="text-sm-strong">이메일</label>
+<div class="signup-div-07">
+<input class="signup-input-error" type="email" value="user@invalid-email"/>
+<div class="signup-div-08">
+<span class="icon-ms-18">error</span>
+</div>
+</div>
+<p class="signup-p-02">이메일 형식이 올바르지 않습니다.</p>
+</div>
+<div class="signup-div-06">
+<label class="text-sm-strong">비밀번호</label>
+<input class="signup-input-default" placeholder="비밀번호를 입력해주세요" type="password"/>
+<p class="signup-p-03">비밀번호는 8자 이상 입력해주세요.</p>
+</div>
+<div class="signup-div-06">
+<label class="text-sm-strong">비밀번호 확인</label>
+<div class="signup-div-07">
+<input class="signup-input-error" type="password" value="password123"/>
+<div class="signup-div-08">
+<span class="icon-ms-18">error</span>
+</div>
+</div>
+<p class="signup-p-02">비밀번호가 일치하지 않습니다.</p>
+</div>
+<div class="signup-div-09">
+<div class="signup-div-10">
+<input class="signup-input-01" id="terms" type="checkbox"/>
+</div>
+<div class="signup-div-11">
+<label class="signup-label-01" for="terms">
+<a class="signup-a-01" href="#">서비스 이용약관</a> 및 
+                                <a class="signup-a-01" href="#">개인정보 처리방침</a>에 동의합니다.
+                            </label>
+</div>
+</div>
+<button class="signup-button-01">
+                        회원가입 완료
+                    </button>
+</div>
+<div class="signup-div-12">
+<p class="calendar-add-event-span-02">
+                        이미 계정이 있으신가요? 
+                        <a class="login-a-02" href="#">로그인</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>

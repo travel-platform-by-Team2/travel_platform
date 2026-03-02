@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip Plans List</title>
+  {{>partials/head-assets}}
+</head>
+<body class="page-body-main-shell">
+  {{>partials/header}}
+
+<!-- Top Navigation -->
+<!-- Main Content -->
+<main class="page-main-wrap-md">
+<!-- Page Header -->
+<div class="trip-plan-list-div-01">
+<div>
+<h2 class="trip-plan-list-h2-01">내 여행 계획</h2>
+<p class="trip-plan-list-p-01">설레는 여행의 시작, 꼼꼼하게 계획해보세요.</p>
+</div>
+<button class="trip-plan-list-button-01">
+<span class="icon-ms-20">add</span>
+<span>새 여행 만들기</span>
+</button>
+</div>
+<!-- Filter Tabs (Optional Enhancement for UX) -->
+<div class="tab-strip-scroll">
+<button class="trip-plan-list-button-02">전체 보기</button>
+<button class="chip-surface">예정된 여행</button>
+<button class="chip-surface">다녀온 여행</button>
+<button class="chip-surface">작성 중</button>
+</div>
+<!-- Trip Cards Grid -->
+<div class="trip-plan-list-div-02">
+<!-- Card 1 -->
+<div class="trip-card">
+<div class="trip-card-media">
+<div class="trip-card-media-bg" data-alt="Beautiful view of Busan coastline during sunset" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');"></div>
+<div class="trip-plan-list-div-03">
+                        D-5
+                    </div>
+<button class="trip-card-like-btn">
+<span class="icon-ms-20">favorite</span>
+</button>
+</div>
+<div class="trip-card-body">
+<div class="trip-card-header">
+<h3 class="trip-card-title">부산 2박 3일 힐링 여행</h3>
+</div>
+<div class="trip-card-meta">
+<span class="icon-ms-18">location_on</span>
+<span>부산광역시</span>
+</div>
+<div class="trip-card-meta-stack">
+<span class="icon-ms-18">calendar_today</span>
+<span>2023.10.12 - 10.14</span>
+</div>
+<div class="trip-card-footer">
+<div class="trip-card-count">
+<span class="icon-ms-20-primary">bookmark</span>
+<span>장소 12개</span>
+</div>
+<button class="trip-card-link">
+                            상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="trip-card">
+<div class="trip-card-media">
+<div class="trip-card-media-bg" data-alt="Traditional stone statue in Jeju Island with ocean background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10');"></div>
+<div class="trip-plan-list-div-04">
+                        여행중
+                    </div>
+<button class="trip-card-like-btn">
+<span class="icon-ms-20">favorite_border</span>
+</button>
+</div>
+<div class="trip-card-body">
+<div class="trip-card-header">
+<h3 class="trip-card-title">제주도 감성 캠핑</h3>
+</div>
+<div class="trip-card-meta">
+<span class="icon-ms-18">location_on</span>
+<span>제주특별자치도</span>
+</div>
+<div class="trip-card-meta-stack">
+<span class="icon-ms-18">calendar_today</span>
+<span>2023.11.05 - 11.08</span>
+</div>
+<div class="trip-card-footer">
+<div class="trip-card-count">
+<span class="icon-ms-20-primary">bookmark</span>
+<span>장소 8개</span>
+</div>
+<button class="trip-card-link">
+                            상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="trip-card">
+<div class="trip-card-media">
+<div class="trip-card-media-bg" data-alt="Modern architecture cityscape of Seoul at night" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmgkJ_kQZHzXRjsxioVBIQOdy_MHo09_7WmxvHA3VpNv1G0hJpGijsgc8DT520zX0waprIJ95hGmSuAFsB4mx4B84gI_CQ8JaL3KvIusBYqDCJ7TH8oUpH-m8gbMn3eguGYtEPTRKmJnjDHNUDGbH6iUHCGQ93TVjyCYIi48iUMDcykZUrvSZvClj8fNzHjuHDXQLhaf8NVQo6u7Th90EXKKTZo_IUkcT87tLSs7K9Y_Wt5BgGVpP_aJ24C2WwaIMRLv7gP0jfo0w');"></div>
+<button class="trip-card-like-btn">
+<span class="icon-ms-20">favorite_border</span>
+</button>
+</div>
+<div class="trip-card-body">
+<div class="trip-card-header">
+<h3 class="trip-card-title">서울 도심 투어</h3>
+</div>
+<div class="trip-card-meta">
+<span class="icon-ms-18">location_on</span>
+<span>서울특별시</span>
+</div>
+<div class="trip-card-meta-stack">
+<span class="icon-ms-18">calendar_today</span>
+<span>2023.12.01 - 12.03</span>
+</div>
+<div class="trip-card-footer">
+<div class="trip-card-count">
+<span class="icon-ms-20-primary">bookmark</span>
+<span>장소 15개</span>
+</div>
+<button class="trip-card-link">
+                            상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="trip-card">
+<div class="trip-card-media">
+<div class="trip-card-media-bg" data-alt="Peaceful beach scenery in Gangneung with waves" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAZY3yiihf1PeNsnK1KoU1CWgEawVUaLPnAA5adx0jVY1cbN-3-AmzZf4al3a4_FidBlv12tUdTe6ZLfeim-YazKTAlNJhDq3sgRp5kCwa2dKQDvW6hKBH6lmqz0-H_AsX3g66gAfD1tDxz5Q3WltJv5IW03NFYeNh48SqS4ofN_7zxQ2UWVwGwlpPULsermaiEhIkQPjKPbhn3TsvSmtahZw3sou8d5pvL_3VPw6xvGDspu2sMRsvEbR798G2xYvretGtq1Mh0d1E');"></div>
+<button class="trip-card-like-btn">
+<span class="icon-ms-20">favorite_border</span>
+</button>
+</div>
+<div class="trip-card-body">
+<div class="trip-card-header">
+<h3 class="trip-card-title">강릉 바다 겨울 여행</h3>
+</div>
+<div class="trip-card-meta">
+<span class="icon-ms-18">location_on</span>
+<span>강원도 강릉시</span>
+</div>
+<div class="trip-card-meta-stack">
+<span class="icon-ms-18">calendar_today</span>
+<span>2024.01.15 - 01.16</span>
+</div>
+<div class="trip-card-footer">
+<div class="trip-card-count">
+<span class="icon-ms-20-primary">bookmark</span>
+<span>장소 5개</span>
+</div>
+<button class="trip-card-link">
+                            상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="trip-card">
+<div class="trip-card-media">
+<div class="trip-card-media-bg" data-alt="Traditional Korean Hanok village in Jeonju" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB4ZheqmQogrR8X2-TKdy7R2gqxXEdqGUc9nE2nyWSvokMy9r-n2ev_5V4Qtfbvt3uvfw5M37yadCMfc3GdSlL6yS0aVReS7ul0-_r_mSPPLrWx-ykBrD6lM-jZSuCm3iI9u9ZgjwBmSyN5LjNQwIVwvOYDz7ihdQXhCUp86NU5NUxcdQzH7T0RWWF5k-5Lfs4AILaSfXiNiHiCF7dLyQFAhcbSh1IaXN23mX8_DgNse_PlFHdqYhpU57nuj-g1XAOSJ-MRvZldGqE');"></div>
+<button class="trip-card-like-btn">
+<span class="icon-ms-20">favorite_border</span>
+</button>
+</div>
+<div class="trip-card-body">
+<div class="trip-card-header">
+<h3 class="trip-card-title">전주 먹방 투어</h3>
+</div>
+<div class="trip-card-meta">
+<span class="icon-ms-18">location_on</span>
+<span>전라북도 전주시</span>
+</div>
+<div class="trip-card-meta-stack">
+<span class="icon-ms-18">calendar_today</span>
+<span>2024.02.20 - 02.21</span>
+</div>
+<div class="trip-card-footer">
+<div class="trip-card-count">
+<span class="icon-ms-20-primary">bookmark</span>
+<span>장소 20개</span>
+</div>
+<button class="trip-card-link">
+                            상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="trip-card">
+<div class="trip-card-media">
+<div class="trip-card-media-bg" data-alt="Historical architecture of Cheomseongdae Observatory in Gyeongju" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAi2NdRCW1SBlRz6WFyDqfR1zLd53ejViEvcZyYDFQjYmrGYrzFcV9z0Jyw-Y03hP-4c2evLKW5rgxKYjoomo4fSldV2txOYNzb5j8MAnvw-OKB8QXitr4WW6iG2AMlJLvZG_goYesomAN6kOeZHm0Bwfm7HTdqd-HsYauQegt-tRVVBnDsG4sZ4VC7F97MXeYGpYiWb7XBnGf1v_Jdli6jicrrc3Frh1rwpyQhogrwyQtBVi2PNEaFDvhapAGmJ3nk-QTvhK02wuI');"></div>
+<button class="trip-card-like-btn">
+<span class="icon-ms-20">favorite_border</span>
+</button>
+</div>
+<div class="trip-card-body">
+<div class="trip-card-header">
+<h3 class="trip-card-title">경주 역사 탐방</h3>
+</div>
+<div class="trip-card-meta">
+<span class="icon-ms-18">location_on</span>
+<span>경상북도 경주시</span>
+</div>
+<div class="trip-card-meta-stack">
+<span class="icon-ms-18">calendar_today</span>
+<span>2024.03.10 - 03.12</span>
+</div>
+<div class="trip-card-footer">
+<div class="trip-card-count">
+<span class="icon-ms-20-primary">bookmark</span>
+<span>장소 10개</span>
+</div>
+<button class="trip-card-link">
+                            상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State / Add New Placeholder (Optional filler) -->
+<div class="fx-dashed-add-card">
+<div class="trip-plan-list-div-05">
+<span class="icon-ms-3xl">add</span>
+</div>
+<h3 class="trip-plan-list-h3-01">새로운 여행 계획하기</h3>
+<p class="trip-plan-list-p-02">떠나고 싶은 곳이 있나요?</p>
+</div>
+</div>
+<!-- Pagination -->
+<div class="trip-plan-list-div-06">
+<button class="icon-btn-surface">
+<span class="icon-ms-lg">chevron_left</span>
+</button>
+<button class="trip-plan-list-button-03">
+                1
+             </button>
+<button class="icon-btn-surface">
+                2
+             </button>
+<button class="icon-btn-surface">
+                3
+             </button>
+<button class="icon-btn-surface">
+<span class="icon-ms-lg">chevron_right</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>
