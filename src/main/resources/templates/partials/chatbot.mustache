@@ -1,0 +1,31 @@
+﻿<button type="button" class="btn btn-primary app-chatbot-fab" data-chatbot-open aria-label="챗봇 열기" aria-expanded="false">
+  <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<section class="chatbot-panel d-none" data-chatbot-panel>
+  <header class="chatbot-header chatbot-header-inner">
+    <strong>TripMate 챗봇</strong>
+    <button type="button" class="btn btn-sm btn-light" data-chatbot-close>닫기</button>
+  </header>
+
+  <div class="chatbot-body chatbot-body-inner">
+    <div class="chat-msg bot">
+      <span class="bubble">안녕하세요. 어디로 여행을 계획 중이신가요?</span>
+    </div>
+    <div class="chat-msg user">
+      <span class="bubble">제주도 2박 3일 추천해줘.</span>
+    </div>
+    <div class="chat-msg bot">
+      <span class="bubble">좋아요. 제주 동부 코스와 숙소를 우선 추천해드릴게요.</span>
+    </div>
+  </div>
+
+  <form class="chatbot-form" action="#" method="post">
+    <div class="input-group input-group-sm">
+      <input type="text" class="form-control" name="message" placeholder="메시지를 입력하세요" />
+      <button class="btn btn-primary" type="button">전송</button>
+    </div>
+  </form>
+</section>
+
+
