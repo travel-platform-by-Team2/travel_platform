@@ -1,4 +1,4 @@
-package com.example.travel_platform.core.util;
+package com.example.travel_platform._core.util;
 
 public class Script {
 

@@ -1,15 +1,15 @@
-package com.example.travel_platform.core.handler;
+package com.example.travel_platform._core.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.example.travel_platform.core.handler.ex.Exception400;
-import com.example.travel_platform.core.handler.ex.Exception401;
-import com.example.travel_platform.core.handler.ex.Exception403;
-import com.example.travel_platform.core.handler.ex.Exception404;
-import com.example.travel_platform.core.handler.ex.Exception500;
+import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception401;
+import com.example.travel_platform._core.handler.ex.Exception403;
+import com.example.travel_platform._core.handler.ex.Exception404;
+import com.example.travel_platform._core.handler.ex.Exception500;
 
 // 데이터를 찾아 응답)
 @RestControllerAdvice // 모든 예외를 처리는 클래스 (Data응답)
