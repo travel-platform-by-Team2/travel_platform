@@ -1,4 +1,4 @@
-package com.example.travel_platform.core.filter;
+package com.example.travel_platform._core.filter;
 
 import java.io.IOException;
 

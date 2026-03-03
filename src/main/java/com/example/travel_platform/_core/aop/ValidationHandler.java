@@ -1,4 +1,4 @@
-package com.example.travel_platform.core.aop;
+package com.example.travel_platform._core.aop;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -6,7 +6,7 @@ import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
-import com.example.travel_platform.core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception400;
 
 @Aspect
 @Component

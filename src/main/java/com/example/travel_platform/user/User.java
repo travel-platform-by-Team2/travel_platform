@@ -10,13 +10,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @NoArgsConstructor // object mapping을 hibernate가 할 때 디폴트 생성자를 new 한다
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "user_tb")
 public class User {

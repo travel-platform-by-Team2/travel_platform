@@ -4,8 +4,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+// 사용자 인증/회원가입 요청 바디를 정의하는 DTO 클래스
 public class UserRequest {
 
+    // 회원가입 요청 데이터를 담는 DTO
     @Data
     public static class JoinDTO {
         @NotBlank(message = "유저네임을 입력해주세요")
@@ -17,6 +19,7 @@ public class UserRequest {
         private String email;
     }
 
+    // 로그인 요청 데이터를 담는 DTO
     @Data
     public static class LoginDTO {
         @NotBlank(message = "유저 이름을 입력해주세요")
