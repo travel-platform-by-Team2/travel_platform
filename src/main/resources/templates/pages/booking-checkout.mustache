@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accommodation Booking Page</title>
+  {{>partials/head-assets}}
+</head>
+<body class="page-body">
+  {{>partials/header}}
+
+<!-- Top Navbar -->
+<div class="page-topbar">
+<div class="layout-container">
+</div>
+</div>
+<!-- Main Content Area -->
+<main class="page-main-wrap">
+<div class="mb-8">
+<h1 class="checkout-page-title">예약 확인 및 결제</h1>
+<p class="text-body-secondary">예약 내역을 확인하고 결제를 진행해주세요.</p>
+</div>
+<div class="layout-split-lg">
+<!-- Left Side: Summary Card (40%) -->
+<div class="checkout-col-summary">
+<div class="checkout-summary-card">
+<!-- Image -->
+<div class="checkout-summary-media">
+<img alt="Luxury hotel room interior with view" class="media-cover" data-alt="Modern hotel room interior" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgf_gI0Yf6GptX6UlO5LpRbc3VXgiWVhCd30jOAaoMzQ9XUGApGEujL7deQAaQd-MhB9hMvwywyBzxnUtijZESRcLjsfIAl5r93GjYWCPqgDvev1gHhldJnW4SDsFZSBSWZTWhEVv5iJ2ySaAbWkl99v-1iCLqLBhVUngHgA9b-6TRiKof7CDKHjJ7NsUgjKu1EzLJWxTEHYNjTYF_AVFogHn5eCYKRZtfMwm082z0wS2CCaH5hIEuEYnAbPnk0rwqNiWr9SGxkzk"/>
+<div class="badge-float-top-left-primary">
+                            호텔
+                        </div>
+</div>
+<!-- Hotel Details -->
+<div class="checkout-summary-content">
+<h2 class="checkout-hotel-title">그랜드 하얏트 서울</h2>
+<div class="checkout-location-row">
+<span class="checkout-location-icon">location_on</span>
+<span>서울특별시 용산구 소월로 322</span>
+</div>
+<div class="divider-top-my4"></div>
+<!-- Stay Info -->
+<div class="kv-list checkout-kv-section">
+<div class="kv-row">
+<span class="kv-key">체크인</span>
+<span class="kv-value">2023. 10. 24 (화) 15:00</span>
+</div>
+<div class="kv-row">
+<span class="kv-key">체크아웃</span>
+<span class="kv-value">2023. 10. 27 (금) 11:00</span>
+</div>
+<div class="kv-row">
+<span class="kv-key">숙박 기간</span>
+<span class="kv-value">3박 4일</span>
+</div>
+<div class="kv-row">
+<span class="kv-key">인원</span>
+<span class="kv-value">성인 2명</span>
+</div>
+</div>
+<div class="divider-top-my4"></div>
+<!-- Price Breakdown -->
+<div class="kv-list checkout-kv-section">
+<div class="kv-row">
+<span class="kv-key">1박 요금</span>
+<span class="kv-value">350,000원</span>
+</div>
+<div class="kv-row">
+<span class="kv-key">세금 및 봉사료</span>
+<span class="kv-value">105,000원</span>
+</div>
+</div>
+<div class="divider-dashed-my6"></div>
+<!-- Total -->
+<div class="row-between-end">
+<span class="checkout-total-label">총 결제 금액</span>
+<span class="checkout-total-amount">1,155,000원</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side: Booking Form (60%) -->
+<div class="checkout-col-form">
+<!-- Notice Banner -->
+<div class="checkout-notice-box">
+<span class="checkout-notice-icon">info</span>
+<div class="checkout-notice-text">
+<p>• 동일 날짜에는 중복 예약이 불가능합니다.</p>
+<p>• 결제 단계에서 예약이 최종 확정됩니다.</p>
+</div>
+</div>
+<!-- Booker Information Form -->
+<div class="panel-elevated-lg">
+<h3 class="section-title-row">
+<span class="icon-ms-primary">person</span>
+                        예약자 정보
+                    </h3>
+<div class="checkout-form-grid">
+<!-- Name -->
+<div class="field-col-2-md-1">
+<label class="label-sm-strong" for="name">이름</label>
+<input class="input-control" id="name" placeholder="홍길동" type="text"/>
+</div>
+<!-- Contact -->
+<div class="field-col-2-md-1">
+<label class="label-sm-strong" for="phone">연락처</label>
+<input class="input-control" id="phone" placeholder="010-1234-5678" type="tel"/>
+</div>
+<!-- Email -->
+<div class="checkout-field-full">
+<label class="label-sm-strong" for="email">이메일</label>
+<input class="input-control" id="email" placeholder="example@email.com" type="email"/>
+<p class="checkout-help-text">예약 확정 메일이 발송됩니다.</p>
+</div>
+<!-- Special Requests -->
+<div class="checkout-field-full">
+<label class="checkout-label-between" for="requests">
+                                요청사항
+                                <span class="checkout-label-optional">(선택)</span>
+</label>
+<textarea class="checkout-textarea" id="requests" placeholder="호텔에 전달할 요청사항이 있다면 적어주세요. (예: 고층 객실 희망, 금연 객실 등)" rows="4"></textarea>
+</div>
+</div>
+</div>
+<!-- Payment Method Section (Visual Only for Layout Completeness) -->
+<div class="panel-elevated-lg">
+<h3 class="section-title-row">
+<span class="icon-ms-primary">credit_card</span>
+                        결제 수단
+                    </h3>
+<div class="checkout-pay-grid">
+<button class="checkout-pay-option-active">
+<span class="icon-ms-2xl">credit_card</span>
+<span class="text-sm-base">신용카드</span>
+</button>
+<button class="option-tile">
+<span class="icon-ms-2xl">account_balance_wallet</span>
+<span class="text-sm-base">계좌이체</span>
+</button>
+<button class="option-tile">
+<span class="icon-ms-2xl">payments</span>
+<span class="text-sm-base">현장결제</span>
+</button>
+<button class="option-tile">
+<span class="icon-ms-2xl">smartphone</span>
+<span class="text-sm-base">간편결제</span>
+</button>
+</div>
+</div>
+<!-- Bottom CTA -->
+<div class="pt-4">
+<button class="checkout-pay-btn">
+<span>1,155,000원 결제하기</span>
+<span class="icon-ms-base">arrow_forward</span>
+</button>
+<p class="checkout-terms-text">
+                        계속 진행하면 <a class="link-underline-primary" href="#">이용약관</a> 및 <a class="link-underline-primary" href="#">개인정보 처리방침</a>에 동의하는 것으로 간주됩니다.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>

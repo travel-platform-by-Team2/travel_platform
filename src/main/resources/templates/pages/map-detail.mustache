@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unified Map Exploration Variant 1</title>
+  {{>partials/head-assets}}
+</head>
+<body class="page-body-screen-neutral-hidden map-detail-page">
+  {{>partials/header}}
+
+<div class="map-detail-div-01">
+<div class="container-5xl-center">
+<div class="map-detail-div-02 map-search-toolbar">
+<div class="map-search-fields">
+<div class="search-grow-group">
+<div class="list-row-soft">
+<span class="icon-ms-neutral-gap-right-lg">search</span>
+<div class="map-search-field">
+<label class="label-xs-neutral" for="mapRegion">여행지</label>
+<div class="map-search-select-wrap">
+<select class="map-search-select" id="mapRegion" name="region">
+<option value="seoul">서울특별시</option>
+<option value="busan" selected>부산광역시</option>
+<option value="jeju">제주특별자치도</option>
+<option value="gyeongju">경주</option>
+<option value="gangwon">강원도</option>
+</select>
+<div class="input-icon-right">
+<span class="icon-ms-muted">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="map-detail-div-04"></div>
+<div class="search-grow-group">
+<div class="list-row-soft">
+<span class="icon-ms-neutral-gap-right-lg">calendar_month</span>
+<div class="map-search-field">
+<label class="label-xs-neutral" for="mapStartDate">일정</label>
+<div class="map-search-date-range">
+<input class="map-search-date-input" id="mapStartDate" type="date" value="2025-11-15"/>
+<span class="text-neutral-xs-subtle">~</span>
+<input class="map-search-date-input" id="mapEndDate" type="date" value="2025-11-18"/>
+</div>
+</div>
+</div>
+</div>
+<div class="map-detail-div-04"></div>
+<div class="search-grow-group">
+<div class="list-row-soft">
+<span class="icon-ms-neutral-gap-right-lg">group</span>
+<div class="map-search-field">
+<label class="label-xs-neutral" for="mapGuests">인원</label>
+<div class="map-search-select-wrap">
+<select class="map-search-select" id="mapGuests" name="guests">
+<option value="1">성인 1명</option>
+<option value="2" selected>성인 2명</option>
+<option value="3">성인 3명</option>
+<option value="4">성인 4명</option>
+<option value="group">단체 (5명 이상)</option>
+</select>
+<div class="input-icon-right">
+<span class="icon-ms-muted">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<button class="map-detail-button-01 map-search-submit">
+<span class="icon-ms-base">search</span>
+<span>검색</span>
+</button>
+</div>
+</div>
+<div class="timeline-chip-scroll">
+<button class="map-detail-button-02 map-panel-toggle" type="button" data-map-panel-toggle aria-controls="mapResultPanel" aria-expanded="true">
+<span class="icon-ms-16">hotel</span>
+                    숙소
+                </button>
+<button class="map-detail-button-03" type="button" data-map-poi-toggle aria-controls="mapPoiPanel" aria-expanded="false">
+<span class="icon-ms-16">attractions</span>
+                    관광지
+                </button>
+<div class="map-detail-div-05"></div>
+<button class="pill-neutral">
+                    가격 범위
+                    <span class="icon-ms-14">expand_more</span>
+</button>
+<button class="pill-neutral">
+                    평점
+                    <span class="icon-ms-14">expand_more</span>
+</button>
+<button class="pill-neutral">
+                    필터 더보기
+                    <span class="icon-ms-14">tune</span>
+</button>
+</div>
+</div>
+</div>
+<main class="map-detail-main-01">
+<aside class="map-detail-aside-01" id="mapResultPanel" data-map-result-panel>
+<div class="map-detail-div-06">
+<h3 class="map-detail-h3-01">부산 검색 결과 <span class="map-detail-span-02">128</span>개</h3>
+<div class="map-detail-div-07">
+<span class="icon-ms-18">sort</span>
+<span class="fw-medium-500">추천순</span>
+</div>
+</div>
+<div class="sidebar-scroll-soft" data-map-drag-scroll>
+<div class="poi-card">
+<div class="poi-card-media">
+<img alt="Busan ocean view hotel" class="media-cover-zoom105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-JAUxidY-8eAcp_IDpWDkgrUGMXIGAlPy1BJwza3o8VSKr55RAv9mLt9GMN6aPzSqUaGSwFoL74EWZKG0EtV9HzVx5i_KbnAraqlodDx-GlN53CzIIcHWdA6Ookubfk19r7qR7DWsq3neb-etxuMxfQnAjmDHvE9QnncbJ2VNnStRshVdPe9zBeLMiBxAsuQIkYIiMzR6gRiw9KI84TWahGVSWjxkaS9308j5YVRMy6BQS1lwXSpj13SwdZmAlCmkkIwlpo1W9rA"/>
+<div class="poi-card-fav">
+<span class="icon-ms-18-block">favorite</span>
+</div>
+<div class="poi-card-tag">
+                            호텔/리조트
+                        </div>
+</div>
+<div class="p-4">
+<div class="row-between-start-mb1">
+<h4 class="poi-card-title">파라다이스 호텔 부산</h4>
+<div class="poi-rating">
+<span class="icon-ms-14-fill">star</span>
+                                4.9
+                            </div>
+</div>
+<p class="text-neutral-sm-truncate-mb3">부산 해운대구 · 해운대 해수욕장 앞</p>
+<div class="map-detail-div-08">
+<span class="badge-neutral-xs">오션뷰</span>
+<span class="badge-neutral-xs">수영장</span>
+<span class="badge-neutral-xs">스파</span>
+</div>
+<div class="row-between-price">
+<div class="map-detail-div-09">₩450,000</div>
+<div class="text-right-align">
+<p class="price-strong">₩385,000</p>
+<span class="text-neutral-xs-subtle">/ 1박 (세금 포함)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="poi-card">
+<div class="poi-card-media">
+<img alt="Traditional market in Busan" class="media-cover-zoom105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgQdNeNWAKvF_XEmrvmeXZhDlZEkrsaT5L1HswoFEJqscQS4AFi3qZHQi23dm2ZJkqGyL2eLQGHruSaxy8w-VVD7ATptLBCOHPwnmn6ADoO2ih0ChSHfWp5oL88gqhBFdXzJH5GvXK6Jz4nvszn01k9ihI4LeOPRDKQxIqxS62edpm1n2UKy6XNlmYASt0mJo-Ehk7FmD9Ho8BjPIGseLR12D9G3rz118NEFOwx452_ocUKPMXRl_zfaNbMVYZPpzvET2mFTbii8"/>
+<div class="poi-card-fav">
+<span class="icon-ms-18-block">favorite</span>
+</div>
+<div class="poi-card-tag">
+                            관광지
+                        </div>
+</div>
+<div class="p-4">
+<div class="row-between-start-mb1">
+<h4 class="poi-card-title">감천문화마을</h4>
+<div class="poi-rating">
+<span class="icon-ms-14-fill">star</span>
+                                4.7
+                            </div>
+</div>
+<p class="text-neutral-sm-truncate-mb3">부산 사하구 · 한국의 마추픽추</p>
+<div class="map-detail-div-08">
+<span class="badge-neutral-xs">포토존</span>
+<span class="badge-neutral-xs">문화체험</span>
+</div>
+<div class="row-between-price">
+<div class="text-neutral-xs-subtle">입장료 무료</div>
+<div class="text-right-align">
+<p class="price-strong">무료</p>
+<span class="text-neutral-xs-subtle">상시 개방</span>
+</div>
+</div>
+</div>
+</div>
+<div class="poi-card">
+<div class="poi-card-media">
+<img alt="Modern hotel exterior" class="media-cover-zoom105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5HkQwgzyLa00qm4kJK8AntO2ohMwlggRjDKOLbAr-VuVZaW85t84Qg56mlYmwmNjAv9juzqcKjyymqjhbKRJF4YWTS6zPuGQs47NhHldI1a9kOEUWW9WRNwQxKJ3oPyAHrgmudLH2GDtU4wxGE34BYVcq161Lf1rmKY4x98zy3NaqZT9QJb8Maldzovyq4zCkxfgqycRYpIJ3RgFqvtONxkOrnspgSgW8rjDHtNC_mVCd_QtL2VID4YErblfOFPAaJDDo7-sPyok"/>
+<div class="poi-card-fav">
+<span class="icon-ms-18-block">favorite</span>
+</div>
+<div class="poi-card-tag">
+                            호텔
+                        </div>
+</div>
+<div class="p-4">
+<div class="row-between-start-mb1">
+<h4 class="poi-card-title">시그니엘 부산</h4>
+<div class="poi-rating">
+<span class="icon-ms-14-fill">star</span>
+                                4.8
+                            </div>
+</div>
+<p class="text-neutral-sm-truncate-mb3">부산 해운대구 · 엘시티 타워</p>
+<div class="map-detail-div-08">
+<span class="badge-neutral-xs">럭셔리</span>
+<span class="badge-neutral-xs">인피니티풀</span>
+</div>
+<div class="row-between-price">
+<div class="map-detail-div-09">₩520,000</div>
+<div class="text-right-align">
+<p class="price-strong">₩450,000</p>
+<span class="text-neutral-xs-subtle">/ 1박</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<div class="map-detail-div-10">
+<div class="map-detail-div-11" data-alt="Map of Busan area" data-location="Busan">
+<div class="map-detail-div-12" style="background-image: linear-gradient(#cad2e6 1px, transparent 1px), linear-gradient(90deg, #cad2e6 1px, transparent 1px); background-size: 40px 40px;"></div>
+<div class="map-detail-div-13"></div>
+<div class="map-detail-div-14"></div>
+<div class="fx-map-pin-a">
+<div class="map-detail-div-15">
+                        ₩385,000
+                    </div>
+<div class="map-detail-div-16"></div>
+<div class="map-detail-div-17"></div>
+</div>
+<div class="fx-map-pin-b">
+<div class="map-detail-div-18">
+                        무료
+                    </div>
+<div class="map-detail-div-19"></div>
+</div>
+<div class="fx-map-pin-c">
+<div class="map-detail-div-18">
+                        ₩450,000
+                    </div>
+<div class="map-detail-div-19"></div>
+</div>
+<div class="fx-map-pin-d">
+<div class="map-detail-div-20">₩120,000</div>
+<div class="map-detail-div-21"></div>
+</div>
+<div class="fx-map-pin-e">
+<div class="map-detail-div-20">₩85,000</div>
+<div class="map-detail-div-21"></div>
+</div>
+</div>
+<div class="map-detail-div-22">
+<button class="map-detail-button-04">
+<span class="icon-ms-20-block">layers</span>
+</button>
+<button class="map-detail-button-05">
+<span class="icon-ms-20-block">my_location</span>
+</button>
+<div class="map-detail-div-23">
+<button class="map-detail-button-06">
+<span class="icon-ms-20-block">add</span>
+</button>
+<button class="map-detail-button-07">
+<span class="icon-ms-20-block">remove</span>
+</button>
+</div>
+</div>
+<div class="map-detail-div-24">
+<button class="map-detail-button-08">
+<span class="icon-ms-18-primary">refresh</span>
+                    이 지역 검색
+                </button>
+</div>
+</div>
+  {{>partials/map-poi-side-sheet}}
+</main>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unified Login Page Variant 1</title>
+  {{>partials/head-assets}}
+</head>
+<body class="page-body">
+  {{>partials/header}}
+
+<main class="login-main-01">
+<div class="login-shell-grid">
+<div class="login-div-01" data-alt="Scenic view of a traditional Korean palace at sunset" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA3-ocK1XoagK0dQ808TPKsDD4Lw2-J16rCi-P6ExrwlYE0l4GdvvLfguP4yemfyVjh3BIC92s2o_OYgt-hmHeeSf1DklGty075K9l1cnNHY0SsCIttpsuPfJpxeLMD7LJPAott0uI9raifEDC2zyj6V3InmLxRFqDx4U0NjOjG0q3rKiUnjeSd0IJLTDQKng4HuJeLEbtLI7_d5ub_uowEd_llUuQ_mr69JzxTFhpUD-OQaCKo1Di7asmpkjHUdf2y0_ynNxAaau0");'>
+<div class="login-div-02"></div>
+<div class="login-div-03">
+<div class="chip-glass-inline">
+<span class="icon-ms-sm-white">verified</span>
+<span class="login-span-01">신뢰받는 여행 플랫폼</span>
+</div>
+</div>
+<div class="login-div-04">
+<h1 class="login-h1-01">여행의 모든 순간을<br/>함께하세요</h1>
+<p class="login-p-01">새로운 경험과 추억이 기다리고 있습니다.</p>
+</div>
+</div>
+<div class="auth-form-column">
+<div class="mb-8">
+<h2 class="login-h2-01">로그인</h2>
+<p class="calendar-add-event-span-02">계정에 로그인하여 서비스를 이용하세요.</p>
+</div>
+<form class="login-form-01">
+<label class="fx-group-col-gap2">
+<span class="login-span-02">
+                            이메일
+                            <span class="text-danger">*</span>
+</span>
+<div class="is-relative">
+<div class="login-div-05">
+<span class="icon-ms-20">mail</span>
+</div>
+<input class="signup-input-solid" placeholder="name@example.com" type="email" value="user@example.com"/>
+</div>
+</label>
+<label class="fx-group-col-gap2">
+<div class="login-div-06">
+<span class="login-span-02">
+                                비밀번호
+                                <span class="text-danger">*</span>
+</span>
+<a class="login-a-01" href="#">비밀번호 찾기</a>
+</div>
+<div class="is-relative">
+<div class="login-div-05">
+<span class="icon-ms-20">lock</span>
+</div>
+<input class="signup-input-solid" placeholder="비밀번호를 입력하세요" type="password" value="password123"/>
+</div>
+</label>
+<div class="login-div-07">
+<span class="icon-ms-sm-red-600">error</span>
+<p class="login-p-02">이메일 또는 비밀번호가 올바르지 않습니다.</p>
+</div>
+<div class="inline-items-gap-2">
+<input class="login-input-01" id="remember" type="checkbox"/>
+<label class="login-label-01" for="remember">로그인 상태 유지</label>
+</div>
+<button class="login-button-01" type="button">
+<span>로그인</span>
+<span class="icon-ms-sm">arrow_forward</span>
+</button>
+</form>
+<div class="login-div-08">
+<p class="calendar-add-event-span-02">
+                        계정이 없으신가요? 
+                        <a class="login-a-02" href="#">회원가입 하기</a>
+</p>
+</div>
+</div>
+</div>
+</main>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>
