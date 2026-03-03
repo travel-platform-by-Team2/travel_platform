@@ -10,7 +10,7 @@ import com.example.travel_platform.core.handler.ex.Exception400;
 
 @Aspect
 @Component
-public class ValidatinoHandler {
+public class ValidationHandler {
 
     @Before("@annotation(org.springframework.web.bind.annotation.PostMapping)")
     public void ValidationCheck(JoinPoint jp) {
