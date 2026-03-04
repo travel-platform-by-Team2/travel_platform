@@ -1,10 +1,10 @@
-# WORKLOG_POLICY.md
+﻿# WORKLOG_POLICY.md
 
 이 문서는 작업일지 작성 기준과 실행 명령을 정의한다.
 작업일지는 `.docs/.task` 하위의 개인 폴더에 누적 기록한다.
 
 관련 문서:
-- `.docs/.agent/SKILL_OPERATING_GUIDE.md`
+- `.docs/skills/00-스킬인덱스/00-스킬인덱스.md`
 - `.docs/.agent/TASK_TEMPLATE.md`
 - `.docs/skills/12-테스트-작업-운영/12-테스트-작업-운영-가이드.md`
 
@@ -130,3 +130,5 @@
 - TODO:
 - 리스크:
 ```
+
+

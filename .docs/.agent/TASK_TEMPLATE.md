@@ -1,11 +1,11 @@
-# TASK_TEMPLATE.md
+﻿# TASK_TEMPLATE.md
 
 이 문서는 TASK 문서를 빠르게 작성하기 위한 표준 템플릿이다.
 세부 규칙은 `.docs/RULES.md`, `TASK_POLICY.md`를 따른다.
 
 관련 문서:
 
-- `.docs/.agent/SKILL_OPERATING_GUIDE.md`
+- `.docs/skills/00-스킬인덱스/00-스킬인덱스.md`
 - `.docs/.agent/WORKLOG_POLICY.md`
 
 ---
@@ -149,3 +149,5 @@
 - 미완료 항목(TODO): (작업 후 기입)
 - 리스크/주의사항: (작업 후 기입)
 ```
+
+
