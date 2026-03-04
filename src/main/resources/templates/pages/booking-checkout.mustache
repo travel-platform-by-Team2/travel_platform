@@ -125,26 +125,35 @@
             <span class="icon-ms-2xl">credit_card</span>
             <span class="text-sm-base">신용카드</span>
           </button>
-          <button class="option-tile">
+          <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
             <span class="icon-ms-2xl">account_balance_wallet</span>
-            <span class="text-sm-base">계좌이체</span>
+            <span class="text-sm-base">계좌이체 (이용불가)</span>
           </button>
-          <button class="option-tile">
+          <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
             <span class="icon-ms-2xl">payments</span>
-            <span class="text-sm-base">현장결제</span>
+            <span class="text-sm-base">현장결제 (이용불가)</span>
           </button>
-          <button class="option-tile">
+          <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
             <span class="icon-ms-2xl">smartphone</span>
-            <span class="text-sm-base">간편결제</span>
+            <span class="text-sm-base">간편결제 (이용불가)</span>
           </button>
         </div>
       </div>
 
       <div class="pt-4">
-        <button class="checkout-pay-btn">
+        <form action="/bookings/complete" method="get">
+          <input type="hidden" name="lodgingName" value="{{lodgingName}}">
+          <input type="hidden" name="region" value="{{address}}">
+          <input type="hidden" name="guests" value="{{guests}}">
+          <input type="hidden" name="checkIn" value="{{checkIn}}">
+          <input type="hidden" name="checkOut" value="{{checkOut}}">
+          <input type="hidden" name="totalPriceText" value="{{totalPriceText}}">
+          <input type="hidden" name="imageUrl" value="{{imageUrl}}">
+        <button class="checkout-pay-btn" type="submit">
           <span>{{totalPriceText}} 결제하기</span>
           <span class="icon-ms-base">arrow_forward</span>
         </button>
+        </form>
         <p class="checkout-terms-text">
           계속 진행하면 <a class="link-underline-primary" href="#">이용약관</a> 및
           <a class="link-underline-primary" href="#">개인정보 처리방침</a>에 동의하는 것으로 간주됩니다.

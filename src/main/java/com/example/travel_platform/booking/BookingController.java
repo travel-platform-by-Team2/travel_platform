@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,6 +27,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/bookings")
 @RequiredArgsConstructor
 public class BookingController {
+
+    private static final String DEFAULT_COMPLETE_IMAGE_URL =
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
 
     private final BookingService bookingService;
     private final MapPlaceImageRepository mapPlaceImageRepository;
@@ -99,6 +103,32 @@ public class BookingController {
         return "pages/booking-checkout";
     }
 
+    @GetMapping("/complete")
+    public String completePage(
+            @RequestParam(required = false, defaultValue = "숙소") String lodgingName,
+            @RequestParam(required = false, defaultValue = "") String region,
+            @RequestParam(required = false, defaultValue = "성인 2명") String guests,
+            @RequestParam(required = false, defaultValue = "") String checkIn,
+            @RequestParam(required = false, defaultValue = "") String checkOut,
+            @RequestParam(required = false, defaultValue = "") String totalPriceText,
+            @RequestParam(required = false) String imageUrl,
+            Model model) {
+
+        String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
+        String safeTotalPriceText = (totalPriceText == null || totalPriceText.isBlank()) ? "0원" : totalPriceText;
+
+        model.addAttribute("bookingNumber", buildBookingNumber());
+        model.addAttribute("lodgingName", lodgingName);
+        model.addAttribute("region", safeRegion);
+        model.addAttribute("guests", guests);
+        model.addAttribute("checkIn", checkIn);
+        model.addAttribute("checkOut", checkOut);
+        model.addAttribute("nightsLabel", calculateNightsLabel(checkIn, checkOut));
+        model.addAttribute("totalPriceText", safeTotalPriceText);
+        model.addAttribute("completeImageUrl", resolveCompleteImageUrl(imageUrl));
+        return "pages/booking-complete";
+    }
+
     @GetMapping("/place-image")
     @ResponseBody
     public Map<String, Object> getPlaceImage(
@@ -168,5 +198,32 @@ public class BookingController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private String calculateNightsLabel(String checkIn, String checkOut) {
+        String nightsLabel = "1박";
+        try {
+            if (checkIn != null && checkOut != null && !checkIn.isBlank() && !checkOut.isBlank()) {
+                LocalDate in = LocalDate.parse(checkIn);
+                LocalDate out = LocalDate.parse(checkOut);
+                long nights = Math.max(1, ChronoUnit.DAYS.between(in, out));
+                nightsLabel = nights + "박";
+            }
+        } catch (Exception ignored) {
+        }
+        return nightsLabel;
+    }
+
+    private String buildBookingNumber() {
+        LocalDate now = LocalDate.now();
+        int random = ThreadLocalRandom.current().nextInt(100, 1000);
+        return String.format("KR-%04d%02d%02d-%03d", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), random);
+    }
+
+    private String resolveCompleteImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return DEFAULT_COMPLETE_IMAGE_URL;
+        }
+        return imageUrl;
     }
 }
