@@ -72,18 +72,11 @@ public class BookingController {
 
         int safeRoomPrice = roomPrice == null || roomPrice < 0 ? 350000 : roomPrice;
         int safeFee = fee == null || fee < 0 ? 105000 : fee;
-        int totalPrice = safeRoomPrice + safeFee;
-        String nightsLabel = "1박";
-
-        try {
-            if (!checkIn.isBlank() && !checkOut.isBlank()) {
-                LocalDate in = LocalDate.parse(checkIn);
-                LocalDate out = LocalDate.parse(checkOut);
-                long nights = Math.max(1, ChronoUnit.DAYS.between(in, out));
-                nightsLabel = nights + "박";
-            }
-        } catch (Exception ignored) {
-        }
+        long nights = calculateNights(checkIn, checkOut);
+        String nightsLabel = nights + "박";
+        long roomSubtotal = (long) safeRoomPrice * nights;
+        long feeSubtotal = (long) safeFee * nights;
+        long totalPrice = roomSubtotal + feeSubtotal;
 
         model.addAttribute("lodgingName", lodgingName);
         model.addAttribute("address", address);
@@ -93,7 +86,8 @@ public class BookingController {
         model.addAttribute("nightsLabel", nightsLabel);
         model.addAttribute("guests", guests);
         model.addAttribute("roomPriceText", String.format("%,d원", safeRoomPrice));
-        model.addAttribute("feeText", String.format("%,d원", safeFee));
+        model.addAttribute("roomSubtotalText", String.format("%,d원", roomSubtotal));
+        model.addAttribute("feeText", String.format("%,d원", feeSubtotal));
         model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
         return "pages/booking-checkout";
     }
@@ -139,17 +133,19 @@ public class BookingController {
     }
 
     private String calculateNightsLabel(String checkIn, String checkOut) {
-        String nightsLabel = "1박";
+        return calculateNights(checkIn, checkOut) + "박";
+    }
+
+    private long calculateNights(String checkIn, String checkOut) {
         try {
             if (checkIn != null && checkOut != null && !checkIn.isBlank() && !checkOut.isBlank()) {
                 LocalDate in = LocalDate.parse(checkIn);
                 LocalDate out = LocalDate.parse(checkOut);
-                long nights = Math.max(1, ChronoUnit.DAYS.between(in, out));
-                nightsLabel = nights + "박";
+                return Math.max(1, ChronoUnit.DAYS.between(in, out));
             }
         } catch (Exception ignored) {
         }
-        return nightsLabel;
+        return 1L;
     }
 
     private String buildBookingNumber() {

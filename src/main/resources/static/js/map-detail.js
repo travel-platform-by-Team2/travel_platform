@@ -188,6 +188,24 @@
     return text;
   }
 
+  function getSelectedNights() {
+    var startDateEl = document.getElementById("mapStartDate");
+    var endDateEl = document.getElementById("mapEndDate");
+    var checkIn = formatDateInputValue(startDateEl ? startDateEl.value : "");
+    var checkOut = formatDateInputValue(endDateEl ? endDateEl.value : "");
+    if (!checkIn || !checkOut) {
+      return 1;
+    }
+
+    var inDate = new Date(checkIn + "T00:00:00");
+    var outDate = new Date(checkOut + "T00:00:00");
+    if (!Number.isFinite(inDate.getTime()) || !Number.isFinite(outDate.getTime())) {
+      return 1;
+    }
+    var diffDays = Math.round((outDate.getTime() - inDate.getTime()) / 86400000);
+    return Math.max(1, diffDays);
+  }
+
   function buildCheckoutUrl(item, imageUrl) {
     var params = new URLSearchParams();
     params.set("lodgingName", item.name || "숙소");
@@ -210,7 +228,7 @@
     }
     params.set("guests", guests);
 
-    var pricing = getPricing(item);
+    var pricing = getPricing(item, getSelectedNights());
     var nightlyPrice = pricing.roomPrice;
     var fee = pricing.fee;
     params.set("roomPrice", String(nightlyPrice));
@@ -268,14 +286,20 @@
     }
   }
 
-  function getPricing(item) {
+  function getPricing(item, nights) {
+    var safeNights = Number.isFinite(nights) && nights > 0 ? Math.floor(nights) : 1;
     var roomPrice = 150000 + (hashText(item.name || item.id || "hotel") % 260000);
     var fee = Math.round(roomPrice * 0.18);
-    var total = roomPrice + fee;
+    var roomSubtotal = roomPrice * safeNights;
+    var feeSubtotal = fee * safeNights;
+    var total = roomSubtotal + feeSubtotal;
     return {
       roomPrice: roomPrice,
+      roomSubtotal: roomSubtotal,
       fee: fee,
-      total: total
+      feeSubtotal: feeSubtotal,
+      total: total,
+      nights: safeNights
     };
   }
 
@@ -764,7 +788,7 @@
       .map(function (item) {
         var badge = item.type === "hotel" ? "숙소" : "관광지";
         var subtitle = item.roadAddress || item.address || "주소 정보 없음";
-        var pricing = getPricing(item);
+        var pricing = getPricing(item, getSelectedNights());
         var totalPriceText = item.type === "hotel" ? formatWon(pricing.total) : "정보 없음";
         var imageUrl = getPoiImageUrl(item);
         return (
@@ -1026,6 +1050,8 @@
   function bindTopSearchBar(state) {
     var regionSelect = document.getElementById("mapRegion");
     var submitButton = document.querySelector(".map-search-submit");
+    var startDateEl = document.getElementById("mapStartDate");
+    var endDateEl = document.getElementById("mapEndDate");
     if (!regionSelect || !submitButton) {
       return;
     }
@@ -1062,6 +1088,20 @@
       state.map.setLevel(view.level);
       state.map.panTo(new kakao.maps.LatLng(view.lat, view.lng));
     });
+
+    function refreshListPriceOnly() {
+      if (!state.hasSearched) {
+        return;
+      }
+      renderList(state);
+    }
+
+    if (startDateEl) {
+      startDateEl.addEventListener("change", refreshListPriceOnly);
+    }
+    if (endDateEl) {
+      endDateEl.addEventListener("change", refreshListPriceOnly);
+    }
   }
 
   function bindViewportSync(state) {
