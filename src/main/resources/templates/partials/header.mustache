@@ -1,2 +1,7 @@
-﻿{{>partials/header-logged-out}}
+﻿{{#sessionUser}}
+    {{>partials/header-logged-in}}
+{{/sessionUser}}
 
+{{^sessionUser}}
+    {{>partials/header-logged-out}}
+{{/sessionUser}}
