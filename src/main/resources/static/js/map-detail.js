@@ -51,6 +51,7 @@
             places: new kakao.maps.services.Places(map),
             overlays: [],
             items: [],
+            hasSearched: false,
             syncByViewport: false,
             idleTimer: null,
             loading: false,
@@ -61,6 +62,7 @@
             focusOverlay: null
           };
 
+          initializeResultPanel(state);
           bindViewportSync(state);
           bindTopSearchBar(state);
           initPoiCardMapLink(state);
@@ -695,6 +697,29 @@
     }
   }
 
+  function updateRegionLabel(regionSelect) {
+    var regionEl = document.querySelector(".map-detail-region-label");
+    if (!regionEl || !regionSelect) {
+      return;
+    }
+    var selectedOption = regionSelect.options[regionSelect.selectedIndex];
+    regionEl.textContent = selectedOption ? selectedOption.text : "";
+  }
+
+  function initializeResultPanel(state) {
+    var panel = document.querySelector("[data-map-result-panel]");
+    var container = document.querySelector("[data-map-drag-scroll]");
+    var regionSelect = document.getElementById("mapRegion");
+    if (panel) {
+      panel.hidden = true;
+    }
+    if (container) {
+      container.hidden = true;
+    }
+    updateRegionLabel(regionSelect);
+    updateResultCount(0);
+  }
+
   function escapeHtml(text) {
     return String(text || "")
       .replace(/&/g, "&amp;")
@@ -709,6 +734,21 @@
     if (!container) {
       return;
     }
+
+    var panel = document.querySelector("[data-map-result-panel]");
+    if (!state.hasSearched) {
+      if (panel) {
+        panel.hidden = true;
+      }
+      container.hidden = true;
+      updateResultCount(0);
+      return;
+    }
+
+    if (panel) {
+      panel.hidden = false;
+    }
+    container.hidden = false;
 
     var listItems = state.items.filter(function (item) {
       return item.type === "hotel";
@@ -872,6 +912,91 @@
     });
   }
 
+  function readMapBounds(state) {
+    if (!state || !state.map) {
+      return null;
+    }
+    var bounds = state.map.getBounds();
+    if (!bounds) {
+      return null;
+    }
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+    return {
+      swLat: sw.getLat(),
+      swLng: sw.getLng(),
+      neLat: ne.getLat(),
+      neLng: ne.getLng()
+    };
+  }
+
+  function normalizeMergedPoi(raw) {
+    if (!raw) {
+      return null;
+    }
+    var lat = Number(raw.lat);
+    var lng = Number(raw.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+    var groupCode = raw.categoryGroupCode || "";
+    var type = raw.type || (groupCode === CATEGORY.STAY ? "hotel" : "attraction");
+    return {
+      id: raw.externalPlaceId || raw.id || "",
+      name: raw.name || "이름 없음",
+      lat: lat,
+      lng: lng,
+      phone: raw.phone || "",
+      address: raw.address || "",
+      roadAddress: raw.roadAddress || "",
+      placeUrl: raw.placeUrl || "",
+      categoryName: raw.categoryName || "",
+      type: type
+    };
+  }
+
+  async function mergePoisWithServer(state, kakaoItems) {
+    var payload = {
+      regionKey: state.currentRegionKey || "",
+      bounds: readMapBounds(state),
+      kakaoPois: (kakaoItems || []).map(function (item) {
+        return {
+          externalPlaceId: item.id || "",
+          name: item.name || "",
+          phone: item.phone || "",
+          address: item.address || "",
+          roadAddress: item.roadAddress || "",
+          placeUrl: item.placeUrl || "",
+          categoryName: item.categoryName || "",
+          categoryGroupCode: item.type === "hotel" ? CATEGORY.STAY : CATEGORY.ATTRACTION,
+          lat: Number(item.lat),
+          lng: Number(item.lng),
+          type: item.type || ""
+        };
+      })
+    };
+
+    try {
+      var response = await fetch("/bookings/map-pois/merge", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        return kakaoItems;
+      }
+      var data = await response.json();
+      var items = data && Array.isArray(data.items) ? data.items.map(normalizeMergedPoi).filter(Boolean) : [];
+      return items.length ? items : kakaoItems;
+    } catch (error) {
+      console.error(error);
+      return kakaoItems;
+    }
+  }
+
   async function fetchAndRenderVisiblePois(state) {
     if (state.loading) {
       return;
@@ -887,7 +1012,10 @@
       var merged = dedupeById([].concat(results[0], results[1])).filter(function (item) {
         return isInSelectedRegion(state, item);
       });
-      state.items = merged;
+      var unified = await mergePoisWithServer(state, merged);
+      state.items = dedupeById(unified).filter(function (item) {
+        return isInSelectedRegion(state, item);
+      });
       renderOverlays(state);
       renderList(state);
     } finally {
@@ -910,8 +1038,10 @@
       }
 
       state.currentRegionKey = regionKey;
+      updateRegionLabel(regionSelect);
       state.map.setLevel(view.level);
       state.map.panTo(new kakao.maps.LatLng(view.lat, view.lng));
+      state.hasSearched = true;
       state.syncByViewport = true;
       fetchAndRenderVisiblePois(state);
     }
@@ -922,7 +1052,15 @@
     });
 
     regionSelect.addEventListener("change", function () {
-      searchBySelectedRegion();
+      var regionKey = regionSelect.value;
+      var view = REGION_VIEW[regionKey];
+      if (!view) {
+        return;
+      }
+      state.currentRegionKey = regionKey;
+      updateRegionLabel(regionSelect);
+      state.map.setLevel(view.level);
+      state.map.panTo(new kakao.maps.LatLng(view.lat, view.lng));
     });
   }
 
@@ -959,10 +1097,13 @@
         return;
       }
 
+      // Keep list order unchanged; position selected card slightly below the sticky header area.
+      var header = document.querySelector("#mapResultPanel .map-detail-div-06");
+      var topOffset = header ? header.offsetHeight + 10 : 10;
+      listContainer.scrollTop = Math.max(0, card.offsetTop - topOffset);
+
       state.map.panTo(new kakao.maps.LatLng(lat, lng));
-      // 기존 "이 지역 검색" 버튼 기능을 숙소 클릭 시 자동 활성화
-      state.syncByViewport = true;
-      fetchAndRenderVisiblePois(state);
+      state.syncByViewport = false;
     });
   }
 

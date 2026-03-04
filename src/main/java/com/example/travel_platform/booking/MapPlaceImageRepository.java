@@ -34,12 +34,20 @@ public class MapPlaceImageRepository {
             return;
         }
 
-        jdbcTemplate.update(
-                "merge into map_place_image_tb (normalized_name, place_name, image_url, source, created_at) key(normalized_name) values (?, ?, ?, ?, current_timestamp)",
-                normalizedName,
+        int updated = jdbcTemplate.update(
+                "update map_place_image_tb set place_name = ?, image_url = ?, source = ?, created_at = current_timestamp where normalized_name = ?",
                 placeName == null ? "" : placeName,
                 imageUrl,
-                source == null ? "UNKNOWN" : source);
+                source == null ? "UNKNOWN" : source,
+                normalizedName);
+
+        if (updated == 0) {
+            jdbcTemplate.update(
+                    "insert into map_place_image_tb (normalized_name, place_name, image_url, source, created_at) values (?, ?, ?, ?, current_timestamp)",
+                    normalizedName,
+                    placeName == null ? "" : placeName,
+                    imageUrl,
+                    source == null ? "UNKNOWN" : source);
+        }
     }
 }
-

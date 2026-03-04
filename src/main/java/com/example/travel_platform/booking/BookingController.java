@@ -1,14 +1,10 @@
 package com.example.travel_platform.booking;
 
-import java.net.URI;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,7 +28,6 @@ public class BookingController {
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
 
     private final BookingService bookingService;
-    private final MapPlaceImageRepository mapPlaceImageRepository;
 
     @PostMapping
     public void createBooking(@Valid @RequestBody BookingRequest.CreateBookingDTO reqDTO) {
@@ -134,70 +129,13 @@ public class BookingController {
     public Map<String, Object> getPlaceImage(
             @RequestParam(required = false) String placeUrl,
             @RequestParam(required = false) String name) {
-        String normalizedName = normalizeName(name);
-        String imageUrl = mapPlaceImageRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
-
-        if (imageUrl == null || imageUrl.isBlank()) {
-            imageUrl = resolveImageFromKakaoPlace(placeUrl);
-            if (imageUrl != null && !imageUrl.isBlank() && !normalizedName.isBlank()) {
-                mapPlaceImageRepository.upsert(name, normalizedName, imageUrl, "KAKAO_PLACE");
-            }
-        }
-
-        return Map.of(
-                "imageUrl", imageUrl == null ? "" : imageUrl,
-                "name", name == null ? "" : name);
+        return bookingService.getPlaceImage(placeUrl, name);
     }
 
-    private String normalizeName(String name) {
-        if (name == null) {
-            return "";
-        }
-        return name.replaceAll("\\s+", "").toLowerCase();
-    }
-
-    private String resolveImageFromKakaoPlace(String placeUrl) {
-        if (placeUrl == null || placeUrl.isBlank() || !isAllowedKakaoUrl(placeUrl)) {
-            return null;
-        }
-
-        try {
-            Document doc = Jsoup.connect(placeUrl)
-                    .userAgent(
-                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36")
-                    .timeout((int) Duration.ofSeconds(4).toMillis())
-                    .followRedirects(true)
-                    .get();
-
-            String image = doc.select("meta[property=og:image]").attr("content");
-            if (image == null || image.isBlank()) {
-                image = doc.select("meta[name=twitter:image]").attr("content");
-            }
-            if (image == null || image.isBlank()) {
-                image = doc.select("img[src]").stream()
-                        .map(el -> el.attr("abs:src"))
-                        .filter(src -> src != null && !src.isBlank())
-                        .findFirst()
-                        .orElse("");
-            }
-
-            return image == null || image.isBlank() ? null : image;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private boolean isAllowedKakaoUrl(String rawUrl) {
-        try {
-            URI uri = URI.create(rawUrl);
-            String host = uri.getHost();
-            if (host == null) {
-                return false;
-            }
-            return host.endsWith("map.kakao.com") || host.endsWith("place.map.kakao.com");
-        } catch (Exception e) {
-            return false;
-        }
+    @PostMapping("/map-pois/merge")
+    @ResponseBody
+    public Map<String, Object> mergeMapPois(@RequestBody BookingRequest.MergeMapPoisDTO reqDTO) {
+        return Map.of("items", bookingService.mergeMapPois(reqDTO));
     }
 
     private String calculateNightsLabel(String checkIn, String checkOut) {
