@@ -29,7 +29,7 @@
 <h2 class="login-h2-01">로그인</h2>
 <p class="calendar-add-event-span-02">계정에 로그인하여 서비스를 이용하세요.</p>
 </div>
-<form class="login-form-01">
+<form class="login-form-01" action="/login" method="post">
 <label class="fx-group-col-gap2">
 <span class="login-span-02">
                             이메일
@@ -39,7 +39,7 @@
 <div class="login-div-05">
 <span class="icon-ms-20">mail</span>
 </div>
-<input class="signup-input-solid" placeholder="name@example.com" type="email" value="user@example.com"/>
+<input class="signup-input-solid" placeholder="name@example.com" type="email" name="email" value=""/>
 </div>
 </label>
 <label class="fx-group-col-gap2">
@@ -54,10 +54,10 @@
 <div class="login-div-05">
 <span class="icon-ms-20">lock</span>
 </div>
-<input class="signup-input-solid" placeholder="비밀번호를 입력하세요" type="password" value="password123"/>
+<input class="signup-input-solid" placeholder="비밀번호를 입력하세요" type="password" name="password" value=""/>
 </div>
 </label>
-<div class="login-div-07">
+<div class="login-div-07" style="display: none;">
 <span class="icon-ms-sm-red-600">error</span>
 <p class="login-p-02">이메일 또는 비밀번호가 올바르지 않습니다.</p>
 </div>
@@ -65,7 +65,7 @@
 <input class="login-input-01" id="remember" type="checkbox"/>
 <label class="login-label-01" for="remember">로그인 상태 유지</label>
 </div>
-<button class="login-button-01" type="button">
+<button class="login-button-01" type="submit">
 <span>로그인</span>
 <span class="icon-ms-sm">arrow_forward</span>
 </button>
