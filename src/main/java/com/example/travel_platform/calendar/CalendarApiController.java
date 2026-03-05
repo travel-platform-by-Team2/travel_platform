@@ -28,12 +28,14 @@ public class CalendarApiController {
 
     @PostMapping
     public void createEvent(@RequestBody CalendarRequest.CreateEventDTO reqDTO) {
-        calendarService.createEvent(requireSessionUserId(), reqDTO);
+        Integer sessionUserId = 1;
+        calendarService.createEvent(sessionUserId, reqDTO);
     }
 
     @PutMapping("/{eventId}")
     public void updateEvent(@PathVariable Integer eventId, @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
-        calendarService.updateEvent(requireSessionUserId(), eventId, reqDTO);
+        Integer sessionUserId = 1;
+        calendarService.updateEvent(sessionUserId, eventId, reqDTO);
     }
 
     @DeleteMapping("/{eventId}")

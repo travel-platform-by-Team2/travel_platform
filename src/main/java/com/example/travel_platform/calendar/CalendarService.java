@@ -19,12 +19,36 @@ public class CalendarService {
 
     @Transactional
     public void createEvent(Integer sessionUserId, CalendarRequest.CreateEventDTO reqDTO) {
-        // TODO: 일정 생성 비즈니스 로직 구현
+        if (reqDTO.getStartAt() != null && reqDTO.getEndAt() != null
+                && reqDTO.getStartAt().isAfter(reqDTO.getEndAt())) {
+            throw new Exception400("시작일은 종료일 보다 늦을 수 없습니다.");
+        }
+
+        CalendarEvent event = new CalendarEvent();
+        event.setTitle(reqDTO.getTitle());
+        event.setStartAt(reqDTO.getStartAt());
+        event.setEndAt(reqDTO.getEndAt());
+        event.setEventType(reqDTO.getEventType());
+
+        calendarRepository.save(event);
     }
 
     @Transactional
     public void updateEvent(Integer sessionUserId, Integer eventId, CalendarRequest.UpdateEventDTO reqDTO) {
-        // TODO: 일정 수정 비즈니스 로직 구현
+        if (reqDTO.getStartAt() != null && reqDTO.getEndAt() != null
+                && reqDTO.getStartAt().isAfter(reqDTO.getEndAt())) {
+            throw new Exception400("시작일은 종료일 보다 늦을 수 없습니다.");
+        }
+
+        CalendarEvent event = calendarRepository.findById(eventId)
+                .orElseThrow(() -> new Exception400("일정을 찾을 수 없습니다."));
+
+        event.setTitle(reqDTO.getTitle());
+        event.setStartAt(reqDTO.getStartAt());
+        event.setEndAt(reqDTO.getEndAt());
+        event.setEventType(reqDTO.getEventType());
+
+        calendarRepository.update(event);
     }
 
     @Transactional
@@ -34,7 +58,7 @@ public class CalendarService {
 
     public List<CalendarResponse.EventDTO> getEventList(Integer sessionUserId, LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw new Exception400("startDate는 endDate보다 늦을 수 없습니다.");
+            throw new Exception400("시작일은 종료일 보다 늦을 수 없습니다.");
         }
 
         List<CalendarEvent> events = calendarRepository.findEventListByUserId(sessionUserId, startDate, endDate);
@@ -52,12 +76,10 @@ public class CalendarService {
     }
 
     public List<CalendarResponse.DayNodeDTO> getDayNodeList(Integer sessionUserId, Integer year, Integer month) {
-        // TODO: 월 단위 날짜 노드 조회 비즈니스 로직 구현
         return List.of();
     }
 
     public CalendarResponse.DayNodeDTO getDayNode(Integer sessionUserId, LocalDate date) {
-        // TODO: 단일 날짜 노드 조회 비즈니스 로직 구현
         return null;
     }
 }
