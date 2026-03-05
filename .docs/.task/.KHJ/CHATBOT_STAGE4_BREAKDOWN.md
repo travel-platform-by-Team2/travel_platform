@@ -1,8 +1,8 @@
-# 챗봇 4단계 세분화 문서
+﻿# 챗봇 4단계 세분화 문서
 
 ## 0. 문서 정보
 - 작성일: 2026-03-04
-- 기준: `.docs/.KHJ/AGENT_KHJ.md`, `.docs/.KHJ/CHATBOT_PROGRESS.md`, `.docs/.KHJ/CHATBOT_API_SPEC.md`
+- 기준: `.docs/.task/.KHJ/AGENT_KHJ.md`, `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`, `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
 - 목적: 4단계(백엔드 챗봇 API 설계/구현) 작업을 구현 단위로 세분화
 
 ## 1. 4단계 목표
@@ -102,3 +102,4 @@
 2. SQL 보안(검증/화이트리스트)
 3. 대화 로그 저장/이력 조회
 4. 운영 환경 모니터링/레이트 리밋
+

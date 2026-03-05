@@ -1,4 +1,4 @@
-# KHJ 작업 로그
+﻿# KHJ 작업 로그
 
 ## 개요
 - 작성자: KHJ
@@ -61,12 +61,12 @@
    - 백엔드 API 및 저장 구조 유무 확인
 
 2. 진행 단계 문서 신규 작성
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 내용: 완료/미완료 항목, 단계별 상태, 다음 작업 순서, 리스크
 
 ### 3. 변경 파일
-- 추가: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 추가: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 문서 파일 생성/내용 확인 완료
@@ -82,17 +82,17 @@
 
 ### 2. 진행 내용
 1. 챗봇 API 스펙 초안 작성
-   - 파일: `.docs/.KHJ/CHATBOT_API_SPEC.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
    - 범위: 메시지 전송/대화 이력 조회 API, 요청/응답, 에러 코드
 
 2. 진행 단계 문서 상태 갱신
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 반영: API 스펙 초안 완료, 4단계 상태를 `진행중`으로 변경
 
 ### 3. 변경 파일
-- 추가: `.docs/.KHJ/CHATBOT_API_SPEC.md`
-- 수정: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 추가: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 문서 생성/갱신 여부 확인 완료
@@ -109,17 +109,17 @@
 
 ### 2. 진행 내용
 1. 챗봇 API 스펙 문서 갱신
-   - 파일: `.docs/.KHJ/CHATBOT_API_SPEC.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
    - 반영: 분류 단계, SQL 생성 단계, 서버 조회 후 재질문 단계 명시
 
 2. 진행 단계 문서 갱신
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 반영: 처리 흐름 확정 완료 이력 추가, 다음 작업 우선순위 재정렬
 
 ### 3. 변경 파일
-- 수정: `.docs/.KHJ/CHATBOT_API_SPEC.md`
-- 수정: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 문서 갱신 내용 확인 완료
@@ -140,13 +140,13 @@
    - 반영: 네트워크/서버 오류 시 봇 안내 메시지 출력
 
 2. 진행 단계 문서 갱신
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 반영: 3단계 상태를 `완료`로 변경, 다음 작업 우선순위 갱신
 
 ### 3. 변경 파일
 - 수정: `src/main/resources/static/js/chatbot.js`
-- 수정: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 문서/코드 변경 반영 확인 완료
@@ -162,18 +162,18 @@
 
 ### 2. 진행 내용
 1. 4단계 세분화 문서 신규 작성
-   - 파일: `.docs/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
    - 반영: 4-1 ~ 4-6 작업 단위, 완료 기준, 구현 순서, 검증 계획
 
 2. 진행 단계 문서 갱신
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 반영: 4단계 상태를 `세분화 문서 완료, 구현 미진행`으로 업데이트
    - 반영: 다음 작업 순서를 세분화 기준으로 조정
 
 ### 3. 변경 파일
-- 추가: `.docs/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
-- 수정: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 추가: `.docs/.task/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 문서 생성/갱신 내용 확인 완료
@@ -199,17 +199,17 @@
    - 반영: `DIRECT_LLM/DB_QUERY` 분기 처리
 
 3. 문서 상태 동기화
-   - 파일: `.docs/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 반영: 4-2 표현을 서비스 내부 책임 분리로 변경, 4-3 완료 처리
 
 ### 3. 변경 파일
 - 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
 - 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotOrchestrator.java`
 - 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotOrchestratorMock.java`
-- 수정: `.docs/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
-- 수정: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 코드 컴파일/테스트 확인 완료 (`./gradlew test`)
@@ -226,19 +226,19 @@
 
 ### 2. 진행 내용
 1. 챗봇 API 스펙 재정의
-   - 파일: `.docs/.KHJ/CHATBOT_API_SPEC.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
    - 반영: 대화 이력 API 제거, 단일 질문 처리 API 중심으로 수정
    - 반영: `conversationId/messageId` 기반 저장 모델 제거
 
 2. 진행 단계 문서 갱신
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 반영: 대화 저장 단계를 `제외`로 변경
    - 반영: 비저장 원칙 확정 이력 추가
 
 ### 3. 변경 파일
-- 수정: `.docs/.KHJ/CHATBOT_API_SPEC.md`
-- 수정: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 문서 갱신 내용 확인 완료
@@ -254,18 +254,19 @@
 
 ### 2. 진행 내용
 1. 챗봇 API 스펙 문서 수정
-   - 파일: `.docs/.KHJ/CHATBOT_API_SPEC.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
    - 반영: 인증/필터 적용 보류 정책 명시, 401/403 코드는 예약 코드로 분리
 
 2. 진행 단계 문서 수정
-   - 파일: `.docs/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
    - 반영: 권한/세션 단계 상태를 `보류`로 조정, 인증/필터 미확정 리스크 반영
 
 ### 3. 변경 파일
-- 수정: `.docs/.KHJ/CHATBOT_API_SPEC.md`
-- 수정: `.docs/.KHJ/CHATBOT_PROGRESS.md`
-- 수정: `.docs/.KHJ/WORKLOG.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
 
 ### 4. 검증
 - 문서 갱신 내용 확인 완료
 - 코드 로직 변경 없음 (문서 작업)
+

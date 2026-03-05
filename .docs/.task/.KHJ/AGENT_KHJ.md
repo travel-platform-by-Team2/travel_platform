@@ -9,7 +9,7 @@
 ## 1. 작업 목표 및 작업 내용
 
 - 챗봇 시스템 개발을 위해 CHATBOT_STAGE4_BREAKDOWN문서를 보고 단계별 작업 진행
-- 작업 완료 후 CHATBOT_PROGESS, CHATBOT_STAGE4_BREAKDOWN(완료된 항목 완료처리)문서 업데이트
+- 작업 완료 후 CHATBOT_PROGRESS, CHATBOT_STAGE4_BREAKDOWN(완료된 항목 완료처리)문서 업데이트
 
 ## 2. 우선 참조 문서
 
@@ -55,3 +55,4 @@
 - [ ] 라우팅/뷰 경로 확인 (해당 시)
 - [ ] 예외/권한 케이스 확인 (해당 시)
 - [ ] 문서 업데이트 완료
+
