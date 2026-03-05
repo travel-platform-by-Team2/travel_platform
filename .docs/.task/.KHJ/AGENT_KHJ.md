@@ -9,8 +9,8 @@
 
 ## 1. 작업 목표 및 작업 내용
 
-- 챗봇 시스템 개발을 위해 CHATBOT_STAGE4_BREAKDOWN문서를 보고 단계별 작업 진행
-- 작업 완료 후 CHATBOT_PROGRESS, CHATBOT_STAGE4_BREAKDOWN(완료된 항목 완료처리)문서 업데이트
+- 프로젝트 전체적인 구조 리팩토링 진행
+- 코드컨벤션에 맞지않는 코드 수정이 메인작업임
 
 ## 2. 우선 참조 문서
 

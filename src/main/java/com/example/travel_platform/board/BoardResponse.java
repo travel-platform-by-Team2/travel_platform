@@ -1,4 +1,4 @@
-package com.example.travel_platform.community;
+package com.example.travel_platform.board;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -6,13 +6,12 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
-// 커뮤니티 게시글/댓글 조회 응답 포맷을 정의하는 DTO 클래스
-public class CommunityResponse {
+// 게시글/댓글 조회 응답 포맷을 정의하는 DTO 클래스
+public class BoardResponse {
 
-    // 커뮤니티 게시글 목록 아이템 응답 DTO
     @Data
     @Builder
-    public static class PostSummaryDTO {
+    public static class BoardSummaryDTO {
         private Integer id;
         private String title;
         private String username;
@@ -20,7 +19,6 @@ public class CommunityResponse {
         private LocalDateTime createdAt;
     }
 
-    // 커뮤니티 댓글 단건 응답 DTO
     @Data
     @Builder
     public static class ReplyDTO {
@@ -30,10 +28,9 @@ public class CommunityResponse {
         private LocalDateTime createdAt;
     }
 
-    // 커뮤니티 게시글 상세 응답 DTO
     @Data
     @Builder
-    public static class PostDetailDTO {
+    public static class BoardDetailDTO {
         private Integer id;
         private String title;
         private String content;

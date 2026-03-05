@@ -1,6 +1,8 @@
 package com.example.travel_platform.calendar;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +20,14 @@ public class CalendarResponse {
         private LocalDateTime startAt;
         private LocalDateTime endAt;
         private String eventType;
+    }
+
+    // 캘린더 일자 노드 응답 DTO
+    @Data
+    @Builder
+    public static class DayNodeDTO {
+        private LocalDate date;
+        private Integer eventCount;
+        private List<EventDTO> events;
     }
 }

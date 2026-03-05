@@ -2,56 +2,20 @@ package com.example.travel_platform.booking;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/bookings")
-@RequiredArgsConstructor
 public class BookingController {
 
     private static final String DEFAULT_COMPLETE_IMAGE_URL =
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
-
-    private final BookingService bookingService;
-
-    @PostMapping
-    public void createBooking(@Valid @RequestBody BookingRequest.CreateBookingDTO reqDTO) {
-        // TODO: 세션 사용자 식별값 연동
-        bookingService.createBooking(1, reqDTO);
-    }
-
-    @DeleteMapping("/{bookingId}")
-    public void cancelBooking(@PathVariable Integer bookingId) {
-        // TODO: 세션 사용자 식별값 연동
-        bookingService.cancelBooking(1, bookingId);
-    }
-
-    @GetMapping
-    public Object getBookingList() {
-        // TODO: 조회 파라미터(기간/상태) 확정
-        return bookingService.getBookingList(1);
-    }
-
-    @GetMapping("/{bookingId}")
-    public Object getBookingDetail(@PathVariable Integer bookingId) {
-        // TODO: 응답 스펙 확정
-        return bookingService.getBookingDetail(1, bookingId);
-    }
 
     @GetMapping("/map-detail")
     public String detailMap() {
@@ -116,20 +80,6 @@ public class BookingController {
         model.addAttribute("totalPriceText", safeTotalPriceText);
         model.addAttribute("completeImageUrl", resolveCompleteImageUrl(imageUrl));
         return "pages/booking-complete";
-    }
-
-    @GetMapping("/place-image")
-    @ResponseBody
-    public Map<String, Object> getPlaceImage(
-            @RequestParam(required = false) String placeUrl,
-            @RequestParam(required = false) String name) {
-        return bookingService.getPlaceImage(placeUrl, name);
-    }
-
-    @PostMapping("/map-pois/merge")
-    @ResponseBody
-    public Map<String, Object> mergeMapPois(@RequestBody BookingRequest.MergeMapPoisDTO reqDTO) {
-        return Map.of("items", bookingService.mergeMapPois(reqDTO));
     }
 
     private String calculateNightsLabel(String checkIn, String checkOut) {

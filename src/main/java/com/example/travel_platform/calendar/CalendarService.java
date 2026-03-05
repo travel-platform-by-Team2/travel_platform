@@ -1,12 +1,14 @@
 package com.example.travel_platform.calendar;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class CalendarService {
@@ -15,26 +17,31 @@ public class CalendarService {
 
     @Transactional
     public void createEvent(Integer sessionUserId, CalendarRequest.CreateEventDTO reqDTO) {
-        // TODO: 시간 범위 유효성(startAt <= endAt) 검증
-        // TODO: 엔티티 변환 후 저장
+        // TODO: 일정 생성 리팩토링 뼈대 유지
     }
 
     @Transactional
     public void updateEvent(Integer sessionUserId, Integer eventId, CalendarRequest.UpdateEventDTO reqDTO) {
-        // TODO: 소유권 검증
-        // TODO: 수정 처리
+        // TODO: 일정 수정 리팩토링 뼈대 유지
     }
 
     @Transactional
     public void deleteEvent(Integer sessionUserId, Integer eventId) {
-        // TODO: 소유권 검증
-        // TODO: 삭제 처리
+        // TODO: 일정 삭제 리팩토링 뼈대 유지
     }
 
-    public List<CalendarResponse.EventDTO> getEventList(Integer sessionUserId) {
-        // TODO: 사용자 일정 목록 조회
-        // TODO: EventDTO 매핑
+    public List<CalendarResponse.EventDTO> getEventList(Integer sessionUserId, LocalDate startDate, LocalDate endDate) {
+        // TODO: 기간 기반 일정 조회 리팩토링 뼈대 유지
         return List.of();
     }
-}
 
+    public List<CalendarResponse.DayNodeDTO> getDayNodeList(Integer sessionUserId, Integer year, Integer month) {
+        // TODO: 월 단위 일자 노드 조회 리팩토링 뼈대 유지
+        return List.of();
+    }
+
+    public CalendarResponse.DayNodeDTO getDayNode(Integer sessionUserId, LocalDate date) {
+        // TODO: 단일 일자 노드 조회 리팩토링 뼈대 유지
+        return null;
+    }
+}
