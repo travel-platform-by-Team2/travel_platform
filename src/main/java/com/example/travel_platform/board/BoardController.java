@@ -2,19 +2,16 @@ package com.example.travel_platform.board;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -36,8 +33,7 @@ public class BoardController {
     }
 
     @PostMapping
-    public String create(@Valid BoardRequest.CreateBoardDTO reqDTO, Errors errors) {
-        validateErrors(errors);
+    public String create(BoardRequest.CreateBoardDTO reqDTO) {
         boardService.createBoard(requireSessionUserId(), reqDTO);
         return "redirect:/boards";
     }
@@ -55,8 +51,7 @@ public class BoardController {
     }
 
     @PostMapping("/{boardId}/update")
-    public String update(@PathVariable Integer boardId, @Valid BoardRequest.UpdateBoardDTO reqDTO, Errors errors) {
-        validateErrors(errors);
+    public String update(@PathVariable Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
         boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
@@ -73,11 +68,5 @@ public class BoardController {
             throw new Exception401("로그인이 필요합니다.");
         }
         return sessionUser.getId();
-    }
-
-    private void validateErrors(Errors errors) {
-        if (errors.hasErrors()) {
-            throw new Exception400(errors.getAllErrors().get(0).getDefaultMessage());
-        }
     }
 }

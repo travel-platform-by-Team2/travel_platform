@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,26 +21,22 @@ public class BookingApiController {
     private final BookingService bookingService;
 
     @PostMapping
-    public void createBooking(@Valid @RequestBody BookingRequest.CreateBookingDTO reqDTO) {
-        // TODO: 세션 사용자 식별값 연동
+    public void createBooking(@RequestBody BookingRequest.CreateBookingDTO reqDTO) {
         bookingService.createBooking(1, reqDTO);
     }
 
     @DeleteMapping("/{bookingId}")
     public void cancelBooking(@PathVariable Integer bookingId) {
-        // TODO: 세션 사용자 식별값 연동
         bookingService.cancelBooking(1, bookingId);
     }
 
     @GetMapping
     public Object getBookingList() {
-        // TODO: 조회 파라미터(기간/상태) 확정
         return bookingService.getBookingList(1);
     }
 
     @GetMapping("/{bookingId}")
     public Object getBookingDetail(@PathVariable Integer bookingId) {
-        // TODO: 응답 스펙 확정
         return bookingService.getBookingDetail(1, bookingId);
     }
 
