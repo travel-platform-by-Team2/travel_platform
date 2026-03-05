@@ -18,5 +18,8 @@ public class ChatbotResponse {
     @Builder
     public static class MetaDTO {
         private Boolean needsDb;
+        private String querySummary;
+        private String generatedSql;
+        private Integer rowCount;
     }
 }

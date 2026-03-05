@@ -1,9 +1,10 @@
-package com.example.travel_platform.community;
+package com.example.travel_platform.board.reply;
 
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.example.travel_platform.board.Board;
 import com.example.travel_platform.user.User;
 
 import jakarta.persistence.Column;
@@ -22,26 +23,24 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "community_post_tb")
-public class CommunityPost {
+@Table(name = "board_reply_tb")
+public class Reply {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @Column(nullable = false, length = 150)
-    private String title;
 
     @Lob
     @Column(nullable = false)
     private String content;
-
-    @Column(name = "view_count", nullable = false)
-    private Integer viewCount = 0;
 
     @CreationTimestamp
     @Column(name = "created_at")

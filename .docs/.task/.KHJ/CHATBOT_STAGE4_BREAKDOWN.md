@@ -46,18 +46,21 @@
   - `DIRECT_LLM`/`DB_QUERY` 분기 값 산출
 
 ### 4-4. SQL 생성 및 DB 조회 단계 구현
-- 상태: 미진행
+- 상태: 완료 (2026-03-05)
 - 전제: 보안 검증은 후순위
 - 처리:
-  - `needsDb=true`인 경우 SQL 생성
-  - `JdbcTemplate` 또는 `EntityManager` native query로 조회
+  - `needsDb=true`인 경우 `queryIntent` 기준 SQL 계획 생성
+  - `JdbcTemplate` 기반 DB 조회 실행
   - 결과를 JSON 직렬화 가능한 형태(`List<Map<String, Object>>`)로 구성
+- 반영:
+  - `ChatbotService`에 SQL 생성/조회 단계 추가
+  - `TripPlan` 조회는 `context.tripPlanId` 존재 시 파라미터 바인딩 적용
 - 완료 기준:
   - 조회 성공 시 rowCount/meta 생성
   - 조회 실패 시 챗봇 내부 오류 응답 처리
 
 ### 4-5. 최종 답변 생성 단계 구현
-- 상태: 미진행
+- 상태: 완료 (2026-03-05)
 - 입력:
   - 원 질문
   - 조회 결과(DB 필요 시)
@@ -66,16 +69,22 @@
   - `answer`
   - `processingType`
   - `meta`
+- 반영:
+  - `DIRECT_LLM`/`DB_QUERY` 분기별 답변 생성 로직 구현
+  - `meta`에 `querySummary`, `generatedSql`, `rowCount` 확장
 - 완료 기준:
   - 프론트에서 즉시 렌더링 가능한 응답 스키마 반환
 
 ### 4-6. 예외/응답 형식 정렬
-- 상태: 미진행
+- 상태: 완료 (2026-03-05)
 - 현황:
   - 현재 전역 예외는 HTML script 응답 중심
 - 조치:
   - 챗봇 API 경로에서는 JSON 응답을 우선 보장
   - 최소 오류 코드: `CHATBOT_BAD_REQUEST`, `CHATBOT_INTERNAL_ERROR`
+- 반영:
+  - `ChatbotException`, `ChatbotErrorResponse`, `ChatbotExceptionHandler` 추가
+  - 입력값 검증/JSON 파싱 오류/내부 오류에 대한 챗봇 전용 JSON 오류 응답 적용
 - 완료 기준:
   - 프론트 fetch 기준 파싱 가능한 오류 응답 확보
 
@@ -89,7 +98,9 @@
 
 ## 4. 검증 계획
 1. 빌드/테스트
-   - `./gradlew test`
+   - `./gradlew compileJava` (성공)
+   - `./gradlew test --tests "*ChatbotServiceTest"` (성공)
+   - `./gradlew test` (실패: 기존 `UserRepositoryTest`의 H2 SQL 문법 이슈, 본 작업 범위 외)
 2. 수동 API 확인
    - `POST /api/chatbot/messages`에 질문 전송
    - `processingType`, `answer`, `meta` 응답 확인

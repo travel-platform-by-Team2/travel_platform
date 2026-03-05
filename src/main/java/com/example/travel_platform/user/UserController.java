@@ -33,7 +33,7 @@ public class UserController {
     // 조회인데, 예외로 post 요청
     @PostMapping("/login")
     public String login(@Valid UserRequest.LoginDTO reqDTO, Errors errors, HttpServletResponse resp) {
-        User sessionUser = userService.로그인(reqDTO.getEmail(), reqDTO.getPassword());
+        User sessionUser = userService.login(reqDTO.getEmail(), reqDTO.getPassword());
         session.setAttribute("sessionUser", sessionUser);
 
         return "redirect:/main-index";
@@ -41,7 +41,7 @@ public class UserController {
 
     @PostMapping("/join")
     public String join(@Valid UserRequest.JoinDTO reqDTO, Errors errors) {
-        userService.회원가입(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail());
+        userService.join(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail());
 
         return "redirect:/login-form";
     }

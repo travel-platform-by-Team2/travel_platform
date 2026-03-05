@@ -266,7 +266,7 @@
         params.set("name", item.name);
       }
 
-      var response = await fetch("/bookings/place-image?" + params.toString(), {
+      var response = await fetch("/api/bookings/place-image?" + params.toString(), {
         method: "GET",
         headers: { Accept: "application/json" }
       });
@@ -1001,7 +1001,7 @@
     };
 
     try {
-      var response = await fetch("/bookings/map-pois/merge", {
+      var response = await fetch("/api/bookings/map-pois/merge", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
