@@ -36,4 +36,15 @@ public class UserRepository {
             return Optional.ofNullable(null);
         }
     }
+
+    public Optional<User> findByEmail(String email) {
+        try {
+            User user = em.createQuery("select u from User u where u.email = :email", User.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+            return Optional.of(user);
+        } catch (Exception e) {
+            return Optional.ofNullable(null);
+        }
+    }
 }

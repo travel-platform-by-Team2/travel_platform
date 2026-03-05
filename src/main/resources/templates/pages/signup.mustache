@@ -25,10 +25,13 @@
 <h1 class="signup-h1-01">회원가입</h1>
 <p class="calendar-add-event-span-02">기본 정보를 입력하고 서비스를 이용해보세요.</p>
 </div>
-<div class="login-form-01">
+
+<form action="/join" method="post" enctype="application/x-www-form-urlencoded">
+  <div class="login-form-01">
+
 <div class="signup-div-06">
 <label class="text-sm-strong">이름</label>
-<input class="signup-input-default" placeholder="이름을 입력해주세요" type="text"/>
+<input name="username" class="signup-input-default" placeholder="이름을 입력해주세요" type="text"/>
 </div>
 <div class="signup-div-06">
 <label class="text-sm-strong">이메일</label>
@@ -42,7 +45,7 @@
 </div>
 <div class="signup-div-06">
 <label class="text-sm-strong">비밀번호</label>
-<input class="signup-input-default" placeholder="비밀번호를 입력해주세요" type="password"/>
+<input name="password" class="signup-input-default" placeholder="비밀번호를 입력해주세요" type="password"/>
 <p class="signup-p-03">비밀번호는 8자 이상 입력해주세요.</p>
 </div>
 <div class="signup-div-06">
@@ -70,6 +73,8 @@
                         회원가입 완료
                     </button>
 </div>
+</form>
+
 <div class="signup-div-12">
 <p class="calendar-add-event-span-02">
                         이미 계정이 있으신가요? 
