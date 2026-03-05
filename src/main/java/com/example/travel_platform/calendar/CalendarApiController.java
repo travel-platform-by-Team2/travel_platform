@@ -16,7 +16,6 @@ import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,12 +27,12 @@ public class CalendarApiController {
     private final HttpSession session;
 
     @PostMapping
-    public void createEvent(@Valid @RequestBody CalendarRequest.CreateEventDTO reqDTO) {
+    public void createEvent(@RequestBody CalendarRequest.CreateEventDTO reqDTO) {
         calendarService.createEvent(requireSessionUserId(), reqDTO);
     }
 
     @PutMapping("/{eventId}")
-    public void updateEvent(@PathVariable Integer eventId, @Valid @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
+    public void updateEvent(@PathVariable Integer eventId, @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
         calendarService.updateEvent(requireSessionUserId(), eventId, reqDTO);
     }
 
