@@ -17,6 +17,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    // 회원가입 실패 : 중복 체크 후 예외발생 :지윤
     @Transactional
     public void join(String username, String password, String email) {
         // 1. 유저네임 중복 체크 (필터링)!!
@@ -37,6 +38,7 @@ public class UserService {
 
     }
 
+    // 로그인 실패: 이메일/비밀번호 확인 후 예외 발생 (지윤)
     public User login(String email, String password) {
 
         User findUser = userRepository.findByEmail(email)
