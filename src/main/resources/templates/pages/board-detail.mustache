@@ -88,16 +88,17 @@
 <img alt="Current User" class="media-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOP7Ua62xOsz3DN63c5RfRS2WPmfBcoVIMzYYI0in1QAPKDhA7k4_-ceaOnJXuZS08p9xVH6YURYqRjdh88h77EogK6hqtuHf9lEGcJ0YX4xne-gCR-gB-fUgaomUk_PEsery50-AFceBSFBuBTdvnYyXz5tGM_nut3hTwWoKZYOqXf1YxzNgm00T-4LoK0UL6h6P4P1hfsVf2lIM3IoAgN4rPZyAXhTHHtZsLlIQb-1H38pKcnlNR7yD2X2hJDek5JK5__PkkW7k"/>
 </div>
 <div class="flex-fill">
-<textarea class="community-detail-textarea-01" placeholder="댓글을 남겨보세요."></textarea>
+<textarea class="community-detail-textarea-01" name="content" placeholder="댓글을 남겨보세요."></textarea>
 <div class="community-detail-div-11">
 <button class="community-detail-button-05" type="submit">
                             등록
                         </button>
-                        </form>
 </div>
 </div>
 </div>
+</form>
 <div class="stack-gap-8">
+{{#replies}}
 <div class="fx-group-flex-gap4">
 <div class="avatar-sm">
 <img alt="Commenter 1" class="media-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8xmUdbwqLyyxoSmWU9HunzBesyATuxEPngwzn8C9IfKLaKiFPSKtqj2521jqd9RN7sjXl9FJ-JGnVmsnXBGagF58RQjuob-eFXj5Fh1HFC5CC2hB8zlKgF_bUwaTrpEPnLRdlaYYrTKiyDBJ0vdNSoD5Z7ggnJS5P_OGatzgvZFhfRwAiDUDgR7Bhj5v27f8z_1YYWtjD3WbUV-YS_L6TAF2n8BqjJBcG1UVNbvsWvHnMVvsU1O8R9s0QCmEhKedAs2c1WtfyF54"/>
@@ -105,15 +106,15 @@
 <div class="flex-fill">
 <div class="row-between-center-mb1">
 <div class="inline-items-gap-2">
-<span class="community-detail-span-05">제주살이</span>
-<span class="community-detail-span-06">2023.10.27 14:30</span>
+<span class="community-detail-span-05">{{username}}</span>
+<span class="community-detail-span-06">{{createdAt}}</span>
 </div>
 <button class="icon-action-fade">
 <span class="icon-ms-base">more_horiz</span>
 </button>
 </div>
 <p class="text-body-sm-relaxed">
-                            저도 다음주에 혼자 가는데 참고할게요! 숙소 정보도 혹시 더 자세히 알 수 있을까요?
+                            {{content}}
                         </p>
 <div class="community-detail-div-12">
 <button class="link-inline-xs">
@@ -122,56 +123,7 @@
 </div>
 </div>
 </div>
-<div class="fx-group-flex-gap4">
-<div class="avatar-sm">
-<img alt="Commenter 2" class="media-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHVhX_5jzPYhJygneC4nsXZ96-Y2X3SSgVRmYOGptrk5NyAce-0kRrHjZo5XbbkXlsG_NRoCZWECOuZeWvHYdIhifLiwEweti78btaT8wvU-tqgY939CAeF8rzTdRGvF-utxbIp3p58o59uQI6hmmmfySf_MBoILjNqcaogi8FE4BQZUjjwNa6aUSxSy5aDr8ml4052_e2c2nxPBjz6krQGuZmtOD6DY1wt8bgKR8YaCdREVhvyFAUYTSEv8xr7GaiKjC-EezXK_M"/>
-</div>
-<div class="flex-fill">
-<div class="row-between-center-mb1">
-<div class="inline-items-gap-2">
-<span class="community-detail-span-05">맛집탐험대</span>
-<span class="community-detail-span-06">2023.10.27 15:45</span>
-</div>
-<button class="icon-action-fade">
-<span class="icon-ms-base">more_horiz</span>
-</button>
-</div>
-<p class="text-body-sm-relaxed">
-                            자매국수 웨이팅 진짜 길어요 ㅠㅠ 테이블링 앱으로 미리 줄서기 하시는 거 추천드려요!
-                        </p>
-<div class="community-detail-div-12">
-<button class="link-inline-xs">
-<span class="icon-ms-sm">thumb_up</span> 좋아요 3
-                            </button>
-</div>
-</div>
-</div>
-<div class="fx-group-flex-gap4">
-<div class="community-detail-div-13">
-<img alt="Author Reply" class="media-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMQEAGtjyCeHl-gKA6fMRrDY5r3TAffiSVeOV-aXvdotJbtYQVIxjMApPwRtBE3FcJMg04xrkN7bAQPvBmacjTHbncSK1o33Q_QsfryXWDT12gufrR4y6fNoXSlUdvOHUuSA-KnOG_SmlbOC10LcM_rzrmzwDIB9XlmPEdD9VVib6aS9Ep_U6aJo0jaiEGMd_85n1FPdda5FgbUZbHZhKAoIfNDky8l2wjHyWzPiJuS8QxrrT-Jpi0R378iWXwhLXU1UssuC7BG4U"/>
-</div>
-<div class="flex-fill">
-<div class="row-between-center-mb1">
-<div class="inline-items-gap-2">
-<span class="community-detail-span-07">여행러</span>
-<span class="community-detail-span-08">작성자</span>
-<span class="community-detail-span-06">2023.10.27 16:00</span>
-</div>
-<button class="icon-action-fade">
-<span class="icon-ms-base">more_horiz</span>
-</button>
-</div>
-<p class="text-body-sm-relaxed">
-                            꿀팁 감사합니다! 다음에는 꼭 앱 써봐야겠네요 ㅎㅎ
-                        </p>
-<div class="community-detail-div-12">
-<button class="link-inline-xs">
-<span class="icon-ms-sm">thumb_up</span> 좋아요
-                            </button>
-</div>
-</div>
-</div>
-</div>
+{{/replies}}
 <div class="community-detail-div-14">
 <button class="community-detail-button-06">
                     댓글 더보기 <span class="icon-ms-base">expand_more</span>

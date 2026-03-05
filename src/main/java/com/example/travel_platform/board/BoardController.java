@@ -38,7 +38,7 @@ public class BoardController {
 
     @PostMapping
     public String create(BoardRequest.CreateBoardDTO reqDTO) {
-        boardService.createBoard(null, reqDTO);
+        boardService.createBoard(requireSessionUserId(), reqDTO);
         return "redirect:/boards";
     }
 
@@ -56,25 +56,25 @@ public class BoardController {
     }
 
     @PostMapping("/{boardId}/update")
-    public String update(@PathVariable Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
-        boardService.updateBoard(null, boardId, reqDTO); // TODO: 이거 더미데이터임
-        // boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
+    public String update(@PathVariable("boardId") Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
+
+        boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{boardId}/delete")
     public String delete(@PathVariable("boardId") Integer boardId) {
-        boardService.deleteBoard(null, boardId); // TODO: 이거 더미데이터임
-        // boardService.deleteBoard(requireSessionUserId(), boardId);
+
+        boardService.deleteBoard(requireSessionUserId(), boardId);
         return "redirect:/boards";
     }
 
-    // private Integer requireSessionUserId() {
-    // User sessionUser = (User) session.getAttribute("sessionUser");
-    // if (sessionUser == null) {
-    // throw new Exception401("로그인이 필요합니다.");
-    // }
-    // return sessionUser.getId();
-    // }
+    private Integer requireSessionUserId() {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            throw new Exception401("로그인이 필요합니다.");
+        }
+        return sessionUser.getId();
+    }
 
 }

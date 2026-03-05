@@ -13,42 +13,38 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/boards/{boardId}/replies")
+@RequestMapping("/boards")
 @RequiredArgsConstructor
 public class ReplyController {
 
     private final ReplyService replyService;
     private final HttpSession session;
 
-    @PostMapping
+    @PostMapping("/{boardId}/replies")
     public String create(@PathVariable("boardId") Integer boardId, ReplyRequest.CreateDTO reqDTO) {
-        replyService.createReply(null, boardId, reqDTO);
-        // replyService.createReply(requireSessionUserId(), boardId, reqDTO); TODO: 잠시
-        // 비활성화해둠
+        replyService.createReply(requireSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{replyId}/update")
     public String update(@PathVariable Integer replyId, @RequestParam Integer boardId, ReplyRequest.UpdateDTO reqDTO) {
-        replyService.updateReply(null, replyId, reqDTO);
-        // replyService.updateReply(requireSessionUserId(), replyId, reqDTO); TODO: 잠시
-        // 비활성화해둠
+
+        replyService.updateReply(requireSessionUserId(), replyId, reqDTO);
+
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{replyId}/delete")
     public String delete(@PathVariable Integer replyId, @RequestParam Integer boardId) {
-        replyService.deleteReply(null, replyId);
-        // replyService.deleteReply(requireSessionUserId(), replyId); TODO: 잠시 비활성화해둠
+        replyService.deleteReply(requireSessionUserId(), replyId);
         return "redirect:/boards/" + boardId;
     }
 
-    // TODO: 잠시 비활성화 해둠
-    // private Integer requireSessionUserId() {
-    // User sessionUser = (User) session.getAttribute("sessionUser");
-    // if (sessionUser == null) {
-    // throw new Exception401("로그인이 필요합니다.");
-    // }
-    // return sessionUser.getId();
-    // }
+    private Integer requireSessionUserId() {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            throw new Exception401("로그인이 필요합니다.");
+        }
+        return sessionUser.getId();
+    }
 }
