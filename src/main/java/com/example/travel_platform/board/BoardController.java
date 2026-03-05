@@ -1,5 +1,7 @@
 package com.example.travel_platform.board;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +25,9 @@ public class BoardController {
     private final HttpSession session;
 
     @GetMapping
-    public String list(HttpServletRequest req) {
+    public String boardlist(Model model) {
+        List<BoardResponse.BoardSummaryDTO> boards = boardService.getBoardList();
+        model.addAttribute("boards", boards);
         return "pages/board-list";
     }
 
@@ -34,39 +38,43 @@ public class BoardController {
 
     @PostMapping
     public String create(BoardRequest.CreateBoardDTO reqDTO) {
-        boardService.createBoard(requireSessionUserId(), reqDTO);
+        boardService.createBoard(null, reqDTO);
         return "redirect:/boards";
     }
 
     @GetMapping("/{boardId}")
-    public String detail(@PathVariable Integer boardId, Model model) {
-        model.addAttribute("board", boardService.getBoardDetail(boardId));
+    public String detail(@PathVariable("boardId") Integer boardId, Model model) {
+        BoardResponse.BoardDetailDTO detailDTO = boardService.getBoardDetail(boardId);
+        model.addAttribute("board", detailDTO);
         return "pages/board-detail";
     }
 
     @GetMapping("/{boardId}/edit")
-    public String editForm(@PathVariable Integer boardId, Model model) {
+    public String editForm(@PathVariable("boardId") Integer boardId, Model model) {
         model.addAttribute("board", boardService.getBoardDetail(boardId));
         return "pages/board-edit";
     }
 
     @PostMapping("/{boardId}/update")
     public String update(@PathVariable Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
-        boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
+        boardService.updateBoard(null, boardId, reqDTO); // TODO: 이거 더미데이터임
+        // boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{boardId}/delete")
-    public String delete(@PathVariable Integer boardId) {
-        boardService.deleteBoard(requireSessionUserId(), boardId);
+    public String delete(@PathVariable("boardId") Integer boardId) {
+        boardService.deleteBoard(null, boardId); // TODO: 이거 더미데이터임
+        // boardService.deleteBoard(requireSessionUserId(), boardId);
         return "redirect:/boards";
     }
 
-    private Integer requireSessionUserId() {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            throw new Exception401("로그인이 필요합니다.");
-        }
-        return sessionUser.getId();
-    }
+    // private Integer requireSessionUserId() {
+    // User sessionUser = (User) session.getAttribute("sessionUser");
+    // if (sessionUser == null) {
+    // throw new Exception401("로그인이 필요합니다.");
+    // }
+    // return sessionUser.getId();
+    // }
+
 }

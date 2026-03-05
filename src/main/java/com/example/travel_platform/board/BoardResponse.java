@@ -16,7 +16,9 @@ public class BoardResponse {
         private String title;
         private String username;
         private Integer viewCount;
+        private Integer replyCount;
         private LocalDateTime createdAt;
+        private String summary;
     }
 
     @Data
@@ -36,6 +38,7 @@ public class BoardResponse {
         private String content;
         private String username;
         private Integer viewCount;
+        private Integer replyCount;
         private LocalDateTime createdAt;
         private List<ReplyDTO> replies;
     }

@@ -51,7 +51,7 @@ public class Board {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "board")
+    @OneToMany(mappedBy = "board", cascade = jakarta.persistence.CascadeType.REMOVE, orphanRemoval = true)
     private List<Reply> replies = new ArrayList<>();
 
     @CreationTimestamp

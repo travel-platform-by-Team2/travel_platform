@@ -23,6 +23,12 @@ public class BoardService {
 
     @Transactional
     public void createBoard(Integer sessionUserId, BoardRequest.CreateBoardDTO reqDTO) {
+
+        // TODO: 로그인없이 실행하는 코드 (나중에 삭제)
+        if (sessionUserId == null) {
+            sessionUserId = 1;
+        }
+
         User sessionUser = userRepository.findById(sessionUserId)
                 .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
 
@@ -51,7 +57,15 @@ public class BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
-        validateOwner(sessionUserId, board);
+        // TODO: 개발용 나중에 삭제필요
+        if (sessionUserId != null) {
+            if (!board.getUser().getId().equals(sessionUserId)) {
+                throw new Exception403("본인 게시글만 수정/삭제할 수 있습니다.");
+            }
+        }
+
+        // TODO: 잠시 비활성화 해둠
+        // validateOwner(sessionUserId, board);
         boardRepository.delete(board);
     }
 
@@ -60,8 +74,10 @@ public class BoardService {
                 .map(board -> BoardResponse.BoardSummaryDTO.builder()
                         .id(board.getId())
                         .title(board.getTitle())
+                        .summary(board.getContent().substring(0, Math.min(80, board.getContent().length())))
                         .username(board.getUser().getUsername())
                         .viewCount(board.getViewCount())
+                        .replyCount(board.getReplies().size())
                         .createdAt(board.getCreatedAt())
                         .build())
                 .toList();
@@ -81,6 +97,7 @@ public class BoardService {
                 .content(board.getContent())
                 .username(board.getUser().getUsername())
                 .viewCount(board.getViewCount())
+                .replyCount(board.getReplies().size())
                 .createdAt(board.getCreatedAt())
                 .replies(replies)
                 .build();
