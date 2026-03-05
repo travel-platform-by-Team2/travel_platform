@@ -21,7 +21,7 @@
 <div class="booking-complete-div-03">
 <div class="booking-complete-div-04">
 <div class="booking-complete-div-05">
-<img alt="Hotel Room" class="booking-complete-img-01" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw"/>
+<img alt="{{lodgingName}}" class="booking-complete-img-01" src="{{completeImageUrl}}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw';"/>
 <div class="booking-complete-div-06"></div>
 </div>
 <div class="booking-complete-div-07">
@@ -29,35 +29,35 @@
 <div class="booking-complete-div-08">
 <div class="booking-complete-div-09">
 <span class="text-muted-sm-medium">예약 번호</span>
-<span class="booking-complete-span-01">KR-20231025-001</span>
+<span class="booking-complete-span-01">{{bookingNumber}}</span>
 </div>
 <div class="booking-complete-div-09">
 <span class="text-muted-sm-medium">숙소 이름</span>
-<span class="booking-complete-span-02">서울 롯데 호텔</span>
+<span class="booking-complete-span-02">{{lodgingName}}</span>
 </div>
 <div class="booking-complete-div-09">
 <span class="text-muted-sm-medium">지역</span>
 <div class="booking-complete-div-10">
 <span class="icon-ms-sm-muted">location_on</span>
-<span class="booking-complete-span-03">서울, 대한민국</span>
+<span class="booking-complete-span-03">{{region}}</span>
 </div>
 </div>
 <div class="booking-complete-div-09">
 <span class="text-muted-sm-medium">인원 수</span>
-<span class="booking-complete-span-02">성인 2명</span>
+<span class="booking-complete-span-02">{{guests}}</span>
 </div>
 <div class="booking-complete-div-11">
 <span class="text-muted-sm-medium">체크인 / 체크아웃</span>
 <div class="booking-complete-div-12">
 <span class="icon-ms-primary">calendar_today</span>
-<span class="booking-complete-span-04">2023.11.10 (금) - 2023.11.12 (일)</span>
-<span class="booking-complete-span-05">2박</span>
+<span class="booking-complete-span-04">{{checkIn}} - {{checkOut}}</span>
+<span class="booking-complete-span-05">{{nightsLabel}}</span>
 </div>
 </div>
 <div class="booking-complete-div-13">
 <div class="row-between-end">
 <span class="booking-complete-span-06">총 결제 금액</span>
-<span class="booking-complete-span-07">₩450,000</span>
+<span class="booking-complete-span-07">{{totalPriceText}}</span>
 </div>
 </div>
 </div>

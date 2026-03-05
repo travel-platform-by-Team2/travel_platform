@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-starter-mustache",
+    "version": "4.0.3",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.3.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-starter",
+          "version": {
+            "requires": "4.0.3"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-mustache",
+          "version": {
+            "requires": "4.0.3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-starter-mustache-4.0.3.jar",
+          "url": "spring-boot-starter-mustache-4.0.3.jar",
+          "size": 4741,
+          "sha512": "4ae82251cb65c6678fcf9574285ac5be3cc46c18171b433973998d0c95dac866e65d7ad2b8ed639278b2fb4c9975cc8c7333433a75889ed8463d4d1d13a2a494",
+          "sha256": "5d7d367a17dfdcd4feef0271489d39a09b39bedda8cc6d571d2745337f37fcc5",
+          "sha1": "887fb4aa61fd8ce81f7942b3c4132359e658f4e4",
+          "md5": "1722751ff15746b333bc0584ecfc00da"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-starter",
+          "version": {
+            "requires": "4.0.3"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-mustache",
+          "version": {
+            "requires": "4.0.3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-starter-mustache-4.0.3.jar",
+          "url": "spring-boot-starter-mustache-4.0.3.jar",
+          "size": 4741,
+          "sha512": "4ae82251cb65c6678fcf9574285ac5be3cc46c18171b433973998d0c95dac866e65d7ad2b8ed639278b2fb4c9975cc8c7333433a75889ed8463d4d1d13a2a494",
+          "sha256": "5d7d367a17dfdcd4feef0271489d39a09b39bedda8cc6d571d2745337f37fcc5",
+          "sha1": "887fb4aa61fd8ce81f7942b3c4132359e658f4e4",
+          "md5": "1722751ff15746b333bc0584ecfc00da"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-starter-mustache-4.0.3-javadoc.jar",
+          "url": "spring-boot-starter-mustache-4.0.3-javadoc.jar",
+          "size": 4741,
+          "sha512": "4ae82251cb65c6678fcf9574285ac5be3cc46c18171b433973998d0c95dac866e65d7ad2b8ed639278b2fb4c9975cc8c7333433a75889ed8463d4d1d13a2a494",
+          "sha256": "5d7d367a17dfdcd4feef0271489d39a09b39bedda8cc6d571d2745337f37fcc5",
+          "sha1": "887fb4aa61fd8ce81f7942b3c4132359e658f4e4",
+          "md5": "1722751ff15746b333bc0584ecfc00da"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-starter-mustache-4.0.3-sources.jar",
+          "url": "spring-boot-starter-mustache-4.0.3-sources.jar",
+          "size": 4741,
+          "sha512": "4ae82251cb65c6678fcf9574285ac5be3cc46c18171b433973998d0c95dac866e65d7ad2b8ed639278b2fb4c9975cc8c7333433a75889ed8463d4d1d13a2a494",
+          "sha256": "5d7d367a17dfdcd4feef0271489d39a09b39bedda8cc6d571d2745337f37fcc5",
+          "sha1": "887fb4aa61fd8ce81f7942b3c4132359e658f4e4",
+          "md5": "1722751ff15746b333bc0584ecfc00da"
+        }
+      ]
+    }
+  ]
+}

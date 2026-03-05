@@ -1,0 +1,146 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-mustache",
+    "version": "4.0.3",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.3.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.3"
+          }
+        },
+        {
+          "group": "com.samskivert",
+          "module": "jmustache",
+          "version": {
+            "requires": "1.16"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-web",
+          "version": {
+            "requires": "7.0.5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-mustache-4.0.3.jar",
+          "url": "spring-boot-mustache-4.0.3.jar",
+          "size": 30369,
+          "sha512": "212fe9d2235cabe6d89bbdf1ca706f54ca9f57c18936834a8fa29a34f5aa2558f81ed3f6d1b8be6eef08a3d050e1efb13df4e1ad63b78e253db597b8b6386dab",
+          "sha256": "1185168d1117bd876bc02194ee2352b41dc9395bf0edadc30d313ad9b328d59e",
+          "sha1": "02314839fb1b398a2c62780358471c183ee94f1c",
+          "md5": "2962bf04ff1cd7716f4337ca17b73e98"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.3"
+          }
+        },
+        {
+          "group": "com.samskivert",
+          "module": "jmustache",
+          "version": {
+            "requires": "1.16"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-web",
+          "version": {
+            "requires": "7.0.5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-mustache-4.0.3.jar",
+          "url": "spring-boot-mustache-4.0.3.jar",
+          "size": 30369,
+          "sha512": "212fe9d2235cabe6d89bbdf1ca706f54ca9f57c18936834a8fa29a34f5aa2558f81ed3f6d1b8be6eef08a3d050e1efb13df4e1ad63b78e253db597b8b6386dab",
+          "sha256": "1185168d1117bd876bc02194ee2352b41dc9395bf0edadc30d313ad9b328d59e",
+          "sha1": "02314839fb1b398a2c62780358471c183ee94f1c",
+          "md5": "2962bf04ff1cd7716f4337ca17b73e98"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-mustache-4.0.3-javadoc.jar",
+          "url": "spring-boot-mustache-4.0.3-javadoc.jar",
+          "size": 153245,
+          "sha512": "3882ad10347f4dfa88f3f0bdd429f17f48eb41b8e3f95226f85f6f207b43945ea4bce5665ff39e097fb75636e0f2ec81a53319af2f02a2e870bed0a290063759",
+          "sha256": "030ed4b82fa7fa4612e7f07ef6aa32487771a0fd8c41ccb2441c9a81c2e9b208",
+          "sha1": "8016b24d48443e63888ea643acd9bb998278db23",
+          "md5": "120b45df6498df2c49239a984f05bbd7"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-mustache-4.0.3-sources.jar",
+          "url": "spring-boot-mustache-4.0.3-sources.jar",
+          "size": 23778,
+          "sha512": "e1d30aebf6ac7261fe0e6454bab372135cccba0111b03f16944190f9b13f0534c8e4707c7d74b800c8ac0f535b16833cc7fed9da84282a687be8bac246068a12",
+          "sha256": "d1d602d356a0b89a2e582b9d79fa10158dcc45e948e506b3188929d54580542b",
+          "sha1": "045efff2e52f5b734d78bbe66b4488f95c925af5",
+          "md5": "2a0752b3e2da3571618e0909a6b20e2c"
+        }
+      ]
+    }
+  ]
+}
