@@ -99,3 +99,9 @@ Agent 문서에서 RULES 참조 지시를 받은 경우, 아래 순서를 강제
 10. `GET` 메서드에서는 `@RequestBody`를 사용하지 않고 `@RequestParam`/`@PathVariable`을 사용한다.
 11. `@RestController` 메서드에서는 뷰 이름(템플릿 경로 문자열)을 반환하지 않고 데이터만 반환한다.
 12. Java 상세 코딩 규칙은 `.docs/specs/java-code-convention.md`를 정본으로 따른다.
+
+========
+설정파일의 변경이나 \_core내용 또는 DB더미데이터의 내용 변경 시 변경 내용에 대한 문서 작성
+작성 위치는 .task/
+
+개발 시작시 현재 프로젝트 전체 리딩 필요

@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -16,7 +15,7 @@ public class ChatbotController {
     private final ChatbotService chatbotService;
 
     @PostMapping("/messages")
-    public ChatbotResponse.AskDTO ask(@Valid @RequestBody ChatbotRequest.AskDTO reqDTO) {
+    public ChatbotResponse.AskDTO ask(@RequestBody ChatbotRequest.AskDTO reqDTO) {
         return chatbotService.ask(reqDTO);
     }
 }
