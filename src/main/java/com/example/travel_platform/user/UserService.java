@@ -3,13 +3,14 @@ package com.example.travel_platform.user;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception401;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -17,7 +18,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void 회원가입(String username, String password, String email) {
+    public void join(String username, String password, String email) {
         // 1. 유저네임 중복 체크 (필터링)!!
         Optional<User> optUser = userRepository.findByUsername(username);
 
@@ -36,9 +37,9 @@ public class UserService {
 
     }
 
-    public User 로그인(String username, String password) {
-        User findUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new Exception400("username을 찾을 수가 없어요"));
+    public User login(String email, String password) {
+        User findUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception400("email을 찾을 수가 없어요"));
 
         if (!findUser.getPassword().equals(password)) {
             throw new Exception401("패스워드가 일치하지 않아요");

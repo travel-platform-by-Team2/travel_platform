@@ -1,7 +1,5 @@
 package com.example.travel_platform.trip;
 
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,10 +7,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@RequestMapping("/trip-plans")
+@RequestMapping("/api/trip-plans")
 @RequiredArgsConstructor
-public class TripController {
+public class TripApiController {
 
     private final TripService tripService;
 
@@ -40,4 +41,3 @@ public class TripController {
         tripService.addPlace(1, planId, reqDTO);
     }
 }
-

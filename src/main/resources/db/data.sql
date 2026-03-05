@@ -19,17 +19,17 @@ insert into trip_place_tb (trip_plan_id, place_name, address, latitude, longitud
 values (2, '해운대해수욕장', '부산광역시 해운대구 우동', 35.1586980, 129.1603840, 1);
 
 -- 커뮤니티 게시글
-insert into community_post_tb (user_id, title, content, view_count, created_at)
+insert into board_tb (user_id, title, content, view_count, created_at)
 values (1, '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, now());
 
-insert into community_post_tb (user_id, title, content, view_count, created_at)
+insert into board_tb (user_id, title, content, view_count, created_at)
 values (2, '부산 당일치기 가능할까요?', '해운대 중심으로 일정을 짜보려는데 조언 부탁드립니다.', 5, now());
 
 -- 커뮤니티 댓글
-insert into community_reply_tb (post_id, user_id, content, created_at)
+insert into board_reply_tb (board_id, user_id, content, created_at)
 values (1, 2, '좋은 정보 감사합니다! 다음 주에 가볼게요.', now());
 
-insert into community_reply_tb (post_id, user_id, content, created_at)
+insert into board_reply_tb (board_id, user_id, content, created_at)
 values (2, 1, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
 
 -- 예약
