@@ -63,12 +63,36 @@
    - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
    - 반영: `needsDb/reason/queryIntent` 분류 결과 산출 및 `DIRECT_LLM/DB_QUERY` 분기 처리
 
-### 1.2 미완료 항목
-1. 백엔드 챗봇 API 구현 미완료
-   - 4-1~4-3은 완료되었으나 DB 조회/최종 답변 로직은 미구현
+14. 4-4 SQL 생성 및 DB 조회 단계 구현 완료
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+   - 반영: `queryIntent`별 SQL 계획 생성, `JdbcTemplate` 기반 조회, `rowCount` 산출
 
-2. 테스트 미구현
-   - 챗봇 도메인 단위/통합 테스트 없음
+15. 4-5 최종 답변 생성 단계 구현 완료
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotResponse.java`
+   - 반영: `DIRECT_LLM`/`DB_QUERY` 분기별 답변 생성, `meta` 확장(`querySummary/generatedSql/rowCount`)
+
+16. 4-6 예외/응답 형식 정렬 완료
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotException.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotErrorResponse.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotExceptionHandler.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotRequest.java`
+   - 반영: 챗봇 API 전용 JSON 오류 응답(`CHATBOT_BAD_REQUEST`, `CHATBOT_INTERNAL_ERROR`) 적용
+
+17. 챗봇 서비스 단위 테스트 추가 완료
+   - 파일: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+   - 반영: DIRECT_LLM 분기, DB_QUERY 분기, DB 오류 예외 케이스 검증
+
+18. 챗봇 컨트롤러/예외 처리 통합 테스트 추가 완료
+   - 파일: `src/test/java/com/example/travel_platform/chatbot/ChatbotControllerTest.java`
+   - 반영: 정상 응답(200), 입력 검증 오류(400), 내부 오류(500), JSON 파싱 오류(400) 검증
+
+### 1.2 미완료 항목
+1. SQL 보안 정책 미적용
+   - 화이트리스트/검증/권한 제어는 후속 단계
+
+2. 전체 테스트 안정화 미완료
+   - `UserRepositoryTest` H2 SQL 문법 이슈 해결 필요
 
 ## 2. 단계별 진행 현황
 
@@ -77,16 +101,16 @@
 | 1단계 | UI 스켈레톤(파셜/스타일) | 완료 | 현재 코드에 반영됨 |
 | 2단계 | 프론트 기본 인터랙션(열기/닫기) | 완료 | `chatbot.js`에 반영 |
 | 3단계 | 메시지 송수신 프론트 로직 | 완료 | fetch 연동 및 응답/에러 렌더링 반영 |
-| 4단계 | 백엔드 챗봇 API 설계/구현 | 진행중 | 4-1~4-3 완료 / 4-4~4-6 미진행 |
+| 4단계 | 백엔드 챗봇 API 설계/구현 | 완료 | 4-1~4-6 완료(2026-03-05) |
 | 5단계 | 대화 저장 모델/영속성 | 제외 | 요구사항: 비저장 원칙 |
 | 6단계 | 권한/세션 연동 | 보류 | 경로/정책 확정 후 적용 |
-| 7단계 | 테스트 및 검증 자동화 | 미진행 | 테스트 코드 작성 필요 |
+| 7단계 | 테스트 및 검증 자동화 | 진행중 | 챗봇 서비스/컨트롤러 테스트 추가, 전체 테스트 안정화 필요 |
 
 ## 3. 다음 작업 제안 순서
-1. 4-4 SQL 생성 및 DB 조회 단계 구현
-2. 4-5 최종 답변 생성 단계 구현
-3. 4-6 예외/응답 형식 정렬
-4. 통합 테스트 및 예외 케이스 테스트 추가
+1. SQL 실행 보안 정책(검증/화이트리스트) 설계 및 적용
+2. 인증/필터 경로 정책 확정 후 챗봇 API 연동
+3. 전체 테스트(`./gradlew test`) 안정화
+4. 코드컨벤션 기준 구조 리팩토링 후속 적용
 
 완료 이력:
 - 2026-03-04: 챗봇 API 스펙 초안 작성 완료 (`.docs/.task/.KHJ/CHATBOT_API_SPEC.md`)
@@ -98,9 +122,15 @@
 - 2026-03-04: 4-1 API 엔드포인트 뼈대 구성 완료
 - 2026-03-04: 4-2 서비스 내부 책임 분리 완료
 - 2026-03-04: 4-3 질문 분류 단계 구현 완료
+- 2026-03-05: 4-4 SQL 생성 및 DB 조회 단계 구현 완료
+- 2026-03-05: 4-5 최종 답변 생성 단계 구현 완료
+- 2026-03-05: 4-6 예외/응답 형식 정렬 완료
+- 2026-03-05: 챗봇 서비스 단위 테스트 추가 완료 (`ChatbotServiceTest`)
+- 2026-03-05: 챗봇 컨트롤러/예외 처리 통합 테스트 추가 완료 (`ChatbotControllerTest`)
 
 ## 4. 리스크 및 의존성
 1. 인증/필터 경로 정책 미확정
 2. SQL 생성/실행 보안 정책 미적용 상태(마무리 단계 적용 예정)
 3. 페이지 갱신 시 문맥 유실로 인한 사용자 경험 저하 가능성
+4. 전체 테스트(`./gradlew test`)는 기존 `UserRepositoryTest` H2 SQL 문법 이슈로 실패 중
 

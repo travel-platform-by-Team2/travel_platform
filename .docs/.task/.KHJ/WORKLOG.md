@@ -270,3 +270,326 @@
 - 문서 갱신 내용 확인 완료
 - 코드 로직 변경 없음 (문서 작업)
 
+---
+
+## 2026-03-05 추가 작업 (1)
+
+### 1. 사용자 요청 요약
+- `AGENT_KHJ.md` 기준으로 다음 작업 진행
+- 챗봇 4-4/4-5/4-6 구현 및 문서 동기화
+
+### 2. 진행 내용
+1. TASK 문서 우선 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK01.md`
+   - 반영: 작업 범위/제외 범위/위험도/Workflow/검증 계획 수립
+
+2. 챗봇 4-4 SQL 생성 및 DB 조회 구현
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+   - 반영: `queryIntent`별 SQL 계획 생성, `JdbcTemplate` 조회, `rowCount` 생성
+
+3. 챗봇 4-5 최종 답변 생성 구현
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotResponse.java`
+   - 반영: `DIRECT_LLM/DB_QUERY` 분기 응답, `meta` 확장(`querySummary/generatedSql/rowCount`)
+
+4. 챗봇 4-6 예외/응답 형식 정렬
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotException.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotErrorResponse.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotExceptionHandler.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotRequest.java`
+   - 반영: 챗봇 API 전용 JSON 오류 응답(`CHATBOT_BAD_REQUEST`, `CHATBOT_INTERNAL_ERROR`)
+
+5. 단위 테스트 추가
+   - 파일: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+   - 반영: DIRECT_LLM/DB_QUERY/DB 오류 경로 검증
+
+6. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 파일: `.docs/.task/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
+   - 파일: `.docs/.task/.KHJ/flow/TASK01.md`
+   - 반영: 4-4~4-6 완료 상태, 검증 결과, 다음 작업 업데이트
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK01.md`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/ChatbotException.java`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/ChatbotErrorResponse.java`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/ChatbotExceptionHandler.java`
+- 추가: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotRequest.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotResponse.java`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_STAGE4_BREAKDOWN.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew test` 실패
+  - 원인: 기존 `UserRepositoryTest`의 H2 SQL 문법 이슈(본 작업 범위 외)
+
+---
+
+## 2026-03-05 추가 작업 (2)
+
+### 1. 사용자 요청 요약
+- 예외 클래스 파일 위치 정리 요청
+- `ChatbotException`을 예외 공통 경로(`_core/handler/ex`)로 이동
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK02.md`
+   - 반영: 목표/범위/검증 계획 수립
+
+2. 예외 클래스 위치 정리
+   - 추가: `src/main/java/com/example/travel_platform/_core/handler/ex/ChatbotException.java`
+   - 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotException.java`
+   - 수정: `ChatbotService`, `ChatbotExceptionHandler` import 경로 정리
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK02.md`
+- 추가: `src/main/java/com/example/travel_platform/_core/handler/ex/ChatbotException.java`
+- 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotException.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotExceptionHandler.java`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+
+---
+
+## 2026-03-05 추가 작업 (3)
+
+### 1. 사용자 요청 요약
+- 챗봇 도메인 내 기능별 위치 정리 요청
+- `ChatbotException`을 `chatbot/exception` 하위로 분리
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK03.md`
+   - 반영: 범위/완료 기준/검증 계획 수립
+
+2. 예외 클래스 위치 조정
+   - 추가: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotException.java`
+   - 삭제: `src/main/java/com/example/travel_platform/_core/handler/ex/ChatbotException.java`
+   - 수정: `ChatbotService`, `ChatbotExceptionHandler` import 경로 조정
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK03.md`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotException.java`
+- 삭제: `src/main/java/com/example/travel_platform/_core/handler/ex/ChatbotException.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotExceptionHandler.java`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+
+---
+
+## 2026-03-05 추가 작업 (4)
+
+### 1. 사용자 요청 요약
+- `ChatbotErrorResponse`, `ChatbotExceptionHandler`를 `chatbot/exception` 폴더로 이동 요청
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK04.md`
+   - 반영: 작업 범위/완료 기준/검증 계획 수립
+
+2. 파일 위치 정리
+   - 추가: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotErrorResponse.java`
+   - 추가: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotExceptionHandler.java`
+   - 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotErrorResponse.java`
+   - 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotExceptionHandler.java`
+   - 반영: 핸들러에서 `ChatbotController` import 유지, 예외 응답/핸들러 동작은 동일 유지
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK04.md`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotErrorResponse.java`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotExceptionHandler.java`
+- 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotErrorResponse.java`
+- 삭제: `src/main/java/com/example/travel_platform/chatbot/ChatbotExceptionHandler.java`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+
+---
+
+## 2026-03-05 추가 작업 (5)
+
+### 1. 사용자 요청 요약
+- `AGENT_KHJ` 기준으로 다음 작업 진행 요청
+- 챗봇 미완료 우선순위 항목(컨트롤러/예외 처리 통합 테스트) 수행
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK05.md`
+   - 반영: 테스트 보강 범위/완료 기준/검증 계획 수립
+
+2. 챗봇 컨트롤러 통합 테스트 추가
+   - 파일: `src/test/java/com/example/travel_platform/chatbot/ChatbotControllerTest.java`
+   - 반영:
+     - 정상 요청 200 응답 검증
+     - `message` 검증 실패 400 JSON 응답 검증
+     - 서비스 내부 예외 500 JSON 응답 검증
+     - JSON 파싱 오류 400 JSON 응답 검증
+
+3. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영:
+     - 통합 테스트 완료 항목 추가
+     - 예외 클래스 최신 경로(`chatbot/exception`) 반영
+     - 다음 작업 우선순위 갱신
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK05.md`
+- 추가: `src/test/java/com/example/travel_platform/chatbot/ChatbotControllerTest.java`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew test --tests "*ChatbotControllerTest"` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew compileJava` 성공
+
+---
+
+## 2026-03-05 추가 작업 (6)
+
+### 1. 사용자 요청 요약
+- `AGENT_KHJ` 기준으로 전체 구조/코드컨벤션 리팩토링 우선 진행 요청
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK06.md`
+   - 반영: 컨트롤러 구조/경로 리팩토링 범위와 검증 계획 정의
+
+2. REST 컨트롤러 네이밍/경로 정리
+   - `TripController` -> `TripApiController` (`/api/trip-plans`)
+   - `CommunityController` -> `CommunityApiController` (`/api/community/posts`)
+   - `CalendarController` -> `CalendarApiController` (`/api/calendar/events`)
+
+3. Booking 도메인 SSR/REST 분리
+   - `BookingController`는 SSR(뷰 반환) 전용으로 정리
+   - `BookingApiController` 신규 생성하여 JSON API(`/api/bookings`) 처리
+
+4. 프론트 API 호출 경로 동기화
+   - 파일: `src/main/resources/static/js/map-detail.js`
+   - 반영:
+     - `/bookings/place-image` -> `/api/bookings/place-image`
+     - `/bookings/map-pois/merge` -> `/api/bookings/map-pois/merge`
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK06.md`
+- 추가: `src/main/java/com/example/travel_platform/trip/TripApiController.java`
+- 삭제: `src/main/java/com/example/travel_platform/trip/TripController.java`
+- 추가: `src/main/java/com/example/travel_platform/community/CommunityApiController.java`
+- 삭제: `src/main/java/com/example/travel_platform/community/CommunityController.java`
+- 추가: `src/main/java/com/example/travel_platform/calendar/CalendarApiController.java`
+- 삭제: `src/main/java/com/example/travel_platform/calendar/CalendarController.java`
+- 추가: `src/main/java/com/example/travel_platform/booking/BookingApiController.java`
+- 수정: `src/main/java/com/example/travel_platform/booking/BookingController.java`
+- 수정: `src/main/resources/static/js/map-detail.js`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotControllerTest"` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+
+---
+
+## 2026-03-05 추가 작업 (7)
+
+### 1. 사용자 요청 요약
+- 전체 구조/코드컨벤션 리팩토링 우선 진행
+- 서비스 계층 컨벤션 정리(트랜잭션/메서드 네이밍) 추가 진행
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK07.md`
+   - 반영: 서비스 컨벤션 정리 범위/완료 기준/검증 계획 수립
+
+2. 서비스 트랜잭션 선언 정리
+   - 대상: `TripService`, `CommunityService`, `CalendarService`, `BookingService`, `UserService`
+   - 반영:
+     - `jakarta.transaction.Transactional` -> `org.springframework.transaction.annotation.Transactional`
+     - 클래스 레벨 `@Transactional(readOnly = true)` 적용
+     - 쓰기 메서드의 메서드 레벨 `@Transactional` 유지
+
+3. UserService 메서드 네이밍 정리
+   - `회원가입` -> `join`
+   - `로그인` -> `login`
+   - `UserController` 호출부 동기화 반영
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK07.md`
+- 수정: `src/main/java/com/example/travel_platform/trip/TripService.java`
+- 수정: `src/main/java/com/example/travel_platform/community/CommunityService.java`
+- 수정: `src/main/java/com/example/travel_platform/calendar/CalendarService.java`
+- 수정: `src/main/java/com/example/travel_platform/booking/BookingService.java`
+- 수정: `src/main/java/com/example/travel_platform/user/UserService.java`
+- 수정: `src/main/java/com/example/travel_platform/user/UserController.java`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+
+---
+
+## 2026-03-05 추가 작업 (8)
+
+### 1. 사용자 요청 요약
+- `community` 도메인을 `board`로 변경
+- 게시글/댓글 혼합 구조를 분리해 댓글 도메인을 하위 폴더로 배치
+- `board`는 뷰 응답용 `@Controller` 중심 구성(`RestController` 미사용)
+- 캘린더 페이지 응답용 컨트롤러 추가
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK08.md`
+   - 반영: 도메인 전환/구조 분리/컨트롤러 전환 범위 정의
+
+2. community -> board 도메인 전환
+   - 추가:
+     - `board/Board.java`
+     - `board/BoardRequest.java`
+     - `board/BoardResponse.java`
+     - `board/BoardRepository.java`
+     - `board/BoardService.java`
+     - `board/BoardController.java`
+   - 추가:
+     - `board/reply/BoardReply.java` (댓글 도메인 하위 분리)
+   - 삭제:
+     - `community` 패키지 전체 파일(`Community*`)
+
+3. 컨트롤러 정책 반영
+   - `BoardController`를 `@Controller` 기반 뷰 반환 전용으로 구성
+   - `CalendarController` 추가로 `pages/calendar` 뷰 라우트 보강
+
+4. 참조 동기화
+   - `ChatbotService`의 게시글 조회 테이블 참조를 `board_tb`로 변경
+   - 게시판 관련 분류 키워드에 `board/게시판` 보강
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK08.md`
+- 추가: `src/main/java/com/example/travel_platform/board/Board.java`
+- 추가: `src/main/java/com/example/travel_platform/board/reply/BoardReply.java`
+- 추가: `src/main/java/com/example/travel_platform/board/BoardRequest.java`
+- 추가: `src/main/java/com/example/travel_platform/board/BoardResponse.java`
+- 추가: `src/main/java/com/example/travel_platform/board/BoardRepository.java`
+- 추가: `src/main/java/com/example/travel_platform/board/BoardService.java`
+- 추가: `src/main/java/com/example/travel_platform/board/BoardController.java`
+- 추가: `src/main/java/com/example/travel_platform/calendar/CalendarController.java`
+- 삭제: `src/main/java/com/example/travel_platform/community/*`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew test --tests "*ChatbotControllerTest"` 성공
+
