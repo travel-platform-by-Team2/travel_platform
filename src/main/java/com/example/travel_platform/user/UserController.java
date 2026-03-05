@@ -1,14 +1,10 @@
 package com.example.travel_platform.user;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -26,23 +22,19 @@ public class UserController {
     @GetMapping("/logout")
     public String logout() {
         session.invalidate();
-        // session.removeAttribute("sessionUser");
-        return "redirect:/";
+        return "redirect:/login-form";
     }
 
-    // 조회인데, 예외로 post 요청
     @PostMapping("/login")
-    public String login(@Valid UserRequest.LoginDTO reqDTO, Errors errors, HttpServletResponse resp) {
-        User sessionUser = userService.로그인(reqDTO.getEmail(), reqDTO.getPassword());
+    public String login(UserRequest.LoginDTO reqDTO) {
+        User sessionUser = userService.login(reqDTO.getEmail(), reqDTO.getPassword());
         session.setAttribute("sessionUser", sessionUser);
-
         return "redirect:/main-index";
     }
 
     @PostMapping("/join")
-    public String join(@Valid UserRequest.JoinDTO reqDTO, Errors errors) {
-        userService.회원가입(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail());
-
+    public String join(UserRequest.JoinDTO reqDTO) {
+        userService.join(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail());
         return "redirect:/login-form";
     }
 
