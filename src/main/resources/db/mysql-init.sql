@@ -24,8 +24,8 @@ drop table if exists map_place_image_tb;
 
 drop table if exists calendar_event_tb;
 drop table if exists booking_tb;
-drop table if exists community_reply_tb;
-drop table if exists community_post_tb;
+drop table if exists board_reply_tb;
+drop table if exists board_tb;
 drop table if exists trip_place_tb;
 drop table if exists trip_plan_tb;
 drop table if exists user_tb;
@@ -64,24 +64,24 @@ create table trip_place_tb (
   constraint fk_trip_place_plan foreign key (trip_plan_id) references trip_plan_tb(id)
 );
 
-create table community_post_tb (
+create table board_tb (
   id int auto_increment primary key,
   user_id int not null,
   title varchar(150) not null,
   content longtext not null,
   view_count int not null default 0,
   created_at datetime not null default current_timestamp,
-  constraint fk_community_post_user foreign key (user_id) references user_tb(id)
+  constraint fk_board_user foreign key (user_id) references user_tb(id)
 );
 
-create table community_reply_tb (
+create table board_reply_tb (
   id int auto_increment primary key,
-  post_id int not null,
+  board_id int not null,
   user_id int not null,
   content longtext not null,
   created_at datetime not null default current_timestamp,
-  constraint fk_community_reply_post foreign key (post_id) references community_post_tb(id),
-  constraint fk_community_reply_user foreign key (user_id) references user_tb(id)
+  constraint fk_board_reply_board foreign key (board_id) references board_tb(id),
+  constraint fk_board_reply_user foreign key (user_id) references user_tb(id)
 );
 
 create table booking_tb (
@@ -179,11 +179,11 @@ insert into trip_place_tb (trip_plan_id, place_name, address, latitude, longitud
 (1, '협재해수욕장', '제주특별자치도 제주시 한림읍 협재리', 33.3947600, 126.2393290, 2),
 (2, '해운대해수욕장', '부산광역시 해운대구 우동', 35.1586980, 129.1603840, 1);
 
-insert into community_post_tb (user_id, title, content, view_count, created_at) values
+insert into board_tb (user_id, title, content, view_count, created_at) values
 (1, '제주 여행 코스 추천', '성산일출봉과 해안도로 코스를 추천합니다.', 12, now()),
 (2, '부산 뚜벅이 가능할까요?', '해운대 중심으로 일정 짜보는데 조언 부탁드립니다.', 5, now());
 
-insert into community_reply_tb (post_id, user_id, content, created_at) values
+insert into board_reply_tb (board_id, user_id, content, created_at) values
 (1, 2, '좋은 정보 감사합니다. 다음 주에 가볼게요!', now()),
 (2, 1, '가능하지만 이동 동선은 미리 짜시면 좋아요.', now());
 
