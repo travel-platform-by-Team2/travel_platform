@@ -11,6 +11,7 @@
 
 <main class="page-main-compact">
 <div class="surface-panel">
+<form action="/boards" method="post">
 <div class="community-create-div-04">
 <div class="stack-gap-2">
 <label class="label-strong" for="category">
@@ -44,14 +45,15 @@
 </div>
 </div>
 <div class="panel-footer-actions">
-<button class="community-create-button-01" type="button">
+<a class="community-create-button-01" href="/boards">
                     취소
-                </button>
-<button class="community-create-button-02" type="button">
+                </a>
+<button class="community-create-button-02" type="submit">
                     작성 완료
                 </button>
 </div>
 </div>
+</form>
 </main>
 
   {{>partials/chatbot}}

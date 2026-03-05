@@ -12,6 +12,7 @@ import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,7 @@ public class BoardController {
     private final HttpSession session;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("items", boardService.getBoardList());
+    public String list(HttpServletRequest req) {
         return "pages/board-list";
     }
 
