@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot.exception;
+package com.example.travel_platform._core.handler;
 
 import java.time.LocalDateTime;
 
@@ -7,15 +7,15 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ChatbotErrorResponse {
+public class ApiErrorResponse {
 
     private String code;
     private String message;
     private Integer status;
     private LocalDateTime timestamp;
 
-    public static ChatbotErrorResponse of(String code, String message, Integer status) {
-        return ChatbotErrorResponse.builder()
+    public static ApiErrorResponse of(String code, String message, Integer status) {
+        return ApiErrorResponse.builder()
                 .code(code)
                 .message(message)
                 .status(status)

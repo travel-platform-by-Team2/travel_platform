@@ -51,6 +51,39 @@
     scrollToBottom();
   }
 
+  function appendTypingIndicator() {
+    if (!chatBody) {
+      return null;
+    }
+
+    var msg = document.createElement('div');
+    msg.className = 'chat-msg bot typing';
+
+    var bubble = document.createElement('span');
+    bubble.className = 'bubble';
+    bubble.setAttribute('role', 'status');
+    bubble.setAttribute('aria-label', '챗봇이 답변을 작성 중입니다.');
+
+    var dots = document.createElement('span');
+    dots.className = 'typing-dots';
+
+    for (var i = 0; i < 3; i += 1) {
+      dots.appendChild(document.createElement('span'));
+    }
+
+    bubble.appendChild(dots);
+    msg.appendChild(bubble);
+    chatBody.appendChild(msg);
+    scrollToBottom();
+    return msg;
+  }
+
+  function removeTypingIndicator(node) {
+    if (node && node.parentNode) {
+      node.parentNode.removeChild(node);
+    }
+  }
+
   function setSendingState(sending) {
     isSending = sending;
 
@@ -121,15 +154,21 @@
     appendMessage('user', message);
     input.value = '';
     setSendingState(true);
+    var typingNode = appendTypingIndicator();
 
     try {
       var data = await requestAnswer(message);
+      removeTypingIndicator(typingNode);
+      typingNode = null;
       var answer = extractAnswer(data) || '응답 형식을 해석하지 못했어요. 잠시 후 다시 시도해주세요.';
       appendMessage('bot', answer);
     } catch (error) {
+      removeTypingIndicator(typingNode);
+      typingNode = null;
       appendMessage('bot', '일시적으로 답변을 가져오지 못했어요. 잠시 후 다시 시도해주세요.');
       console.error(error);
     } finally {
+      removeTypingIndicator(typingNode);
       setSendingState(false);
       if (input && isOpen()) {
         input.focus();
