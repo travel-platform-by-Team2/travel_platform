@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot;
+package com.example.travel_platform.chatbot.api;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,19 +18,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.example.travel_platform.chatbot.exception.ChatbotException;
-import com.example.travel_platform.chatbot.exception.ChatbotExceptionHandler;
+import com.example.travel_platform._core.handler.ApiExceptionHandler;
+import com.example.travel_platform._core.handler.ex.ApiException;
+import com.example.travel_platform.chatbot.api.dto.ChatbotRequest;
+import com.example.travel_platform.chatbot.api.dto.ChatbotResponse;
+import com.example.travel_platform.chatbot.application.ChatbotOrchestrator;
 
 @WebMvcTest(ChatbotController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ChatbotExceptionHandler.class)
+@Import(ApiExceptionHandler.class)
 class ChatbotControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ChatbotService chatbotService;
+    private ChatbotOrchestrator chatbotOrchestrator;
 
     @Test
     void ask_success_returnsOkJson() throws Exception {
@@ -41,7 +44,7 @@ class ChatbotControllerTest {
                         .needsDb(false)
                         .build())
                 .build();
-        given(chatbotService.ask(any(ChatbotRequest.AskDTO.class))).willReturn(response);
+        given(chatbotOrchestrator.ask(any(ChatbotRequest.AskDTO.class))).willReturn(response);
 
         String requestBody = """
                 {
@@ -73,18 +76,18 @@ class ChatbotControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("CHATBOT_BAD_REQUEST"))
+                .andExpect(jsonPath("$.code").value("API_BAD_REQUEST"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value(containsString("must not be blank")))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(chatbotService);
+        verifyNoInteractions(chatbotOrchestrator);
     }
 
     @Test
     void ask_serviceError_returnsInternalErrorJson() throws Exception {
-        given(chatbotService.ask(any(ChatbotRequest.AskDTO.class)))
-                .willThrow(new ChatbotException("CHATBOT_INTERNAL_ERROR", "boom", HttpStatus.INTERNAL_SERVER_ERROR));
+        given(chatbotOrchestrator.ask(any(ChatbotRequest.AskDTO.class)))
+                .willThrow(new ApiException("CHATBOT_INTERNAL_ERROR", "boom", HttpStatus.INTERNAL_SERVER_ERROR));
 
         String requestBody = """
                 {
@@ -110,7 +113,7 @@ class ChatbotControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("CHATBOT_BAD_REQUEST"))
+                .andExpect(jsonPath("$.code").value("API_BAD_REQUEST"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Request JSON body is invalid."))
                 .andExpect(jsonPath("$.timestamp").exists());
