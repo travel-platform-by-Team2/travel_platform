@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +17,15 @@ public class BookingController {
 
     private static final String DEFAULT_COMPLETE_IMAGE_URL =
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+    private final String kakaoMapAppKey;
+
+    public BookingController(@Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey) {
+        this.kakaoMapAppKey = kakaoMapAppKey;
+    }
 
     @GetMapping("/map-detail")
-    public String detailMap() {
+    public String detailMap(Model model) {
+        model.addAttribute("kakaoMapAppKey", kakaoMapAppKey == null ? "" : kakaoMapAppKey);
         return "pages/map-detail";
     }
 

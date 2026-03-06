@@ -314,7 +314,9 @@
 
   {{>partials/chatbot}}
   {{>partials/footer}}
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=8da0e265f3925985b02806301acd3ede&libraries=services&autoload=false"></script>
+  {{#kakaoMapAppKey}}
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  {{/kakaoMapAppKey}}
   {{>partials/scripts}}
 </body>
 </html>

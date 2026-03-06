@@ -593,3 +593,373 @@
 - `./gradlew test --tests "*ChatbotServiceTest"` 성공
 - `./gradlew test --tests "*ChatbotControllerTest"` 성공
 
+
+---
+
+## 2026-03-05 추가 작업 (9)
+
+### 1. 사용자 요청 요약
+- `AGENT_KHJ.md`를 기준으로 다음 작업 진행
+- 챗봇 관련 실제 실패 테스트를 기준으로 작업 착수
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK09.md`
+   - 반영: 빈 메시지 입력 검증 회귀 수정 범위/완료 기준/검증 계획 정의
+
+2. 빈 메시지 입력 검증 복구
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotRequest.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotController.java`
+   - 반영:
+     - `ChatbotRequest.AskDTO.message`에 `@NotBlank` 추가
+     - `ChatbotController.ask` 파라미터에 `@Valid` 적용
+
+3. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영:
+     - 빈 메시지 검증 회귀 수정 완료 항목 추가
+     - 전체 테스트 실패 이슈 문구를 최신 상태(테스트 통과)로 정정
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK09.md`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotRequest.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotController.java`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotControllerTest"` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew test` 성공
+
+---
+
+## 2026-03-05 추가 작업 (10)
+
+### 1. 사용자 요청 요약
+- 챗봇에 LLM 연동 기능 추가
+- OpenAI 사용 기준으로 구현 진행
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK10.md`
+   - 반영: OpenAI 연동 범위/제외 범위/위험도/검증 계획 정의
+
+2. OpenAI LLM 클라이언트 추가
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmClient.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+   - 반영:
+     - OpenAI Responses API(`/v1/responses`) 호출 구현
+     - 환경변수 기반 설정(`OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_ENDPOINT`)
+     - API 실패/응답 파싱 실패 시 `CHATBOT_INTERNAL_ERROR` 예외 처리
+
+3. 챗봇 서비스 연결
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+   - 반영:
+     - `DIRECT_LLM` 경로를 하드코딩 문자열에서 OpenAI 호출 결과로 변경
+     - `DB_QUERY` 경로는 기존 동작 유지
+
+4. 테스트/의존성 갱신
+   - 파일: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+   - 파일: `build.gradle`
+   - 반영:
+     - `ChatbotLlmClient` mocking 기반 테스트로 갱신
+     - `DIRECT_LLM` 실패 케이스 테스트 추가
+     - Jackson 사용을 위한 `spring-boot-starter-json` 의존성 추가
+
+5. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영: OpenAI 연동 완료 항목/리스크 반영
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK10.md`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmClient.java`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+- 수정: `build.gradle`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew test --tests "*ChatbotControllerTest"` 성공
+- `./gradlew test --tests "*TravelPlatformApplicationTests"` 성공
+- `./gradlew test` 성공
+
+---
+
+## 2026-03-05 추가 작업 (11)
+
+### 1. 사용자 요청 요약
+- `spring-boot-starter-json` 대신 `gson` 사용 요청
+- `build.gradle`은 사용자 수정본 기준으로 유지
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK11.md`
+   - 반영: Gson 전환 범위/검증 계획 정의
+
+2. OpenAI 클라이언트 JSON 처리 전환
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+   - 반영:
+     - `ObjectMapper/JsonNode` 제거
+     - `Gson/JsonObject/JsonArray/JsonElement` 기반 직렬화/파싱으로 교체
+     - `output_text` 우선, `output[].content[].text` 폴백 파싱 유지
+
+3. 사용자 관리 영역 유지
+   - `build.gradle`은 수정하지 않고 사용자 변경 상태를 그대로 사용
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK11.md`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew test` 성공
+
+---
+
+## 2026-03-05 추가 작업 (16)
+
+### 1. 사용자 요청 요약
+- OpenAI API 키를 코드/설정 하드코딩 없이 `.env` 파일로 분리 요청
+- 실제 페이지에서 사용할 수 있도록 실행 준비 가능한 상태로 설정 정리 요청
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK16.md`
+   - 반영: `.env` 외부화 범위/완료 기준/검증 계획 정의
+
+2. Spring `.env` 로딩 연결
+   - 파일: `src/main/resources/application.properties`
+   - 반영: `spring.config.import=optional:file:.env[.properties]` 추가
+
+3. `.env` 보안/공유 템플릿 정리
+   - 파일: `.gitignore`
+   - 파일: `.env.example`
+   - 반영:
+     - `.env`, `.env.*` git 추적 제외
+     - `.env.example`는 추적 유지
+   - 로컬 파일 생성:
+     - `.env` (비추적, 빈 키 템플릿)
+
+4. 런타임 점검
+   - `bootRun` 실행 후 `POST /api/chatbot/messages` 호출 확인
+   - `.env` 값 반영 상태에서 챗봇 응답 경로 동작 확인
+
+5. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영: 항목 25(.env 외부화) 및 완료 이력 추가
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK16.md`
+- 추가: `.env.example`
+- 수정: `src/main/resources/application.properties`
+- 수정: `.gitignore`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest" --tests "*ChatbotControllerTest"` 성공
+
+---
+
+## 2026-03-05 추가 작업 (15)
+
+### 1. 사용자 요청 요약
+- OpenAI 프롬프트를 한국어로 정리 요청
+- `chatbot` 도메인 코드에 상세 주석 추가 요청
+
+### 2. 진행 내용
+1. TASK 문서 작성/갱신
+   - 파일: `.docs/.task/.KHJ/flow/TASK15.md`
+   - 반영: 범위/완료 기준/검증/결과 기록 정리
+
+2. chatbot 도메인 주석 상세화
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/**`
+   - 반영:
+     - 클래스/필드/메서드 책임을 한글 주석으로 명확화
+     - 처리 흐름(LLM 1차 계획 -> DB 분기 -> LLM 2차 답변) 설명 보강
+
+3. OpenAI 프롬프트 한국어화
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+   - 반영:
+     - `PLAN_SYSTEM_PROMPT`, `GENERAL_ANSWER_SYSTEM_PROMPT`, `DB_ANSWER_SYSTEM_PROMPT` 한글화
+     - JSON 스키마 강제 규칙 및 응답 형식 설명 정리
+
+4. 회귀 검증
+   - 문자열 기대값 불일치(`ChatbotControllerTest`)를 기존 메시지와 맞춰 정렬
+   - 검증 명령:
+     - `./gradlew compileJava`
+     - `./gradlew test --tests "*ChatbotServiceTest" --tests "*ChatbotControllerTest"`
+     - `./gradlew test`
+
+5. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영: 항목 24(가독성 정리) 및 완료 이력 추가
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK15.md`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotController.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotRequest.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotResponse.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotErrorResponse.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotException.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/exception/ChatbotExceptionHandler.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmClient.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmPlan.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest" --tests "*ChatbotControllerTest"` 성공
+- `./gradlew test` 성공
+
+---
+
+## 2026-03-05 추가 작업 (13)
+
+### 1. 사용자 요청 요약
+- 챗봇 동작 스토리보드 확정
+- 스토리보드 기준으로 요청/응답 JSON 스키마 고정 요청
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK13.md`
+   - 반영: 문서 범위/완료 기준/검증 계획 정의
+
+2. 챗봇 API 스펙 문서 개편
+   - 파일: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
+   - 반영:
+     - 외부 API 요청/응답 스키마 고정
+     - 내부 LLM 계약을 1차 계획(분기+SQL)/2차 답변 생성으로 분리
+     - `needsDb=false`/`needsDb=true` 필수 필드 규칙 명시
+     - 스토리보드 단계(4-1, 5-1~5-6) 기준 처리 흐름 고정
+
+3. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영: 스키마 고정 완료 항목 추가
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK13.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_API_SPEC.md`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- 문서 리뷰 완료
+- 코드/테스트 변경 없음
+
+---
+
+## 2026-03-05 추가 작업 (14)
+
+### 1. 사용자 요청 요약
+- 스토리보드 문서 확인 후 실제 코드 작업 진행 요청
+- 핵심 요구: LLM 1차 판단/SQL 생성 + DB 조회 + LLM 2차 자연어 응답
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK14.md`
+   - 반영: 실제 구현 정렬 범위/검증 계획 수립
+
+2. 서비스 흐름 정렬
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+   - 반영:
+     - LLM 1차 계획 호출 시 서버 스키마 컨텍스트 전달
+     - DB 경로 오케스트레이션 유지(`plan -> query -> answer`)
+
+3. LLM 클라이언트 계약/구현 강화
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmClient.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+   - 반영:
+     - `createPlan(..., schemaContext)` 시그니처 확장
+     - 2차 답변 프롬프트를 JSON(`answer`) 응답 강제 형태로 변경
+     - 2차 응답을 JSON 파싱해 `answer` 추출
+
+4. 테스트 갱신
+   - 파일: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+   - 반영:
+     - 확장된 `createPlan` 시그니처에 맞춰 mock/verify 수정
+     - 기존 분기/예외 케이스 테스트 유지
+
+5. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영: 실구현 정렬 완료 항목 추가
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK14.md`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmClient.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+- 수정: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew test` 성공
+
+---
+
+## 2026-03-05 추가 작업 (12)
+
+### 1. 사용자 요청 요약
+- 챗봇의 키워드/SQL/응답 문장 생성 로직을 LLM 중심으로 전환 요청
+- `ChatbotService`부터 리팩토링 진행
+
+### 2. 진행 내용
+1. TASK 문서 작성
+   - 파일: `.docs/.task/.KHJ/flow/TASK12.md`
+   - 반영: LLM 중심 흐름 전환 범위/검증 계획 정의
+
+2. 서비스 오케스트레이션 리팩토링
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+   - 반영:
+     - 키워드 분류/고정 SQL/고정 응답 생성 메서드 제거
+     - LLM plan(`needsDb/queryIntent/querySummary/sql/answer`) 기반 분기로 변경
+     - DB 경로 최종 답변도 LLM 생성으로 위임
+
+3. LLM 클라이언트 계약/구현 확장
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmClient.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmPlan.java`
+   - 파일: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+   - 반영:
+     - `createPlan`, `createDbAnswer` 메서드 추가
+     - OpenAI Responses API로 plan JSON 생성 및 파싱
+     - DB rows 기반 최종 답변 생성 호출 추가
+
+4. 테스트 갱신
+   - 파일: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+   - 반영:
+     - 기존 키워드/규칙 기반 테스트를 LLM plan 기반 테스트로 변경
+     - DB SQL 누락/계획 실패 케이스 검증 추가
+
+5. 진행 문서 동기화
+   - 파일: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+   - 반영: LLM 중심 리팩토링 완료 항목 추가
+
+### 3. 변경 파일
+- 추가: `.docs/.task/.KHJ/flow/TASK12.md`
+- 추가: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmPlan.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/ChatbotService.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/ChatbotLlmClient.java`
+- 수정: `src/main/java/com/example/travel_platform/chatbot/llm/OpenAiChatbotLlmClient.java`
+- 수정: `src/test/java/com/example/travel_platform/chatbot/ChatbotServiceTest.java`
+- 수정: `.docs/.task/.KHJ/CHATBOT_PROGRESS.md`
+- 수정: `.docs/.task/.KHJ/WORKLOG.md`
+
+### 4. 검증
+- `./gradlew compileJava` 성공
+- `./gradlew test --tests "*ChatbotServiceTest"` 성공
+- `./gradlew test` 성공

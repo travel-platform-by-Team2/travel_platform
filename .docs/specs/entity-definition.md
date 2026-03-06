@@ -1,140 +1,133 @@
-# 여행 플랫폼 엔티티 정의서
+﻿# 여행 플랫폼 엔티티 정의서
 
-- 문서 버전: `v1.0`
-- 작성일: `2026-03-04`
-- 적용 범위: `src/main/java/com/example/travel_platform` 하위 JPA 엔티티
-- DB 실행 환경: `H2 (jdbc:h2:mem:test)` + `Hibernate ddl-auto=create`
-- 네이밍 규칙: Spring/Hibernate 기본 물리 네이밍(`camelCase` -> `snake_case`)
+- 문서 버전: `v2.0`
+- 기준일: `2026-03-05`
+- 기준 코드: `src/main/java/com/example/travel_platform`
+- 기준 환경: `H2 (jdbc:h2:mem:test)` + `spring.jpa.hibernate.ddl-auto=create`
 
-## 1. 엔티티 목록
+## 상세 ERD 문서 안내
+
+- 프로젝트 전체 DB 설계(보조 SQL 테이블 포함) 상세 ERD는 `.docs/specs/db-erd-design.md`를 참고한다.
+
+## 1. 엔티티 목록 (최신)
 
 | 도메인 | 엔티티 | 테이블 |
 | --- | --- | --- |
 | 사용자 | `User` | `user_tb` |
 | 여행 | `TripPlan` | `trip_plan_tb` |
 | 여행 | `TripPlace` | `trip_place_tb` |
-| 커뮤니티 | `CommunityPost` | `community_post_tb` |
-| 커뮤니티 | `CommunityReply` | `community_reply_tb` |
+| 커뮤니티 | `Board` | `board_tb` |
+| 커뮤니티 | `Reply` | `board_reply_tb` |
 | 예약 | `Booking` | `booking_tb` |
 | 캘린더 | `CalendarEvent` | `calendar_event_tb` |
 
 ## 2. 엔티티 상세 정의
 
-### 2.1 `user_tb` (`User`)
+### 2.1 `User` (`user_tb`)
 
-| 컬럼명 | 타입 | NULL 허용 | 키 | 기본값 | 설명 |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `integer` | N | PK | auto increment | 사용자 식별자 |
-| `username` | `varchar(255)` | Y | UK | - | 로그인 아이디, 유니크 |
-| `password` | `varchar(100)` | N | - | - | 비밀번호 |
-| `email` | `varchar(255)` | Y | - | - | 이메일 |
-| `created_at` | `timestamp` | Y | - | `CreationTimestamp` | 생성 시각 |
+| 필드 | 컬럼 | 타입 | NULL | 제약 |
+| --- | --- | --- | --- | --- |
+| `id` | `id` | `Integer` | N | PK, IDENTITY |
+| `username` | `username` | `String` | Y | UNIQUE |
+| `password` | `password` | `String` | N | `length=100`, `nullable=false` |
+| `email` | `email` | `String` | Y | - |
+| `createdAt` | `created_at` | `LocalDateTime` | Y | `@CreationTimestamp` |
 
-비고:
-- `username`은 유니크 제약을 가짐 (`@Column(unique = true)`).
-- `password`는 최대 길이 100, NOT NULL 제약을 가짐 (`@Column(length = 100, nullable = false)`).
+### 2.2 `TripPlan` (`trip_plan_tb`)
 
-### 2.2 `trip_plan_tb` (`TripPlan`)
+| 필드 | 컬럼 | 타입 | NULL | 제약 |
+| --- | --- | --- | --- | --- |
+| `id` | `id` | `Integer` | N | PK, IDENTITY |
+| `user` | `user_id` | `User` | N | FK (`@ManyToOne`, LAZY) |
+| `title` | `title` | `String` | N | `length=100` |
+| `startDate` | `start_date` | `LocalDate` | N | - |
+| `endDate` | `end_date` | `LocalDate` | N | - |
+| `createdAt` | `created_at` | `LocalDateTime` | Y | `@CreationTimestamp` |
 
-| 컬럼명 | 타입 | NULL 허용 | 키 | 기본값 | 설명 |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `integer` | N | PK | auto increment | 여행 계획 식별자 |
-| `user_id` | `integer` | N | FK | - | 소유 사용자 (`user_tb.id`) |
-| `title` | `varchar(100)` | N | - | - | 여행 계획 제목 |
-| `start_date` | `date` | N | - | - | 여행 시작일 |
-| `end_date` | `date` | N | - | - | 여행 종료일 |
-| `created_at` | `timestamp` | Y | - | `CreationTimestamp` | 생성 시각 |
+### 2.3 `TripPlace` (`trip_place_tb`)
 
-### 2.3 `trip_place_tb` (`TripPlace`)
+| 필드 | 컬럼 | 타입 | NULL | 제약 |
+| --- | --- | --- | --- | --- |
+| `id` | `id` | `Integer` | N | PK, IDENTITY |
+| `tripPlan` | `trip_plan_id` | `TripPlan` | N | FK (`@ManyToOne`, LAZY) |
+| `placeName` | `place_name` | `String` | N | `length=100` |
+| `address` | `address` | `String` | Y | `length=255` |
+| `latitude` | `latitude` | `BigDecimal` | Y | `precision=10, scale=7` |
+| `longitude` | `longitude` | `BigDecimal` | Y | `precision=10, scale=7` |
+| `dayOrder` | `day_order` | `Integer` | N | - |
 
-| 컬럼명 | 타입 | NULL 허용 | 키 | 기본값 | 설명 |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `integer` | N | PK | auto increment | 장소 식별자 |
-| `trip_plan_id` | `integer` | N | FK | - | 상위 여행 계획 (`trip_plan_tb.id`) |
-| `place_name` | `varchar(100)` | N | - | - | 장소명 |
-| `address` | `varchar(255)` | Y | - | - | 주소 |
-| `latitude` | `numeric(10,7)` | Y | - | - | 위도 |
-| `longitude` | `numeric(10,7)` | Y | - | - | 경도 |
-| `day_order` | `integer` | N | - | - | 여행 일차/순서 |
+### 2.4 `Board` (`board_tb`)
 
-### 2.4 `community_post_tb` (`CommunityPost`)
+| 필드 | 컬럼 | 타입 | NULL | 제약 |
+| --- | --- | --- | --- | --- |
+| `id` | `id` | `Integer` | N | PK, IDENTITY |
+| `user` | `user_id` | `User` | N | FK (`@ManyToOne`, LAZY) |
+| `title` | `title` | `String` | N | `length=150` |
+| `content` | `content` | `String` | N | `@Lob` |
+| `viewCount` | `view_count` | `Integer` | N | 기본값 `0` |
+| `replies` | - | `List<Reply>` | - | `@OneToMany(mappedBy="board")` |
+| `createdAt` | `created_at` | `LocalDateTime` | Y | `@CreationTimestamp` |
 
-| 컬럼명 | 타입 | NULL 허용 | 키 | 기본값 | 설명 |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `integer` | N | PK | auto increment | 게시글 식별자 |
-| `user_id` | `integer` | N | FK | - | 작성자 (`user_tb.id`) |
-| `title` | `varchar(150)` | N | - | - | 게시글 제목 |
-| `content` | `clob` | N | - | - | 게시글 본문 |
-| `view_count` | `integer` | N | - | `0` | 조회수 |
-| `created_at` | `timestamp` | Y | - | `CreationTimestamp` | 생성 시각 |
+### 2.5 `Reply` (`board_reply_tb`)
 
-### 2.5 `community_reply_tb` (`CommunityReply`)
+| 필드 | 컬럼 | 타입 | NULL | 제약 |
+| --- | --- | --- | --- | --- |
+| `id` | `id` | `Integer` | N | PK, IDENTITY |
+| `board` | `board_id` | `Board` | N | FK (`@ManyToOne`, LAZY) |
+| `user` | `user_id` | `User` | N | FK (`@ManyToOne`, LAZY) |
+| `content` | `content` | `String` | N | `@Lob` |
+| `createdAt` | `created_at` | `LocalDateTime` | Y | `@CreationTimestamp` |
 
-| 컬럼명 | 타입 | NULL 허용 | 키 | 기본값 | 설명 |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `integer` | N | PK | auto increment | 댓글 식별자 |
-| `post_id` | `integer` | N | FK | - | 상위 게시글 (`community_post_tb.id`) |
-| `user_id` | `integer` | N | FK | - | 작성자 (`user_tb.id`) |
-| `content` | `clob` | N | - | - | 댓글 본문 |
-| `created_at` | `timestamp` | Y | - | `CreationTimestamp` | 생성 시각 |
+### 2.6 `Booking` (`booking_tb`)
 
-### 2.6 `booking_tb` (`Booking`)
+| 필드 | 컬럼 | 타입 | NULL | 제약 |
+| --- | --- | --- | --- | --- |
+| `id` | `id` | `Integer` | N | PK, IDENTITY |
+| `user` | `user_id` | `User` | N | FK (`@ManyToOne`, LAZY) |
+| `tripPlan` | `trip_plan_id` | `TripPlan` | N | FK (`@ManyToOne`, LAZY) |
+| `lodgingName` | `lodging_name` | `String` | N | `length=120` |
+| `checkIn` | `check_in` | `LocalDate` | N | - |
+| `checkOut` | `check_out` | `LocalDate` | N | - |
+| `guestCount` | `guest_count` | `Integer` | N | - |
+| `totalPrice` | `total_price` | `Integer` | N | - |
+| `createdAt` | `created_at` | `LocalDateTime` | Y | `@CreationTimestamp` |
 
-| 컬럼명 | 타입 | NULL 허용 | 키 | 기본값 | 설명 |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `integer` | N | PK | auto increment | 예약 식별자 |
-| `user_id` | `integer` | N | FK | - | 예약 사용자 (`user_tb.id`) |
-| `trip_plan_id` | `integer` | N | FK | - | 연관 여행 계획 (`trip_plan_tb.id`) |
-| `lodging_name` | `varchar(120)` | N | - | - | 숙소명 |
-| `check_in` | `date` | N | - | - | 체크인 일자 |
-| `check_out` | `date` | N | - | - | 체크아웃 일자 |
-| `guest_count` | `integer` | N | - | - | 인원수 |
-| `total_price` | `integer` | N | - | - | 총 금액 |
-| `created_at` | `timestamp` | Y | - | `CreationTimestamp` | 생성 시각 |
+### 2.7 `CalendarEvent` (`calendar_event_tb`)
 
-### 2.7 `calendar_event_tb` (`CalendarEvent`)
-
-| 컬럼명 | 타입 | NULL 허용 | 키 | 기본값 | 설명 |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `integer` | N | PK | auto increment | 캘린더 일정 식별자 |
-| `user_id` | `integer` | N | FK | - | 소유 사용자 (`user_tb.id`) |
-| `trip_plan_id` | `integer` | Y | FK | - | 연관 여행 계획 (`trip_plan_tb.id`), 선택값 |
-| `title` | `varchar(120)` | N | - | - | 일정 제목 |
-| `start_at` | `timestamp` | N | - | - | 시작 일시 |
-| `end_at` | `timestamp` | N | - | - | 종료 일시 |
-| `event_type` | `varchar(50)` | N | - | - | 일정 유형(문자열) |
+| 필드 | 컬럼 | 타입 | NULL | 제약 |
+| --- | --- | --- | --- | --- |
+| `id` | `id` | `Integer` | N | PK, IDENTITY |
+| `user` | `user_id` | `User` | N | FK (`@ManyToOne`, LAZY) |
+| `tripPlan` | `trip_plan_id` | `TripPlan` | Y | FK (`@ManyToOne`, LAZY) |
+| `title` | `title` | `String` | N | `length=120` |
+| `startAt` | `start_at` | `LocalDateTime` | N | - |
+| `endAt` | `end_at` | `LocalDateTime` | N | - |
+| `eventType` | `event_type` | `String` | N | `length=50` |
 
 ## 3. 관계 요약
 
 ```mermaid
 erDiagram
-    user_tb ||--o{ trip_plan_tb : 소유
-    trip_plan_tb ||--o{ trip_place_tb : 포함
-    user_tb ||--o{ community_post_tb : 작성
-    community_post_tb ||--o{ community_reply_tb : 포함
-    user_tb ||--o{ community_reply_tb : 작성
-    user_tb ||--o{ booking_tb : 예약
-    trip_plan_tb ||--o{ booking_tb : 연계
-    user_tb ||--o{ calendar_event_tb : 소유
-    trip_plan_tb ||--o{ calendar_event_tb : 선택연계
+    user_tb ||--o{ trip_plan_tb : owns
+    trip_plan_tb ||--o{ trip_place_tb : contains
+    user_tb ||--o{ board_tb : writes
+    board_tb ||--o{ board_reply_tb : has
+    user_tb ||--o{ board_reply_tb : writes
+    user_tb ||--o{ booking_tb : books
+    trip_plan_tb ||--o{ booking_tb : links
+    user_tb ||--o{ calendar_event_tb : owns
+    trip_plan_tb ||--o{ calendar_event_tb : optional_link
 ```
 
-## 4. 애플리케이션 유효성 규칙 (DTO/Service)
+## 4. v1.0 대비 변경 사항
 
-### 4.1 DTO 수준 제약 (구현됨)
-- `UserRequest.JoinDTO`: `username`, `password`, `email` 필수, `email` 형식 검증.
-- `TripRequest.CreatePlanDTO`: `title`, `startDate`, `endDate` 필수.
-- `TripRequest.AddPlaceDTO`: `placeName`, `dayOrder` 필수.
-- `CommunityRequest.*`: 게시글/댓글 `title`, `content` 필수.
-- `BookingRequest.CreateBookingDTO`: `tripPlanId`, `lodgingName`, `checkIn`, `checkOut` 필수, `guestCount >= 1`, `totalPrice >= 0`.
-- `CalendarRequest.CreateEventDTO`, `UpdateEventDTO`: `title`, `startAt`, `endAt`, `eventType` 필수 (`tripPlanId`는 생성 시 선택).
+- 커뮤니티 엔티티/테이블명을 `CommunityPost`/`CommunityReply` 기준에서 `Board`/`Reply` 기준으로 최신화.
+  - `community_post_tb` -> `board_tb`
+  - `community_reply_tb` -> `board_reply_tb`
+- 현재 코드에는 `Community*` 엔티티가 존재하지 않음을 반영.
+- DTO/Service 유효성 구현 상태를 엔티티 정의서에서 제거하고, 엔티티 구조 중심 문서로 정리.
 
-### 4.2 서비스 수준 규칙 (예정, TODO)
-- `TripService`, `CommunityService`, `BookingService`, `CalendarService`의 소유권 검증/업무 규칙 검증은 대부분 TODO 상태.
-- `startAt <= endAt`, 예약 중복 검증, 인가 검증 등 핵심 규칙이 아직 확정 구현되지 않음.
+## 5. 참고
 
-## 5. 현재 구현 메모
-
-- `UserRepository`를 제외한 Repository 메서드는 대부분 TODO 스텁 상태로, 조회/정렬/페이징/삭제 정책이 미확정.
-- `calendar_event_tb.event_type`에 대한 enum 또는 DB check 제약이 없음.
-- JPA가 생성하는 PK/UK 외에 명시적인 인덱스 정의가 없음.
+- 본 문서는 JPA 엔티티 기준 문서다.
+- `map_place_image_tb`, `lodging_tb` 등 JDBC 기반 보조 테이블은 `.docs/specs/table-specification.md`에서 별도 관리한다.
