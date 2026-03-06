@@ -1,5 +1,9 @@
-insert into user_tb (username, password, email, created_at) values ('ssar', '1234', 'ssar@nate.com', now());
-insert into user_tb (username, password, email, created_at) values ('cos', '1234', 'cos@nate.com', now());
+-- H2 seed data for core domain tables
+insert into user_tb (username, password, email, created_at)
+values ('ssar', '1234', 'ssar@nate.com', now());
+
+insert into user_tb (username, password, email, created_at)
+values ('cos', '1234', 'cos@nate.com', now());
 
 -- 여행 계획
 insert into trip_plan_tb (user_id, title, start_date, end_date, created_at)
@@ -45,3 +49,6 @@ values (1, 1, '제주 출발', timestamp '2026-04-10 08:00:00', timestamp '2026-
 
 insert into calendar_event_tb (user_id, trip_plan_id, title, start_at, end_at, event_type)
 values (2, 2, '체크인', timestamp '2026-05-01 15:00:00', timestamp '2026-05-01 16:00:00', 'BOOKING');
+
+-- map-detail 페이지용 지도/숙소 데이터
+runscript from 'classpath:db/mapdata.sql';
