@@ -22,17 +22,18 @@ public class UserController {
     @GetMapping("/logout")
     public String logout() {
         session.invalidate();
-        return "redirect:/";
+        return "redirect:/login-form";
     }
 
+    // 로그인 성공 : 메인 페이지(/)로 리다이렉트 : 지윤
     @PostMapping("/login")
     public String login(UserRequest.LoginDTO reqDTO) {
         User sessionUser = userService.login(reqDTO.getEmail(), reqDTO.getPassword());
-       
-
-        return "redirect:/main-index";
+        session.setAttribute("sessionUser", sessionUser);
+        return "redirect:/";
     }
 
+    // 회원가입 성공_가입 후 로그인 폼으로 이동 : 지윤
     @PostMapping("/join")
     public String join(UserRequest.JoinDTO reqDTO) {
         userService.join(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail());
@@ -44,12 +45,9 @@ public class UserController {
         return "pages/login";
     }
 
-    
     @GetMapping("/join-form")
     public String joinForm() {
         return "pages/signup";
     }
+
 }
-
-
-    
