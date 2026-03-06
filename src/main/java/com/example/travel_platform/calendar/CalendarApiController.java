@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -28,19 +27,19 @@ public class CalendarApiController {
 
     @PostMapping
     public void createEvent(@RequestBody CalendarRequest.CreateEventDTO reqDTO) {
-        Integer sessionUserId = 1;
-        calendarService.createEvent(sessionUserId, reqDTO);
+        Integer userId = resolveUserId();
+        calendarService.createEvent(userId, reqDTO);
     }
 
     @PutMapping("/{eventId}")
     public void updateEvent(@PathVariable Integer eventId, @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
-        Integer sessionUserId = 1;
-        calendarService.updateEvent(sessionUserId, eventId, reqDTO);
+        Integer userId = resolveUserId();
+        calendarService.updateEvent(userId, eventId, reqDTO);
     }
 
     @DeleteMapping("/{eventId}")
     public void deleteEvent(@PathVariable Integer eventId) {
-        calendarService.deleteEvent(requireSessionUserId(), eventId);
+        calendarService.deleteEvent(eventId);
     }
 
     @GetMapping
@@ -50,7 +49,7 @@ public class CalendarApiController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) LocalDate date) {
 
-        Integer sessionUserId = requireSessionUserId();
+        Integer sessionUserId = resolveUserId();
 
         if (date != null) {
             return calendarService.getDayNode(sessionUserId, date);
@@ -61,11 +60,11 @@ public class CalendarApiController {
         return calendarService.getEventList(sessionUserId, startDate, endDate);
     }
 
-    private Integer requireSessionUserId() {
+    private Integer resolveUserId() {
         Object sessionUser = session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            throw new Exception401("로그인이 필요합니다.");
+        if (sessionUser instanceof User user) {
+            return user.getId();
         }
-        return ((User) sessionUser).getId();
+        return 1;
     }
 }

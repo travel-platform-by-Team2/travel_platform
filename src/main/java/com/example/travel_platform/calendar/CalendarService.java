@@ -1,4 +1,4 @@
-﻿package com.example.travel_platform.calendar;
+package com.example.travel_platform.calendar;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,15 +18,20 @@ import lombok.RequiredArgsConstructor;
 public class CalendarService {
 
     private final CalendarRepository calendarRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public void createEvent(Integer sessionUserId, CalendarRequest.CreateEventDTO reqDTO) {
+    public void createEvent(Integer userId, CalendarRequest.CreateEventDTO reqDTO) {
         if (reqDTO.getStartAt() != null && reqDTO.getEndAt() != null
                 && reqDTO.getStartAt().isAfter(reqDTO.getEndAt())) {
             throw new Exception400("시작일은 종료일 보다 늦을 수 없습니다.");
         }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new Exception400("사용자를 찾을 수 없습니다."));
+
         CalendarEvent event = new CalendarEvent();
+        event.setUser(user);
         event.setTitle(reqDTO.getTitle());
         event.setStartAt(reqDTO.getStartAt());
         event.setEndAt(reqDTO.getEndAt());
@@ -34,7 +41,7 @@ public class CalendarService {
     }
 
     @Transactional
-    public void updateEvent(Integer sessionUserId, Integer eventId, CalendarRequest.UpdateEventDTO reqDTO) {
+    public void updateEvent(Integer userId, Integer eventId, CalendarRequest.UpdateEventDTO reqDTO) {
         if (reqDTO.getStartAt() != null && reqDTO.getEndAt() != null
                 && reqDTO.getStartAt().isAfter(reqDTO.getEndAt())) {
             throw new Exception400("시작일은 종료일 보다 늦을 수 없습니다.");
@@ -42,6 +49,12 @@ public class CalendarService {
 
         CalendarEvent event = calendarRepository.findById(eventId)
                 .orElseThrow(() -> new Exception400("일정을 찾을 수 없습니다."));
+
+        if (event.getUser() == null) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new Exception400("사용자를 찾을 수 없습니다."));
+            event.setUser(user);
+        }
 
         event.setTitle(reqDTO.getTitle());
         event.setStartAt(reqDTO.getStartAt());
@@ -52,7 +65,7 @@ public class CalendarService {
     }
 
     @Transactional
-    public void deleteEvent(Integer sessionUserId, Integer eventId) {
+    public void deleteEvent(Integer eventId) {
         // TODO: 일정 삭제 비즈니스 로직 구현
     }
 
