@@ -20,6 +20,41 @@
     gangwon: ["강원", "춘천", "원주", "강릉", "속초", "동해", "삼척", "태백"]
   };
 
+  function applySearchParamsFromUrl() {
+    var params = new URLSearchParams(window.location.search || "");
+    var regionSelect = document.getElementById("mapRegion");
+    var startDateEl = document.getElementById("mapStartDate");
+    var endDateEl = document.getElementById("mapEndDate");
+    var guestsEl = document.getElementById("mapGuests");
+    var regionKey = params.get("region");
+    var checkIn = params.get("checkIn");
+    var checkOut = params.get("checkOut");
+    var guests = params.get("guests");
+
+    if (regionSelect && regionKey && REGION_VIEW[regionKey]) {
+      regionSelect.value = regionKey;
+    }
+    if (startDateEl && checkIn && /^\d{4}-\d{2}-\d{2}$/.test(checkIn)) {
+      startDateEl.value = checkIn;
+    }
+    if (endDateEl && checkOut && /^\d{4}-\d{2}-\d{2}$/.test(checkOut)) {
+      endDateEl.value = checkOut;
+    }
+    if (guestsEl && guests) {
+      var guestOption = Array.from(guestsEl.options).find(function (option) {
+        return option.value === guests || option.text === guests;
+      });
+      if (guestOption) {
+        guestsEl.value = guestOption.value;
+      }
+    }
+  }
+
+  function hasSearchParamsInUrl() {
+    var params = new URLSearchParams(window.location.search || "");
+    return Boolean(params.get("region") || params.get("checkIn") || params.get("checkOut") || params.get("guests"));
+  }
+
   function initKakaoMap() {
     var mapElement = document.getElementById("kakaoMap");
     if (!mapElement) {
@@ -40,6 +75,8 @@
     function createMap() {
       try {
         kakao.maps.load(function () {
+          applySearchParamsFromUrl();
+
           var map = new kakao.maps.Map(mapElement, {
             center: new kakao.maps.LatLng(35.1795543, 129.0756416),
             level: 4
@@ -1104,6 +1141,10 @@
     }
     if (endDateEl) {
       endDateEl.addEventListener("change", refreshListPriceOnly);
+    }
+
+    if (hasSearchParamsInUrl()) {
+      searchBySelectedRegion();
     }
   }
 
