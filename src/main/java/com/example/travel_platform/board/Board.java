@@ -57,4 +57,8 @@ public class Board {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public void increaseViewCount() {
+        this.viewCount = this.viewCount + 1;
+    }
 }
