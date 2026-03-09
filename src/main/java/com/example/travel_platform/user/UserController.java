@@ -22,7 +22,7 @@ public class UserController {
     @GetMapping("/logout")
     public String logout() {
         session.invalidate();
-        return "redirect:/login-form";
+        return "redirect:/";
     }
 
     // 로그인 성공 : 메인 페이지(/)로 리다이렉트 : 지윤

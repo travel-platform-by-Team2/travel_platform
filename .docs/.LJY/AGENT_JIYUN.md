@@ -9,6 +9,10 @@
 
 ## 1. 작업 목표 및 작업 내용
 
+1. AGENT_JIYUN.md 작성: 요청하신 상세 작업 방법을 기록했습니다.
+2. UserController.java 수정: logout 시 리다이렉션 경로를 / (메인 페이지)로 변경했습니다.
+3. header-logged-in.mustache 수정: 로그아웃 링크의 href를 /logout으로 설정하여 기능이 동작하도록 했습니다.
+
 ## 2. 우선 참조 문서
 
 1. `.docs/RULES.md`
