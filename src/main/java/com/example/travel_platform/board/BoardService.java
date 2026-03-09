@@ -1,5 +1,6 @@
 package com.example.travel_platform.board;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.jsoup.Jsoup;
@@ -33,6 +34,7 @@ public class BoardService {
         board.setTitle(reqDTO.getTitle());
         board.setContent(reqDTO.getContent());
         board.setViewCount(0);
+        board.setCategory(reqDTO.getCategory());
 
         boardRepository.save(board);
     }
@@ -46,6 +48,7 @@ public class BoardService {
 
         board.setTitle(reqDTO.getTitle());
         board.setContent(reqDTO.getContent());
+        board.setCategory(reqDTO.getCategory());
     }
 
     @Transactional
@@ -57,20 +60,33 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
-    public List<BoardResponse.BoardSummaryDTO> getBoardList() { // 서머노트 글자 깨짐으로 jsoup빼고 설정
-        return boardRepository.findAll().stream()
+    public List<BoardResponse.BoardSummaryDTO> getBoardList(String category) {
+
+        List<Board> boards = boardRepository.findAll();
+
+        if (category != null && !category.isBlank()) {
+            boards = boards.stream()
+                    .filter(board -> category.equals(board.getCategory()))
+                    .toList();
+        }
+
+        return boards.stream()
                 .map(board -> {
                     String plainText = Jsoup.parse(board.getContent()).text();
                     String summary = plainText.substring(0, Math.min(80, plainText.length()));
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
                     return BoardResponse.BoardSummaryDTO.builder()
                             .id(board.getId())
                             .title(board.getTitle())
                             .summary(summary)
+                            .category(board.getCategory())
+                            .categoryLabel(toCategoryLabel(board.getCategory()))
                             .username(board.getUser().getUsername())
                             .viewCount(board.getViewCount())
                             .replyCount(board.getReplies().size())
-                            .createdAt(board.getCreatedAt())
+                            .createdAtDisplay(board.getCreatedAt().format(formatter))
                             .build();
                 })
                 .toList();
@@ -86,6 +102,8 @@ public class BoardService {
                 .map(reply -> toReplyDTO(sessionUserId, reply))
                 .toList();
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
         boolean isOwner = false;
         if (sessionUserId != null) {
             isOwner = board.getUser().getId().equals(sessionUserId);
@@ -95,13 +113,29 @@ public class BoardService {
                 .id(board.getId())
                 .title(board.getTitle())
                 .content(board.getContent())
+                .category(board.getCategory())
+                .categoryLabel(toCategoryLabel(board.getCategory()))
                 .username(board.getUser().getUsername())
                 .viewCount(board.getViewCount())
                 .replyCount(board.getReplies().size())
-                .createdAt(board.getCreatedAt())
+                .createdAtDisplay(board.getCreatedAt().format(formatter))
                 .replies(replies)
                 .isOwner(isOwner)
                 .build();
+    }
+
+    private String toCategoryLabel(String category) {
+        if (category == null || category.isBlank()) {
+            return "기타";
+        }
+        return switch (category) {
+            case "tips" -> "여행 팁";
+            case "plan" -> "여행 계획";
+            case "food" -> "맛집/카페";
+            case "review" -> "숙소 후기";
+            case "qna" -> "질문/답변";
+            default -> "기타";
+        };
     }
 
     private BoardResponse.ReplyDTO toReplyDTO(Integer sessionUserId, Reply reply) {

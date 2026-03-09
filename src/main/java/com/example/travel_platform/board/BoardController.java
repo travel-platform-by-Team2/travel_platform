@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
@@ -26,9 +27,16 @@ public class BoardController {
     private final HttpSession session;
 
     @GetMapping
-    public String boardlist(Model model) {
-        List<BoardResponse.BoardSummaryDTO> boards = boardService.getBoardList();
+    public String boardlist(@RequestParam(value = "category", required = false) String category, Model model) {
+        List<BoardResponse.BoardSummaryDTO> boards = boardService.getBoardList(category);
         model.addAttribute("boards", boards);
+        model.addAttribute("selectedCategory", category);
+
+        model.addAttribute("isTips", "tips".equals(category));
+        model.addAttribute("isPlan", "plan".equals(category));
+        model.addAttribute("isFood", "food".equals(category));
+        model.addAttribute("isReview", "review".equals(category));
+        model.addAttribute("isQna", "qna".equals(category));
         return "pages/board-list";
     }
 
@@ -36,6 +44,7 @@ public class BoardController {
     public String createForm(Model model) {
         model.addAttribute("title", "");
         model.addAttribute("content", "");
+        model.addAttribute("category", "");
         return "pages/board-create";
     }
 
@@ -47,6 +56,12 @@ public class BoardController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("title", reqDTO.getTitle()); // 빈칸 입력시 오류발생
             model.addAttribute("content", reqDTO.getContent());
+            model.addAttribute("category", reqDTO.getCategory());
+
+            if (bindingResult.hasFieldErrors("category")) {
+                model.addAttribute("categoryerror",
+                        bindingResult.getFieldError("category").getDefaultMessage());
+            }
 
             if (bindingResult.hasFieldErrors("title")) {
                 model.addAttribute("titleError",
@@ -110,6 +125,11 @@ public class BoardController {
             // 사용자가 방금 입력한 값으로 다시 덮어쓰기
             board.setTitle(reqDTO.getTitle());
             board.setContent(reqDTO.getContent());
+            board.setCategory(reqDTO.getCategory());
+
+            if (bindingResult.hasFieldErrors("category")) {
+                board.setCategoryError(bindingResult.getFieldError("category").getDefaultMessage());
+            }
 
             if (bindingResult.hasFieldErrors("title")) {
                 board.setTitleError(bindingResult.getFieldError("title").getDefaultMessage());

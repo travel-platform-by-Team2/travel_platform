@@ -17,9 +17,12 @@ public class BoardResponse {
         private Integer id;
         private String title;
         private String username;
+        private String category;
+        private String categoryLabel;
         private Integer viewCount;
         private Integer replyCount;
         private LocalDateTime createdAt;
+        private String createdAtDisplay;
         private String summary;
     }
 
@@ -51,14 +54,18 @@ public class BoardResponse {
         private Integer id;
         private String title;
         private String content;
+        private String category;
+        private String categoryLabel;
         private String username;
         private Integer viewCount;
         private Integer replyCount;
         private LocalDateTime createdAt;
+        private String createdAtDisplay;
         private List<ReplyDTO> replies;
 
         private Boolean isOwner;
         private String titleError;
         private String contentError;
+        private String categoryError;
     }
 }

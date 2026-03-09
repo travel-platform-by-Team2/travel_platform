@@ -24,32 +24,38 @@
 </a>
 </div>
 <div class="community-list-div-02">
-<div class="community-list-div-03">
-<div class="chips-scroll-mask">
-<button class="community-list-button-02">
-                            전체
-                        </button>
-<button class="chip-filter-btn">
-                            여행 팁
-                        </button>
-<button class="chip-filter-btn">
-                            여행 계획
-                        </button>
-<button class="chip-filter-btn">
-                            맛집/카페
-                        </button>
-<button class="chip-filter-btn">
-                            숙소 후기
-                        </button>
-<button class="chip-filter-btn">
-                            질문/답변
-                        </button>
-</div>
-<button class="community-list-button-03">
-<span class="icon-ms-18">restart_alt</span>
-                        필터 초기화
-                    </button>
-</div>
+  <div class="community-list-div-03">
+    <div class="chips-scroll-mask"> <!--솔직히 진짜 모르겠음 그냥 ai한테 했음 진짜 모르겠음 진짜 -->
+      <a class="{{^selectedCategory}}community-list-button-02{{/selectedCategory}}{{#selectedCategory}}chip-filter-btn{{/selectedCategory}}" href="/boards">
+        전체
+      </a>
+
+      <a class="{{#isTips}}community-list-button-02{{/isTips}}{{^isTips}}chip-filter-btn{{/isTips}}" href="/boards?category=tips">
+        여행 팁
+      </a>
+
+      <a class="{{#isPlan}}community-list-button-02{{/isPlan}}{{^isPlan}}chip-filter-btn{{/isPlan}}" href="/boards?category=plan">
+        여행 계획
+      </a>
+
+      <a class="{{#isFood}}community-list-button-02{{/isFood}}{{^isFood}}chip-filter-btn{{/isFood}}" href="/boards?category=food">
+        맛집/카페
+      </a>
+
+      <a class="{{#isReview}}community-list-button-02{{/isReview}}{{^isReview}}chip-filter-btn{{/isReview}}" href="/boards?category=review">
+        숙소 후기
+      </a>
+
+      <a class="{{#isQna}}community-list-button-02{{/isQna}}{{^isQna}}chip-filter-btn{{/isQna}}" href="/boards?category=qna">
+        질문/답변
+      </a>
+    </div>
+
+    <a class="community-list-button-03" href="/boards">
+      <span class="icon-ms-18">restart_alt</span>
+      필터 초기화
+    </a>
+  </div>
 </div>
 <div class="stack-gap-3">
 {{#boards}}
@@ -57,9 +63,9 @@
 <div class="community-list-div-04">
 <div class="inline-row-gap2-mb2">
 <span class="community-list-span-01">
-                               질문
+                               {{categoryLabel}}
                             </span>
-<span class="community-list-span-02">• {{createdAt}}</span>
+<span class="community-list-span-02">• {{createdAtDisplay}}</span>
 </div>
 <h3 class="place-card-title">
                             {{title}}

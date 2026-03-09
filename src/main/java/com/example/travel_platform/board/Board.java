@@ -42,6 +42,9 @@ public class Board {
     @Column(nullable = false, length = 150)
     private String title;
 
+    @Column(nullable = false, length = 20)
+    private String category;
+
     @Lob
     @Column(nullable = false)
     private String content;

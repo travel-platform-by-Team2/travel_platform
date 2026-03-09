@@ -67,6 +67,7 @@ create table trip_place_tb (
 create table board_tb (
   id int auto_increment primary key,
   user_id int not null,
+  category varchar(20) not null,
   title varchar(150) not null,
   content longtext not null,
   view_count int not null default 0,
