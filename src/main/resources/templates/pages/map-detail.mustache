@@ -6,10 +6,128 @@
   <title>Unified Map Exploration Variant 1</title>
   {{>partials/head-assets}}
   <style>
-    .map-detail-main-01 { height: calc(100vh - 230px); }
-    .map-detail-div-10 { height: 100%; }
+    .map-detail-main-01 { display: flex; flex: 1 1 auto; min-height: 0; }
+    .map-detail-div-10 { position: relative; height: 100%; min-height: 0; flex: 1 1 auto; }
     .map-detail-div-11 { position: relative; height: 100%; min-height: 0; background: transparent !important; }
     #kakaoMap { width: 100%; height: 100%; min-height: 0; opacity: 1 !important; background: transparent !important; }
+    .map-detail-search-card {
+      width: 100%;
+      max-width: 100%;
+      background: #f3f4f6;
+      border: 1px solid #dfe5ee;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+    .map-detail-search-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .map-detail-search-grid-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+      gap: 0.875rem;
+      align-items: end;
+    }
+    .map-detail-search-grid-bottom {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(10.5rem, 1.05fr);
+      gap: 0.875rem;
+      align-items: end;
+    }
+    .map-detail-search-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+    .map-detail-search-action {
+      display: flex;
+      align-items: flex-end;
+      min-width: 0;
+    }
+    .map-detail-search-label {
+      color: #64748b;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1rem;
+    }
+    .map-detail-search-control {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .map-detail-search-select,
+    .map-detail-search-input {
+      width: 100%;
+      min-height: 2.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      background: #fff;
+      color: #0f172a;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.75rem 2.5rem 0.75rem 2.4rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+    .map-detail-search-select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+    .map-detail-search-select:focus,
+    .map-detail-search-input:focus {
+      outline: none;
+      border-color: #1152d4;
+      box-shadow: 0 0 0 3px rgba(17, 82, 212, 0.12);
+    }
+    .map-detail-search-icon-left,
+    .map-detail-search-icon-right {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .map-detail-search-icon-left {
+      left: 0.75rem;
+    }
+    .map-detail-search-icon-right {
+      right: 0.75rem;
+    }
+    .map-detail-search-submit {
+      min-width: 10.5rem;
+      width: 100%;
+      height: 2.75rem;
+      border: 0;
+      border-radius: 0.75rem;
+    }
+    @media (min-width: 1200px) {
+      .map-detail-search-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(11rem, 0.95fr);
+        gap: 0.875rem;
+        align-items: end;
+      }
+      .map-detail-search-grid-top,
+      .map-detail-search-grid-bottom {
+        display: contents;
+      }
+      .map-detail-search-action {
+        align-self: end;
+      }
+    }
+    .map-detail-main-01 > .map-detail-aside-01 {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      bottom: 1rem;
+      width: clamp(17rem, 32vw, 26rem);
+      max-width: calc(100vw - 5rem);
+    }
     .stay-marker {
       position: relative;
       display: flex;
@@ -78,11 +196,65 @@
     .nearby-poi-marker:hover {
       transform: translateY(-4px);
     }
-    @media (max-width: 1024px) {
-      .map-detail-main-01 { height: calc(100vh - 270px); }
+    @media (max-width: 640px) {
+      .map-detail-search-grid-top,
+      .map-detail-search-grid-bottom {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .map-detail-search-submit {
+        width: 100%;
+      }
     }
     @media (max-width: 768px) {
-      .map-detail-main-01 { height: calc(100vh - 320px); }
+      .map-detail-div-01 {
+        padding: 0.5rem 0.75rem 0.75rem;
+      }
+      .map-detail-search-card {
+        padding: 0.9rem;
+        border-radius: 0.95rem;
+      }
+      .map-detail-search-grid-top {
+        grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .map-detail-search-grid-bottom {
+        grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 0.9fr);
+        gap: 0.75rem;
+      }
+      .map-detail-search-form {
+        gap: 0.8rem;
+      }
+      .map-detail-search-select,
+      .map-detail-search-input {
+        min-height: 2.45rem;
+        font-size: 0.9rem;
+        padding: 0.65rem 2.25rem 0.65rem 2.2rem;
+      }
+      .map-detail-search-submit {
+        min-width: 9.5rem;
+        height: 2.45rem;
+      }
+      .map-detail-main-01 > .map-detail-aside-01 {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        bottom: 0.75rem;
+        width: min(14.5rem, calc(100vw - 6rem));
+        max-width: calc(100vw - 6rem);
+      }
+    }
+    @media (max-width: 480px) {
+      .map-detail-search-grid-top,
+      .map-detail-search-grid-bottom {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .map-detail-search-submit {
+        width: 100%;
+      }
+      .map-detail-main-01 > .map-detail-aside-01 {
+        width: min(13rem, calc(100vw - 5.25rem));
+        max-width: calc(100vw - 5.25rem);
+      }
     }
   </style>
 </head>
@@ -91,68 +263,63 @@
 
 <div class="map-detail-div-01">
 <div class="container-5xl-center">
-<div class="map-detail-div-02 map-search-toolbar">
-<div class="map-search-fields">
-<div class="search-grow-group">
-<div class="list-row-soft">
-<span class="icon-ms-neutral-gap-right-lg">search</span>
-<div class="map-search-field">
-<label class="label-xs-neutral" for="mapRegion">여행지</label>
-<div class="map-search-select-wrap">
-<select class="map-search-select" id="mapRegion" name="region">
+<div class="map-detail-search-card">
+<form class="map-detail-search-form" onsubmit="return false;">
+<div class="map-detail-search-grid-top">
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapRegion">광역시/도</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">location_on</span>
+<select class="map-detail-search-select" id="mapRegion" name="region">
 <option value="seoul">서울특별시</option>
 <option value="busan" selected>부산광역시</option>
 <option value="jeju">제주특별자치도</option>
 <option value="gyeongju">경주</option>
 <option value="gangwon">강원도</option>
 </select>
-<div class="input-icon-right">
-<span class="icon-ms-muted">expand_more</span>
+<span class="map-detail-search-icon-right icon-ms-18">expand_more</span>
+</div>
+</div>
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapStartDate">가는 날</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">calendar_today</span>
+<input class="map-detail-search-input" id="mapStartDate" type="date" value="2025-11-15"/>
+<span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
+</div>
+</div>
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapEndDate">오는 날</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">event</span>
+<input class="map-detail-search-input" id="mapEndDate" type="date" value="2025-11-18"/>
+<span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="map-detail-div-04"></div>
-<div class="search-grow-group">
-<div class="list-row-soft">
-<span class="icon-ms-neutral-gap-right-lg">calendar_month</span>
-<div class="map-search-field">
-<label class="label-xs-neutral" for="mapStartDate">일정</label>
-<div class="map-search-date-range">
-<input class="map-search-date-input" id="mapStartDate" type="date" value="2025-11-15"/>
-<span class="text-neutral-xs-subtle">~</span>
-<input class="map-search-date-input" id="mapEndDate" type="date" value="2025-11-18"/>
-</div>
-</div>
-</div>
-</div>
-<div class="map-detail-div-04"></div>
-<div class="search-grow-group">
-<div class="list-row-soft">
-<span class="icon-ms-neutral-gap-right-lg">group</span>
-<div class="map-search-field">
-<label class="label-xs-neutral" for="mapGuests">인원</label>
-<div class="map-search-select-wrap">
-<select class="map-search-select" id="mapGuests" name="guests">
+<div class="map-detail-search-grid-bottom">
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapGuests">인원수</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">group</span>
+<select class="map-detail-search-select" id="mapGuests" name="guests">
 <option value="1">성인 1명</option>
 <option value="2" selected>성인 2명</option>
 <option value="3">성인 3명</option>
 <option value="4">성인 4명</option>
 <option value="group">단체 (5명 이상)</option>
 </select>
-<div class="input-icon-right">
-<span class="icon-ms-muted">expand_more</span>
+<span class="map-detail-search-icon-right icon-ms-18">expand_more</span>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<button class="map-detail-button-01 map-search-submit">
+<div class="map-detail-search-action">
+<button class="fx-group-cta-primary map-search-submit" type="button">
 <span class="icon-ms-base">search</span>
-<span>검색</span>
+<span>탐색하기</span>
 </button>
+</div>
+</div>
+</form>
 </div>
 </div>
 <div class="timeline-chip-scroll">
