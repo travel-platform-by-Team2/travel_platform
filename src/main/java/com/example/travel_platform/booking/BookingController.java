@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +17,15 @@ public class BookingController {
 
     private static final String DEFAULT_COMPLETE_IMAGE_URL =
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+    private final String kakaoMapAppKey;
+
+    public BookingController(@Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey) {
+        this.kakaoMapAppKey = kakaoMapAppKey;
+    }
 
     @GetMapping("/map-detail")
-    public String detailMap() {
+    public String detailMap(Model model) {
+        model.addAttribute("kakaoMapAppKey", kakaoMapAppKey == null ? "" : kakaoMapAppKey);
         return "pages/map-detail";
     }
 
@@ -73,6 +80,7 @@ public class BookingController {
         model.addAttribute("bookingNumber", buildBookingNumber());
         model.addAttribute("lodgingName", lodgingName);
         model.addAttribute("region", safeRegion);
+        model.addAttribute("regionKey", normalizeRegionKey(safeRegion));
         model.addAttribute("guests", guests);
         model.addAttribute("checkIn", checkIn);
         model.addAttribute("checkOut", checkOut);
@@ -109,5 +117,25 @@ public class BookingController {
             return DEFAULT_COMPLETE_IMAGE_URL;
         }
         return imageUrl;
+    }
+
+    private String normalizeRegionKey(String region) {
+        String text = region == null ? "" : region.trim();
+        if (text.contains("서울")) {
+            return "seoul";
+        }
+        if (text.contains("부산")) {
+            return "busan";
+        }
+        if (text.contains("제주")) {
+            return "jeju";
+        }
+        if (text.contains("경주")) {
+            return "gyeongju";
+        }
+        if (text.contains("강원")) {
+            return "gangwon";
+        }
+        return "busan";
     }
 }

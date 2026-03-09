@@ -20,6 +20,41 @@
     gangwon: ["강원", "춘천", "원주", "강릉", "속초", "동해", "삼척", "태백"]
   };
 
+  function applySearchParamsFromUrl() {
+    var params = new URLSearchParams(window.location.search || "");
+    var regionSelect = document.getElementById("mapRegion");
+    var startDateEl = document.getElementById("mapStartDate");
+    var endDateEl = document.getElementById("mapEndDate");
+    var guestsEl = document.getElementById("mapGuests");
+    var regionKey = params.get("region");
+    var checkIn = params.get("checkIn");
+    var checkOut = params.get("checkOut");
+    var guests = params.get("guests");
+
+    if (regionSelect && regionKey && REGION_VIEW[regionKey]) {
+      regionSelect.value = regionKey;
+    }
+    if (startDateEl && checkIn && /^\d{4}-\d{2}-\d{2}$/.test(checkIn)) {
+      startDateEl.value = checkIn;
+    }
+    if (endDateEl && checkOut && /^\d{4}-\d{2}-\d{2}$/.test(checkOut)) {
+      endDateEl.value = checkOut;
+    }
+    if (guestsEl && guests) {
+      var guestOption = Array.from(guestsEl.options).find(function (option) {
+        return option.value === guests || option.text === guests;
+      });
+      if (guestOption) {
+        guestsEl.value = guestOption.value;
+      }
+    }
+  }
+
+  function hasSearchParamsInUrl() {
+    var params = new URLSearchParams(window.location.search || "");
+    return Boolean(params.get("region") || params.get("checkIn") || params.get("checkOut") || params.get("guests"));
+  }
+
   function initKakaoMap() {
     var mapElement = document.getElementById("kakaoMap");
     if (!mapElement) {
@@ -40,6 +75,8 @@
     function createMap() {
       try {
         kakao.maps.load(function () {
+          applySearchParamsFromUrl();
+
           var map = new kakao.maps.Map(mapElement, {
             center: new kakao.maps.LatLng(35.1795543, 129.0756416),
             level: 4
@@ -730,13 +767,21 @@
     regionEl.textContent = selectedOption ? selectedOption.text : "";
   }
 
-  function initializeResultPanel(state) {
+  function setResultPanelExpanded(expanded) {
     var panel = document.querySelector("[data-map-result-panel]");
+    var toggleButton = document.querySelector("[data-map-panel-toggle]");
+    if (panel) {
+      panel.hidden = !expanded;
+    }
+    if (toggleButton) {
+      toggleButton.setAttribute("aria-expanded", String(expanded));
+    }
+  }
+
+  function initializeResultPanel(state) {
     var container = document.querySelector("[data-map-drag-scroll]");
     var regionSelect = document.getElementById("mapRegion");
-    if (panel) {
-      panel.hidden = true;
-    }
+    setResultPanelExpanded(false);
     if (container) {
       container.hidden = true;
     }
@@ -759,19 +804,14 @@
       return;
     }
 
-    var panel = document.querySelector("[data-map-result-panel]");
     if (!state.hasSearched) {
-      if (panel) {
-        panel.hidden = true;
-      }
+      setResultPanelExpanded(false);
       container.hidden = true;
       updateResultCount(0);
       return;
     }
 
-    if (panel) {
-      panel.hidden = false;
-    }
+    setResultPanelExpanded(true);
     container.hidden = false;
 
     var listItems = state.items.filter(function (item) {
@@ -1102,6 +1142,10 @@
     if (endDateEl) {
       endDateEl.addEventListener("change", refreshListPriceOnly);
     }
+
+    if (hasSearchParamsInUrl()) {
+      searchBySelectedRegion();
+    }
   }
 
   function bindViewportSync(state) {
@@ -1273,17 +1317,11 @@
     if (!toggleButton || !panel) {
       return;
     }
-
-    function setExpanded(expanded) {
-      panel.hidden = !expanded;
-      toggleButton.setAttribute("aria-expanded", String(expanded));
-    }
-
-    setExpanded(!panel.hidden);
+    setResultPanelExpanded(!panel.hidden);
 
     toggleButton.addEventListener("click", function (event) {
       event.preventDefault();
-      setExpanded(panel.hidden);
+      setResultPanelExpanded(panel.hidden);
     });
   }
 
