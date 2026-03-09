@@ -76,9 +76,11 @@ public class BoardService {
                 .toList();
     }
 
+    @Transactional
     public BoardResponse.BoardDetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
+        board.increaseViewCount();
 
         List<BoardResponse.ReplyDTO> replies = board.getReplies().stream()
                 .map(reply -> toReplyDTO(sessionUserId, reply))
