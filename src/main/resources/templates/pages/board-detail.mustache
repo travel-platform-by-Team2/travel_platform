@@ -6,140 +6,280 @@
   <title>Community Post Detail</title>
   {{>partials/head-assets}}
 </head>
+
 <body class="page-body">
   {{>partials/header}}
-<div class="page-topbar">
-<div class="container-7xl-px6">
-</div>
-</div>
-<main class="page-main-wrap-5xl">
-<div class="mb-6">
-<a class="community-detail-button-01" href="/boards">
-<span class="icon-ms-lg">arrow_back</span>
-<span class="community-detail-span-01">목록으로</span>
-</a>
-</div>
-{{#board}}
-<div class="community-detail-div-01">
-<div class="community-detail-div-02">
-<div class="community-detail-div-03">
-<div class="row-between-center">
-<span class="community-detail-span-02">
-                            여행 계획
-                        </span>
-<div class="calendar-add-event-div-06">
-<a class="community-detail-button-02" href="/boards/{{id}}/edit">수정</a>
-<form action="/boards/{{id}}/delete" method="post">
-<button class="community-detail-button-03" type="submit">삭제</button>
-</form>
-</div>
-</div>
-<div>
-<h1 class="community-detail-h1-01">
-                            {{title}}
-                        </h1>
-<div class="community-detail-div-04">
-<div class="community-create-div-03">
-<div class="inline-items-gap-2">
-<div class="community-detail-div-05">
-<img alt="Author" class="media-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR9QMiVtuU6Hgn64LvvwQJdXkWSPOFEeAOQuHd1EW0Ln9bvRcyfMl5DEF8n8yLzlul1GGTot8r9zIhuUZNHKSw2DIWjFWHxkE6zNYzDZz8yz7INebXoJLArZSGcK3b7BWFPcGNvGAXV2hxzMoEpLhjuX3ANVtbAs2YJimjCMlGrY9SQgiExOonzOuh5k3oe9alGCK9tI48EId0dYQcjEIFu-WR48FPVvihNWiopyn-uVjc2vNm5eYsv8LbwsqniwEWTwycNCz4OZ0"/>
-</div>
-<span class="community-detail-span-03">{{username}}</span>
-</div>
-<span class="community-detail-span-04"></span>
-<span>{{createdAt}}</span>
-</div>
-<div class="community-detail-div-06">
-<span class="icon-ms-lg">visibility</span>
-<span>{{viewCount}}</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="p-8">
-<div class="community-detail-div-07">
-<img alt="Scenic view of Jeju Island coast with blue ocean" class="media-cover" data-alt="Scenic view of Jeju Island coast with blue ocean" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMsVEkvVDfMYeBNW8kEBHyeK310IDCOtsj9F96XyvkzTo0Fg5n4L6Wqz6cu-Kt77dJSzvuzUjQpvxN2iVaoAuoG2uOfoDwHk4yE7alUWyagooJApfQ5gFgr_vu8Nkjx2WEKiLbqGHr5aZHDjoXeVG6hjKBAx2zGQxZQ4PcWIDbXz02O2jzSz1GFdAVhoXSVDizhYLcC9IneaqpEHGWMCpZrFZHSy8fjPruaRXzx7bf3Kk3SLhKa5RC0-Puyh2PhxRqr33Atg6RU14"/>
-</div>
-<div class="prose-reading-lg">
-<p class="mb-6">
-                        {{content}}
-                    </p>
-</div>
-<div class="community-detail-div-08">
-<button class="fx-group-chip-outline">
-<span class="icon-ms-hover-fill-current">favorite</span>
-<span class="fw-medium-500">좋아요 128</span>
-</button>
-<button class="community-detail-button-04">
-<span class="icon-ms-base">share</span>
-<span class="fw-medium-500">공유하기</span>
-</button>
-</div>
-</div>
-</div>
-<form action="/boards/{{id}}/replies" method="post">
+
+  <div class="page-topbar">
+    <div class="container-7xl-px6"></div>
+  </div>
+
+  <main class="page-main-wrap-5xl">
+
+    <div class="mb-6">
+      <a class="community-detail-button-01" href="/boards">
+        <span class="icon-ms-lg">arrow_back</span>
+        <span class="community-detail-span-01">목록으로</span>
+      </a>
+    </div>
+
+    {{#board}}
+
+    <!-- 게시글 -->
+    <div class="community-detail-div-01">
+
+      <div class="community-detail-div-02">
+        <div class="community-detail-div-03">
+
+          <div class="row-between-center">
+            <span class="community-detail-span-02">
+              여행 계획
+            </span>
+
+            {{#isOwner}}
+            <div class="calendar-add-event-div-06">
+              <a class="community-detail-button-02" href="/boards/{{id}}/edit">수정</a>
+
+              <form action="/boards/{{id}}/delete" method="post">
+                <button class="community-detail-button-03" type="submit">
+                  삭제
+                </button>
+              </form>
+            </div>
+            {{/isOwner}}
+
+          </div>
+
+          <div>
+            <h1 class="community-detail-h1-01">
+              {{title}}
+            </h1>
+
+            <div class="community-detail-div-04">
+
+              <div class="community-create-div-03">
+                <div class="inline-items-gap-2">
+
+                  <div class="community-detail-div-05">
+                    <img
+                      alt="Author"
+                      class="media-cover"
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR9QMiVtuU6Hgn64LvvwQJdXkWSPOFEeAOQuHd1EW0Ln9bvRcyfMl5DEF8n8yLzlul1GGTot8r9zIhuUZNHKSw2DIWjFWHxkE6zNYzDZz8yz7INebXoJLArZSGcK3b7BWFPcGNvGAXV2hxzMoEpLhjuX3ANVtbAs2YJimjCMlGrY9SQgiExOonzOuh5k3oe9alGCK9tI48EId0dYQcjEIFu-WR48FPVvihNWiopyn-uVjc2vNm5eYsv8LbwsqniwEWTwycNCz4OZ0"
+                    />
+                  </div>
+
+                  <span class="community-detail-span-03">
+                    {{username}}
+                  </span>
+
+                </div>
+
+                <span>{{createdAt}}</span>
+              </div>
+
+              <div class="community-detail-div-06">
+                <span class="icon-ms-lg">visibility</span>
+                <span>{{viewCount}}</span>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 본문 -->
+      <div class="p-8">
+
+        <div class="prose-reading-lg">
+          <p class="mb-6">
+            {{{content}}}
+          </p>
+        </div>
+
+        <div class="community-detail-div-08">
+          <button class="fx-group-chip-outline">
+            <span class="icon-ms-hover-fill-current">favorite</span>
+            <span class="fw-medium-500">좋아요 128</span>
+          </button>
+
+          <button class="community-detail-button-04">
+            <span class="icon-ms-base">share</span>
+            <span class="fw-medium-500">공유하기</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- 댓글 작성 -->
 <div class="community-detail-div-09">
-<h3 class="section-title-row">
-                댓글 <span class="text-primary">{{replyCount}}</span>
-</h3>
-<div class="community-detail-div-10">
-<div class="avatar-sm">
-<img alt="Current User" class="media-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOP7Ua62xOsz3DN63c5RfRS2WPmfBcoVIMzYYI0in1QAPKDhA7k4_-ceaOnJXuZS08p9xVH6YURYqRjdh88h77EogK6hqtuHf9lEGcJ0YX4xne-gCR-gB-fUgaomUk_PEsery50-AFceBSFBuBTdvnYyXz5tGM_nut3hTwWoKZYOqXf1YxzNgm00T-4LoK0UL6h6P4P1hfsVf2lIM3IoAgN4rPZyAXhTHHtZsLlIQb-1H38pKcnlNR7yD2X2hJDek5JK5__PkkW7k"/>
+  <h3 class="section-title-row">
+    댓글 <span class="text-primary">{{replyCount}}</span>
+  </h3>
+
+  <form action="/boards/{{id}}/replies" method="post">
+    <div class="community-detail-div-10">
+      <div class="avatar-sm">
+        <img
+          alt="Current User"
+          class="media-cover"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOP7Ua62xOsz3DN63c5RfRS2WPmfBcoVIMzYYI0in1QAPKDhA7k4_-ceaOnJXuZS08p9xVH6YURYqRjdh88h77EogK6hqtuHf9lEGcJ0YX4xne-gCR-gB-fUgaomUk_PEsery50-AFceBSFBuBTdvnYyXz5tGM_nut3hTwWoKZYOqXf1YxzNgm00T-4LoK0UL6h6P4P1hfsVf2lIM3IoAgN4rPZyAXhTHHtZsLlIQb-1H38pKcnlNR7yD2X2hJDek5JK5__PkkW7k"
+        />
+      </div>
+
+      <div class="flex-fill">
+        <textarea
+          class="community-detail-textarea-01"
+          name="content"
+          placeholder="댓글을 남겨보세요."
+        ></textarea>
+
+        <div class="community-detail-div-11">
+          <button class="community-detail-button-05" type="submit">
+            등록
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="stack-gap-8">
+    {{#replies}}
+    <div class="fx-group-flex-gap4">
+      <div class="avatar-sm">
+        <img
+          alt="Commenter"
+          class="media-cover"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8xmUdbwqLyyxoSmWU9HunzBesyATuxEPngwzn8C9IfKLaKiFPSKtqj2521jqd9RN7sjXl9FJ-JGnVmsnXBGagF58RQjuob-eFXj5Fh1HFC5CC2hB8zlKgF_bUwaTrpEPnLRdlaYYrTKiyDBJ0vdNSoD5Z7ggnJS5P_OGatzgvZFhfRwAiDUDgR7Bhj5v27f8z_1YYWtjD3WbUV-YS_L6TAF2n8BqjJBcG1UVNbvsWvHnMVvsU1O8R9s0QCmEhKedAs2c1WtfyF54"
+        />
+      </div>
+
+      <div class="flex-fill">
+        <div class="row-between-center-mb1">
+          <div class="inline-items-gap-2">
+            <span class="community-detail-span-05">{{username}}</span>
+            <span class="community-detail-span-06">{{createdAt}}</span>
+          </div>
+
+          {{#isOwner}}
+          <div class="inline-items-gap-2">
+            <button class="link-inline-xs" type="button" onclick="showReplyEdit({{boardId}}, {{id}})">
+              <span class="icon-ms-sm">edit</span> 수정
+            </button>
+
+            <form action="/boards/{{boardId}}/replies/{{id}}/delete" method="post" style="display:inline;">
+              <button class="link-inline-xs" type="submit">
+                <span class="icon-ms-sm">delete</span> 삭제
+              </button>
+            </form>
+          </div>
+          {{/isOwner}}
+        </div>
+
+        <p class="text-body-sm-relaxed" id="reply-content-{{id}}">
+          {{content}}
+        </p>
+
+        <div id="reply-edit-box-{{id}}" style="display:none; margin-top:12px;">
+          <textarea
+            id="reply-textarea-{{id}}"
+            class="community-detail-textarea-01"
+            rows="4"
+            placeholder="댓글 내용을 수정하세요."
+          >{{content}}</textarea>
+
+          <div class="community-detail-div-11" style="margin-top:8px; justify-content:flex-end; gap:8px;">
+            <button class="community-detail-button-05" type="button" onclick="updateReply({{boardId}}, {{id}})">
+              저장
+            </button>
+
+            <button class="community-detail-button-03" type="button" onclick="cancelReplyEdit({{id}})">
+              취소
+            </button>
+          </div>
+        </div>
+
+        <div class="community-detail-div-12">
+          <button class="link-inline-xs" type="button">
+            <span class="icon-ms-sm">thumb_up</span> 좋아요
+          </button>
+        </div>
+      </div>
+    </div>
+    {{/replies}}
+
+    <div class="community-detail-div-14">
+      <button class="community-detail-button-06" type="button">
+        댓글 더보기 <span class="icon-ms-base">expand_more</span>
+      </button>
+    </div>
+  </div>
 </div>
-<div class="flex-fill">
-<textarea class="community-detail-textarea-01" name="content" placeholder="댓글을 남겨보세요."></textarea>
-<div class="community-detail-div-11">
-<button class="community-detail-button-05" type="submit">
-                            등록
-                        </button>
-</div>
-</div>
-</div>
-</form>
-<div class="stack-gap-8">
-{{#replies}}
-<div class="fx-group-flex-gap4">
-<div class="avatar-sm">
-<img alt="Commenter 1" class="media-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8xmUdbwqLyyxoSmWU9HunzBesyATuxEPngwzn8C9IfKLaKiFPSKtqj2521jqd9RN7sjXl9FJ-JGnVmsnXBGagF58RQjuob-eFXj5Fh1HFC5CC2hB8zlKgF_bUwaTrpEPnLRdlaYYrTKiyDBJ0vdNSoD5Z7ggnJS5P_OGatzgvZFhfRwAiDUDgR7Bhj5v27f8z_1YYWtjD3WbUV-YS_L6TAF2n8BqjJBcG1UVNbvsWvHnMVvsU1O8R9s0QCmEhKedAs2c1WtfyF54"/>
-</div>
-<div class="flex-fill">
-<div class="row-between-center-mb1">
-<div class="inline-items-gap-2">
-<span class="community-detail-span-05">{{username}}</span>
-<span class="community-detail-span-06">{{createdAt}}</span>
-</div>
-<button class="icon-action-fade">
-<span class="icon-ms-base">more_horiz</span>
-</button>
-</div>
-<p class="text-body-sm-relaxed">
-                            {{content}}
-                        </p>
-<div class="community-detail-div-12">
-<button class="link-inline-xs">
-<span class="icon-ms-sm">thumb_up</span> 좋아요
-                            </button>
-</div>
-</div>
-</div>
-{{/replies}}
-<div class="community-detail-div-14">
-<button class="community-detail-button-06">
-                    댓글 더보기 <span class="icon-ms-base">expand_more</span>
-</button>
-</div>
-</div>
-<div class="community-detail-div-15">
-<a class="community-detail-button-07" href="/boards">
-                목록으로 돌아가기
-            </a>
-</div>
-{{/board}}
-</main>
+
+
+    <div class="community-detail-div-15">
+      <a class="community-detail-button-07" href="/boards">
+        목록으로 돌아가기
+      </a>
+    </div>
+
+    {{/board}}
+
+  </main>
 
   {{>partials/chatbot}}
   {{>partials/footer}}
   {{>partials/scripts}}
+
+<script>
+  function showReplyEdit(boardId, replyId) {
+    document.getElementById("reply-content-" + replyId).style.display = "none";
+    document.getElementById("reply-edit-box-" + replyId).style.display = "block";
+  }
+
+  function cancelReplyEdit(replyId) {
+    document.getElementById("reply-content-" + replyId).style.display = "block";
+    document.getElementById("reply-edit-box-" + replyId).style.display = "none";
+  }
+
+  async function updateReply(boardId, replyId) {
+    const textarea = document.getElementById("reply-textarea-" + replyId);
+    const content = textarea.value.trim();
+
+    if (!content) {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/boards/" + boardId + "/replies/" + replyId + "/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          content: content
+        })
+      });
+
+      if (!response.ok) {
+        alert("댓글 수정에 실패했습니다.");
+        return;
+      }
+
+      const data = await response.json();
+
+      document.getElementById("reply-content-" + replyId).innerText = data.content;
+      document.getElementById("reply-content-" + replyId).style.display = "block";
+      document.getElementById("reply-edit-box-" + replyId).style.display = "none";
+    } catch (e) {
+      alert("서버 요청 중 오류가 발생했습니다.");
+    }
+  }
+</script>
+
 </body>
 </html>

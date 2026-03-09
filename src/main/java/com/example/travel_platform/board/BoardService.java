@@ -2,6 +2,7 @@ package com.example.travel_platform.board;
 
 import java.util.List;
 
+import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,27 +57,37 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
-    public List<BoardResponse.BoardSummaryDTO> getBoardList() {
+    public List<BoardResponse.BoardSummaryDTO> getBoardList() { // 서머노트 글자 깨짐으로 jsoup빼고 설정
         return boardRepository.findAll().stream()
-                .map(board -> BoardResponse.BoardSummaryDTO.builder()
-                        .id(board.getId())
-                        .title(board.getTitle())
-                        .summary(board.getContent().substring(0, Math.min(80, board.getContent().length())))
-                        .username(board.getUser().getUsername())
-                        .viewCount(board.getViewCount())
-                        .replyCount(board.getReplies().size())
-                        .createdAt(board.getCreatedAt())
-                        .build())
+                .map(board -> {
+                    String plainText = Jsoup.parse(board.getContent()).text();
+                    String summary = plainText.substring(0, Math.min(80, plainText.length()));
+
+                    return BoardResponse.BoardSummaryDTO.builder()
+                            .id(board.getId())
+                            .title(board.getTitle())
+                            .summary(summary)
+                            .username(board.getUser().getUsername())
+                            .viewCount(board.getViewCount())
+                            .replyCount(board.getReplies().size())
+                            .createdAt(board.getCreatedAt())
+                            .build();
+                })
                 .toList();
     }
 
-    public BoardResponse.BoardDetailDTO getBoardDetail(Integer boardId) {
+    public BoardResponse.BoardDetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
         List<BoardResponse.ReplyDTO> replies = board.getReplies().stream()
-                .map(this::toReplyDTO)
+                .map(reply -> toReplyDTO(sessionUserId, reply))
                 .toList();
+
+        boolean isOwner = false;
+        if (sessionUserId != null) {
+            isOwner = board.getUser().getId().equals(sessionUserId);
+        }
 
         return BoardResponse.BoardDetailDTO.builder()
                 .id(board.getId())
@@ -87,15 +98,22 @@ public class BoardService {
                 .replyCount(board.getReplies().size())
                 .createdAt(board.getCreatedAt())
                 .replies(replies)
+                .isOwner(isOwner)
                 .build();
     }
 
-    private BoardResponse.ReplyDTO toReplyDTO(Reply reply) {
+    private BoardResponse.ReplyDTO toReplyDTO(Integer sessionUserId, Reply reply) {
+        boolean isOwner = false;
+        if (sessionUserId != null) {
+            isOwner = reply.getUser().getId().equals(sessionUserId);
+        }
         return BoardResponse.ReplyDTO.builder()
                 .id(reply.getId())
+                .boardId(reply.getBoard().getId())
                 .username(reply.getUser().getUsername())
                 .content(reply.getContent())
                 .createdAt(reply.getCreatedAt())
+                .isOwner(isOwner)
                 .build();
     }
 
