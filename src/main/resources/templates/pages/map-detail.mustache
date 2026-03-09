@@ -6,10 +6,18 @@
   <title>Unified Map Exploration Variant 1</title>
   {{>partials/head-assets}}
   <style>
-    .map-detail-main-01 { height: calc(100vh - 230px); }
-    .map-detail-div-10 { height: 100%; }
+    .map-detail-main-01 { display: flex; flex: 1 1 auto; min-height: 0; }
+    .map-detail-div-10 { position: relative; height: 100%; min-height: 0; flex: 1 1 auto; }
     .map-detail-div-11 { position: relative; height: 100%; min-height: 0; background: transparent !important; }
     #kakaoMap { width: 100%; height: 100%; min-height: 0; opacity: 1 !important; background: transparent !important; }
+    .map-detail-main-01 > .map-detail-aside-01 {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      bottom: 1rem;
+      width: clamp(17rem, 32vw, 26rem);
+      max-width: calc(100vw - 5rem);
+    }
     .stay-marker {
       position: relative;
       display: flex;
@@ -78,11 +86,15 @@
     .nearby-poi-marker:hover {
       transform: translateY(-4px);
     }
-    @media (max-width: 1024px) {
-      .map-detail-main-01 { height: calc(100vh - 270px); }
-    }
     @media (max-width: 768px) {
-      .map-detail-main-01 { height: calc(100vh - 320px); }
+      .map-detail-main-01 > .map-detail-aside-01 {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        bottom: 0.75rem;
+        width: min(18rem, calc(100vw - 4.5rem));
+        max-width: calc(100vw - 4.5rem);
+      }
     }
   </style>
 </head>

@@ -730,13 +730,21 @@
     regionEl.textContent = selectedOption ? selectedOption.text : "";
   }
 
-  function initializeResultPanel(state) {
+  function setResultPanelExpanded(expanded) {
     var panel = document.querySelector("[data-map-result-panel]");
+    var toggleButton = document.querySelector("[data-map-panel-toggle]");
+    if (panel) {
+      panel.hidden = !expanded;
+    }
+    if (toggleButton) {
+      toggleButton.setAttribute("aria-expanded", String(expanded));
+    }
+  }
+
+  function initializeResultPanel(state) {
     var container = document.querySelector("[data-map-drag-scroll]");
     var regionSelect = document.getElementById("mapRegion");
-    if (panel) {
-      panel.hidden = true;
-    }
+    setResultPanelExpanded(false);
     if (container) {
       container.hidden = true;
     }
@@ -759,19 +767,14 @@
       return;
     }
 
-    var panel = document.querySelector("[data-map-result-panel]");
     if (!state.hasSearched) {
-      if (panel) {
-        panel.hidden = true;
-      }
+      setResultPanelExpanded(false);
       container.hidden = true;
       updateResultCount(0);
       return;
     }
 
-    if (panel) {
-      panel.hidden = false;
-    }
+    setResultPanelExpanded(true);
     container.hidden = false;
 
     var listItems = state.items.filter(function (item) {
@@ -1273,17 +1276,11 @@
     if (!toggleButton || !panel) {
       return;
     }
-
-    function setExpanded(expanded) {
-      panel.hidden = !expanded;
-      toggleButton.setAttribute("aria-expanded", String(expanded));
-    }
-
-    setExpanded(!panel.hidden);
+    setResultPanelExpanded(!panel.hidden);
 
     toggleButton.addEventListener("click", function (event) {
       event.preventDefault();
-      setExpanded(panel.hidden);
+      setResultPanelExpanded(panel.hidden);
     });
   }
 
