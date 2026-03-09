@@ -80,6 +80,7 @@ public class BookingController {
         model.addAttribute("bookingNumber", buildBookingNumber());
         model.addAttribute("lodgingName", lodgingName);
         model.addAttribute("region", safeRegion);
+        model.addAttribute("regionKey", normalizeRegionKey(safeRegion));
         model.addAttribute("guests", guests);
         model.addAttribute("checkIn", checkIn);
         model.addAttribute("checkOut", checkOut);
@@ -116,5 +117,25 @@ public class BookingController {
             return DEFAULT_COMPLETE_IMAGE_URL;
         }
         return imageUrl;
+    }
+
+    private String normalizeRegionKey(String region) {
+        String text = region == null ? "" : region.trim();
+        if (text.contains("서울")) {
+            return "seoul";
+        }
+        if (text.contains("부산")) {
+            return "busan";
+        }
+        if (text.contains("제주")) {
+            return "jeju";
+        }
+        if (text.contains("경주")) {
+            return "gyeongju";
+        }
+        if (text.contains("강원")) {
+            return "gangwon";
+        }
+        return "busan";
     }
 }
