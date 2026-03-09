@@ -305,6 +305,9 @@
 .text-sub-xs-truncate-mt1{font-size:.75rem;color:#64748b;margin-top:.25rem;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .text-muted-sm-truncate{font-size:.875rem;color:#475569;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .text-body-sm-relaxed{font-size:.875rem;color:#334155;line-height:1.625}
+.calendar-event-list-action{margin-top:.75rem}
+.calendar-event-delete-button{align-items:center;display:inline-flex;gap:.5rem;border:1px solid #fecaca;border-radius:.75rem;background:linear-gradient(180deg,#fff1f2,#ffe4e6);color:#b91c1c;font-size:.8125rem;font-weight:700;padding:.625rem .9rem;box-shadow:0 8px 18px rgba(185,28,28,.08);transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease}
+.calendar-event-delete-button:hover{background:linear-gradient(180deg,#ffe4e6,#fecdd3);box-shadow:0 10px 22px rgba(185,28,28,.12);transform:translateY(-1px)}
 .text-muted-sm-medium{font-size:.875rem;color:#64748b;font-weight:500}
 .text-main-base-bold{font-size:1rem;color:#0f172a;font-weight:700}
 .text-main-base-strong{font-size:1rem;color:#111318;font-weight:700}

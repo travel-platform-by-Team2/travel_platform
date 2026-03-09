@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
@@ -66,7 +65,10 @@ public class CalendarService {
 
     @Transactional
     public void deleteEvent(Integer eventId) {
-        // TODO: 일정 삭제 비즈니스 로직 구현
+        CalendarEvent event = calendarRepository.findById(eventId)
+                .orElseThrow(() -> new Exception400("일정을 찾을 수 없습니다."));
+
+        calendarRepository.delete(event);
     }
 
     public List<CalendarResponse.EventDTO> getEventList(Integer sessionUserId, LocalDate startDate, LocalDate endDate) {

@@ -9,8 +9,8 @@
 
 ## 1. 작업 목표 및 작업 내용
 
-- 캘린더 기능을 실제 사이트 화면과 연결하되, 사용자 인증/검증 단계는 제외하고 일정 생성/수정/표시 흐름만 동작하도록 한다.
-- CalendarApiController에 화면 연동용 createEvent, updateEvent 메서드를 설계하고, 일정 생성/수정 후 화면에서 즉시 반영되는 흐름을 구성한다.
+- 캘린더 기능을 실제 사이트 화면과 연결하되, 사용자 인증/검증 단계는 제외하고 일정 생성/수정/삭제제표시 흐름만 동작하도록 한다.
+- CalendarApiController에 화면 연동용 createEvent, updateEvent 메서드를 설계하고, 일정 생성/수정/삭제 후 화면에서 즉시 반영되는 흐름을 구성한다.
 - 계층 구조(CalendarApiController -> CalendarService -> CalendarRepository)는 유지한다.
 - API 스펙 변경이나 DB 스키마 변경 없이, 기존 calendar 도메인 범위 내에서 구현 방향을 정리한다.
 - 작업 산출물은 .docs/.task/.KJM/flow/task01.md를 기준으로 Workflow 형태로 문서화한다.

@@ -14,6 +14,8 @@
     var panel = root.querySelector("[data-calendar-event-panel]");
     var closeButtons = root.querySelectorAll("[data-calendar-event-close]");
     var saveButton = root.querySelector("[data-calendar-event-save]");
+    var deleteButton = document.querySelector("[data-calendar-event-delete]");
+    var deleteAction = document.querySelector("[data-calendar-event-action]");
     if (!openButton || !panel) return;
 
     var fields = panel.querySelectorAll("input, textarea, select");
@@ -49,6 +51,11 @@
       if (shouldReset) resetPanelFields();
       panel.hidden = true;
       openButton.setAttribute("aria-expanded", "false");
+    }
+
+    function syncDeleteAction() {
+      if (!deleteAction) return;
+      deleteAction.hidden = !currentEditId;
     }
 
     openButton.addEventListener("click", function (event) {
@@ -233,6 +240,7 @@
       if (saveButton) {
         saveButton.textContent = "수정하기";
       }
+      syncDeleteAction();
     }
 
     function clearEditMode() {
@@ -240,6 +248,7 @@
       if (saveButton) {
         saveButton.textContent = "저장하기";
       }
+      syncDeleteAction();
     }
 
     function applyEventToForm(event) {
@@ -366,7 +375,7 @@
         return;
       }
 
-      var url = currentEditId ? "/api/calendar/" + currentEditId : "/api/calendar";
+      var url = currentEditId ? "/api/calendar/update/" + currentEditId : "/api/calendar/create";
       var method = currentEditId ? "PUT" : "POST";
 
       fetch(url, {
@@ -403,6 +412,30 @@
         });
     }
 
+    function handleDelete() {
+      if (!currentEditId) {
+        alert("삭제할 일정이 없습니다.");
+        return;
+      }
+
+      fetch("/api/calendar/delete/" + currentEditId, {
+        method: "POST"
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Failed to delete event.");
+          }
+        })
+        .then(function () {
+          closePanel({ reset: true });
+          clearEditMode();
+          return fetchEventList();
+        })
+        .catch(function () {
+          alert("일정 삭제에 실패했습니다.");
+        });
+    }
+
     var eventType = "TRIP";
     var categoryButtons = panel.querySelectorAll("[data-calendar-category]");
     categoryButtons.forEach(function (button, index) {
@@ -423,6 +456,13 @@
       });
     }
 
+    if (deleteButton) {
+      deleteButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        handleDelete();
+      });
+    }
+
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && !panel.hidden) {
         closePanel({ reset: true });
@@ -433,6 +473,7 @@
     setMonthTitle(currentMonthDate);
     buildCalendarGrid(currentMonthDate);
     syncDefaultFormDate(currentMonthDate);
+    syncDeleteAction();
     bindDaySelection(renderEventList);
     fetchEventList();
   }

@@ -59,13 +59,7 @@ public class CalendarRepository {
                 .getResultList();
     }
 
-    public List<CalendarEvent> findEventListByMonth(Integer userId, Integer year, Integer month) {
-        // TODO: 월 기반 날짜 노드 조회 로직 구현
-        return List.of();
-    }
-
-    public List<CalendarEvent> findEventListByDate(Integer userId, LocalDate date) {
-        // TODO: 단일 날짜 노드 조회 로직 구현
-        return List.of();
+    public void delete(CalendarEvent event) {
+        em.remove(event);
     }
 }
