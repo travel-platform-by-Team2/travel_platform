@@ -33,7 +33,9 @@ public class BoardController {
     }
 
     @GetMapping("/new")
-    public String createForm() {
+    public String createForm(Model model) {
+        model.addAttribute("title", "");
+        model.addAttribute("content", "");
         return "pages/board-create";
     }
 
