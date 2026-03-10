@@ -2,6 +2,8 @@ package com.example.travel_platform.board.reply;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
+import com.example.travel_platform.board.reply.Reply;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -28,6 +31,25 @@ public class ReplyController {
     public String create(@PathVariable("boardId") Integer boardId, ReplyRequest.CreateDTO reqDTO) {
         replyService.createReply(requireSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
+    }
+
+    @ResponseBody
+    @PostMapping("/ajax")
+    public Map<String, Object> createAjax(@PathVariable("boardId") Integer boardId, ReplyRequest.CreateDTO reqDTO) {
+        Reply reply = replyService.createReply(requireSessionUserId(), boardId, reqDTO);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime createdAt = reply.getCreatedAt() == null ? LocalDateTime.now() : reply.getCreatedAt();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("id", reply.getId());
+        response.put("boardId", boardId);
+        response.put("username", reply.getUser().getUsername());
+        response.put("content", reply.getContent());
+        response.put("createdAtDisplay", createdAt.format(formatter));
+        response.put("isOwner", true);
+        return response;
     }
 
     @ResponseBody

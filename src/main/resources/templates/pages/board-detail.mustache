@@ -113,15 +113,16 @@
 
     <div class="community-detail-div-09">
       <h3 class="section-title-row">
-        댓글 <span class="text-primary">{{replyCount}}</span>
+        댓글 <span id="reply-count-value" class="text-primary">{{replyCount}}</span>
       </h3>
 
-      <form action="/boards/{{id}}/replies" method="post">
+      <form id="reply-create-form" action="/boards/{{id}}/replies" method="post" data-board-id="{{id}}">
         <div class="community-detail-div-10">
           
 
           <div class="flex-fill">
             <textarea
+              id="reply-create-content"
               class="community-detail-textarea-01"
               name="content"
               placeholder="댓글을 남겨보세요."
@@ -136,7 +137,7 @@
         </div>
       </form>
 
-      <div class="stack-gap-8">
+      <div id="reply-list-container" class="stack-gap-8">
         {{#replies}}
         <div class="fx-group-flex-gap4 reply-item">
         
@@ -352,6 +353,130 @@ function initReplyPaging() {
     });
   }
   renderReplyPage();
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function createReplyItemHtml(reply) {
+  return `
+    <div class="fx-group-flex-gap4 reply-item">
+      <div class="flex-fill">
+        <div class="row-between-center-mb1">
+          <div class="inline-items-gap-2">
+            <span class="community-detail-span-05">${escapeHtml(reply.username)}</span>
+            <span class="community-detail-span-06">${escapeHtml(reply.createdAtDisplay)}</span>
+          </div>
+          <div class="inline-items-gap-2">
+            <button class="link-inline-xs" type="button" onclick="showReplyEdit(${reply.boardId}, ${reply.id})">
+              <span class="icon-ms-sm">edit</span> 수정
+            </button>
+            <form action="/boards/${reply.boardId}/replies/${reply.id}/delete" method="post">
+              <button class="link-inline-xs" type="submit">
+                <span class="icon-ms-sm">delete</span> 삭제
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <p class="text-body-sm-relaxed" id="reply-content-${reply.id}">
+          ${escapeHtml(reply.content)}
+        </p>
+
+        <div id="reply-edit-box-${reply.id}" hidden>
+          <textarea
+            id="reply-textarea-${reply.id}"
+            class="community-detail-textarea-01"
+            rows="4"
+            placeholder="댓글 내용을 수정하세요."
+          >${escapeHtml(reply.content)}</textarea>
+
+          <div class="community-detail-div-11">
+            <button class="community-detail-button-05" type="button" onclick="updateReply(${reply.boardId}, ${reply.id})">
+              저장
+            </button>
+
+            <button class="community-detail-button-03" type="button" onclick="cancelReplyEdit(${reply.id})">
+              취소
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function createReplyAjax(e) {
+  e.preventDefault();
+
+  const form = document.getElementById("reply-create-form");
+  const textarea = document.getElementById("reply-create-content");
+  const content = textarea.value.trim();
+
+  if (!content) {
+    alert("댓글 내용을 입력해주세요.");
+    return;
+  }
+
+  const boardId = form.dataset.boardId;
+
+  try {
+    const response = await fetch("/boards/" + boardId + "/replies/ajax", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ content: content })
+    });
+
+    if (!response.ok) {
+      alert("댓글 등록에 실패했습니다.");
+      return;
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      alert("댓글 등록에 실패했습니다.");
+      return;
+    }
+
+    const list = document.getElementById("reply-list-container");
+    const moreWrap = document.querySelector(".community-detail-div-14");
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = createReplyItemHtml(data);
+    const newReplyEl = wrapper.firstElementChild;
+
+    const firstReply = list.querySelector(".reply-item");
+    if (firstReply) {
+      list.insertBefore(newReplyEl, firstReply);
+    } else if (moreWrap) {
+      list.insertBefore(newReplyEl, moreWrap);
+    } else {
+      list.appendChild(newReplyEl);
+    }
+
+    textarea.value = "";
+
+    const countEl = document.getElementById("reply-count-value");
+    const nextCount = Number(countEl.textContent || "0") + 1;
+    countEl.textContent = String(nextCount);
+
+    replyVisibleCount += 1;
+    renderReplyPage();
+  } catch (e2) {
+    alert("서버 요청 중 오류가 발생했습니다.");
+  }
+}
+
+const replyCreateForm = document.getElementById("reply-create-form");
+if (replyCreateForm) {
+  replyCreateForm.addEventListener("submit", createReplyAjax);
 }
   </script>
 
