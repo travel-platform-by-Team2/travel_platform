@@ -26,27 +26,27 @@
 <div class="community-list-div-02">
   <div class="community-list-div-03">
     <div class="chips-scroll-mask"> <!--솔직히 진짜 모르겠음 그냥 ai한테 했음 진짜 모르겠음 진짜 -->
-      <a class="{{^selectedCategory}}community-list-button-02{{/selectedCategory}}{{#selectedCategory}}chip-filter-btn{{/selectedCategory}}" href="/boards">
+      <a class="community-filter-btn cat-all {{^selectedCategory}}is-active{{/selectedCategory}}" href="/boards">
         전체
       </a>
 
-      <a class="{{#isTips}}community-list-button-02{{/isTips}}{{^isTips}}chip-filter-btn{{/isTips}}" href="/boards?category=tips">
+      <a class="community-filter-btn cat-tips {{#isTips}}is-active{{/isTips}}" href="/boards?category=tips">
         여행 팁
       </a>
 
-      <a class="{{#isPlan}}community-list-button-02{{/isPlan}}{{^isPlan}}chip-filter-btn{{/isPlan}}" href="/boards?category=plan">
+      <a class="community-filter-btn cat-plan {{#isPlan}}is-active{{/isPlan}}" href="/boards?category=plan">
         여행 계획
       </a>
 
-      <a class="{{#isFood}}community-list-button-02{{/isFood}}{{^isFood}}chip-filter-btn{{/isFood}}" href="/boards?category=food">
+      <a class="community-filter-btn cat-food {{#isFood}}is-active{{/isFood}}" href="/boards?category=food">
         맛집/카페
       </a>
 
-      <a class="{{#isReview}}community-list-button-02{{/isReview}}{{^isReview}}chip-filter-btn{{/isReview}}" href="/boards?category=review">
+      <a class="community-filter-btn cat-review {{#isReview}}is-active{{/isReview}}" href="/boards?category=review">
         숙소 후기
       </a>
 
-      <a class="{{#isQna}}community-list-button-02{{/isQna}}{{^isQna}}chip-filter-btn{{/isQna}}" href="/boards?category=qna">
+      <a class="community-filter-btn cat-qna {{#isQna}}is-active{{/isQna}}" href="/boards?category=qna">
         질문/답변
       </a>
     </div>
@@ -62,9 +62,9 @@
 <a class="place-card-row" href="/boards/{{id}}">
 <div class="community-list-div-04">
 <div class="inline-row-gap2-mb2">
-<span class="community-list-span-01">
-                               {{categoryLabel}}
-                            </span>
+<span class="community-list-span-01 {{categoryClass}}">
+                                {{categoryLabel}}
+                             </span>
 <span class="community-list-span-02">• {{createdAtDisplay}}</span>
 </div>
 <h3 class="place-card-title">

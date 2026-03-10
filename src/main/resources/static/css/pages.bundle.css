@@ -134,6 +134,53 @@
   margin-bottom: 30px;
 }
 
+.community-list-span-01,
+.community-detail-span-02 {
+  border: 1px solid #e2e8f0;
+}
+
+.community-list-span-01.cat-tips,
+.community-detail-span-02.cat-tips {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.community-list-span-01.cat-plan,
+.community-detail-span-02.cat-plan {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.community-list-span-01.cat-food,
+.community-detail-span-02.cat-food {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+
+.community-list-span-01.cat-review,
+.community-detail-span-02.cat-review {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.community-list-span-01.cat-qna,
+.community-detail-span-02.cat-qna {
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+  color: #7e22ce;
+}
+
+.community-list-span-01.cat-default,
+.community-detail-span-02.cat-default {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
 /* ===== community-edit.css ===== */
 /* Community edit page */
 .page-community-edit .layout-center-row > .col-lg-9 {
@@ -165,6 +212,89 @@
 .page-community-list .table th:nth-child(2) {
   width: 45%;
   white-space: normal;
+}
+
+.community-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.community-filter-btn.cat-all {
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.community-filter-btn.cat-tips {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background-color: #eff6ff;
+}
+
+.community-filter-btn.cat-plan {
+  color: #334155;
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.community-filter-btn.cat-food {
+  color: #c2410c;
+  border-color: #fed7aa;
+  background-color: #fff7ed;
+}
+
+.community-filter-btn.cat-review {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background-color: #f0fdf4;
+}
+
+.community-filter-btn.cat-qna {
+  color: #7e22ce;
+  border-color: #e9d5ff;
+  background-color: #faf5ff;
+}
+
+.community-filter-btn.is-active {
+  color: #ffffff;
+}
+
+.community-filter-btn.cat-all.is-active {
+  background-color: #0f172a;
+  border-color: #0f172a;
+}
+
+.community-filter-btn.cat-tips.is-active {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.community-filter-btn.cat-plan.is-active {
+  background-color: #334155;
+  border-color: #334155;
+}
+
+.community-filter-btn.cat-food.is-active {
+  background-color: #c2410c;
+  border-color: #c2410c;
+}
+
+.community-filter-btn.cat-review.is-active {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.community-filter-btn.cat-qna.is-active {
+  background-color: #7e22ce;
+  border-color: #7e22ce;
 }
 
 /* ===== header-login-demo.css ===== */

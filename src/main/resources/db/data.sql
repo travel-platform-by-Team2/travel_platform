@@ -43,6 +43,36 @@ values (1, 2, '좋은 정보 감사합니다! 다음 주에 가볼게요.', now(
 insert into board_reply_tb (board_id, user_id, content, created_at)
 values (2, 1, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
 
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
+insert into board_reply_tb (board_id, user_id, content, created_at)
+values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
+
 -- 예약
 insert into booking_tb (user_id, trip_plan_id, lodging_name, check_in, check_out, guest_count, total_price, created_at)
 values (1, 1, '제주 오션뷰 호텔', date '2026-04-10', date '2026-04-12', 2, 320000, now());

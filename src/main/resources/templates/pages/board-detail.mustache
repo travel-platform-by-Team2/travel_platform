@@ -36,7 +36,7 @@
         <div class="community-detail-div-03">
 
           <div class="row-between-center">
-            <span class="community-detail-span-02">
+            <span class="community-detail-span-02 {{categoryClass}}">
               {{categoryLabel}}
             </span>
 
@@ -138,7 +138,7 @@
 
       <div class="stack-gap-8">
         {{#replies}}
-        <div class="fx-group-flex-gap4">
+        <div class="fx-group-flex-gap4 reply-item">
         
           <div class="flex-fill">
             <div class="row-between-center-mb1">
@@ -190,7 +190,7 @@
         {{/replies}}
 
         <div class="community-detail-div-14">
-          <button class="community-detail-button-06" type="button">
+          <button id="reply-more-btn" class="community-detail-button-06" type="button">
             댓글 더보기 <span class="icon-ms-base">expand_more</span>
           </button>
         </div>
@@ -324,7 +324,35 @@ document.addEventListener("DOMContentLoaded", function () {
       copyCurrentUrl();
     });
   }
+  initReplyPaging();
 });
+
+// 댓글 페이징
+const replyPageSize = 3;
+let replyVisibleCount = 3;
+
+function renderReplyPage() {
+  const items = Array.from(document.querySelectorAll(".reply-item"));
+  items.forEach((el, idx) => {
+    el.hidden = idx >= replyVisibleCount;
+  });
+
+  const moreBtn = document.getElementById("reply-more-btn");
+  if (moreBtn) {
+    moreBtn.hidden = replyVisibleCount >= items.length;
+  }
+}
+
+function initReplyPaging() {
+  const moreBtn = document.getElementById("reply-more-btn");
+  if (moreBtn) {
+    moreBtn.addEventListener("click", function () {
+      replyVisibleCount += replyPageSize;
+      renderReplyPage();
+    });
+  }
+  renderReplyPage();
+}
   </script>
 
 </body>

@@ -83,6 +83,7 @@ public class BoardService {
                             .summary(summary)
                             .category(board.getCategory())
                             .categoryLabel(toCategoryLabel(board.getCategory()))
+                            .categoryClass(toCategoryClass(board.getCategory()))
                             .username(board.getUser().getUsername())
                             .viewCount(board.getViewCount())
                             .replyCount(board.getReplies().size())
@@ -122,6 +123,7 @@ public class BoardService {
                 .content(board.getContent())
                 .category(board.getCategory())
                 .categoryLabel(toCategoryLabel(board.getCategory()))
+                .categoryClass(toCategoryClass(board.getCategory()))
                 .username(board.getUser().getUsername())
                 .viewCount(board.getViewCount())
                 .replyCount(board.getReplies().size())
@@ -133,6 +135,7 @@ public class BoardService {
                 .build();
     }
 
+    // 화면에 보여주는 한글 텍스트 변환
     private String toCategoryLabel(String category) {
         if (category == null || category.isBlank()) {
             return "기타";
@@ -144,6 +147,21 @@ public class BoardService {
             case "review" -> "숙소 후기";
             case "qna" -> "질문/답변";
             default -> "기타";
+        };
+    }
+
+    // css 변환 파일
+    private String toCategoryClass(String category) {
+        if (category == null || category.isBlank()) {
+            return "cat-default";
+        }
+        return switch (category) {
+            case "tips" -> "cat-tips";
+            case "plan" -> "cat-plan";
+            case "food" -> "cat-food";
+            case "review" -> "cat-review";
+            case "qna" -> "cat-qna";
+            default -> "cat-default";
         };
     }
 

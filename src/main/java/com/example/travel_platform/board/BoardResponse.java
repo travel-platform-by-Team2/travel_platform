@@ -17,6 +17,7 @@ public class BoardResponse {
         private String username;
         private String category;
         private String categoryLabel;
+        private String categoryClass;
         private Integer viewCount;
         private Integer replyCount;
         private LocalDateTime createdAt;
@@ -44,6 +45,7 @@ public class BoardResponse {
         private String content;
         private String category;
         private String categoryLabel;
+        private String categoryClass;
         private String username;
         private Integer viewCount;
         private Integer replyCount;
