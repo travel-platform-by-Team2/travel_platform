@@ -120,6 +120,20 @@
   resize: vertical;
 }
 
+.community-detail-div-01 .p-8 {
+  padding-left: 2rem;
+}
+
+.community-detail-div-01 .prose-reading-lg {
+  padding-left: 0;
+}
+
+.community-detail-div-01 .community-detail-div-08 {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
 /* ===== community-edit.css ===== */
 /* Community edit page */
 .page-community-edit .layout-center-row > .col-lg-9 {
