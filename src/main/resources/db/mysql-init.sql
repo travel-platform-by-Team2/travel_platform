@@ -71,6 +71,7 @@ create table board_tb (
   title varchar(150) not null,
   content longtext not null,
   view_count int not null default 0,
+  like_count int not null default 0,
   created_at datetime not null default current_timestamp,
   constraint fk_board_user foreign key (user_id) references user_tb(id)
 );
@@ -84,6 +85,20 @@ create table board_reply_tb (
   constraint fk_board_reply_board foreign key (board_id) references board_tb(id),
   constraint fk_board_reply_user foreign key (user_id) references user_tb(id)
 );
+
+create table board_like_tb (
+  id int auto_increment primary key,
+  board_id int not null,
+  user_id int not null,
+  created_at timestamp not null default current_timestamp,
+  constraint uk_board_like_board_user unique (board_id, user_id),
+  constraint fk_board_like_board foreign key (board_id) references board_tb(id) on delete cascade,
+  constraint fk_board_like_user foreign key (user_id) references user_tb(id) on delete cascade
+);
+
+-- 조회 빠르게 해주는 코드 넣어도 빼도 상관없음
+create index idx_board_like_board_id on board_like_tb(board_id);
+create index idx_board_like_user_id on board_like_tb(user_id);
 
 create table booking_tb (
   id int auto_increment primary key,

@@ -3,8 +3,6 @@ package com.example.travel_platform.board;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.travel_platform.board.reply.Reply;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -34,18 +32,8 @@ public class BoardResponse {
         private String username;
         private String content;
         private LocalDateTime createdAt;
+        private String createdAtDisplay;
         private boolean isOwner;
-    }
-
-    private ReplyDTO toReplyDTO(Reply reply, Integer sessionUserId) {
-        return ReplyDTO.builder()
-                .id(reply.getId())
-                .boardId(reply.getBoard().getId())
-                .username(reply.getUser().getUsername())
-                .content(reply.getContent())
-                .createdAt(reply.getCreatedAt())
-                .isOwner(reply.getUser().getId().equals(sessionUserId))
-                .build();
     }
 
     @Data
@@ -67,5 +55,15 @@ public class BoardResponse {
         private String titleError;
         private String contentError;
         private String categoryError;
+
+        private Long likeCount;
+        private Boolean likedByMe;
+    }
+
+    @Data
+    @Builder
+    public static class ToggleLikeDTO {
+        private boolean liked;
+        private long likeCount;
     }
 }

@@ -96,13 +96,20 @@ public class BoardService {
     public BoardResponse.BoardDetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
-        board.increaseViewCount();
+        board.increaseViewCount(sessionUserId);
 
         List<BoardResponse.ReplyDTO> replies = board.getReplies().stream()
                 .map(reply -> toReplyDTO(sessionUserId, reply))
                 .toList();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        // 좋아요 계산
+        boolean likedByMe = false;
+        if (sessionUserId != null) {
+            likedByMe = boardRepository.existsLike(boardId, sessionUserId);
+        }
+        long likeCount = boardRepository.countLike(boardId);
 
         boolean isOwner = false;
         if (sessionUserId != null) {
@@ -121,6 +128,8 @@ public class BoardService {
                 .createdAtDisplay(board.getCreatedAt().format(formatter))
                 .replies(replies)
                 .isOwner(isOwner)
+                .likeCount(likeCount)
+                .likedByMe(likedByMe)
                 .build();
     }
 
@@ -143,13 +152,47 @@ public class BoardService {
         if (sessionUserId != null) {
             isOwner = reply.getUser().getId().equals(sessionUserId);
         }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         return BoardResponse.ReplyDTO.builder()
                 .id(reply.getId())
                 .boardId(reply.getBoard().getId())
                 .username(reply.getUser().getUsername())
                 .content(reply.getContent())
                 .createdAt(reply.getCreatedAt())
+                .createdAtDisplay(reply.getCreatedAt().format(formatter))
                 .isOwner(isOwner)
+                .build();
+    }
+
+    // 좋아요 버튼을 누르면 응답을 즉시 주기위해 비즈니스 규칙을 한곳에 모은곳
+    @Transactional
+    public BoardResponse.ToggleLikeDTO toggleBoardLike(Integer sessionUserId, Integer boardId) {
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
+
+        if (board.getUser().getId().equals(sessionUserId)) {
+            throw new Exception403("본인 게시글에는 좋아요를 누를 수 없습니다.");
+        }
+
+        userRepository.findById(sessionUserId)
+                .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
+
+        boolean liked = boardRepository.existsLike(boardId, sessionUserId);
+
+        if (liked) {
+            boardRepository.deleteLike(boardId, sessionUserId);
+            liked = false;
+        } else {
+            boardRepository.insertLike(boardId, sessionUserId);
+            liked = true;
+        }
+
+        long likeCount = boardRepository.countLike(boardId);
+
+        return BoardResponse.ToggleLikeDTO.builder()
+                .liked(liked)
+                .likeCount(likeCount)
                 .build();
     }
 

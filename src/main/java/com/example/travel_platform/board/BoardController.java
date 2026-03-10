@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
@@ -152,6 +153,13 @@ public class BoardController {
 
         boardService.deleteBoard(requireSessionUserId(), boardId);
         return "redirect:/boards";
+    }
+
+    @PostMapping("/{boardId}/likes/toggle")
+    @ResponseBody // 리턴값에 http응답 본문을 그대로 보낸다 (AJAX)
+    public BoardResponse.ToggleLikeDTO toggleLikeDTO(@PathVariable("boardId") Integer boardId) {
+        Integer sessionUserId = requireSessionUserId();
+        return boardService.toggleBoardLike(sessionUserId, boardId);
     }
 
     private Integer requireSessionUserId() {

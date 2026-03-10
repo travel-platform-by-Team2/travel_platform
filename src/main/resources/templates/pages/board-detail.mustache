@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Community Post Detail</title>
   {{>partials/head-assets}}
+  <!--버튼 좋아요 css -->
+  <style>
+    #board-like-btn.is-liked { border-color:#ec4899; color:#ec4899; }
+    #board-like-btn.is-liked #board-like-icon { color:#ec4899; font-variation-settings:"FILL" 1; }
+  </style>
 </head>
 
 <body class="page-body">
@@ -83,10 +88,19 @@
         </div>
 
         <div class="community-detail-div-08">
-          <button class="fx-group-chip-outline">
-            <span class="icon-ms-hover-fill-current">favorite</span>
-            <span class="fw-medium-500">좋아요 128</span>
-          </button>
+        {{#likedByMe}}
+          <button id="board-like-btn" class="fx-group-chip-outline is-liked" data-board-id="{{id}}">
+          <span id="board-like-icon" class="icon-ms-hover-fill-current">favorite</span>
+          <span class="fw-medium-500">좋아요 <span id="board-like-count">{{likeCount}}</span></span>
+        </button>
+        {{/likedByMe}}
+
+          {{^likedByMe}}
+            <button id="board-like-btn" class="fx-group-chip-outline" data-board-id="{{id}}">
+            <span id="board-like-icon" class="icon-ms-hover-fill-current">favorite_border</span>
+            <span class="fw-medium-500">좋아요 <span id="board-like-count">{{likeCount}}</span></span>
+         </button>
+          {{/likedByMe}}
 
           <button class="community-detail-button-04">
             <span class="icon-ms-base">share</span>
@@ -130,7 +144,7 @@
             <div class="row-between-center-mb1">
               <div class="inline-items-gap-2">
                 <span class="community-detail-span-05">{{username}}</span>
-                <span class="community-detail-span-06">{{createdAt}}</span>
+                <span class="community-detail-span-06">{{createdAtDisplay}}</span>
               </div>
 
               {{#isOwner}}
@@ -241,6 +255,40 @@
         alert("서버 요청 중 오류가 발생했습니다.");
       }
     }
+
+      // 4) JS 토글 함수 좋아요함수
+  async function toggleBoardLike() {
+  const btn = document.getElementById("board-like-btn");
+  const boardId = btn.dataset.boardId;
+  const countEl = document.getElementById("board-like-count");
+  const iconEl = document.getElementById("board-like-icon");
+
+  try {
+    const response = await fetch("/boards/" + boardId + "/likes/toggle", { method: "POST" });
+
+    if (!response.ok) {
+      alert("자신의 글에는 좋아요를 누를 수 없습니다.");
+      return;
+    }
+
+    const data = await response.json(); // { liked, likeCount }
+
+    countEl.innerText = data.likeCount;
+
+    if (data.liked) {
+      btn.classList.add("is-liked");
+      iconEl.innerText = "favorite";
+    } else {
+      btn.classList.remove("is-liked");
+      iconEl.innerText = "favorite_border";
+    }
+  } catch (e) {
+    alert("서버 요청 중 오류가 발생했습니다.");
+  }
+}
+
+const likeBtn = document.getElementById("board-like-btn");
+if (likeBtn) likeBtn.addEventListener("click", toggleBoardLike);
   </script>
 
 </body>
