@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/trip-plans")
+@RequestMapping("/api/trips")
 @RequiredArgsConstructor
 public class TripApiController {
 
@@ -24,11 +24,6 @@ public class TripApiController {
     @GetMapping
     public Object getPlanList() {
         return tripService.getPlanList(1);
-    }
-
-    @GetMapping("/{planId}")
-    public Object getPlanDetail(@PathVariable Integer planId) {
-        return tripService.getPlanDetail(1, planId);
     }
 
     @PostMapping("/{planId}/places")
