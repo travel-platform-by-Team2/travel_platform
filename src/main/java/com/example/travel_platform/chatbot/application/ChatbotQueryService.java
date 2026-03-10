@@ -55,7 +55,10 @@ public class ChatbotQueryService {
     private final JdbcTemplate jdbcTemplate;
 
     public QueryResult execute(ChatbotLlmPlan llmPlan) {
-        String sql = llmPlan.sql();
+        return execute(llmPlan.sql(), llmPlan.querySummary());
+    }
+
+    public QueryResult execute(String sql, String querySummary) {
         if (sql == null || sql.isBlank()) {
             throw new ApiException(
                     "CHATBOT_INTERNAL_ERROR",
@@ -64,9 +67,9 @@ public class ChatbotQueryService {
         }
 
         String safeSql = ensureSafeSql(sql);
-        String querySummary = toTextOrDefault(llmPlan.querySummary(), DEFAULT_QUERY_SUMMARY);
+        String safeQuerySummary = toTextOrDefault(querySummary, DEFAULT_QUERY_SUMMARY);
         List<Map<String, Object>> rows = executeQuery(safeSql);
-        return new QueryResult(safeSql, querySummary, rows);
+        return new QueryResult(safeSql, safeQuerySummary, rows);
     }
 
     private List<Map<String, Object>> executeQuery(String sql) {
