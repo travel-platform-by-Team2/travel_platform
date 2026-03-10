@@ -13,6 +13,7 @@ public class CalendarRequest {
         private LocalDateTime startAt;
         private LocalDateTime endAt;
         private String eventType;
+        private String memo;
     }
 
     @Data
@@ -21,5 +22,6 @@ public class CalendarRequest {
         private LocalDateTime startAt;
         private LocalDateTime endAt;
         private String eventType;
+        private String memo;
     }
 }
