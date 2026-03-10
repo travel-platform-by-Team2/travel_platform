@@ -19,6 +19,7 @@ public class UserController {
         return "pages/main-index";
     }
 
+    // 로그아웃 시 리다이렉션 경로를 / (메인 페이지)로 변경 완료(지윤)
     @GetMapping("/logout")
     public String logout() {
         session.invalidate();
