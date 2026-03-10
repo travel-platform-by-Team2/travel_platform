@@ -102,7 +102,7 @@
          </button>
           {{/likedByMe}}
 
-          <button class="community-detail-button-04">
+          <button id="board-share-btn" class="community-detail-button-04" type="button">
             <span class="icon-ms-base">share</span>
             <span class="fw-medium-500">공유하기</span>
           </button>
@@ -289,6 +289,42 @@
 
 const likeBtn = document.getElementById("board-like-btn");
 if (likeBtn) likeBtn.addEventListener("click", toggleBoardLike);
+
+// 공유하기 버튼 프론트 web api
+async function copyCurrentUrl() {
+  const url = window.location.href;
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (!ok) throw new Error("copy failed");
+    }
+
+    alert("주소가 복사되었습니다.");
+  } catch (e) {
+    alert("주소 복사에 실패했습니다.");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const shareBtn = document.getElementById("board-share-btn");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      copyCurrentUrl();
+    });
+  }
+});
   </script>
 
 </body>
