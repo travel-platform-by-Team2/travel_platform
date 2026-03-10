@@ -19,7 +19,7 @@
       ">
 
         <li class="nav-item"><a class="nav-link" data-logged-in-nav="explore" href="/bookings/map-detail" onclick="setLoggedInNavActive('explore');">탐색</a></li>
-        <li class="nav-item"><a class="nav-link active fw-semibold" href="#">여행계획</a></li>
+        <li class="nav-item"><a class="nav-link" data-logged-in-nav="trip" href="/trip-list" onclick="setLoggedInNavActive('trip');">여행계획</a></li>
         <li class="nav-item"><a class="nav-link" data-logged-in-nav="calendar" href="/calendar" onclick="setLoggedInNavActive('calendar');">캘린더</a></li>
         <li class="nav-item"><a class="nav-link" data-logged-in-nav="community" href="/boards" onclick="setLoggedInNavActive('community');">커뮤니티</a></li>
       </ul>
@@ -60,6 +60,9 @@
   function resolveLoggedInNavByPath(pathname) {
     if (pathname.indexOf("/bookings/map-detail") === 0) {
       return "explore";
+    }
+    if (pathname.indexOf("/trip-list") === 0 || pathname.indexOf("/trip-plan-list") === 0 || pathname.indexOf("/trip-plans") === 0) {
+      return "trip";
     }
     if (pathname.indexOf("/calendar") === 0) {
       return "calendar";
