@@ -27,6 +27,31 @@ public class BoardResponse {
 
     @Data
     @Builder
+    public static class BoardListPageDTO {
+        private List<BoardSummaryDTO> boards;
+        private List<PageItemDTO> pageItems;
+        private int currentPage;
+        private int pageNumber;
+        private int size;
+        private long totalCount;
+        private int totalPages;
+        private boolean first;
+        private boolean last;
+        private Integer prevPage;
+        private Integer nextPage;
+        private String category;
+    }
+
+    @Data
+    @Builder
+    public static class PageItemDTO {
+        private int page;
+        private int displayNumber;
+        private boolean current;
+    }
+
+    @Data
+    @Builder
     public static class ReplyDTO {
         private Integer id;
         private Integer boardId;

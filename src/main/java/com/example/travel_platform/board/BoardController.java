@@ -28,9 +28,10 @@ public class BoardController {
     private final HttpSession session;
 
     @GetMapping
-    public String boardlist(@RequestParam(value = "category", required = false) String category, Model model) {
-        List<BoardResponse.BoardSummaryDTO> boards = boardService.getBoardList(category);
-        model.addAttribute("boards", boards);
+    public String boardlist(@RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
+        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, page);
+        model.addAttribute("model", responseDTO);
         model.addAttribute("selectedCategory", category);
 
         model.addAttribute("isTips", "tips".equals(category));

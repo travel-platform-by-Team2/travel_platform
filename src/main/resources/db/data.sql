@@ -29,6 +29,28 @@ values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코
 insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
 values (2, 'qna', '부산 당일치기 가능할까요?', '해운대 중심으로 일정을 짜보려는데 조언 부탁드립니다.', 5, 0, now());
 
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+
 -- 게시글 좋아요
 insert into board_like_tb (board_id, user_id, created_at)
 values (1, 2, now());
@@ -42,36 +64,6 @@ values (1, 2, '좋은 정보 감사합니다! 다음 주에 가볼게요.', now(
 
 insert into board_reply_tb (board_id, user_id, content, created_at)
 values (2, 1, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
-
-insert into board_reply_tb (board_id, user_id, content, created_at)
-values (1, 2, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
 
 -- 예약
 insert into booking_tb (user_id, trip_plan_id, lodging_name, check_in, check_out, guest_count, total_price, created_at)

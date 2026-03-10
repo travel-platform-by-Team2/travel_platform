@@ -1,6 +1,7 @@
 package com.example.travel_platform.board;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jsoup.Jsoup;
@@ -60,22 +61,27 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
-    public List<BoardResponse.BoardSummaryDTO> getBoardList(String category) {
+    public BoardResponse.BoardListPageDTO getBoardList(String category, int page) {
+        int size = 3;
+        int offset = page * size;
 
-        List<Board> boards = boardRepository.findAll();
+        List<Board> boards;
+        long totalCount;
 
         if (category != null && !category.isBlank()) {
-            boards = boards.stream()
-                    .filter(board -> category.equals(board.getCategory()))
-                    .toList();
+            boards = boardRepository.findAllPagingByCategory(category, offset, size);
+            totalCount = boardRepository.countByCategory(category);
+        } else {
+            boards = boardRepository.findAllPaging(offset, size);
+            totalCount = boardRepository.count();
         }
 
-        return boards.stream()
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        List<BoardResponse.BoardSummaryDTO> boardDTOs = boards.stream()
                 .map(board -> {
                     String plainText = Jsoup.parse(board.getContent()).text();
                     String summary = plainText.substring(0, Math.min(80, plainText.length()));
-
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
                     return BoardResponse.BoardSummaryDTO.builder()
                             .id(board.getId())
@@ -91,6 +97,52 @@ public class BoardService {
                             .build();
                 })
                 .toList();
+
+        int totalPages = (int) Math.ceil((double) totalCount / size);
+
+        // 게시글이 하나도 없을 때 page=0 기준 유지
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
+
+        boolean first = page == 0;
+        boolean last = page >= totalPages - 1;
+
+        Integer prevPage = first ? null : page - 1;
+        Integer nextPage = last ? null : page + 1;
+
+        int blockSize = 5;
+        int startPage = (page / blockSize) * blockSize;
+        int endPage = startPage + blockSize - 1;
+
+        if (endPage >= totalPages) {
+            endPage = totalPages - 1;
+        }
+
+        List<BoardResponse.PageItemDTO> pageItems = new ArrayList<>();
+
+        for (int i = 0; i < totalPages; i++) {
+            pageItems.add(BoardResponse.PageItemDTO.builder()
+                    .page(i)
+                    .displayNumber(i + 1)
+                    .current(i == page)
+                    .build());
+        }
+
+        return BoardResponse.BoardListPageDTO.builder()
+                .boards(boardDTOs)
+                .currentPage(page)
+                .pageNumber(page + 1)
+                .size(size)
+                .totalCount(totalCount)
+                .totalPages(totalPages)
+                .first(first)
+                .last(last)
+                .prevPage(prevPage)
+                .nextPage(nextPage)
+                .category(category)
+                .pageItems(pageItems)
+                .build();
     }
 
     @Transactional

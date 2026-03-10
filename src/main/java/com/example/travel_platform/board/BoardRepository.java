@@ -35,6 +35,52 @@ public class BoardRepository {
                 """, Board.class).getResultList();
     }
 
+    // 페이징 조회
+    public List<Board> findAllPaging(int offset, int size) {
+        return em.createQuery("""
+                select b
+                from Board b
+                order by b.id desc
+                """, Board.class)
+                .setFirstResult(offset) // 몇 개 건너뛸지
+                .setMaxResults(size) // 몇 개 가져올지
+                .getResultList();
+    }
+
+    // 전체 개수 조회
+    public long count() {
+        return em.createQuery("""
+                select count(b)
+                from Board b
+                """, Long.class)
+                .getSingleResult();
+    }
+
+    // 카테고리
+    public List<Board> findAllPagingByCategory(String category, int offset, int size) {
+        return em.createQuery("""
+                select b
+                from Board b
+                where b.category = :category
+                order by b.id desc
+                """, Board.class)
+                .setParameter("category", category)
+                .setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultList();
+    }
+
+    // 카테고리 전체 페이지
+    public long countByCategory(String category) {
+        return em.createQuery("""
+                select count(b)
+                from Board b
+                where b.category = :category
+                """, Long.class)
+                .setParameter("category", category)
+                .getSingleResult();
+    }
+
     public void delete(Board board) {
         em.remove(board);
     }

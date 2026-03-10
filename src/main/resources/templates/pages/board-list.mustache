@@ -58,7 +58,7 @@
   </div>
 </div>
 <div class="stack-gap-3">
-{{#boards}}
+{{#model.boards}}
 <a class="place-card-row" href="/boards/{{id}}">
 <div class="community-list-div-04">
 <div class="inline-row-gap2-mb2">
@@ -88,10 +88,35 @@
 </div>
 </div>
 </a>
-{{/boards}}
-{{^boards}}
+{{/model.boards}}
+{{^model.boards}}
 <p class="text-muted-sm-truncate">아직 게시글이 없습니다.</p>
-{{/boards}}
+{{/model.boards}}
+
+<div class="pagination-wrap">
+  {{#model.prevPage}}
+  <a class="community-page-btn" href="/boards?page={{model.prevPage}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+    이전
+  </a>
+  {{/model.prevPage}}
+
+  {{#model.pageItems}}
+    {{#current}}
+    <span class="community-page-btn is-active">{{displayNumber}}</span>
+    {{/current}}
+
+    {{^current}}
+    <a class="community-page-btn" href="/boards?page={{page}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+      {{displayNumber}}
+    </a>
+    {{/current}}
+  {{/model.pageItems}}
+
+  {{#model.nextPage}}
+  <a class="community-page-btn" href="/boards?page={{model.nextPage}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+    다음
+  </a>
+  {{/model.nextPage}}
 </div>
 </main>
 
