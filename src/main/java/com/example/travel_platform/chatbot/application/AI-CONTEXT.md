@@ -8,11 +8,12 @@ LLM 계획 생성, SQL 실행, 재탐색 판단, 최종 답변 조합 등 챗봇
 
 ## 주요 파일
 
-| 파일명 | 설명 |
-| --- | --- |
-| ChatbotAnswerService.java | 직접 응답과 탐색 이력 기반 최종 답변 생성을 처리한다. |
-| ChatbotOrchestrator.java | 챗봇 전체 처리 흐름과 최대 5회 재탐색 루프를 오케스트레이션한다. |
-| ChatbotPlanService.java | LLM 계획 생성과 재탐색 판단을 담당한다. |
+| 파일명                    | 설명                                                             |
+| ------------------------- | ---------------------------------------------------------------- |
+| ChatbotAnswerService.java | 직접 응답과 탐색 이력 기반 최종 답변 생성을 처리한다.            |
+| ChatbotOrchestrator.java  | 챗봇 전체 처리 흐름과 최대 5회 재탐색 루프를 오케스트레이션한다. |
+| ChatbotPlanService.java   | LLM 계획 생성과 재탐색 판단을 담당한다.                          |
+
 | ChatbotQueryService.java | SQL 안전성 검증과 실제 조회를 담당한다. |
 | ChatSchemaProvider.java | 허용 스키마 컨텍스트를 제공한다. |
 
