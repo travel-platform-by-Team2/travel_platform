@@ -14,6 +14,10 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 여행 계획에 포함되는 개별 장소를 표현하는 엔티티.
+ * 장소명, 주소, 좌표, 일차 순서 등 상세 항목을 담당한다.
+ */
 @Data
 @NoArgsConstructor
 @Entity

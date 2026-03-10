@@ -19,6 +19,10 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 한 사용자의 여행 계획 자체를 표현하는 엔티티.
+ * 여행 제목, 기간 등 계획의 기본 정보를 담당한다.
+ */
 @Data
 @NoArgsConstructor
 @Entity
