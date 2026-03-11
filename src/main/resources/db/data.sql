@@ -50,6 +50,165 @@ values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코
 insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
 values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
 
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
+insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
+values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+
 
 -- 게시글 좋아요
 insert into board_like_tb (board_id, user_id, created_at)

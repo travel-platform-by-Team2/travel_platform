@@ -121,7 +121,7 @@ public class BoardService {
 
         List<BoardResponse.PageItemDTO> pageItems = new ArrayList<>();
 
-        for (int i = 0; i < totalPages; i++) {
+        for (int i = startPage; i <= endPage; i++) {
             pageItems.add(BoardResponse.PageItemDTO.builder()
                     .page(i)
                     .displayNumber(i + 1)
