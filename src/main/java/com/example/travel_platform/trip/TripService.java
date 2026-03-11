@@ -2,6 +2,7 @@ package com.example.travel_platform.trip;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -30,11 +31,26 @@ public class TripService {
         // TODO: TripPlace 엔티티 변환 후 저장
     }
 
-    public List<TripResponse.PlanSummaryDTO> getPlanList(Integer userId, String category) {
-        List<TripPlan> tripPlans = tripRepository.findPlanListByUserId(userId);
+    public TripResponse.PlanListPageDTO getPlanList(Integer userId, String category, int page) {
+        int size = 9;
+        int offset = page * size;
         LocalDate today = LocalDate.now();
 
-        List<TripResponse.PlanSummaryDTO> result = new java.util.ArrayList<>();
+        List<TripPlan> tripPlans;
+        Long totalCount;
+
+        if ("upcoming".equals(category)) {
+            tripPlans = tripRepository.findUpcomingPlanListByUserId(userId, today, offset, size);
+            totalCount = tripRepository.countUpcomingPlanByUserId(userId, today);
+        } else if ("past".equals(category)) {
+            tripPlans = tripRepository.findPastPlanListByUserId(userId, today, offset, size);
+            totalCount = tripRepository.countPastPlanByUserId(userId, today);
+        } else {
+            tripPlans = tripRepository.findPlanListByUserId(userId, offset, size);
+            totalCount = tripRepository.countPlanByUserId(userId);
+        }
+
+        List<TripResponse.PlanSummaryDTO> result = new ArrayList<>();
 
         for (TripPlan tripPlan : tripPlans) {
             String placeName = "장소 확인 안됨";
@@ -45,15 +61,12 @@ public class TripService {
 
             long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
 
-            String dDay;
-            boolean disabled;
+            String dDay = "비활성화";
+            boolean disabled = true;
 
-            if (diff > 0) { // d-day 계산
+            if (diff > 0) {
                 dDay = "D-" + diff;
                 disabled = false;
-            } else {
-                dDay = "비활성화";
-                disabled = true;
             }
 
             TripResponse.PlanSummaryDTO dto = TripResponse.PlanSummaryDTO.builder()
@@ -70,13 +83,20 @@ public class TripService {
             result.add(dto);
         }
 
-        if ("upcoming".equals(category)) {
-            return result.stream().filter(dto -> !dto.isDisabled()).toList();
-        }
-        if ("past".equals(category)) {
-            return result.stream().filter(TripResponse.PlanSummaryDTO::isDisabled).toList();
-        }
-        return result;
+        int totalPage = (int) Math.ceil((double) totalCount / size);
+
+        return TripResponse.PlanListPageDTO.builder()
+                .plans(result)
+                .currentPage(page)
+                .displayPage(page + 1)
+                .size(size)
+                .totalCount(totalCount)
+                .totalPage(totalPage)
+                .hasPrev(page > 0)
+                .hasNext(page < totalPage - 1)
+                .prevPage(page - 1)
+                .nextPage(page + 1)
+                .build();
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {

@@ -23,6 +23,7 @@ public class TripController {
 
     @GetMapping()
     public String tripListPage(@RequestParam(value = "category", defaultValue = "result") String category,
+            @RequestParam(value = "page", defaultValue = "0") int page,
             HttpSession session,
             Model model) {
 
@@ -33,11 +34,14 @@ public class TripController {
 
         Integer sessionUserId = sessionUser.getId();
 
-        List<TripResponse.PlanSummaryDTO> tripPlans = tripService.getPlanList(sessionUserId, category);
-        model.addAttribute("tripPlans", tripPlans);
+        TripResponse.PlanListPageDTO pageDTO = tripService.getPlanList(sessionUserId, category, page);
+        model.addAttribute("tripPlans", pageDTO.getPlans());
+        model.addAttribute("pageDTO", pageDTO);
+
         model.addAttribute("isResult", "result".equals(category));
         model.addAttribute("isUpcoming", "upcoming".equals(category)); // 예정된 여행
         model.addAttribute("isPast", "past".equals(category)); // 다녀온 여행
+        model.addAttribute("category", category);
         return "pages/trip-list";
     }
 

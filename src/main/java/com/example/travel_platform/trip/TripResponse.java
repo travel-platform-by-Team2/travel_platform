@@ -9,6 +9,21 @@ import lombok.Data;
 // 여행 계획/장소 조회 응답 포맷을 정의하는 DTO 클래스
 public class TripResponse {
 
+    @Data
+    @Builder
+    public static class PlanListPageDTO {
+        private List<PlanSummaryDTO> plans;
+        private int currentPage;
+        private int displayPage;
+        private int size;
+        private long totalCount;
+        private int totalPage;
+        private boolean hasPrev;
+        private boolean hasNext;
+        private int prevPage;
+        private int nextPage;
+    }
+
     // 여행 계획 목록 아이템 응답 DTO
     @Data
     @Builder

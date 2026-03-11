@@ -25,17 +25,17 @@
 </div>
 <!-- Filter Tabs (Optional Enhancement for UX) -->
 <div class="tab-strip-scroll">
-  <a href="/trip?category=result"
+  <a href="/trip?category=result&page=0"
      class="{{#isResult}}trip-plan-list-button-02{{/isResult}}{{^isResult}}chip-surface{{/isResult}}">
     전체 보기
   </a>
 
-  <a href="/trip?category=upcoming"
+  <a href="/trip?category=upcoming&page=0"
      class="{{#isUpcoming}}trip-plan-list-button-02{{/isUpcoming}}{{^isUpcoming}}chip-surface{{/isUpcoming}}">
     예정된 여행
   </a>
 
-  <a href="/trip?category=past"
+  <a href="/trip?category=past&page=0"
      class="{{#isPast}}trip-plan-list-button-02{{/isPast}}{{^isPast}}chip-surface{{/isPast}}">
     다녀온 여행
   </a>
@@ -53,9 +53,11 @@ style="background-image: url('{{imgUrl}}');"></div>
   {{dDay}}
 </div>
 {{/disabled}}
+<!-- 하트부분 
 <button class="trip-card-like-btn">
 <span class="icon-ms-20">favorite</span>
 </button>
+-->
 </div>
 <div class="trip-card-body">
 <div class="trip-card-header">
@@ -80,26 +82,34 @@ style="background-image: url('{{imgUrl}}');"></div>
 </div>
 </div>
 </div>
+<!-- 등록된거 없을떄 -->
+{{^tripPlans}}
+<div class="empty-state">
+  등록된 여행 계획이 없습니다.
+</div>
+{{/tripPlans}}
 {{/tripPlans}}
 <!-- Empty State / Add New Placeholder (Optional filler) -->
 </div>
 <!-- Pagination -->
 <div class="trip-plan-list-div-06">
-<button class="icon-btn-surface">
-<span class="icon-ms-lg">chevron_left</span>
-</button>
-<button class="trip-plan-list-button-03">
-                1
-             </button>
-<button class="icon-btn-surface">
-                2
-             </button>
-<button class="icon-btn-surface">
-                3
-             </button>
-<button class="icon-btn-surface">
-<span class="icon-ms-lg">chevron_right</span>
-</button>
+
+  {{#pageDTO.hasPrev}}
+  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{pageDTO.prevPage}}">
+    <span class="icon-ms-lg">chevron_left</span>
+  </a>
+  {{/pageDTO.hasPrev}}
+
+  <button class="trip-plan-list-button-03" type="button">
+    {{pageDTO.displayPage}}
+  </button>
+
+  {{#pageDTO.hasNext}}
+  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{pageDTO.nextPage}}">
+    <span class="icon-ms-lg">chevron_right</span>
+  </a>
+  {{/pageDTO.hasNext}}
+
 </div>
 </main>
 <!-- Footer -->

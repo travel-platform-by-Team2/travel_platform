@@ -23,8 +23,9 @@ public class TripApiController {
     }
 
     @GetMapping
-    public Object getPlanList(@RequestParam(defaultValue = "result") String category) {
-        return tripService.getPlanList(1, category);
+    public Object getPlanList(@RequestParam(defaultValue = "result") String category,
+            @RequestParam(defaultValue = "0") int page) {
+        return tripService.getPlanList(1, category, page);
     }
 
     @PostMapping("/{planId}/places")
