@@ -30,37 +30,28 @@
   <div class="login-form-01">
 
 <div class="signup-div-06">
-<label class="text-sm-strong">이름</label>
-<input name="username" class="signup-input-default" placeholder="이름을 입력해주세요" type="text"/>
+<label class="text-sm-strong">닉네임</label>
+<input name="username" class="signup-input-default" placeholder="닉네임을 입력해주세요" type="text" maxlength="6" pattern="^[가-힣]+$" title="한글로 최대 6자까지 입력 가능합니다." required/>
 </div>
 <div class="signup-div-06">
 <label class="text-sm-strong">이메일</label>
 <div class="signup-div-07">
-<input class="signup-input-error" type="email" value="user@invalid-email"/>
-<div class="signup-div-08">
-<span class="icon-ms-18">error</span>
+<input name="email" class="signup-input-default" placeholder="이메일을 입력해주세요" type="email"/>
 </div>
-</div>
-<p class="signup-p-02">이메일 형식이 올바르지 않습니다.</p>
 </div>
 <div class="signup-div-06">
 <label class="text-sm-strong">비밀번호</label>
 <input name="password" class="signup-input-default" placeholder="비밀번호를 입력해주세요" type="password"/>
-<p class="signup-p-03">비밀번호는 8자 이상 입력해주세요.</p>
 </div>
 <div class="signup-div-06">
 <label class="text-sm-strong">비밀번호 확인</label>
 <div class="signup-div-07">
-<input class="signup-input-error" type="password" value="password123"/>
-<div class="signup-div-08">
-<span class="icon-ms-18">error</span>
+<input class="signup-input-default" placeholder="비밀번호를 한 번 더 입력해주세요" type="password"/>
 </div>
-</div>
-<p class="signup-p-02">비밀번호가 일치하지 않습니다.</p>
 </div>
 <div class="signup-div-09">
 <div class="signup-div-10">
-<input class="signup-input-01" id="terms" type="checkbox"/>
+<input class="signup-input-01" id="terms" type="checkbox" required/>
 </div>
 <div class="signup-div-11">
 <label class="signup-label-01" for="terms">
@@ -78,7 +69,7 @@
 <div class="signup-div-12">
 <p class="calendar-add-event-span-02">
                         이미 계정이 있으신가요? 
-                        <a class="login-a-02" href="#">로그인</a>
+                        <a class="login-a-02" href="/login-form">로그인</a>
 </p>
 </div>
 </div>

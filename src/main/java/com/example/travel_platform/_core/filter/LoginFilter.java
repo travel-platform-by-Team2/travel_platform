@@ -25,15 +25,19 @@ public class LoginFilter implements Filter {
         HttpSession session = req.getSession();
         User sessionUser = (User) session.getAttribute("sessionUser");
 
-        // 예외: GET /boards/{id} 상세보기는 인증 없이 허용
+        // 예외: GET /boards/{id}는 로그인 없이도 조회
         String uri = req.getRequestURI();
         if ("GET".equals(req.getMethod()) && uri.matches(".*/boards/\\d+$")) {
             chain.doFilter(request, response);
             return;
         }
 
-        // /boards/*, /replies/* 나머지 전부 인증 필요
+        // 로그인 필터 적용 대상
         if (sessionUser == null) {
+            if (uri.startsWith("/api/")) {
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
             resp.sendRedirect("/login-form");
             return;
         }
