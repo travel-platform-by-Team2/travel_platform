@@ -1,10 +1,12 @@
 package com.example.travel_platform.user;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -36,7 +38,10 @@ public class UserController {
 
     // 회원가입 성공_가입 후 로그인 폼으로 이동 : 지윤
     @PostMapping("/join")
-    public String join(UserRequest.JoinDTO reqDTO) {
+    public String join(@Valid UserRequest.JoinDTO reqDTO, Errors errors) {
+        if (errors.hasErrors()) {
+            return "pages/signup";
+        }
         userService.join(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail());
         return "redirect:/login-form";
     }
