@@ -29,10 +29,14 @@
                 <option value="review">숙소 후기</option>
                 <option value="qna">질문/답변</option>
               </select>
+              <input type="hidden" id="categoryValue" value="{{category}}">
               <div class="input-icon-right">
                 <span class="icon-ms-base">expand_more</span>
               </div>
             </div>
+            {{#categoryError}}
+                <p class="text-danger text-caption">{{categoryError}}</p>
+              {{/categoryError}}
           </div>
 
           <div class="stack-gap-2">
@@ -89,6 +93,13 @@
 
   <script>
     $(document).ready(function () {
+
+      const select = document.getElementById("category");
+      const valueHolder = document.getElementById("categoryValue");
+      if (select && valueHolder && valueHolder.value) {
+      select.value = valueHolder.value;
+      }
+
       $('#content').summernote({
         height: 350,
         lang: 'ko-KR',

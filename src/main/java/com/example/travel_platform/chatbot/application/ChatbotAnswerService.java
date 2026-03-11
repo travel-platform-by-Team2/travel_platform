@@ -1,7 +1,6 @@
 package com.example.travel_platform.chatbot.application;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.example.travel_platform._core.handler.ex.ApiException;
 import com.example.travel_platform.chatbot.infra.llm.ChatbotLlmClient;
 import com.example.travel_platform.chatbot.infra.llm.ChatbotLlmPlan;
+import com.example.travel_platform.chatbot.infra.llm.ChatbotSearchAttempt;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,9 +25,17 @@ public class ChatbotAnswerService {
         return toTextOrDefault(llmPlan.answer(), DEFAULT_DIRECT_ANSWER);
     }
 
-    public String createDbAnswer(String message, ChatbotLlmPlan llmPlan, List<Map<String, Object>> queryRows) {
+    public String createDbAnswer(
+            String message,
+            String queryIntent,
+            List<ChatbotSearchAttempt> searchAttempts,
+            boolean exhausted) {
         try {
-            return chatbotLlmClient.createDbAnswer(message, toIntentOrDefault(llmPlan.queryIntent()), queryRows);
+            return chatbotLlmClient.createDbAnswer(
+                    message,
+                    toIntentOrDefault(queryIntent),
+                    searchAttempts,
+                    exhausted);
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

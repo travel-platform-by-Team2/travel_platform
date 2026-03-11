@@ -28,7 +28,7 @@ public class ChatbotRequest {
      */
     @Data
     public static class ContextDTO {
-        /** 요청 화면 식별자 (예: booking-list, trip-plan-detail) */
+        /** 요청 화면 식별자 (예: booking-list, trip-detail) */
         private String page;
         /** 특정 여행 계획 상세 화면에서 사용하는 식별자 */
         private Integer tripPlanId;

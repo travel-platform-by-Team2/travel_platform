@@ -42,12 +42,18 @@ public class Board {
     @Column(nullable = false, length = 150)
     private String title;
 
+    @Column(nullable = false, length = 20)
+    private String category;
+
     @Lob
     @Column(nullable = false)
     private String content;
 
     @Column(name = "view_count", nullable = false)
     private Integer viewCount = 0;
+
+    @Column(name = "like_count", nullable = false)
+    private Integer likeCount = 0;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -57,4 +63,25 @@ public class Board {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public void increaseViewCount(Integer viewerUserId) {
+        Integer authorId = this.user.getId();
+
+        if (viewerUserId != null && viewerUserId.equals(authorId)) {
+            return;
+        }
+        this.viewCount = this.viewCount + 1;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount = this.likeCount + 1;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount = this.likeCount - 1;
+        }
+
+    }
+
 }

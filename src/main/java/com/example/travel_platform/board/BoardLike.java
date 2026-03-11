@@ -1,6 +1,5 @@
-package com.example.travel_platform.trip;
+package com.example.travel_platform.board;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,32 +18,23 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * 한 사용자의 여행 계획 자체를 표현하는 엔티티.
- * 여행 제목, 기간 등 계획의 기본 정보를 담당한다.
- */
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "trip_plan_tb")
-public class TripPlan {
+@Table(name = "board_like_tb")
+public class BoardLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @Column(nullable = false, length = 100)
-    private String title;
-
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
-
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
 
     @CreationTimestamp
     @Column(name = "created_at")

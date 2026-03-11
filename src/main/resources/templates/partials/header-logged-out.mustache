@@ -17,12 +17,11 @@
         mb-2
         mb-lg-0
       ">
-        <li class="nav-item"><a class="nav-link active fw-semibold" href="/bookings/map-detail">탐색</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">여행계획</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">캘린더</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">커뮤니티</a></li>
+        <li class="nav-item"><a class="nav-link" href="/login-form" onclick="return handleLoggedOutNavClick(event);">탐색</a></li>
+        <li class="nav-item"><a class="nav-link" href="/login-form" onclick="return handleLoggedOutNavClick(event);">여행계획</a></li>
+        <li class="nav-item"><a class="nav-link" href="/login-form" onclick="return handleLoggedOutNavClick(event);">캘린더</a></li>
+        <li class="nav-item"><a class="nav-link" href="/login-form" onclick="return handleLoggedOutNavClick(event);">커뮤니티</a></li>
       </ul>
-
       <div class="flex-gap-2">
         <a href="/login-form" class="btn btn-outline-primary btn-sm">로그인</a>
         <a href="/join-form" class="btn btn-primary btn-sm">회원가입</a>
@@ -30,4 +29,15 @@
     </div>
   </div>
 </nav>
+
+<script>
+  function handleLoggedOutNavClick(event) {
+    if (event) {
+      event.preventDefault();
+    }
+    alert('로그인이 필요합니다.');
+    window.location.href = '/login-form';
+    return false;
+  }
+</script>
 
