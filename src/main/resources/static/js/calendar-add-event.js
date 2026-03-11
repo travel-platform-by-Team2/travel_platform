@@ -15,6 +15,8 @@
     var saveButton = root.querySelector("[data-calendar-event-save]");
     var deleteButton = document.querySelector("[data-calendar-event-delete]");
     var deleteAction = document.querySelector("[data-calendar-event-action]");
+    var prevMonthButton = document.querySelector("[data-calendar-prev-month]");
+    var nextMonthButton = document.querySelector("[data-calendar-next-month]");
     if (!openButton || !panel) return;
 
     var fields = panel.querySelectorAll("input, textarea, select");
@@ -336,6 +338,26 @@
       if (endDateInput) endDateInput.value = dateText;
     }
 
+    function refreshMonthView(options) {
+      var shouldSyncFormDate = !options || options.syncFormDate !== false;
+      setMonthTitle(currentMonthDate);
+      buildCalendarGrid(currentMonthDate);
+      if (shouldSyncFormDate) {
+        syncDefaultFormDate(currentMonthDate);
+      }
+      return fetchEventList();
+    }
+
+    function changeMonth(diff) {
+      currentMonthDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + diff, 1);
+      selectedDate = ymdFromDate(currentMonthDate);
+      clearEditMode();
+      closePanel({ reset: true });
+      refreshMonthView().catch(function () {
+        alert("월별 일정 조회에 실패했습니다.");
+      });
+    }
+
     function fetchEventList() {
       var range = getMonthRangeFromDate(currentMonthDate);
       if (!range) return Promise.resolve([]);
@@ -464,6 +486,20 @@
       });
     }
 
+    if (prevMonthButton) {
+      prevMonthButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        changeMonth(-1);
+      });
+    }
+
+    if (nextMonthButton) {
+      nextMonthButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        changeMonth(1);
+      });
+    }
+
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && !panel.hidden) {
         closePanel({ reset: true });
@@ -471,12 +507,9 @@
       }
     });
 
-    setMonthTitle(currentMonthDate);
-    buildCalendarGrid(currentMonthDate);
-    syncDefaultFormDate(currentMonthDate);
+    refreshMonthView();
     syncDeleteAction();
     bindDaySelection(renderEventList);
-    fetchEventList();
   }
 
   function appendMemoCard(container, event) {
