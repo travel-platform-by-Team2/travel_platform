@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{sellerPageTitle}}</title>
+  {{>partials/head-assets}}
+  <link href="/css/seller.css" rel="stylesheet">
+</head>
+<body class="page-body-main-shell seller-body">
+  {{>partials/header}}
+
+  <main class="seller-shell">
+    <div class="seller-shell__inner">
+      {{>partials/seller-sidebar}}
+
+      <section class="seller-content">
+        <header class="seller-page-header">
+          <div>
+            <p class="seller-page-header__eyebrow">Settlements</p>
+            <h1 class="seller-page-header__title">{{sellerPageTitle}}</h1>
+            <p class="seller-page-header__description">{{sellerPageDescription}}</p>
+          </div>
+          {{#sellerPageActionText}}
+            <a href="{{sellerPageActionHref}}" class="seller-secondary-button">{{sellerPageActionText}}</a>
+          {{/sellerPageActionText}}
+        </header>
+
+        <section class="seller-stats-grid seller-stats-grid--three">
+          <article class="seller-stat-card">
+            <div class="seller-stat-card__head">
+              <span class="seller-stat-card__label">이번 달 정산 예정</span>
+              <span class="material-symbols-outlined seller-stat-card__icon">calendar_today</span>
+            </div>
+            <strong class="seller-stat-card__value">4,250,000원</strong>
+            <p class="seller-stat-card__meta is-positive">전월 대비 12.5% 증가</p>
+          </article>
+          <article class="seller-stat-card">
+            <div class="seller-stat-card__head">
+              <span class="seller-stat-card__label">지난달 정산 완료</span>
+              <span class="material-symbols-outlined seller-stat-card__icon">check_circle</span>
+            </div>
+            <strong class="seller-stat-card__value">3,890,000원</strong>
+            <p class="seller-stat-card__meta is-positive">평균 대비 5.2% 증가</p>
+          </article>
+          <article class="seller-stat-card">
+            <div class="seller-stat-card__head">
+              <span class="seller-stat-card__label">누적 매출</span>
+              <span class="material-symbols-outlined seller-stat-card__icon">account_balance_wallet</span>
+            </div>
+            <strong class="seller-stat-card__value">42,560,000원</strong>
+            <p class="seller-stat-card__meta is-positive">꾸준한 성장 중</p>
+          </article>
+        </section>
+
+        <article class="seller-card">
+          <div class="seller-card__header">
+            <div>
+              <p class="seller-card__eyebrow">History</p>
+              <h2 class="seller-card__title">상세 정산 내역</h2>
+            </div>
+            <a href="#" class="seller-primary-button seller-primary-button--compact">
+              <span class="material-symbols-outlined">download</span>
+              <span>내역 다운로드</span>
+            </a>
+          </div>
+          <div class="seller-table-wrap">
+            <table class="seller-table">
+              <thead>
+              <tr>
+                <th>정산 기준월</th>
+                <th class="text-end">총 매출</th>
+                <th class="text-end">플랫폼 수수료</th>
+                <th class="text-end">취소/환불</th>
+                <th class="text-end">최종 정산 금액</th>
+                <th>정산 상태</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td>2026년 03월</td>
+                <td class="text-end">5,000,000원</td>
+                <td class="text-end">-500,000원</td>
+                <td class="text-end">-250,000원</td>
+                <td class="text-end">4,250,000원</td>
+                <td><span class="seller-badge is-amber">정산예정</span></td>
+              </tr>
+              <tr>
+                <td>2026년 02월</td>
+                <td class="text-end">4,500,000원</td>
+                <td class="text-end">-450,000원</td>
+                <td class="text-end">-160,000원</td>
+                <td class="text-end">3,890,000원</td>
+                <td><span class="seller-badge is-green">지급완료</span></td>
+              </tr>
+              <tr>
+                <td>2026년 01월</td>
+                <td class="text-end">4,200,000원</td>
+                <td class="text-end">-420,000원</td>
+                <td class="text-end">-120,000원</td>
+                <td class="text-end">3,660,000원</td>
+                <td><span class="seller-badge is-green">지급완료</span></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="seller-card__footer seller-card__footer--center">
+            <div class="seller-pagination">
+              <button type="button" class="seller-pagination__button">
+                <span class="material-symbols-outlined">chevron_left</span>
+              </button>
+              <button type="button" class="seller-pagination__button is-active">1</button>
+              <button type="button" class="seller-pagination__button">2</button>
+              <button type="button" class="seller-pagination__button">3</button>
+              <button type="button" class="seller-pagination__button">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <section class="seller-grid seller-grid--policies">
+          <article class="seller-card">
+            <div class="seller-card__header">
+              <div>
+                <p class="seller-card__eyebrow">Guide</p>
+                <h2 class="seller-card__title">정산 주기 안내</h2>
+              </div>
+            </div>
+            <ul class="seller-bullet-list">
+              <li>정산 주기는 매월 10일이며, 전월 확정 건을 기준으로 계산합니다.</li>
+              <li>지급일이 공휴일이면 다음 영업일에 순차 지급됩니다.</li>
+            </ul>
+          </article>
+          <article class="seller-card">
+            <div class="seller-card__header">
+              <div>
+                <p class="seller-card__eyebrow">Policy</p>
+                <h2 class="seller-card__title">정산 정책 안내</h2>
+              </div>
+            </div>
+            <ul class="seller-bullet-list">
+              <li>카테고리별 기본 수수료와 결제 수단별 PG 수수료가 함께 반영됩니다.</li>
+              <li>정산 완료 후 취소 건은 다음 정산에서 차감됩니다.</li>
+            </ul>
+          </article>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>

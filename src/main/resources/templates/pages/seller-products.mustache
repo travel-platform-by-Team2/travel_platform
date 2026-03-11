@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{sellerPageTitle}}</title>
+  {{>partials/head-assets}}
+  <link href="/css/seller.css" rel="stylesheet">
+</head>
+<body class="page-body-main-shell seller-body">
+  {{>partials/header}}
+
+  <main class="seller-shell">
+    <div class="seller-shell__inner">
+      {{>partials/seller-sidebar}}
+
+      <section class="seller-content">
+        <header class="seller-page-header">
+          <div>
+            <p class="seller-page-header__eyebrow">Inventory</p>
+            <h1 class="seller-page-header__title">{{sellerPageTitle}}</h1>
+            <p class="seller-page-header__description">{{sellerPageDescription}}</p>
+          </div>
+          {{#sellerPageActionText}}
+            <a href="{{sellerPageActionHref}}" class="seller-primary-button">
+              <span class="material-symbols-outlined">add</span>
+              <span>{{sellerPageActionText}}</span>
+            </a>
+          {{/sellerPageActionText}}
+        </header>
+
+        <section class="seller-filter-card">
+          <div class="seller-filter-grid seller-filter-grid--products">
+            <label class="seller-field">
+              <span class="seller-field__label">판매 상태</span>
+              <div class="seller-chip-group">
+                <button type="button" class="seller-chip is-active">전체</button>
+                <button type="button" class="seller-chip">판매중</button>
+                <button type="button" class="seller-chip">판매대기</button>
+                <button type="button" class="seller-chip">노출중</button>
+              </div>
+            </label>
+
+            <label class="seller-field seller-field--grow">
+              <span class="seller-field__label">상품명 검색</span>
+              <input type="text" class="seller-input" placeholder="상품명 또는 상품 ID를 입력하세요.">
+            </label>
+
+            <div class="seller-field seller-field--button">
+              <span class="seller-field__label">필터</span>
+              <button type="button" class="seller-icon-button">
+                <span class="material-symbols-outlined">filter_list</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <article class="seller-card">
+          <div class="seller-card__header">
+            <div>
+              <p class="seller-card__eyebrow">Products</p>
+              <h2 class="seller-card__title">등록 상품 목록</h2>
+            </div>
+          </div>
+          <div class="seller-table-wrap">
+            <table class="seller-table">
+              <thead>
+              <tr>
+                <th>NO.</th>
+                <th>상품명</th>
+                <th class="text-end">판매가</th>
+                <th>상태</th>
+                <th class="text-center">관리</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td>124</td>
+                <td>
+                  <div class="seller-table__title">디럭스 오션뷰 룸</div>
+                  <div class="seller-table__sub">ID: RM-2026-001</div>
+                </td>
+                <td class="text-end">250,000원</td>
+                <td><span class="seller-badge is-green">판매중</span></td>
+                <td class="text-center">
+                  <div class="seller-table__actions">
+                    <button type="button" class="seller-table__icon-button">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button type="button" class="seller-table__icon-button is-danger">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>123</td>
+                <td>
+                  <div class="seller-table__title">프리미엄 가든 룸</div>
+                  <div class="seller-table__sub">ID: RM-2026-002</div>
+                </td>
+                <td class="text-end">180,000원</td>
+                <td><span class="seller-badge is-blue">노출중</span></td>
+                <td class="text-center">
+                  <div class="seller-table__actions">
+                    <button type="button" class="seller-table__icon-button">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button type="button" class="seller-table__icon-button is-danger">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>122</td>
+                <td>
+                  <div class="seller-table__title">그랜드 패밀리 스위트</div>
+                  <div class="seller-table__sub">ID: RM-2026-003</div>
+                </td>
+                <td class="text-end">450,000원</td>
+                <td><span class="seller-badge is-amber">판매대기</span></td>
+                <td class="text-center">
+                  <div class="seller-table__actions">
+                    <button type="button" class="seller-table__icon-button">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button type="button" class="seller-table__icon-button is-danger">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="seller-card__footer">
+            <p>Showing 1-10 of 124 results</p>
+            <div class="seller-pagination">
+              <button type="button" class="seller-pagination__button is-disabled">
+                <span class="material-symbols-outlined">chevron_left</span>
+              </button>
+              <button type="button" class="seller-pagination__button is-active">1</button>
+              <button type="button" class="seller-pagination__button">2</button>
+              <button type="button" class="seller-pagination__button">3</button>
+              <button type="button" class="seller-pagination__button">13</button>
+              <button type="button" class="seller-pagination__button">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{sellerPageTitle}}</title>
+  {{>partials/head-assets}}
+  <link href="/css/seller.css" rel="stylesheet">
+</head>
+<body class="page-body-main-shell seller-body">
+  {{>partials/header}}
+
+  <main class="seller-shell">
+    <div class="seller-shell__inner">
+      {{>partials/seller-sidebar}}
+
+      <section class="seller-content">
+        <header class="seller-page-header">
+          <div>
+            <p class="seller-page-header__eyebrow">Seller Center</p>
+            <h1 class="seller-page-header__title">{{sellerPageTitle}}</h1>
+            <p class="seller-page-header__description">{{sellerPageDescription}}</p>
+          </div>
+        </header>
+
+        <section class="seller-stats-grid">
+          <article class="seller-stat-card">
+            <div class="seller-stat-card__head">
+              <span class="seller-stat-card__label">이번 달 총 매출</span>
+              <span class="material-symbols-outlined seller-stat-card__icon">payments</span>
+            </div>
+            <strong class="seller-stat-card__value">12,450,000원</strong>
+            <p class="seller-stat-card__meta is-positive">전월 대비 8.4% 증가</p>
+          </article>
+          <article class="seller-stat-card">
+            <div class="seller-stat-card__head">
+              <span class="seller-stat-card__label">진행 중인 예약</span>
+              <span class="material-symbols-outlined seller-stat-card__icon">confirmation_number</span>
+            </div>
+            <strong class="seller-stat-card__value">48건</strong>
+            <p class="seller-stat-card__meta">오늘 체크인 12건</p>
+          </article>
+          <article class="seller-stat-card">
+            <div class="seller-stat-card__head">
+              <span class="seller-stat-card__label">평균 평점</span>
+              <span class="material-symbols-outlined seller-stat-card__icon">star</span>
+            </div>
+            <strong class="seller-stat-card__value">4.8 / 5.0</strong>
+            <p class="seller-stat-card__meta">최근 리뷰 156개 기준</p>
+          </article>
+          <article class="seller-stat-card">
+            <div class="seller-stat-card__head">
+              <span class="seller-stat-card__label">운영 상품 수</span>
+              <span class="material-symbols-outlined seller-stat-card__icon">inventory_2</span>
+            </div>
+            <strong class="seller-stat-card__value">12개</strong>
+            <p class="seller-stat-card__meta">판매 대기 상품 1개</p>
+          </article>
+        </section>
+
+        <section class="seller-grid seller-grid--dashboard">
+          <article class="seller-card">
+            <div class="seller-card__header">
+              <div>
+                <p class="seller-card__eyebrow">상품 현황</p>
+                <h2 class="seller-card__title">운영 상품 요약</h2>
+              </div>
+              <a href="/seller/products" class="seller-card__action">전체 보기</a>
+            </div>
+            <div class="seller-table-wrap">
+              <table class="seller-table">
+                <thead>
+                <tr>
+                  <th>상품명</th>
+                  <th>카테고리</th>
+                  <th>상태</th>
+                  <th class="text-end">가격</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>오션뷰 디럭스 룸</td>
+                  <td>객실/숙박</td>
+                  <td><span class="seller-badge is-green">판매중</span></td>
+                  <td class="text-end">295,000원</td>
+                </tr>
+                <tr>
+                  <td>프리미엄 스파 패키지</td>
+                  <td>액티비티</td>
+                  <td><span class="seller-badge is-blue">노출중</span></td>
+                  <td class="text-end">89,000원</td>
+                </tr>
+                <tr>
+                  <td>선셋 요트 투어</td>
+                  <td>투어/체험</td>
+                  <td><span class="seller-badge is-amber">판매대기</span></td>
+                  <td class="text-end">120,000원</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="seller-card">
+            <div class="seller-card__header">
+              <div>
+                <p class="seller-card__eyebrow">정산 요약</p>
+                <h2 class="seller-card__title">다가오는 지급 일정</h2>
+              </div>
+            </div>
+            <div class="seller-highlight-card">
+              <p class="seller-highlight-card__label">5월 지급 예정 금액</p>
+              <strong class="seller-highlight-card__value">4,250,000원</strong>
+              <div class="seller-highlight-card__row">
+                <span>지급 예정일</span>
+                <strong>2026.05.25</strong>
+              </div>
+            </div>
+            <dl class="seller-definition-list">
+              <div>
+                <dt>최근 정산 완료</dt>
+                <dd>4,200,000원</dd>
+              </div>
+              <div>
+                <dt>플랫폼 수수료</dt>
+                <dd class="is-negative">-250,000원</dd>
+              </div>
+              <div>
+                <dt>취소/환불 금액</dt>
+                <dd>0원</dd>
+              </div>
+            </dl>
+            <a href="/seller/settlements" class="seller-secondary-button">정산 상세 내역 보기</a>
+          </article>
+        </section>
+
+        <article class="seller-card">
+          <div class="seller-card__header">
+            <div>
+              <p class="seller-card__eyebrow">파트너 혜택</p>
+              <h2 class="seller-card__title">운영 팁과 프로모션</h2>
+            </div>
+          </div>
+          <div class="seller-feature-grid">
+            <div class="seller-feature-card">
+              <span class="material-symbols-outlined seller-feature-card__icon">percent</span>
+              <h3>수수료 할인 이벤트</h3>
+              <p>신규 상품 등록 후 첫 3개월 동안 플랫폼 수수료 할인 혜택을 제공합니다.</p>
+            </div>
+            <div class="seller-feature-card">
+              <span class="material-symbols-outlined seller-feature-card__icon">verified</span>
+              <h3>우수 파트너 선정</h3>
+              <p>평점과 예약 건수를 기준으로 메인 노출 기회를 우선 배정합니다.</p>
+            </div>
+            <div class="seller-feature-card">
+              <span class="material-symbols-outlined seller-feature-card__icon">campaign</span>
+              <h3>마케팅 지원</h3>
+              <p>SNS 광고와 시즌 프로모션 참여 기회를 통해 더 많은 노출을 지원합니다.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>
