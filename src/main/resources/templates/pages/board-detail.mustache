@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Community Post Detail</title>
   {{>partials/head-assets}}
+  <!--버튼 좋아요 css -->
+  <style>
+    #board-like-btn.is-liked { border-color:#ec4899; color:#ec4899; }
+    #board-like-btn.is-liked #board-like-icon { color:#ec4899; font-variation-settings:"FILL" 1; }
+  </style>
 </head>
 
 <body class="page-body">
@@ -31,8 +36,8 @@
         <div class="community-detail-div-03">
 
           <div class="row-between-center">
-            <span class="community-detail-span-02">
-              여행 계획
+            <span class="community-detail-span-02 {{categoryClass}}">
+              {{categoryLabel}}
             </span>
 
             {{#isOwner}}
@@ -62,7 +67,7 @@
                   </span>
                 </div>
 
-                <span>{{createdAt}}</span>
+                <span>{{createdAtDisplay}}</span>
               </div>
 
               <div class="community-detail-div-06">
@@ -83,12 +88,21 @@
         </div>
 
         <div class="community-detail-div-08">
-          <button class="fx-group-chip-outline">
-            <span class="icon-ms-hover-fill-current">favorite</span>
-            <span class="fw-medium-500">좋아요 128</span>
-          </button>
+        {{#likedByMe}}
+          <button id="board-like-btn" class="fx-group-chip-outline is-liked" data-board-id="{{id}}">
+          <span id="board-like-icon" class="icon-ms-hover-fill-current">favorite</span>
+          <span class="fw-medium-500">좋아요 <span id="board-like-count">{{likeCount}}</span></span>
+        </button>
+        {{/likedByMe}}
 
-          <button class="community-detail-button-04">
+          {{^likedByMe}}
+            <button id="board-like-btn" class="fx-group-chip-outline" data-board-id="{{id}}">
+            <span id="board-like-icon" class="icon-ms-hover-fill-current">favorite_border</span>
+            <span class="fw-medium-500">좋아요 <span id="board-like-count">{{likeCount}}</span></span>
+         </button>
+          {{/likedByMe}}
+
+          <button id="board-share-btn" class="community-detail-button-04" type="button">
             <span class="icon-ms-base">share</span>
             <span class="fw-medium-500">공유하기</span>
           </button>
@@ -99,15 +113,16 @@
 
     <div class="community-detail-div-09">
       <h3 class="section-title-row">
-        댓글 <span class="text-primary">{{replyCount}}</span>
+        댓글 <span id="reply-count-value" class="text-primary">{{replyCount}}</span>
       </h3>
 
-      <form action="/boards/{{id}}/replies" method="post">
+      <form id="reply-create-form" action="/boards/{{id}}/replies" method="post" data-board-id="{{id}}">
         <div class="community-detail-div-10">
           
 
           <div class="flex-fill">
             <textarea
+              id="reply-create-content"
               class="community-detail-textarea-01"
               name="content"
               placeholder="댓글을 남겨보세요."
@@ -122,15 +137,15 @@
         </div>
       </form>
 
-      <div class="stack-gap-8">
+      <div id="reply-list-container" class="stack-gap-8">
         {{#replies}}
-        <div class="fx-group-flex-gap4">
+        <div class="fx-group-flex-gap4 reply-item">
         
           <div class="flex-fill">
             <div class="row-between-center-mb1">
               <div class="inline-items-gap-2">
                 <span class="community-detail-span-05">{{username}}</span>
-                <span class="community-detail-span-06">{{createdAt}}</span>
+                <span class="community-detail-span-06">{{createdAtDisplay}}</span>
               </div>
 
               {{#isOwner}}
@@ -171,17 +186,12 @@
               </div>
             </div>
 
-            <div class="community-detail-div-12">
-              <button class="link-inline-xs" type="button">
-                <span class="icon-ms-sm">thumb_up</span> 좋아요
-              </button>
-            </div>
           </div>
         </div>
         {{/replies}}
 
         <div class="community-detail-div-14">
-          <button class="community-detail-button-06" type="button">
+          <button id="reply-more-btn" class="community-detail-button-06" type="button">
             댓글 더보기 <span class="icon-ms-base">expand_more</span>
           </button>
         </div>
@@ -246,6 +256,228 @@
         alert("서버 요청 중 오류가 발생했습니다.");
       }
     }
+
+      // 4) JS 토글 함수 좋아요함수
+  async function toggleBoardLike() {
+  const btn = document.getElementById("board-like-btn");
+  const boardId = btn.dataset.boardId;
+  const countEl = document.getElementById("board-like-count");
+  const iconEl = document.getElementById("board-like-icon");
+
+  try {
+    const response = await fetch("/boards/" + boardId + "/likes/toggle", { method: "POST" });
+
+    if (!response.ok) {
+      alert("자신의 글에는 좋아요를 누를 수 없습니다.");
+      return;
+    }
+
+    const data = await response.json(); // { liked, likeCount }
+
+    countEl.innerText = data.likeCount;
+
+    if (data.liked) {
+      btn.classList.add("is-liked");
+      iconEl.innerText = "favorite";
+    } else {
+      btn.classList.remove("is-liked");
+      iconEl.innerText = "favorite_border";
+    }
+  } catch (e) {
+    alert("서버 요청 중 오류가 발생했습니다.");
+  }
+}
+
+const likeBtn = document.getElementById("board-like-btn");
+if (likeBtn) likeBtn.addEventListener("click", toggleBoardLike);
+
+// 공유하기 버튼 프론트 web api
+async function copyCurrentUrl() {
+  const url = window.location.href;
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (!ok) throw new Error("copy failed");
+    }
+
+    alert("주소가 복사되었습니다.");
+  } catch (e) {
+    alert("주소 복사에 실패했습니다.");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const shareBtn = document.getElementById("board-share-btn");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      copyCurrentUrl();
+    });
+  }
+  initReplyPaging();
+});
+
+// 댓글 페이징
+const replyPageSize = 3;
+let replyVisibleCount = 3;
+
+function renderReplyPage() {
+  const items = Array.from(document.querySelectorAll(".reply-item"));
+  items.forEach((el, idx) => {
+    el.hidden = idx >= replyVisibleCount;
+  });
+
+  const moreBtn = document.getElementById("reply-more-btn");
+  if (moreBtn) {
+    moreBtn.hidden = replyVisibleCount >= items.length;
+  }
+}
+
+function initReplyPaging() {
+  const moreBtn = document.getElementById("reply-more-btn");
+  if (moreBtn) {
+    moreBtn.addEventListener("click", function () {
+      replyVisibleCount += replyPageSize;
+      renderReplyPage();
+    });
+  }
+  renderReplyPage();
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function createReplyItemHtml(reply) {
+  return `
+    <div class="fx-group-flex-gap4 reply-item">
+      <div class="flex-fill">
+        <div class="row-between-center-mb1">
+          <div class="inline-items-gap-2">
+            <span class="community-detail-span-05">${escapeHtml(reply.username)}</span>
+            <span class="community-detail-span-06">${escapeHtml(reply.createdAtDisplay)}</span>
+          </div>
+          <div class="inline-items-gap-2">
+            <button class="link-inline-xs" type="button" onclick="showReplyEdit(${reply.boardId}, ${reply.id})">
+              <span class="icon-ms-sm">edit</span> 수정
+            </button>
+            <form action="/boards/${reply.boardId}/replies/${reply.id}/delete" method="post">
+              <button class="link-inline-xs" type="submit">
+                <span class="icon-ms-sm">delete</span> 삭제
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <p class="text-body-sm-relaxed" id="reply-content-${reply.id}">
+          ${escapeHtml(reply.content)}
+        </p>
+
+        <div id="reply-edit-box-${reply.id}" hidden>
+          <textarea
+            id="reply-textarea-${reply.id}"
+            class="community-detail-textarea-01"
+            rows="4"
+            placeholder="댓글 내용을 수정하세요."
+          >${escapeHtml(reply.content)}</textarea>
+
+          <div class="community-detail-div-11">
+            <button class="community-detail-button-05" type="button" onclick="updateReply(${reply.boardId}, ${reply.id})">
+              저장
+            </button>
+
+            <button class="community-detail-button-03" type="button" onclick="cancelReplyEdit(${reply.id})">
+              취소
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function createReplyAjax(e) {
+  e.preventDefault();
+
+  const form = document.getElementById("reply-create-form");
+  const textarea = document.getElementById("reply-create-content");
+  const content = textarea.value.trim();
+
+  if (!content) {
+    alert("댓글 내용을 입력해주세요.");
+    return;
+  }
+
+  const boardId = form.dataset.boardId;
+
+  try {
+    const response = await fetch("/boards/" + boardId + "/replies/ajax", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ content: content })
+    });
+
+    if (!response.ok) {
+      alert("댓글 등록에 실패했습니다.");
+      return;
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      alert("댓글 등록에 실패했습니다.");
+      return;
+    }
+
+    const list = document.getElementById("reply-list-container");
+    const moreWrap = document.querySelector(".community-detail-div-14");
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = createReplyItemHtml(data);
+    const newReplyEl = wrapper.firstElementChild;
+
+    const firstReply = list.querySelector(".reply-item");
+    if (firstReply) {
+      list.insertBefore(newReplyEl, firstReply);
+    } else if (moreWrap) {
+      list.insertBefore(newReplyEl, moreWrap);
+    } else {
+      list.appendChild(newReplyEl);
+    }
+
+    textarea.value = "";
+
+    const countEl = document.getElementById("reply-count-value");
+    const nextCount = Number(countEl.textContent || "0") + 1;
+    countEl.textContent = String(nextCount);
+
+    replyVisibleCount += 1;
+    renderReplyPage();
+  } catch (e2) {
+    alert("서버 요청 중 오류가 발생했습니다.");
+  }
+}
+
+const replyCreateForm = document.getElementById("reply-create-form");
+if (replyCreateForm) {
+  replyCreateForm.addEventListener("submit", createReplyAjax);
+}
   </script>
 
 </body>

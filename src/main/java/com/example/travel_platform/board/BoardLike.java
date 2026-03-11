@@ -1,10 +1,9 @@
-package com.example.travel_platform.board.reply;
+package com.example.travel_platform.board;
 
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import com.example.travel_platform.board.Board;
 import com.example.travel_platform.user.User;
 
 import jakarta.persistence.Column;
@@ -14,7 +13,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -23,8 +21,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "board_reply_tb")
-public class Reply {
+@Table(name = "board_like_tb")
+public class BoardLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,12 +36,7 @@ public class Reply {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Lob
-    @Column(nullable = false)
-    private String content;
-
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
 }
