@@ -1,5 +1,7 @@
 package com.example.travel_platform.trip;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -28,10 +30,53 @@ public class TripService {
         // TODO: TripPlace 엔티티 변환 후 저장
     }
 
-    public List<TripResponse.PlanSummaryDTO> getPlanList(Integer sessionUserId) {
-        // TODO: 사용자별 여행 계획 목록 조회
-        // TODO: PlanSummaryDTO 매핑
-        return List.of();
+    public List<TripResponse.PlanSummaryDTO> getPlanList(Integer userId, String category) {
+        List<TripPlan> tripPlans = tripRepository.findPlanListByUserId(userId);
+        LocalDate today = LocalDate.now();
+
+        List<TripResponse.PlanSummaryDTO> result = new java.util.ArrayList<>();
+
+        for (TripPlan tripPlan : tripPlans) {
+            String placeName = "장소 확인 안됨";
+
+            if (tripPlan.getPlaces() != null && !tripPlan.getPlaces().isEmpty()) {
+                placeName = tripPlan.getPlaces().get(0).getPlaceName();
+            }
+
+            long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
+
+            String dDay;
+            boolean disabled;
+
+            if (diff > 0) { // d-day 계산
+                dDay = "D-" + diff;
+                disabled = false;
+            } else {
+                dDay = "비활성화";
+                disabled = true;
+            }
+
+            TripResponse.PlanSummaryDTO dto = TripResponse.PlanSummaryDTO.builder()
+                    .id(tripPlan.getId())
+                    .title(tripPlan.getTitle())
+                    .imgUrl(tripPlan.getImgUrl())
+                    .startDate(tripPlan.getStartDate())
+                    .endDate(tripPlan.getEndDate())
+                    .placeName(placeName)
+                    .dDay(dDay)
+                    .disabled(disabled)
+                    .build();
+
+            result.add(dto);
+        }
+
+        if ("upcoming".equals(category)) {
+            return result.stream().filter(dto -> !dto.isDisabled()).toList();
+        }
+        if ("past".equals(category)) {
+            return result.stream().filter(TripResponse.PlanSummaryDTO::isDisabled).toList();
+        }
+        return result;
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
@@ -40,4 +85,3 @@ public class TripService {
         return null;
     }
 }
-

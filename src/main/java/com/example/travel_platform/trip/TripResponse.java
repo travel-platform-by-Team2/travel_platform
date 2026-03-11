@@ -15,8 +15,12 @@ public class TripResponse {
     public static class PlanSummaryDTO {
         private Integer id;
         private String title;
+        private String imgUrl;
         private LocalDate startDate;
         private LocalDate endDate;
+        private String placeName;
+        private String dDay;
+        private boolean disabled;
     }
 
     // 여행 장소 단건 응답 DTO

@@ -26,12 +26,20 @@ public class TripRepository {
 
     public Optional<TripPlan> findPlanById(Integer planId) {
         // TODO: planId 기준 조회 쿼리 구현
-        return Optional.empty();
+
+        TripPlan tripPlan = em.find(TripPlan.class, planId);
+        return Optional.ofNullable(tripPlan);
     }
 
     public List<TripPlan> findPlanListByUserId(Integer userId) {
         // TODO: 사용자별 여행 계획 목록 조회 쿼리 구현
-        return List.of();
+        return em.createQuery("""
+                select tp
+                from TripPlan tp
+                where tp.user.id = :userId
+                order by tp.startDate asc
+                """, TripPlan.class)
+                .setParameter("userId", userId)
+                .getResultList();
     }
 }
-

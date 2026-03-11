@@ -1,0 +1,625 @@
+[33mcommit a16c168f3f4ff7b9161f4e4ec9328f07cb1520c3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeat/wan[m[33m, [m[1;31morigin/feat/wan[m[33m)[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Wed Mar 11 14:17:50 2026 +0900
+
+    gradle 이상파일 삭제
+
+[33mcommit 25329af26defa0006720d39fec974c69f1c2799e[m
+Merge: 79af9d5 c3e860d
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Wed Mar 11 14:12:53 2026 +0900
+
+    Merge branch 'dev' into feat/wan
+
+[33mcommit 79af9d5dbc50f98ee75b75619290506c9c744f42[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Wed Mar 11 14:12:23 2026 +0900
+
+    커뮤니티
+
+[33mcommit 9b10c15aa240adb764fa3d299ea342024f95d4bf[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 19:36:51 2026 +0900
+
+    게시글 페이징 완성
+
+[33mcommit aec22b639fb46879c558036c8e6fd50742bfb83d[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 19:33:52 2026 +0900
+
+    게시글 페이징 1
+
+[33mcommit c3e860d5fba48cebe4ec982a60edd5d43ad8dff0[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Tue Mar 10 18:41:32 2026 +0900
+
+    fix: 챗봇 질문에 관련된 답변의 준비가 미미할 시 재탐색 할 수 있도록 수정
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+    
+    * 프로젝트 전체적인 리팩토링 진행
+    
+    * 챗봇 중간 세이브
+    
+    * feat: 지도 api키값 env로 옮김
+    
+    * docs폴더 깃 등록 그만
+    
+    * 중간 세이브
+    
+    * feat: logout header 로그인페이지 리다이렉트 처리
+    
+    * 헤더 반응처리 완료
+    
+    * 작업 관련 데이터들의 CONTEXT 문서 생성
+    
+    * fix: 여행계획 템플릿 api주소 명  수정
+    
+    * fix: 챗봇 기능 수정
+
+[33mcommit 0c71b53699baad3dfe78681489b95a99259e087b[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 18:07:05 2026 +0900
+
+    댓글ajax
+
+[33mcommit a98b09e23aa2f32177b8bcf504c7f1c6d5ae3cdf[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 17:34:00 2026 +0900
+
+    댓글페이징
+
+[33mcommit f11b7d0aaf165d57b416203e0e4810f76c758a4d[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 16:35:16 2026 +0900
+
+    줄맞춤
+
+[33mcommit eb723cd68d126bb556cbb3ebfbea8163586aac9d[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 16:24:58 2026 +0900
+
+    공유하기
+
+[33mcommit 6f10e450643a90b16a1114524ce664542734c69e[m
+Merge: bd02941 13919e3
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 15:37:27 2026 +0900
+
+    Merge branch 'dev' into feat/wan
+
+[33mcommit bd0294155338967b07fc62b158afd69dc05bcbfb[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Tue Mar 10 15:36:47 2026 +0900
+
+    좋아요
+
+[33mcommit 13919e32b8855bcc9b7b754a7a1ff9f2b7927387[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Tue Mar 10 14:24:17 2026 +0900
+
+    fix: 여행계획 관련 데이터 리팩토링 진행
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+    
+    * 프로젝트 전체적인 리팩토링 진행
+    
+    * 챗봇 중간 세이브
+    
+    * feat: 지도 api키값 env로 옮김
+    
+    * docs폴더 깃 등록 그만
+    
+    * 중간 세이브
+    
+    * feat: logout header 로그인페이지 리다이렉트 처리
+    
+    * 헤더 반응처리 완료
+    
+    * 작업 관련 데이터들의 CONTEXT 문서 생성
+    
+    * fix: 여행계획 템플릿 api주소 명  수정
+
+[33mcommit de015684f974cc2a446418d94678d4fc4a364176[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 20:21:04 2026 +0900
+
+    카테고리
+
+[33mcommit 41a48a87a6ab8417ed1d9581600c396f12721e6d[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Mon Mar 9 18:04:53 2026 +0900
+
+    feat: 헤더 템플릿 반응 처리 완료
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+    
+    * 프로젝트 전체적인 리팩토링 진행
+    
+    * 챗봇 중간 세이브
+    
+    * feat: 지도 api키값 env로 옮김
+    
+    * docs폴더 깃 등록 그만
+    
+    * 중간 세이브
+    
+    * feat: logout header 로그인페이지 리다이렉트 처리
+    
+    * 헤더 반응처리 완료
+
+[33mcommit bd8413515fe0b3c01c9814b9bb25ba0c19a855dc[m
+Merge: b1889cf ba8d7f7
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 17:41:27 2026 +0900
+
+    충돌수정
+
+[33mcommit ba8d7f7801ca42ae8a82ae5faed12f25ea6ec9f8[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Mon Mar 9 17:40:15 2026 +0900
+
+    fix: header logout상태에서 메뉴 클릭 시 로그인페이지로 리다이렉트 처리
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+    
+    * 프로젝트 전체적인 리팩토링 진행
+    
+    * 챗봇 중간 세이브
+    
+    * feat: 지도 api키값 env로 옮김
+    
+    * docs폴더 깃 등록 그만
+    
+    * 중간 세이브
+    
+    * feat: logout header 로그인페이지 리다이렉트 처리
+
+[33mcommit b1889cfeea5d1fcaf7c6c9c15be1e230547097bb[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 17:40:09 2026 +0900
+
+    댓글좋아요삭제
+
+[33mcommit 0124a8ebf64e6715bf21df71fbb1ea7bc6b16dde[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 17:35:20 2026 +0900
+
+    fix: dev 충돌수정
+    
+    * 수정
+    
+    * 게시글 상세보기 수정삭제
+    
+    * 게시글 댓글등록까지
+    
+    * 댓글 수정 삭제 완료
+    
+    * 조회수
+
+[33mcommit 9658bcd2f5cb1468f3037f788d74f53b361f21ac[m
+Merge: b96e4a2 cb83935
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 17:32:37 2026 +0900
+
+    수정
+
+[33mcommit b96e4a2db91d0f852924c0051bbc39354fb83027[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 17:25:46 2026 +0900
+
+    조회수
+
+[33mcommit cb83935c55112a2ffe037232bba95edbd0aa489e[m
+Author: rmfdnjf98 <rmfdnjf98@gmail.com>
+Date:   Mon Mar 9 16:47:39 2026 +0900
+
+    feat: 캘린더 기능 개발 1차 완료
+    
+    * chor : pr문서 수정
+    
+    * chore : pr 알림 문서 내용 수정
+    
+    * 초기 세팅1
+    
+    * 초기세팅2
+    
+    * 초기세팅3
+    
+    * 캘린더 리스트 만드는 중이었음
+    
+    * 캘린더 일정 추가 및 업데이트 기능 만들기
+    
+    * 캘린더 일정 추가 및 연결바
+    
+    * create, update, delete 완료
+    
+    ---------
+    
+    Co-authored-by: Emong <40270979+MaoEmong@users.noreply.github.com>
+    Co-authored-by: KJcording <rmfdnjf98@gmil.com>
+
+[33mcommit 724e7f7f4c72ab72fe2be8d6185948e919d4cef4[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 16:21:05 2026 +0900
+
+    feat: 댓글 수정/삭제
+    
+    * 수정
+    
+    * 게시글 상세보기 수정삭제
+    
+    * 게시글 댓글등록까지
+    
+    * 댓글 수정 삭제 완료
+
+[33mcommit bfaba04347e1f8f0d606c6d262073b2862fad42c[m
+Merge: af98ea9 0dcf9cf
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 16:15:21 2026 +0900
+
+    Merge branch 'dev' into feat/wan
+
+[33mcommit af98ea9711de88a55e6a989b28e364cb5aaec608[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 15:51:41 2026 +0900
+
+    댓글 수정 삭제 완료
+
+[33mcommit 0dcf9cf2a9c093f169db89f56591b1d1cafaa8f0[m
+Author: Lee Seung Wook <leesu2830@gmail.com>
+Date:   Mon Mar 9 14:39:19 2026 +0900
+
+    feat: 지도 검색 작업 1차 완료
+    
+    * chor : pr문서 수정
+    
+    * chore : pr 알림 문서 내용 수정
+    
+    * 초기 세팅1
+    
+    * 초기세팅2
+    
+    * 초기세팅3
+    
+    * 지도 검색 및 예약 페이지 연결 완료
+    
+    * 예약 확정 완료
+    
+    * 예약 확정 완료
+    
+    * md 작성 완료
+    
+    * 기능 완료
+    
+    * gradle-home 제거
+    
+    * md 파일 작성
+    
+    * h2 방식 전환 완료
+    
+    * 축소 문제 해결
+    
+    * 지도 검색 최종 수정본
+    
+    ---------
+    
+    Co-authored-by: Emong <40270979+MaoEmong@users.noreply.github.com>
+    Co-authored-by: LeeSeungWook <tmxlqms135@naver.com>
+
+[33mcommit 1809c0121449fd1aed91037e7244c32b5d531168[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Mon Mar 9 11:51:05 2026 +0900
+
+    fix: docs폴더가 더이상 push되지 못하도록 수정
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+    
+    * 프로젝트 전체적인 리팩토링 진행
+    
+    * 챗봇 중간 세이브
+    
+    * feat: 지도 api키값 env로 옮김
+    
+    * docs폴더 깃 등록 그만
+
+[33mcommit d3c141f18fe0e86fb3c2bf2e60df094ca5c68015[m
+Merge: cdec1d5 430a8dc
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Mon Mar 9 09:06:03 2026 +0900
+
+    Merge branch 'dev' into feat/wan
+
+[33mcommit 430a8dc8ef9e10d1bc079d24a03f5530c6431950[m
+Author: Lee Seung Wook <leesu2830@gmail.com>
+Date:   Fri Mar 6 16:50:39 2026 +0900
+
+    fix: data.sql 파일 수
+    
+    * chor : pr문서 수정
+    
+    * chore : pr 알림 문서 내용 수정
+    
+    * 초기 세팅1
+    
+    * 초기세팅2
+    
+    * 초기세팅3
+    
+    * 지도 검색 및 예약 페이지 연결 완료
+    
+    * 예약 확정 완료
+    
+    * 예약 확정 완료
+    
+    * md 작성 완료
+    
+    * 기능 완료
+    
+    * gradle-home 제거
+    
+    * md 파일 작성
+    
+    * h2 방식 전환 완료
+    
+    ---------
+    
+    Co-authored-by: Emong <40270979+MaoEmong@users.noreply.github.com>
+    Co-authored-by: LeeSeungWook <tmxlqms135@naver.com>
+
+[33mcommit 507db6f2c867d41ddb13a0d73280eb17e4b0dac9[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Fri Mar 6 15:58:43 2026 +0900
+
+    feat: 챗봇 v1완료 , 지도 api키값 .env로 이동
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+    
+    * 프로젝트 전체적인 리팩토링 진행
+    
+    * 챗봇 중간 세이브
+    
+    * feat: 지도 api키값 env로 옮김
+
+[33mcommit cdec1d5bf077261fbdc6265d03c239c1edf66dfe[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Thu Mar 5 20:10:55 2026 +0900
+
+    게시글 댓글등록까지
+
+[33mcommit 85c143547cac60a77c413bf27c16ebb26135ddcc[m
+Merge: ab70655 ec5fcbb
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Thu Mar 5 19:20:27 2026 +0900
+
+    Merge branch 'dev' into feat/wan
+
+[33mcommit ab70655820252d49bf4578e96122ef9068f3edfa[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Thu Mar 5 19:19:30 2026 +0900
+
+    게시글 상세보기 수정삭제
+
+[33mcommit ec5fcbb31d98339eed0a18facc67ae14eb056b37[m
+Author: ij447504-source <ij447504@gmail.com>
+Date:   Thu Mar 5 18:05:21 2026 +0900
+
+    feat: 로그인/회원가입 기능 작업 완료
+    
+    * jiyun
+    
+    * jiyun 작업내용 저장
+    
+    * 로그인/회원가입 성공,실패 완료
+
+[33mcommit 3a5603b40dc3e2ed8937a603ecc79958c0115294[m
+Merge: 4f4b8b2 44add57
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Thu Mar 5 16:46:44 2026 +0900
+
+    Merge branch 'dev' into feat/wan
+
+[33mcommit 44add5764f0a2b2254a5b9cc5c95c29222943a66[m
+Author: Emong <40270979+MaoEmong@users.noreply.github.com>
+Date:   Thu Mar 5 16:45:19 2026 +0900
+
+    설정파일 초기화
+
+[33mcommit 4f4b8b225c1b13b00ce0c813ade4a395b5540c6d[m
+Author: olivefanta12 <olivefanta12@gmail.com>
+Date:   Thu Mar 5 16:28:28 2026 +0900
+
+    수정
+
+[33mcommit 60d469728f7f56fbf8ee79096a7c6ca90d879989[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Thu Mar 5 15:16:58 2026 +0900
+
+    Feat: 프로젝트 리팩토링 진행
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+    
+    * 프로젝트 전체적인 리팩토링 진행
+
+[33mcommit 79486b830f4c922c3540356d54da8535bf62a6a8[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Thu Mar 5 13:40:07 2026 +0900
+
+    docs: 충돌 수정
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+    
+    * 충돌 수정
+
+[33mcommit 7015b5ea30bdb8e3c19eb68382d7b81f61ff5d8c[m
+Author: Lee Seung Wook <leesu2830@gmail.com>
+Date:   Thu Mar 5 12:45:21 2026 +0900
+
+    feat: 지도 검색 기능 추가
+    
+    * chor : pr문서 수정
+    
+    * chore : pr 알림 문서 내용 수정
+    
+    * 초기 세팅1
+    
+    * 초기세팅2
+    
+    * 초기세팅3
+    
+    * 지도 검색 및 예약 페이지 연결 완료
+    
+    * 예약 확정 완료
+    
+    * 예약 확정 완료
+    
+    * md 작성 완료
+    
+    * 기능 완료
+    
+    * gradle-home 제거
+    
+    ---------
+    
+    Co-authored-by: Emong <40270979+MaoEmong@users.noreply.github.com>
+    Co-authored-by: LeeSeungWook <tmxlqms135@naver.com>
+
+[33mcommit 380afbd7cd341f65109e4b994248ff12f4de5372[m
+Author: Lee Seung Wook <leesu2830@gmail.com>
+Date:   Thu Mar 5 12:34:51 2026 +0900
+
+    feat: 지도기반 검색 기능 추가
+    
+    * chor : pr문서 수정
+    
+    * chore : pr 알림 문서 내용 수정
+    
+    * 초기 세팅1
+    
+    * 초기세팅2
+    
+    * 초기세팅3
+    
+    * 지도 검색 및 예약 페이지 연결 완료
+    
+    * 예약 확정 완료
+    
+    * 예약 확정 완료
+    
+    * md 작성 완료
+    
+    * 기능 완료
+    
+    ---------
+    
+    Co-authored-by: Emong <40270979+MaoEmong@users.noreply.github.com>
+    Co-authored-by: LeeSeungWook <tmxlqms135@naver.com>
+
+[33mcommit 23e9177ff3f7481f8d221f4df474891525f5b3d8[m
+Author: Emong <40270979+MaoEmong@users.noreply.github.com>
+Date:   Thu Mar 5 12:19:45 2026 +0900
+
+    docs: 문서 재정리
+
+[33mcommit df36af482fecdb7ddad10adfd0675512f0e46101[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Thu Mar 5 12:14:39 2026 +0900
+
+    docs: ai agent 문서 작성 완료
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * AI 가이드 문서 작성 진행 중
+    
+    * ai agent 문서 작성
+
+[33mcommit 829450391c9dd0ca65cb4410fc536234cb2f3b1c[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Wed Mar 4 20:25:54 2026 +0900
+
+    chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+    
+    * chore: 엔티티 정의서, 테이블 정의서 생성/RULES문서 수정
+
+[33mcommit 88bb36272f57d2b57d2611051059bb709f269db0[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Wed Mar 4 18:12:13 2026 +0900
+
+    feat: 엔티티정의서, 테이블정의서 생성 / RULES문서 수정
+    
+    feat: 엔티티정의서, 테이블정의서 생성 / RULES문서 수정
+
+[33mcommit efb48176450e29da61cdea4858ad774e4ad74d42[m
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Wed Mar 4 17:57:19 2026 +0900
+
+    feat: Header 템플릿 로그인/로그아웃 페이지 연결 작업
+    
+    * jiyun
+    
+    * jiyun 작업내용 저장
+    
+    ---------
+    
+    Co-authored-by: 이지윤 <ij447504@gmail.com>
+
+[33mcommit da03138906097c927e8054bbf6ae011c020eb0d7[m
+Merge: 9688780 77feb00
+Author: KHJ <40270979+MaoEmong@users.noreply.github.com>
+Date:   Tue Mar 3 19:09:00 2026 +0900
+
+    chore: agent사용을 위한 가이드 문서 작성 완료
+    
+    chore: agent사용을 위한 가이드 문서 작성 완료
+
+[33mcommit 77feb005da241dd39c7f995b5c8eb2eead167a07[m
+Author: Emong <40270979+MaoEmong@users.noreply.github.com>
+Date:   Tue Mar 3 19:07:49 2026 +0900
+
+    chore: agent사용을 위한 가이드 문서 작성 완료
