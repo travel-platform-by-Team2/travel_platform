@@ -20,6 +20,7 @@ public class CalendarResponse {
         private LocalDateTime startAt;
         private LocalDateTime endAt;
         private String eventType;
+        private String memo;
     }
 
     // 캘린더 일자 노드 응답 DTO

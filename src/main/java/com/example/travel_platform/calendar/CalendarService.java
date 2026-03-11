@@ -35,6 +35,7 @@ public class CalendarService {
         event.setStartAt(reqDTO.getStartAt());
         event.setEndAt(reqDTO.getEndAt());
         event.setEventType(reqDTO.getEventType());
+        event.setMemo(reqDTO.getMemo());
 
         calendarRepository.save(event);
     }
@@ -59,6 +60,7 @@ public class CalendarService {
         event.setStartAt(reqDTO.getStartAt());
         event.setEndAt(reqDTO.getEndAt());
         event.setEventType(reqDTO.getEventType());
+        event.setMemo(reqDTO.getMemo());
 
         calendarRepository.update(event);
     }
@@ -86,6 +88,7 @@ public class CalendarService {
                         .startAt(event.getStartAt())
                         .endAt(event.getEndAt())
                         .eventType(event.getEventType())
+                        .memo(event.getMemo())
                         .build())
                 .toList();
     }
