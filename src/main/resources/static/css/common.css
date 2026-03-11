@@ -101,6 +101,20 @@ body {
   overflow: hidden;
 }
 
+.calendar-shell-fixed {
+  width: min(1280px, calc(100vw - 32px));
+  height: min(860px, calc(100vh - 140px));
+  margin: 24px auto;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.calendar-shell-fixed > .calendar-add-event-div-01 {
+  height: 100%;
+}
+
 .app-navbar {
   border-bottom: 1px solid #e9ecef;
   background-color: #ffffff;
