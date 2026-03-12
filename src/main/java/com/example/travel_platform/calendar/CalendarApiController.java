@@ -31,22 +31,22 @@ public class CalendarApiController {
     }
 
     @PutMapping("/update/{eventId}")
-    public void updateEvent(@PathVariable Integer eventId, @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
+    public void updateEvent(@PathVariable("eventId") Integer eventId, @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
         Integer userId = resolveUserId();
         calendarService.updateEvent(userId, eventId, reqDTO);
     }
 
     @PostMapping("/delete/{eventId}")
-    public void deleteEvent(@PathVariable Integer eventId) {
+    public void deleteEvent(@PathVariable("eventId") Integer eventId) {
         calendarService.deleteEvent(eventId);
     }
 
     @GetMapping
-    public Object getCalendar(@RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month,
-            @RequestParam(required = false) LocalDate date) {
+    public Object getCalendar(@RequestParam(name = "startDate", required = false) LocalDate startDate,
+            @RequestParam(name = "endDate", required = false) LocalDate endDate,
+            @RequestParam(name = "year", required = false) Integer year,
+            @RequestParam(name = "month", required = false) Integer month,
+            @RequestParam(name = "date", required = false) LocalDate date) {
 
         Integer sessionUserId = resolveUserId();
 

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TravelMate 관리자 - 유저 관리</title>
+  {{>partials/head-assets}}
+  <link href="/css/admin.css" rel="stylesheet">
+</head>
+<body class="page-body page-body-sans page-admin">
+  {{>partials/header}}
+
+  <main class="app-main admin-main">
+    <div class="container-xxl">
+      <div class="admin-page-shell">
+        {{>partials/admin-sidebar}}
+
+        <section class="admin-content">
+          <div class="admin-page-header">
+            <div>
+              <h1 class="admin-page-title">유저 관리</h1>
+              <p class="admin-page-subtitle">플랫폼의 모든 사용자 계정을 실시간으로 관리하고 모니터링하는 화면 시안을 Mustache 구조로 옮겼습니다.</p>
+            </div>
+          </div>
+
+          <div class="admin-metric-grid">
+            <article class="admin-metric-card">
+              <div class="admin-metric-card__top">
+                <div class="admin-metric-icon metric-icon-blue">
+                  <span class="material-symbols-outlined">groups</span>
+                </div>
+              </div>
+              <span class="admin-metric-label">전체 유저</span>
+              <p class="admin-metric-value">12,840</p>
+            </article>
+
+            <article class="admin-metric-card">
+              <div class="admin-metric-card__top">
+                <div class="admin-metric-icon metric-icon-rose">
+                  <span class="material-symbols-outlined">block</span>
+                </div>
+              </div>
+              <span class="admin-metric-label">정지 유저</span>
+              <p class="admin-metric-value">128</p>
+            </article>
+          </div>
+
+          <section class="admin-panel">
+            <div class="admin-toolbar">
+              <div class="admin-tab-shell" aria-label="유저 상태 필터">
+                <button class="admin-tab-button is-active-tab" type="button">전체</button>
+                <button class="admin-tab-button" type="button">활성</button>
+                <button class="admin-tab-button" type="button">정지</button>
+                <button class="admin-tab-button" type="button">탈퇴</button>
+              </div>
+
+              <div class="admin-search-group">
+                <div class="admin-search-wrap">
+                  <span class="material-symbols-outlined">search</span>
+                  <input class="form-control admin-search-field" type="text" placeholder="이름 또는 이메일 검색...">
+                </div>
+                <button class="admin-icon-button" type="button" aria-label="필터">
+                  <span class="material-symbols-outlined">filter_list</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="admin-table-wrap">
+              <table class="table admin-table">
+                <thead>
+                  <tr>
+                    <th>사용자 정보</th>
+                    <th>가입일</th>
+                    <th>상태</th>
+                    <th class="text-end">관리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p class="admin-name">김민수</p>
+                      <p class="admin-meta">minsu.k@example.com</p>
+                    </td>
+                    <td>2023.12.15</td>
+                    <td><span class="admin-status-badge status-active">활성</span></td>
+                    <td class="text-end">
+                      <div class="admin-action-menu">
+                        <button class="admin-icon-button" type="button" aria-label="사용자 액션">
+                          <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                        <div class="admin-action-card">
+                          <p class="admin-action-card__label">상태 변경</p>
+                          <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            <span>활성</span>
+                          </a>
+                          <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
+                            <span class="material-symbols-outlined">block</span>
+                            <span>비활성</span>
+                          </a>
+                          <a class="admin-action-link is-danger" href="#" onclick="return false;" aria-disabled="true">
+                            <span class="material-symbols-outlined">delete</span>
+                            <span>삭제</span>
+                          </a>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="admin-name">이서윤</p>
+                      <p class="admin-meta">seoyun.l@example.com</p>
+                    </td>
+                    <td>2024.01.10</td>
+                    <td><span class="admin-status-badge status-active">활성</span></td>
+                    <td class="text-end">
+                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="admin-name">박지훈</p>
+                      <p class="admin-meta">jihoon.p@example.com</p>
+                    </td>
+                    <td>2024.02.05</td>
+                    <td><span class="admin-status-badge status-danger">정지</span></td>
+                    <td class="text-end">
+                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="admin-name">최수진</p>
+                      <p class="admin-meta">sujin.c@example.com</p>
+                    </td>
+                    <td>2024.03.20</td>
+                    <td><span class="admin-status-badge status-active">활성</span></td>
+                    <td class="text-end">
+                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="admin-name">정대현</p>
+                      <p class="admin-meta">daehyun.j@example.com</p>
+                    </td>
+                    <td>2024.04.12</td>
+                    <td><span class="admin-status-badge status-neutral">미인증</span></td>
+                    <td class="text-end">
+                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="admin-panel__footer">
+              <p class="admin-pagination-note">전체 12,840개 중 1-10개 표시 중</p>
+              <div class="admin-pagination">
+                <button class="admin-page-button" type="button" disabled>
+                  <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button class="admin-page-button is-active-page" type="button">1</button>
+                <button class="admin-page-button" type="button">2</button>
+                <button class="admin-page-button" type="button">3</button>
+                <span class="text-muted">...</span>
+                <button class="admin-page-button" type="button">1,284</button>
+                <button class="admin-page-button" type="button">
+                  <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>
