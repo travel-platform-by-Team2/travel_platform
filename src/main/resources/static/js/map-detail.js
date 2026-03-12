@@ -50,6 +50,43 @@
   window.TRAVEL_PLATFORM.REGION_VIEW = REGION_VIEW;
   window.TRAVEL_PLATFORM.REGION_KEYWORDS = REGION_KEYWORDS;
 
+  function formatLocalDateISO(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
+  function initDateMinConstraints() {
+    var today = formatLocalDateISO(new Date());
+    var startDateEl = document.getElementById("mapStartDate");
+    var endDateEl = document.getElementById("mapEndDate");
+
+    if (startDateEl) {
+      startDateEl.min = today;
+      if (startDateEl.value && startDateEl.value < today) {
+        startDateEl.value = today;
+      }
+    }
+
+    if (endDateEl) {
+      endDateEl.min = today;
+      if (endDateEl.value && endDateEl.value < today) {
+        endDateEl.value = today;
+      }
+    }
+
+    if (startDateEl && endDateEl) {
+      startDateEl.addEventListener("change", function () {
+        var minEnd = startDateEl.value && startDateEl.value > today ? startDateEl.value : today;
+        endDateEl.min = minEnd;
+        if (endDateEl.value && endDateEl.value < minEnd) {
+          endDateEl.value = minEnd;
+        }
+      });
+    }
+  }
+
   function applySearchParamsFromUrl() {
     var params = new URLSearchParams(window.location.search || "");
     var regionSelect = document.getElementById("mapRegion");
@@ -1418,6 +1455,7 @@
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
+      initDateMinConstraints();
       applySearchParamsFromUrl();
       initKakaoMap();
       initMapDetailPanelToggle();
@@ -1425,6 +1463,7 @@
       initMapDragScroll();
     });
   } else {
+    initDateMinConstraints();
     applySearchParamsFromUrl();
     initKakaoMap();
     initMapDetailPanelToggle();
