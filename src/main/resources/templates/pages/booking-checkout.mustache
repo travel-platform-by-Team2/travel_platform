@@ -98,15 +98,15 @@
         <div class="checkout-form-grid">
           <div class="field-col-2-md-1">
             <label class="label-sm-strong" for="name">이름</label>
-            <input class="input-control" id="name" placeholder="홍길동" type="text"/>
+            <input class="input-control" id="name" placeholder="홍길동" value="{{bookerName}}" type="text"/>
           </div>
           <div class="field-col-2-md-1">
             <label class="label-sm-strong" for="phone">연락처</label>
-            <input class="input-control" id="phone" placeholder="010-1234-5678" type="tel"/>
+            <input class="input-control" id="phone" placeholder="010-1234-5678" value="{{bookerPhone}}" type="tel"/>
           </div>
           <div class="checkout-field-full">
             <label class="label-sm-strong" for="email">이메일</label>
-            <input class="input-control" id="email" placeholder="example@email.com" type="email"/>
+            <input class="input-control" id="email" placeholder="example@email.com" value="{{bookerEmail}}" type="email"/>
             <p class="checkout-help-text">예약 확정 메일이 발송됩니다.</p>
           </div>
           <div class="checkout-field-full">

@@ -26,7 +26,7 @@ public class BookingApiController {
     }
 
     @DeleteMapping("/{bookingId}")
-    public void cancelBooking(@PathVariable Integer bookingId) {
+    public void cancelBooking(@PathVariable("bookingId") Integer bookingId) {
         bookingService.cancelBooking(1, bookingId);
     }
 
@@ -36,13 +36,14 @@ public class BookingApiController {
     }
 
     @GetMapping("/{bookingId}")
-    public Object getBookingDetail(@PathVariable Integer bookingId) {
+    public Object getBookingDetail(@PathVariable("bookingId") Integer bookingId) {
         return bookingService.getBookingDetail(1, bookingId);
     }
 
     @GetMapping("/place-image")
-    public Map<String, Object> getPlaceImage(@RequestParam(required = false) String placeUrl,
-            @RequestParam(required = false) String name) {
+    public Map<String, Object> getPlaceImage(
+            @RequestParam(value = "placeUrl", required = false) String placeUrl,
+            @RequestParam(value = "name", required = false) String name) {
         return bookingService.getPlaceImage(placeUrl, name);
     }
 
