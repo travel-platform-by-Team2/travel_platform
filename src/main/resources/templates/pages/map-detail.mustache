@@ -108,9 +108,23 @@
     @media (min-width: 1200px) {
       .map-detail-search-form {
         display: grid;
-        grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(11rem, 0.95fr);
+        /* Prevent date inputs from becoming too narrow and truncating YYYY-MM-DD. */
+        grid-template-columns:
+          minmax(0, 1.45fr)
+          minmax(12.25rem, 1fr)
+          minmax(12.25rem, 1fr)
+          minmax(9.25rem, 1fr)
+          minmax(11rem, 0.95fr);
         gap: 0.875rem;
         align-items: end;
+      }
+      .map-detail-search-input[type="date"] {
+        min-width: 12.25rem;
+        /* Date inputs already have a native picker affordance; free up text space. */
+        padding-right: 1.25rem;
+      }
+      .map-detail-search-input[type="date"] + .map-detail-search-icon-right {
+        display: none;
       }
       .map-detail-search-grid-top,
       .map-detail-search-grid-bottom {
@@ -273,9 +287,21 @@
 <select class="map-detail-search-select" id="mapRegion" name="region">
 <option value="seoul">서울특별시</option>
 <option value="busan" selected>부산광역시</option>
+<option value="daegu">대구광역시</option>
+<option value="incheon">인천광역시</option>
+<option value="gwangju">광주광역시</option>
+<option value="daejeon">대전광역시</option>
+<option value="ulsan">울산광역시</option>
+<option value="sejong">세종특별자치시</option>
+<option value="gyeonggi">경기도</option>
+<option value="gangwon">강원특별자치도</option>
+<option value="chungbuk">충청북도</option>
+<option value="chungnam">충청남도</option>
+<option value="jeonbuk">전라북도</option>
+<option value="jeonnam">전라남도</option>
+<option value="gyeongbuk">경상북도</option>
+<option value="gyeongnam">경상남도</option>
 <option value="jeju">제주특별자치도</option>
-<option value="gyeongju">경주</option>
-<option value="gangwon">강원도</option>
 </select>
 <span class="map-detail-search-icon-right icon-ms-18">expand_more</span>
 </div>
@@ -284,7 +310,7 @@
 <label class="map-detail-search-label" for="mapStartDate">가는 날</label>
 <div class="map-detail-search-control">
 <span class="map-detail-search-icon-left icon-ms-18">calendar_today</span>
-<input class="map-detail-search-input" id="mapStartDate" type="date" value="2025-11-15"/>
+<input class="map-detail-search-input" id="mapStartDate" type="date" value="2025-11-15" required/>
 <span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
 </div>
 </div>
@@ -292,7 +318,7 @@
 <label class="map-detail-search-label" for="mapEndDate">오는 날</label>
 <div class="map-detail-search-control">
 <span class="map-detail-search-icon-left icon-ms-18">event</span>
-<input class="map-detail-search-input" id="mapEndDate" type="date" value="2025-11-18"/>
+<input class="map-detail-search-input" id="mapEndDate" type="date" value="2025-11-18" required/>
 <span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
 </div>
 </div>
@@ -479,7 +505,6 @@
   {{>partials/map-poi-side-sheet}}
 </main>
 
-  {{>partials/chatbot}}
   {{>partials/footer}}
   {{#kakaoMapAppKey}}
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{kakaoMapAppKey}}&libraries=services&autoload=false"></script>
