@@ -27,6 +27,8 @@ public class User {
     @Column(nullable = false, length = 100) // not null 제약조건 추가 (password는 null이 되면 안됨) length는 10자 이하
     private String password;
     private String email;
+    private String tel;
+    private String role;
 
     private String role;
 
@@ -36,7 +38,12 @@ public class User {
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
+<<<<<<< HEAD
+                + ", tel=" + tel + ", role=" + role + ", createdAt=" + createdAt + "]";
+=======
                 + ", role=" + role + ",createdAt=" + createdAt + "]";
+>>>>>>> dev
     }
+
 
 }
