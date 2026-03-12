@@ -28,13 +28,15 @@ public class User {
     private String password;
     private String email;
 
+    private String role;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
-                + ", createdAt=" + createdAt + "]";
+                + ", role=" + role + ",createdAt=" + createdAt + "]";
     }
 
 }
