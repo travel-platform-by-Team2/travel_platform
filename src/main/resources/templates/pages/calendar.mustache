@@ -44,31 +44,21 @@
 <div class="stack-gap-3">
 <div class="row-between-center">
 <label class="calendar-add-event-label-01">일시</label>
-<div class="inline-items-gap-2">
-<span class="booking-complete-span-08">종일</span>
-<button class="calendar-add-event-button-02">
-<span class="calendar-add-event-span-01"></span>
-</button>
+</div>
+<div class="calendar-add-event-div-06">
+<div class="calendar-add-event-div-07 calendar-add-event-date-field" data-calendar-start-date-wrap>
+<input class="input-prefix" type="date" data-calendar-start-date/>
+</div>
+<div class="calendar-add-event-div-08 calendar-add-event-time-field" data-calendar-start-time-wrap>
+<input class="input-suffix-center" type="time" value="00:00" data-calendar-start-time/>
 </div>
 </div>
 <div class="calendar-add-event-div-06">
-<div class="calendar-add-event-div-07">
-<input class="input-prefix" type="text" value="2025. 06. 15" data-calendar-start-date/>
-<span class="icon-ms-18-input-left">calendar_today</span>
+<div class="calendar-add-event-div-07 calendar-add-event-date-field" data-calendar-end-date-wrap>
+<input class="input-prefix" type="date" data-calendar-end-date/>
 </div>
-<div class="calendar-add-event-div-08">
-<input class="input-suffix-center" type="text" value="14:00" data-calendar-start-time/>
-<span class="icon-ms-18-input-right">schedule</span>
-</div>
-</div>
-<div class="calendar-add-event-div-06">
-<div class="calendar-add-event-div-07">
-<input class="input-prefix" type="text" value="2025. 06. 15" data-calendar-end-date/>
-<span class="icon-ms-18-input-left">calendar_today</span>
-</div>
-<div class="calendar-add-event-div-08">
-<input class="input-suffix-center" type="text" value="15:00" data-calendar-end-time/>
-<span class="icon-ms-18-input-right">schedule</span>
+<div class="calendar-add-event-div-08 calendar-add-event-time-field" data-calendar-end-time-wrap>
+<input class="input-suffix-center" type="time" value="00:00" data-calendar-end-time/>
 </div>
 </div>
 </div>
@@ -89,6 +79,12 @@
 <div class="calendar-add-event-div-10">
 <button class="calendar-add-event-button-08" type="button" data-calendar-event-close>취소</button>
 <button class="calendar-add-event-button-09" type="button" data-calendar-event-save>저장하기</button>
+<div data-calendar-event-action hidden>
+<button class="calendar-event-delete-button" type="button" data-calendar-event-delete>
+<span class="icon-ms-base">delete</span>
+<span>삭제하기</span>
+</button>
+</div>
 </div>
 </div>
 </div>
@@ -119,13 +115,7 @@
                     일정
                 </h3>
 </div>
-<div class="stack-gap-2" data-calendar-event-list></div>
-<div class="calendar-event-list-action" data-calendar-event-action hidden>
-<button class="calendar-event-delete-button" type="button" data-calendar-event-delete>
-<span class="icon-ms-base">delete</span>
-<span>선택한 일정 삭제</span>
-</button>
-</div>
+<div class="stack-gap-2 calendar-event-list-block" data-calendar-event-list></div>
 <div class="row-between-center-mb4">
 <h3 class="title-row-md">
 

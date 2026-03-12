@@ -13,8 +13,16 @@
     var panel = root.querySelector("[data-calendar-event-panel]");
     var closeButtons = root.querySelectorAll("[data-calendar-event-close]");
     var saveButton = root.querySelector("[data-calendar-event-save]");
-    var deleteButton = document.querySelector("[data-calendar-event-delete]");
-    var deleteAction = document.querySelector("[data-calendar-event-action]");
+    var deleteButton = panel.querySelector("[data-calendar-event-delete]");
+    var deleteAction = panel.querySelector("[data-calendar-event-action]");
+    var startDateWrap = panel.querySelector("[data-calendar-start-date-wrap]");
+    var endDateWrap = panel.querySelector("[data-calendar-end-date-wrap]");
+    var startDateField = panel.querySelector("[data-calendar-start-date]");
+    var endDateField = panel.querySelector("[data-calendar-end-date]");
+    var startTimeWrap = panel.querySelector("[data-calendar-start-time-wrap]");
+    var endTimeWrap = panel.querySelector("[data-calendar-end-time-wrap]");
+    var startTimeField = panel.querySelector("[data-calendar-start-time]");
+    var endTimeField = panel.querySelector("[data-calendar-end-time]");
     var prevMonthButton = document.querySelector("[data-calendar-prev-month]");
     var nextMonthButton = document.querySelector("[data-calendar-next-month]");
     if (!openButton || !panel) return;
@@ -40,7 +48,14 @@
       });
     }
 
+    function getDefaultFormDate() {
+      return dateFromYmd(selectedDate) || currentMonthDate || new Date();
+    }
+
     function openPanel() {
+      if (!currentEditId) {
+        syncDefaultFormDate(getDefaultFormDate());
+      }
       panel.hidden = false;
       openButton.setAttribute("aria-expanded", "true");
       var firstField = panel.querySelector("input, textarea, select");
@@ -83,6 +98,40 @@
       var timeText = (timeValue || "00:00").trim();
       if (timeText.length === 4) timeText = "0" + timeText;
       return dateText + "T" + timeText + ":00";
+    }
+
+    function bindDatePickerOpen(wrapper, input) {
+      if (!wrapper || !input) return;
+      function openDatePicker(event) {
+        if (event) {
+          event.preventDefault();
+        }
+        if (typeof input.showPicker === "function") {
+          input.showPicker();
+          return;
+        }
+        input.focus();
+      }
+
+      wrapper.addEventListener("pointerdown", openDatePicker);
+      input.addEventListener("pointerdown", openDatePicker);
+    }
+
+    function bindTimePickerOpen(wrapper, input) {
+      if (!wrapper || !input) return;
+      function openTimePicker(event) {
+        if (event) {
+          event.preventDefault();
+        }
+        if (typeof input.showPicker === "function") {
+          input.showPicker();
+          return;
+        }
+        input.focus();
+      }
+
+      wrapper.addEventListener("pointerdown", openTimePicker);
+      input.addEventListener("pointerdown", openTimePicker);
     }
 
     function parseYearMonthFromDate(value) {
@@ -224,10 +273,7 @@
 
     function formatDateInput(value) {
       if (!value) return "";
-      var datePart = value.split("T")[0];
-      var parts = datePart.split("-");
-      if (parts.length !== 3) return datePart;
-      return parts[0] + ". " + parts[1] + ". " + parts[2];
+      return value.split("T")[0];
     }
 
     function formatTimeInput(value) {
@@ -331,7 +377,8 @@
     }
 
     function syncDefaultFormDate(date) {
-      var dateText = date.getFullYear() + ". " + String(date.getMonth() + 1).padStart(2, "0") + ". " + String(date.getDate()).padStart(2, "0");
+      if (!date) return;
+      var dateText = ymdFromDate(date);
       var startDateInput = panel.querySelector("[data-calendar-start-date]");
       var endDateInput = panel.querySelector("[data-calendar-end-date]");
       if (startDateInput) startDateInput.value = dateText;
@@ -343,7 +390,7 @@
       setMonthTitle(currentMonthDate);
       buildCalendarGrid(currentMonthDate);
       if (shouldSyncFormDate) {
-        syncDefaultFormDate(currentMonthDate);
+        syncDefaultFormDate(getDefaultFormDate());
       }
       return fetchEventList();
     }
@@ -485,6 +532,11 @@
         handleDelete();
       });
     }
+
+    bindDatePickerOpen(startDateWrap, startDateField);
+    bindDatePickerOpen(endDateWrap, endDateField);
+    bindTimePickerOpen(startTimeWrap, startTimeField);
+    bindTimePickerOpen(endTimeWrap, endTimeField);
 
     if (prevMonthButton) {
       prevMonthButton.addEventListener("click", function (event) {
