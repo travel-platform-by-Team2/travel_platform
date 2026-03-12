@@ -32,7 +32,7 @@ public class UserService {
         user.setUsername(username);
         user.setPassword(password);
         user.setEmail(email);
-
+        user.setRole("USER");
         // 3. save() 호출
         userRepository.save(user);
 

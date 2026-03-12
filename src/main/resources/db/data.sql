@@ -1,9 +1,12 @@
 -- H2 seed data for core domain tables
-insert into user_tb (username, password, email, created_at)
-values ('ssar', '1234', 'ssar@nate.com', now());
+insert into user_tb (username, password, email, role, created_at)
+values ('김관리', '1234', 'admin@nate.com', 'ADMIN', now());
 
-insert into user_tb (username, password, email, created_at)
-values ('cos', '1234', 'cos@nate.com', now());
+insert into user_tb (username, password, email, role, created_at)
+values ('ssar', '1234', 'ssar@nate.com', 'USER', now());
+
+insert into user_tb (username, password, email, role, created_at)
+values ('cos', '1234', 'cos@nate.com', 'USER', now());
 
 -- 여행 계획
 insert into trip_plan_tb (user_id, title, start_date, end_date, created_at)
