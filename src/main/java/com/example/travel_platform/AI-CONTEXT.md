@@ -17,7 +17,6 @@
 - `booking/` - 예약 및 지도 상세 기능을 둔다.
 - `calendar/` - 일정 캘린더 기능을 둔다.
 - `chatbot/` - 챗봇 기능을 둔다.
-- `seller/` - 판매자 센터 화면과 향후 판매자 전용 API/도메인 스켈레톤을 둔다.
 - `trip/` - 여행 계획 기능을 둔다.
 - `user/` - 회원 기능을 둔다.
 - `plan/` - 현재 비어 있는 패키지다.
@@ -27,7 +26,6 @@
 - 페이지용 `@Controller`와 JSON용 `@RestController`를 분리하는 현재 구조를 유지한다.
 - 공통 예외, 필터, 응답 포맷은 `_core`에 두고 도메인 패키지에 중복시키지 않는다.
 - 일부 기능에는 `userId=1` 고정이나 TODO 구현이 남아 있으므로 인증/영속성 변경 시 영향 범위를 함께 확인한다.
-- 판매자 영역은 향후 `User.role` 과 연결될 예정이므로, 현재 단계에서는 권한 체크보다 라우트/화면/도메인 뼈대 유지에 집중한다.
 
 ## 테스트
 
@@ -35,5 +33,5 @@
 
 ## 의존성
 
-- 내부: `_core`, `board`, `booking`, `calendar`, `chatbot`, `seller`, `trip`, `user`
+- 내부: `_core`, `board`, `booking`, `calendar`, `chatbot`, `trip`, `user`
 - 외부: `Spring Boot`, `Spring MVC`, `JPA/Hibernate`, `Mustache`, `H2`, `MySQL`, `Gson`
