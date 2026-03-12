@@ -30,20 +30,13 @@ public class User {
     private String tel;
     private String role;
 
-    private String role;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
-<<<<<<< HEAD
                 + ", tel=" + tel + ", role=" + role + ", createdAt=" + createdAt + "]";
-=======
-                + ", role=" + role + ",createdAt=" + createdAt + "]";
->>>>>>> dev
     }
-
 
 }
