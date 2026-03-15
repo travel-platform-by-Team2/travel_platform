@@ -42,7 +42,7 @@ public class UserController {
         if (errors.hasErrors()) {
             return "pages/signup";
         }
-        userService.join(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail());
+        userService.join(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail(), reqDTO.getTel());
         return "redirect:/login-form";
     }
 

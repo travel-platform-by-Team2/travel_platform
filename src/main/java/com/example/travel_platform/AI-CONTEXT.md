@@ -6,8 +6,8 @@
 
 ## 주요 파일
 
-| 파일명 | 설명 |
-| --- | --- |
+| 파일명                         | 설명                                 |
+| ------------------------------ | ------------------------------------ |
 | TravelPlatformApplication.java | Spring Boot 애플리케이션 진입점이다. |
 
 ## 하위 디렉토리
@@ -35,4 +35,5 @@
 ## 의존성
 
 - 내부: `_core`, `board`, `booking`, `calendar`, `chatbot`, `mypage`, `trip`, `user`
+
 - 외부: `Spring Boot`, `Spring MVC`, `Spring JDBC`, `JPA/Hibernate`, `Mustache`, `H2`, `MySQL`, `Gson`, `Jsoup`, `OpenAI Responses API`
