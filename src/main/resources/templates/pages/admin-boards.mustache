@@ -28,7 +28,7 @@
               <div class="admin-metric-card__top">
                 <div>
                   <span class="admin-metric-label">전체 게시글</span>
-                  <p class="admin-metric-value">1,284</p>
+                  <p class="admin-metric-value">{{totalCount}}</p>
                 </div>
               </div>
             </article>
@@ -37,13 +37,13 @@
           <section class="admin-panel">
             <div class="admin-toolbar">
               <div class="admin-tab-shell" aria-label="게시글 카테고리 필터">
-                <button class="admin-tab-button is-active-tab" type="button">전체</button>
-                <button class="admin-tab-button" type="button">여행 팁</button>
-                <button class="admin-tab-button" type="button">여행 계획</button>
-                <button class="admin-tab-button" type="button">맛집/카페</button>
-                <button class="admin-tab-button" type="button">숙소 후기</button>
-                <button class="admin-tab-button" type="button">질문/답변</button>
-              </div>
+                <a href="/admin/boards" class="admin-tab-button cat-all {{^selectCategory}}is-active-tab{{/selectCategory}}">전체</a>
+                <a href="/admin/boards?category=tips" class="admin-tab-button cat-tips {{#isTips}}is-active-tab{{/isTips}}">여행 팁</a>
+                <a href="/admin/boards?category=plan" class="admin-tab-button cat-plan {{#isPlan}}is-active-tab{{/isPlan}}">여행 계획</a>
+                <a href="/admin/boards?category=food" class="admin-tab-button cat-food {{#isFood}}is-active-tab{{/isFood}}">맛집/카페</a>
+                <a href="/admin/boards?category=review" class="admin-tab-button cat-review {{#isReview}}is-active-tab{{/isReview}}">숙소 후기</a>
+                <a href="/admin/boards?category=qna" class="admin-tab-button cat-qna {{#isQna}}is-active-tab{{/isQna}}">질문/답변</a>
+            </div>
 
               <div class="admin-search-group">
                 <div class="admin-search-wrap">
@@ -66,84 +66,58 @@
                   </tr>
                 </thead>
                 <tbody>
+                {{#model.boards}}
                   <tr>
-                    <td><span class="admin-category-badge category-blue">여행 팁</span></td>
-                    <td><p class="admin-name">유럽 배낭여행 꿀팁 BEST 10</p></td>
-                    <td>김철수</td>
-                    <td>2023-10-24</td>
-                    <td class="text-center">1,420</td>
+                    <td><span class="admin-category-badge {{categoryClass}}">{{category}}</span></td>
+                    <td><p class="admin-name">{{title}}</p></td>
+                    <td>{{userName}}</td>
+                    <td>{{startDate}}</td>
+                    <td class="text-center">{{viewCount}}</td>
                     <td class="text-end">
                       <div class="admin-action-menu" data-admin-action-menu>
                         {{>partials/admin-board-action-menu}}
                       </div>
                     </td>
                   </tr>
+                  {{/model.boards}}
+
+                  {{^model.boards}}
                   <tr>
-                    <td><span class="admin-category-badge category-orange">맛집/카페</span></td>
-                    <td><p class="admin-name">제주도 현지인만 아는 숨은 맛집 공개</p></td>
-                    <td>이영희</td>
-                    <td>2023-10-23</td>
-                    <td class="text-center">892</td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-board-action-menu}}
-                      </div>
-                    </td>
+                    <td colspan="6" class="text-center">게시글이 없습니다.</td>
                   </tr>
-                  <tr>
-                    <td><span class="admin-category-badge category-purple">질문/답변</span></td>
-                    <td><p class="admin-name">일본 비자 신청 관련 질문드려요</p></td>
-                    <td>박민수</td>
-                    <td>2023-10-23</td>
-                    <td class="text-center">156</td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-board-action-menu}}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><span class="admin-category-badge category-green">숙소 후기</span></td>
-                    <td><p class="admin-name">강릉 오션뷰 펜션 솔직 방문기</p></td>
-                    <td>최수지</td>
-                    <td>2023-10-22</td>
-                    <td class="text-center">2,104</td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-board-action-menu}}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><span class="admin-category-badge category-indigo">여행 계획</span></td>
-                    <td><p class="admin-name">3박 4일 도쿄 쇼핑 여행 일정 공유</p></td>
-                    <td>정우성</td>
-                    <td>2023-10-21</td>
-                    <td class="text-center">543</td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-board-action-menu}}
-                      </div>
-                    </td>
-                  </tr>
+                  {{/model.boards}}
                 </tbody>
               </table>
             </div>
 
             <div class="admin-panel__footer">
-              <p class="admin-pagination-note">총 1,284개 중 1-20 표시</p>
               <div class="admin-pagination">
-                <button class="admin-page-button" type="button" disabled>
-                  <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <button class="admin-page-button is-active-page" type="button">1</button>
-                <button class="admin-page-button" type="button">2</button>
-                <button class="admin-page-button" type="button">3</button>
-                <span class="text-muted">...</span>
-                <button class="admin-page-button" type="button">65</button>
-                <button class="admin-page-button" type="button">
-                  <span class="material-symbols-outlined">chevron_right</span>
-                </button>
+    {{#model.prevPage}}
+  <a class="admin-page-button" href="/admin/boards?page={{model.prevPage}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+    <span class="material-symbols-outlined">chevron_left</span>
+  </a>
+  {{/model.prevPage}}
+
+  {{#model.pageItems}}
+    {{#current}}
+    <button class="admin-page-button is-active-page" type="button">
+      {{displayNumber}}
+    </button>
+    {{/current}}
+
+    {{^current}}
+    <a class="admin-page-button"
+       href="/admin/boards?page={{page}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+      {{displayNumber}}
+    </a>
+    {{/current}}
+  {{/model.pageItems}}
+
+  {{#model.nextPage}}
+  <a class="admin-page-button" href="/admin/boards?page={{model.nextPage}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+    <span class="material-symbols-outlined">chevron_right</span>
+  </a>
+  {{/model.nextPage}}
               </div>
             </div>
           </section>
