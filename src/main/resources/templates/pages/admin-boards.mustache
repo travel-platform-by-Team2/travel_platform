@@ -30,10 +30,6 @@
                   <span class="admin-metric-label">전체 게시글</span>
                   <p class="admin-metric-value">1,284</p>
                 </div>
-                <span class="admin-kpi-trend">
-                  <span class="material-symbols-outlined">trending_up</span>
-                  <span>12%</span>
-                </span>
               </div>
             </article>
           </div>
@@ -77,9 +73,9 @@
                     <td>2023-10-24</td>
                     <td class="text-center">1,420</td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-board-action-menu}}
+                      </div>
                     </td>
                   </tr>
                   <tr>
@@ -89,9 +85,9 @@
                     <td>2023-10-23</td>
                     <td class="text-center">892</td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-board-action-menu}}
+                      </div>
                     </td>
                   </tr>
                   <tr>
@@ -101,20 +97,8 @@
                     <td>2023-10-23</td>
                     <td class="text-center">156</td>
                     <td class="text-end">
-                      <div class="admin-action-menu">
-                        <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                          <span class="material-symbols-outlined">more_vert</span>
-                        </button>
-                        <div class="admin-action-card">
-                          <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
-                            <span class="material-symbols-outlined">visibility</span>
-                            <span>보기</span>
-                          </a>
-                          <a class="admin-action-link is-danger" href="#" onclick="return false;" aria-disabled="true">
-                            <span class="material-symbols-outlined">delete</span>
-                            <span>삭제</span>
-                          </a>
-                        </div>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-board-action-menu}}
                       </div>
                     </td>
                   </tr>
@@ -125,9 +109,9 @@
                     <td>2023-10-22</td>
                     <td class="text-center">2,104</td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-board-action-menu}}
+                      </div>
                     </td>
                   </tr>
                   <tr>
@@ -137,9 +121,9 @@
                     <td>2023-10-21</td>
                     <td class="text-center">543</td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-board-action-menu}}
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -170,5 +154,6 @@
 
   {{>partials/footer}}
   {{>partials/scripts}}
+  {{>partials/admin-page-scripts}}
 </body>
 </html>
