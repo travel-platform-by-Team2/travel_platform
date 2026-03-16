@@ -417,6 +417,7 @@
       buildCalendarGrid(currentMonthDate);
       if (shouldSyncFormDate) {
         syncDefaultFormDate(getDefaultFormDate());
+
       }
       return fetchEventList();
     }
@@ -564,6 +565,7 @@
       });
     }
 
+
     if (memoField) {
       memoField.addEventListener("input", handleMemoInput);
       updateMemoGuide();
@@ -637,6 +639,7 @@
       return;
     }
     memEvents.forEach(function (event) {
+
       appendMemoCard(listRoot, event, onMemoClick);
     });
   }
@@ -653,6 +656,7 @@
       return selectedDate >= startKey && selectedDate <= endKey;
     });
     renderEventList(filtered);
+
     renderMemoList(filtered, onMemoClick);
   }
 

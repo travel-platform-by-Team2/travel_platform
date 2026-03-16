@@ -24,7 +24,7 @@
             </label>
 
             <div class="is-relative">
-              <select class="select-control" id="category" name="category">
+              <select class="select-control" id="category" name="category" required>
                 <option disabled selected value="">카테고리를 선택하세요</option>
                 <option value="tips">여행 팁</option>
                 <option value="plan">여행 계획</option>
@@ -32,11 +32,14 @@
                 <option value="review">숙소 후기</option>
                 <option value="qna">질문/답변</option>
               </select>
-
+              <input type="hidden" id="categoryValue" value="{{category}}">
               <div class="input-icon-right">
                 <span class="icon-ms-base">expand_more</span>
               </div>
             </div>
+            {{#categoryError}}
+            <p class="text-danger text-caption">{{categoryError}}</p>
+            {{/categoryError}}
           </div>
 
           <div class="stack-gap-2">
@@ -97,6 +100,13 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      const select = document.getElementById("category");
+      const valueHolder = document.getElementById("categoryValue");
+      
+      if (select && valueHolder && valueHolder.value) {
+      select.value = valueHolder.value;
+      }
+
       if (typeof $ === 'undefined') {
         console.error('jQuery가 로드되지 않았습니다.');
         return;

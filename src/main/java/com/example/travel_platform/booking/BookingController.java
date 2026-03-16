@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserRepository;
+
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 @RequestMapping("/bookings")
 public class BookingController {
@@ -18,9 +23,22 @@ public class BookingController {
     private static final String DEFAULT_COMPLETE_IMAGE_URL =
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
     private final String kakaoMapAppKey;
+    private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final com.example.travel_platform.trip.TripRepository tripRepository;
+    private final HttpSession session;
 
-    public BookingController(@Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey) {
+    public BookingController(
+            @Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey,
+            UserRepository userRepository,
+            BookingRepository bookingRepository,
+            com.example.travel_platform.trip.TripRepository tripRepository,
+            HttpSession session) {
         this.kakaoMapAppKey = kakaoMapAppKey;
+        this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
+        this.tripRepository = tripRepository;
+        this.session = session;
     }
 
     @GetMapping("/map-detail")
@@ -31,14 +49,14 @@ public class BookingController {
 
     @GetMapping("/checkout")
     public String checkoutPage(
-            @RequestParam(required = false, defaultValue = "숙소") String lodgingName,
-            @RequestParam(required = false, defaultValue = "주소 정보 없음") String address,
-            @RequestParam(required = false) String imageUrl,
-            @RequestParam(required = false, defaultValue = "") String checkIn,
-            @RequestParam(required = false, defaultValue = "") String checkOut,
-            @RequestParam(required = false, defaultValue = "성인 2명") String guests,
-            @RequestParam(required = false, defaultValue = "350000") Integer roomPrice,
-            @RequestParam(required = false, defaultValue = "105000") Integer fee,
+            @RequestParam(value = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
+            @RequestParam(value = "address", required = false, defaultValue = "주소 정보 없음") String address,
+            @RequestParam(value = "imageUrl", required = false) String imageUrl,
+            @RequestParam(value = "checkIn", required = false, defaultValue = "") String checkIn,
+            @RequestParam(value = "checkOut", required = false, defaultValue = "") String checkOut,
+            @RequestParam(value = "guests", required = false, defaultValue = "성인 2명") String guests,
+            @RequestParam(value = "roomPrice", required = false, defaultValue = "350000") Integer roomPrice,
+            @RequestParam(value = "fee", required = false, defaultValue = "105000") Integer fee,
             Model model) {
 
         int safeRoomPrice = roomPrice == null || roomPrice < 0 ? 350000 : roomPrice;
@@ -60,19 +78,77 @@ public class BookingController {
         model.addAttribute("roomSubtotalText", String.format("%,d원", roomSubtotal));
         model.addAttribute("feeText", String.format("%,d원", feeSubtotal));
         model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
+        model.addAttribute("totalPriceRaw", totalPrice);
+
+        User sessionUser = resolveSessionUser();
+        if (sessionUser != null) {
+            User user = userRepository.findById(sessionUser.getId()).orElse(sessionUser);
+            model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
+            model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
+            model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
+        } else {
+            model.addAttribute("bookerName", "");
+            model.addAttribute("bookerEmail", "");
+            model.addAttribute("bookerPhone", "");
+        }
         return "pages/booking-checkout";
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @GetMapping("/complete")
     public String completePage(
-            @RequestParam(required = false, defaultValue = "숙소") String lodgingName,
-            @RequestParam(required = false, defaultValue = "") String region,
-            @RequestParam(required = false, defaultValue = "성인 2명") String guests,
-            @RequestParam(required = false, defaultValue = "") String checkIn,
-            @RequestParam(required = false, defaultValue = "") String checkOut,
-            @RequestParam(required = false, defaultValue = "") String totalPriceText,
-            @RequestParam(required = false) String imageUrl,
+            @RequestParam(value = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
+            @RequestParam(value = "region", required = false, defaultValue = "") String region,
+            @RequestParam(value = "guests", required = false, defaultValue = "성인 2명") String guests,
+            @RequestParam(value = "checkIn", required = false, defaultValue = "") String checkIn,
+            @RequestParam(value = "checkOut", required = false, defaultValue = "") String checkOut,
+            @RequestParam(value = "totalPriceText", required = false, defaultValue = "") String totalPriceText,
+            @RequestParam(value = "totalPriceRaw", required = false) Integer totalPriceRaw,
+            @RequestParam(value = "imageUrl", required = false) String imageUrl,
             Model model) {
+
+        User sessionUser = resolveSessionUser();
+        if (sessionUser != null) {
+            // DB에서 유저를 다시 조회하여 영속 상태로 만듦
+            User user = userRepository.findById(sessionUser.getId()).orElse(sessionUser);
+            
+            // Save to DB
+            Booking booking = new Booking();
+            booking.setUser(user);
+            
+            // Find or create a default trip plan if none exists for the user
+            var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
+            com.example.travel_platform.trip.TripPlan plan = null;
+            if (!plans.isEmpty()) {
+                plan = plans.get(0);
+            } else {
+                // Dummy plan for consistency if user has no plans
+                plan = new com.example.travel_platform.trip.TripPlan();
+                plan.setUser(user);
+                plan.setTitle("나의 여행 계획");
+                plan.setStartDate(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
+                plan.setEndDate(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
+                plan.setImgUrl(imageUrl == null || imageUrl.isBlank() ? "" : imageUrl);
+                plan = tripRepository.savePlan(plan);
+            }
+            
+            booking.setTripPlan(plan);
+            booking.setLodgingName(lodgingName);
+            booking.setCheckIn(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
+            booking.setCheckOut(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
+            
+            // Extract guest count from string (e.g., "성인 2명" -> 2)
+            int guestCount = 2;
+            try {
+                guestCount = Integer.parseInt(guests.replaceAll("[^0-9]", ""));
+            } catch (Exception e) {}
+            booking.setGuestCount(guestCount);
+            
+            booking.setTotalPrice(totalPriceRaw == null ? 0 : totalPriceRaw);
+            booking.setImageUrl(imageUrl);
+            
+            bookingRepository.save(booking);
+        }
 
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
         String safeTotalPriceText = (totalPriceText == null || totalPriceText.isBlank()) ? "0원" : totalPriceText;
@@ -121,21 +197,78 @@ public class BookingController {
 
     private String normalizeRegionKey(String region) {
         String text = region == null ? "" : region.trim();
+        if (text.isBlank()) {
+            return "busan";
+        }
+
+        String lower = text.toLowerCase();
+        if (lower.equals("seoul") || lower.equals("busan") || lower.equals("daegu") || lower.equals("incheon")
+                || lower.equals("gwangju") || lower.equals("daejeon") || lower.equals("ulsan") || lower.equals("sejong")
+                || lower.equals("gyeonggi") || lower.equals("gangwon") || lower.equals("chungbuk")
+                || lower.equals("chungnam") || lower.equals("jeonbuk") || lower.equals("jeonnam")
+                || lower.equals("gyeongbuk") || lower.equals("gyeongnam") || lower.equals("jeju")) {
+            return lower;
+        }
+
         if (text.contains("서울")) {
             return "seoul";
         }
         if (text.contains("부산")) {
             return "busan";
         }
+        if (text.contains("대구")) {
+            return "daegu";
+        }
+        if (text.contains("인천")) {
+            return "incheon";
+        }
+        if (text.contains("광주")) {
+            return "gwangju";
+        }
+        if (text.contains("대전")) {
+            return "daejeon";
+        }
+        if (text.contains("울산")) {
+            return "ulsan";
+        }
+        if (text.contains("세종")) {
+            return "sejong";
+        }
+        if (text.contains("경기") || text.contains("경기도")) {
+            return "gyeonggi";
+        }
+        if (text.contains("강원") || text.contains("강원도") || text.contains("강원특별자치도")) {
+            return "gangwon";
+        }
+        if (text.contains("충북") || text.contains("충청북도")) {
+            return "chungbuk";
+        }
+        if (text.contains("충남") || text.contains("충청남도")) {
+            return "chungnam";
+        }
+        if (text.contains("전북") || text.contains("전라북도")) {
+            return "jeonbuk";
+        }
+        if (text.contains("전남") || text.contains("전라남도")) {
+            return "jeonnam";
+        }
+        if (text.contains("경북") || text.contains("경상북도")) {
+            return "gyeongbuk";
+        }
+        if (text.contains("경남") || text.contains("경상남도")) {
+            return "gyeongnam";
+        }
         if (text.contains("제주")) {
             return "jeju";
         }
-        if (text.contains("경주")) {
-            return "gyeongju";
-        }
-        if (text.contains("강원")) {
-            return "gangwon";
-        }
         return "busan";
+    }
+
+    private User resolveSessionUser() {
+        Object sessionUser = session.getAttribute("sessionUser");
+        if (sessionUser instanceof User user) {
+            return user;
+        }
+        return null;
     }
 }

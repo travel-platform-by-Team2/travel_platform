@@ -10,7 +10,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -29,7 +28,8 @@ import com.google.gson.JsonParser;
  *
  * 역할:
  * 1) 사용자 질문에 대한 1차 계획(JSON) 생성
- * 2) DB 조회 결과를 바탕으로 2차 최종 답변(JSON) 생성
+ * 2) DB 탐색 결과를 바탕으로 재탐색 여부(JSON) 판단
+ * 3) 탐색 이력을 바탕으로 최종 답변(JSON) 생성
  */
 @Component
 public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
@@ -60,6 +60,35 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
             - markdown, 코드블록(```), 설명 문장은 넣지 마라.
             - 테이블/컬럼 참조는 반드시 schemaContext에 제공된 정보만 사용해라.
             - 목록 조회 시 사용자가 개수를 명시하지 않으면 LIMIT 5를 사용해라.
+            - 사용자 표현과 DB 텍스트가 정확히 일치하지 않을 수 있으니 핵심 키워드, 동의어, 어간을 기준으로 유연하게 검색해라.
+            - 예를 들어 "제주도"를 찾을 때는 "제주"처럼 더 넓은 키워드도 함께 고려하고, 가능하면 정확한 일치보다 LIKE 조건을 우선 검토해라.
+            """;
+
+    /**
+     * DB 탐색 재평가 프롬프트.
+     * 이전 시도 이력을 바탕으로 더 찾을지, 이제 답할지를 판단한다.
+     */
+    private static final String SEARCH_REVIEW_SYSTEM_PROMPT = """
+            너는 여행 플랫폼 챗봇의 DB 탐색 판단기다.
+            반드시 아래 JSON 스키마만 반환해라.
+            {
+              "shouldContinue": boolean,
+              "queryIntent": string,
+              "querySummary": string,
+              "sql": string,
+              "decisionReason": string
+            }
+            규칙:
+            - attempts에는 이전 SQL, rows, evaluationReason이 순서대로 들어 있다.
+            - 현재까지의 결과만으로 사용자 질문에 답할 수 있으면 shouldContinue=false로 설정해라.
+            - 더 찾아야 하면 shouldContinue=true로 설정하고 다음 읽기 전용 SELECT SQL을 작성해라.
+            - 같은 실패를 반복하지 말고 attempts를 참고해 다른 조건, 다른 테이블, 더 유연한 키워드 매칭을 우선 검토해라.
+            - 사용자 표현과 DB 텍스트가 정확히 일치하지 않을 수 있으니 핵심 키워드, 동의어, 어간 기준으로 유연하게 탐색해라.
+            - 예를 들어 "제주도"를 찾을 때는 "제주"처럼 더 넓은 키워드도 함께 고려해라.
+            - 더 이상 유의미한 탐색이 어렵다고 판단되면 shouldContinue=false로 설정해라.
+            - shouldContinue=false이면 sql은 비워도 된다.
+            - markdown, 코드블록(```), 설명 문장은 넣지 마라.
+            - 테이블/컬럼 참조는 반드시 schemaContext에 제공된 정보만 사용해라.
             """;
 
     /** DB 조회가 필요 없는 질문의 답변 생성 프롬프트 */
@@ -69,18 +98,21 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
             """;
 
     /**
-     * DB 조회 결과 기반 2차 답변 프롬프트.
+     * 탐색 이력 기반 최종 답변 프롬프트.
      * 최종 응답 형식은 JSON(answer)으로 강제한다.
      */
     private static final String DB_ANSWER_SYSTEM_PROMPT = """
             너는 여행 플랫폼 챗봇이다.
-            userMessage와 rows를 사용해 최종 한국어 답변을 생성해라.
-            rows가 비어 있으면 데이터가 없다는 사실을 명확히 안내해라.
+            userMessage, attempts, exhausted를 사용해 최종 한국어 답변을 생성해라.
             답변은 직관적인 문장으로 작성해라.
             반드시 아래 JSON 스키마만 반환해라.
             {
               "answer": string
             }
+            attempts에는 각 탐색의 SQL, rows, evaluationReason이 포함되어 있다.
+            exhausted=true이면 더 이상의 DB 탐색 없이 현재까지 확인한 범위를 바탕으로 답해야 한다.
+            exhausted=false여도 attempts 결과만으로 충분히 답할 수 있으면 자연스럽게 답해라.
+            사용자 표현과 DB 텍스트가 정확히 일치하지 않을 수 있으니 가장 관련도 높은 데이터를 기준으로 해석해라.
             markdown, 코드블록(```), 설명 문장은 넣지 마라.
             """;
 
@@ -162,18 +194,74 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         }
     }
 
+    @Override
+    public ChatbotLlmSearchReview reviewSearch(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            String queryIntent,
+            List<ChatbotSearchAttempt> searchAttempts,
+            int maxSearchAttempts,
+            String schemaContext) {
+        try {
+            String raw = callOpenAi(
+                    SEARCH_REVIEW_SYSTEM_PROMPT,
+                    buildSearchReviewUserPrompt(
+                            userMessage,
+                            context,
+                            queryIntent,
+                            searchAttempts,
+                            maxSearchAttempts,
+                            schemaContext));
+
+            JsonObject review = parseJsonObject(raw, "LLM 탐색 재평가");
+            boolean shouldContinue = readBoolean(review.get("shouldContinue"), false);
+
+            String nextQueryIntent = readText(review.get("queryIntent"));
+            if (nextQueryIntent.isBlank()) {
+                nextQueryIntent = queryIntent == null || queryIntent.isBlank() ? FALLBACK_INTENT : queryIntent;
+            }
+
+            String querySummary = readText(review.get("querySummary"));
+            String sql = readText(review.get("sql"));
+            String decisionReason = readText(review.get("decisionReason"));
+
+            if (shouldContinue && sql.isBlank()) {
+                throw new ApiException(
+                        "CHATBOT_INTERNAL_ERROR",
+                        "LLM 탐색 재평가 결과에 SQL이 포함되지 않았습니다.",
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            return new ChatbotLlmSearchReview(
+                    shouldContinue,
+                    nextQueryIntent,
+                    querySummary,
+                    sql,
+                    decisionReason);
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException(
+                    "CHATBOT_INTERNAL_ERROR",
+                    "LLM 탐색 재평가 중 오류가 발생했습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    e);
+        }
+    }
+
     /**
      * DB 조회 결과를 기반으로 2차 최종 답변을 생성한다.
      * 응답은 JSON(answer) 형식으로 강제하고 파싱한다.
      */
     @Override
-    public String createDbAnswer(String userMessage, String queryIntent, List<Map<String, Object>> queryRows) {
-        JsonObject payload = new JsonObject();
-        payload.addProperty("userMessage", userMessage);
-        payload.addProperty("queryIntent", queryIntent);
-        payload.add("rows", GSON.toJsonTree(queryRows));
-
-        String raw = callOpenAi(DB_ANSWER_SYSTEM_PROMPT, GSON.toJson(payload));
+    public String createDbAnswer(
+            String userMessage,
+            String queryIntent,
+            List<ChatbotSearchAttempt> searchAttempts,
+            boolean exhausted) {
+        String raw = callOpenAi(
+                DB_ANSWER_SYSTEM_PROMPT,
+                buildDbAnswerUserPrompt(userMessage, queryIntent, searchAttempts, exhausted));
         JsonObject parsed = parseJsonObject(raw, "LLM DB 답변");
         String answer = readText(parsed.get("answer"));
 
@@ -281,6 +369,51 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
      * 1차 계획 생성용 user 프롬프트를 JSON 문자열로 구성한다.
      */
     private String buildPlanUserPrompt(String userMessage, ChatbotRequest.ContextDTO context, String schemaContext) {
+        JsonObject promptJson = new JsonObject();
+        promptJson.addProperty("message", userMessage);
+        promptJson.add("context", buildContextJson(context));
+        promptJson.add("schemaContext", toJsonElement(schemaContext));
+        return GSON.toJson(promptJson);
+    }
+
+    /**
+     * DB 탐색 재평가용 user 프롬프트를 JSON 문자열로 구성한다.
+     */
+    private String buildSearchReviewUserPrompt(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            String queryIntent,
+            List<ChatbotSearchAttempt> searchAttempts,
+            int maxSearchAttempts,
+            String schemaContext) {
+        JsonObject promptJson = new JsonObject();
+        promptJson.addProperty("message", userMessage);
+        promptJson.add("context", buildContextJson(context));
+        promptJson.addProperty("queryIntent", queryIntent);
+        promptJson.addProperty("completedAttempts", searchAttempts == null ? 0 : searchAttempts.size());
+        promptJson.addProperty("maxAttempts", maxSearchAttempts);
+        promptJson.add("attempts", GSON.toJsonTree(searchAttempts));
+        promptJson.add("schemaContext", toJsonElement(schemaContext));
+        return GSON.toJson(promptJson);
+    }
+
+    /**
+     * 최종 DB 답변 생성용 user 프롬프트를 JSON 문자열로 구성한다.
+     */
+    private String buildDbAnswerUserPrompt(
+            String userMessage,
+            String queryIntent,
+            List<ChatbotSearchAttempt> searchAttempts,
+            boolean exhausted) {
+        JsonObject payload = new JsonObject();
+        payload.addProperty("userMessage", userMessage);
+        payload.addProperty("queryIntent", queryIntent);
+        payload.addProperty("exhausted", exhausted);
+        payload.add("attempts", GSON.toJsonTree(searchAttempts));
+        return GSON.toJson(payload);
+    }
+
+    private JsonObject buildContextJson(ChatbotRequest.ContextDTO context) {
         JsonObject contextJson = new JsonObject();
         if (context != null) {
             if (context.getPage() != null && !context.getPage().isBlank()) {
@@ -290,12 +423,7 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
                 contextJson.addProperty("tripPlanId", context.getTripPlanId());
             }
         }
-
-        JsonObject promptJson = new JsonObject();
-        promptJson.addProperty("message", userMessage);
-        promptJson.add("context", contextJson);
-        promptJson.add("schemaContext", toJsonElement(schemaContext));
-        return GSON.toJson(promptJson);
+        return contextJson;
     }
 
     /**

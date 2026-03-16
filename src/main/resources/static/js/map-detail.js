@@ -1,6 +1,9 @@
 ﻿(function () {
   "use strict";
 
+  // Expose region maps for other pages (e.g. main-index) without duplicating constants.
+  window.TRAVEL_PLATFORM = window.TRAVEL_PLATFORM || {};
+
   var CATEGORY = {
     STAY: "AD5", // 숙박
     ATTRACTION: "AT4" // 관광명소
@@ -8,17 +11,81 @@
   var REGION_VIEW = {
     seoul: { lat: 37.5665, lng: 126.978, level: 7 },
     busan: { lat: 35.1796, lng: 129.0756, level: 6 },
-    jeju: { lat: 33.4996, lng: 126.5312, level: 8 },
-    gyeongju: { lat: 35.8562, lng: 129.2247, level: 6 },
-    gangwon: { lat: 37.8228, lng: 128.1555, level: 9 }
+    daegu: { lat: 35.8714, lng: 128.6014, level: 7 },
+    incheon: { lat: 37.4563, lng: 126.7052, level: 7 },
+    gwangju: { lat: 35.1595, lng: 126.8526, level: 7 },
+    daejeon: { lat: 36.3504, lng: 127.3845, level: 7 },
+    ulsan: { lat: 35.5384, lng: 129.3114, level: 7 },
+    sejong: { lat: 36.4801, lng: 127.2891, level: 8 },
+    gyeonggi: { lat: 37.2636, lng: 127.0286, level: 9 },
+    gangwon: { lat: 37.8813, lng: 127.7298, level: 9 },
+    chungbuk: { lat: 36.6424, lng: 127.489, level: 9 },
+    chungnam: { lat: 36.6013, lng: 126.6608, level: 9 },
+    jeonbuk: { lat: 35.8242, lng: 127.148, level: 9 },
+    jeonnam: { lat: 34.9913, lng: 126.4789, level: 9 },
+    gyeongbuk: { lat: 36.5684, lng: 128.7294, level: 9 },
+    gyeongnam: { lat: 35.2279, lng: 128.6811, level: 9 },
+    jeju: { lat: 33.4996, lng: 126.5312, level: 8 }
   };
   var REGION_KEYWORDS = {
-    seoul: ["서울"],
-    busan: ["부산"],
-    jeju: ["제주"],
-    gyeongju: ["경주"],
-    gangwon: ["강원", "춘천", "원주", "강릉", "속초", "동해", "삼척", "태백"]
+    seoul: ["서울", "서울특별시"],
+    busan: ["부산", "부산광역시"],
+    daegu: ["대구", "대구광역시"],
+    incheon: ["인천", "인천광역시"],
+    gwangju: ["광주", "광주광역시"],
+    daejeon: ["대전", "대전광역시"],
+    ulsan: ["울산", "울산광역시"],
+    sejong: ["세종", "세종특별자치시"],
+    gyeonggi: ["경기도", "경기", "수원", "성남", "용인", "고양", "부천", "안산", "화성", "평택", "의정부", "남양주"],
+    gangwon: ["강원", "강원도", "강원특별자치도", "춘천", "원주", "강릉", "속초", "동해", "삼척", "태백"],
+    chungbuk: ["충북", "충청북도", "청주", "충주", "제천"],
+    chungnam: ["충남", "충청남도", "천안", "아산", "서산", "당진", "공주", "보령", "홍성"],
+    jeonbuk: ["전북", "전라북도", "전주", "군산", "익산", "정읍", "남원"],
+    jeonnam: ["전남", "전라남도", "여수", "순천", "목포", "나주", "광양", "무안"],
+    gyeongbuk: ["경북", "경상북도", "포항", "경주", "구미", "안동", "김천", "영주", "경산"],
+    gyeongnam: ["경남", "경상남도", "창원", "김해", "진주", "거제", "통영", "양산", "사천"],
+    jeju: ["제주", "제주특별자치도", "제주시", "서귀포"]
   };
+
+  window.TRAVEL_PLATFORM.REGION_VIEW = REGION_VIEW;
+  window.TRAVEL_PLATFORM.REGION_KEYWORDS = REGION_KEYWORDS;
+
+  function formatLocalDateISO(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
+  function initDateMinConstraints() {
+    var today = formatLocalDateISO(new Date());
+    var startDateEl = document.getElementById("mapStartDate");
+    var endDateEl = document.getElementById("mapEndDate");
+
+    if (startDateEl) {
+      startDateEl.min = today;
+      if (startDateEl.value && startDateEl.value < today) {
+        startDateEl.value = today;
+      }
+    }
+
+    if (endDateEl) {
+      endDateEl.min = today;
+      if (endDateEl.value && endDateEl.value < today) {
+        endDateEl.value = today;
+      }
+    }
+
+    if (startDateEl && endDateEl) {
+      startDateEl.addEventListener("change", function () {
+        var minEnd = startDateEl.value && startDateEl.value > today ? startDateEl.value : today;
+        endDateEl.min = minEnd;
+        if (endDateEl.value && endDateEl.value < minEnd) {
+          endDateEl.value = minEnd;
+        }
+      });
+    }
+  }
 
   function applySearchParamsFromUrl() {
     var params = new URLSearchParams(window.location.search || "");
@@ -98,6 +165,7 @@
             nearbyById: {},
             focusOverlay: null
           };
+          CURRENT_MAP_STATE = state;
 
           initializeResultPanel(state);
           bindViewportSync(state);
@@ -726,7 +794,19 @@
   function renderOverlays(state) {
     clearOverlays(state);
 
-    state.items.forEach(function (item) {
+    // Load price filter from URL
+    var params = new URLSearchParams(window.location.search);
+    var minPrice = parseInt(params.get("priceMin")) || 0;
+    var maxPrice = parseInt(params.get("priceMax")) || Infinity;
+
+    var filteredItems = state.items.filter(function (item) {
+      if (item.type !== "hotel") return true; // 관광지는 그대로 표시 (원할 경우 관광지도 필터 가능)
+      
+      var pricing = getPricing(item, 1);
+      return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
+    });
+
+    filteredItems.forEach(function (item) {
       var position = new kakao.maps.LatLng(item.lat, item.lng);
       var node = createPoiMarkerNode(item);
       var overlay = new kakao.maps.CustomOverlay({
@@ -814,12 +894,20 @@
     setResultPanelExpanded(true);
     container.hidden = false;
 
+    // Load price filter from URL
+    var params = new URLSearchParams(window.location.search);
+    var minPrice = parseInt(params.get("priceMin")) || 0;
+    var maxPrice = parseInt(params.get("priceMax")) || Infinity;
+
     var listItems = state.items.filter(function (item) {
-      return item.type === "hotel";
+      if (item.type !== "hotel") return false;
+      
+      var pricing = getPricing(item, 1); // Get 1-night price for filtering
+      return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
     });
 
     if (!listItems.length) {
-      container.innerHTML = '<div class="panel-muted-center-sm">현재 지도 영역에 검색 결과가 없습니다.</div>';
+      container.innerHTML = '<div class="panel-muted-center-sm">현재 설정된 가격 범위 내 숙소가 없습니다.</div>';
       updateResultCount(0);
       return;
     }
@@ -1095,8 +1183,33 @@
     if (!regionSelect || !submitButton) {
       return;
     }
+    var searchForm = submitButton.closest ? submitButton.closest("form") : null;
 
-    function searchBySelectedRegion() {
+    function canSearch() {
+      return Boolean(startDateEl && endDateEl && startDateEl.value && endDateEl.value);
+    }
+
+    function reportFormValidity() {
+      if (searchForm && typeof searchForm.reportValidity === "function") {
+        searchForm.reportValidity();
+        return;
+      }
+      if (startDateEl && !startDateEl.value) {
+        startDateEl.focus();
+        return;
+      }
+      if (endDateEl && !endDateEl.value) {
+        endDateEl.focus();
+      }
+    }
+
+    function searchBySelectedRegion(triggerValidation) {
+      if (!canSearch()) {
+        if (triggerValidation) {
+          reportFormValidity();
+        }
+        return;
+      }
       var regionKey = regionSelect.value;
       var view = REGION_VIEW[regionKey];
       if (!view) {
@@ -1114,7 +1227,7 @@
 
     submitButton.addEventListener("click", function (event) {
       event.preventDefault();
-      searchBySelectedRegion();
+      searchBySelectedRegion(true);
     });
 
     regionSelect.addEventListener("change", function () {
@@ -1144,7 +1257,7 @@
     }
 
     if (hasSearchParamsInUrl()) {
-      searchBySelectedRegion();
+      searchBySelectedRegion(false);
     }
   }
 
@@ -1361,17 +1474,226 @@
     });
   }
 
+  var CURRENT_MAP_STATE = null;
+
+  function initPriceRangeSheet() {
+    var toggleButton = document.querySelector("[data-price-range-toggle]");
+    var sheet = document.querySelector("[data-price-range-sheet]");
+    var backdrop = document.querySelector("[data-price-range-backdrop]");
+
+    if (!toggleButton || !sheet || !backdrop) {
+      return;
+    }
+
+    var labelEl = toggleButton.querySelector("[data-price-range-label]");
+    var closeButton = sheet.querySelector("[data-price-range-close]");
+    var applyButton = sheet.querySelector("[data-price-range-apply]");
+    var clearButton = sheet.querySelector("[data-price-range-clear]");
+    var minInput = sheet.querySelector("#priceMin");
+    var maxInput = sheet.querySelector("#priceMax");
+    var minLabel = sheet.querySelector("#priceMinLabel");
+    var maxLabel = sheet.querySelector("#priceMaxLabel");
+    var sliderRange = sheet.querySelector("#priceSliderRange");
+
+    var defaultLabelText = labelEl ? labelEl.textContent : toggleButton.textContent;
+    var storageKey = "travel_platform_price_range_v1";
+
+    function updateSliderUI() {
+      var min = parseInt(minInput.value);
+      var max = parseInt(maxInput.value);
+
+      if (min > max - 50000) {
+        if (event && event.target === minInput) {
+          minInput.value = max - 50000;
+          min = max - 50000;
+        } else {
+          maxInput.value = min + 50000;
+          max = min + 50000;
+        }
+      }
+
+      var minPercent = (min / minInput.max) * 100;
+      var maxPercent = (max / maxInput.max) * 100;
+
+      sliderRange.style.left = minPercent + "%";
+      sliderRange.style.width = (maxPercent - minPercent) + "%";
+
+      if (minLabel) minLabel.textContent = (min / 10000) + "만원";
+      if (maxLabel) maxLabel.textContent = max >= 1000000 ? "100만원+" : (max / 10000) + "만원";
+    }
+
+    function getRangeFromInputs() {
+      return {
+        min: parseInt(minInput.value),
+        max: parseInt(maxInput.value) >= 1000000 ? null : parseInt(maxInput.value)
+      };
+    }
+
+    function setInputs(range) {
+      minInput.value = range && range.min != null ? String(range.min) : "0";
+      maxInput.value = range && range.max != null ? String(range.max) : "1000000";
+      updateSliderUI();
+    }
+
+    function updateUrlParams(range) {
+      var url = new URL(window.location.href);
+      var params = url.searchParams;
+
+      if (!range || range.min == null || range.min === 0) {
+        params.delete("priceMin");
+      } else {
+        params.set("priceMin", String(range.min));
+      }
+
+      if (!range || range.max == null) {
+        params.delete("priceMax");
+      } else {
+        params.set("priceMax", String(range.max));
+      }
+
+      var qs = params.toString();
+      var next = url.pathname + (qs ? "?" + qs : "") + url.hash;
+      window.history.replaceState(null, "", next);
+    }
+
+    function rangeToLabel(range) {
+      if (!range || (range.min <= 0 && range.max == null)) {
+        return defaultLabelText;
+      }
+      var minWon = range.min ? (range.min / 10000) + "만" : "0";
+      var maxWon = range.max ? (range.max / 10000) + "만" : "제한없음";
+      return "가격: " + minWon + "~" + maxWon;
+    }
+
+    function setButtonLabel(range) {
+      if (labelEl) {
+        labelEl.textContent = rangeToLabel(range);
+      }
+    }
+
+    function saveRange(range) {
+      if (!range || (range.min <= 0 && range.max == null)) {
+        localStorage.removeItem(storageKey);
+      } else {
+        localStorage.setItem(storageKey, JSON.stringify(range));
+      }
+    }
+
+    function loadRange() {
+      var params = new URLSearchParams(window.location.search);
+      var min = params.get("priceMin");
+      var max = params.get("priceMax");
+      if (min !== null || max !== null) {
+        return { min: parseInt(min) || 0, max: max === null ? null : parseInt(max) };
+      }
+      try {
+        var raw = localStorage.getItem(storageKey);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    function setOpen(open) {
+      sheet.hidden = !open;
+      backdrop.hidden = !open;
+      toggleButton.setAttribute("aria-expanded", String(open));
+
+      if (open) {
+        var buttonRect = toggleButton.getBoundingClientRect();
+        var container = document.querySelector(".map-detail-div-01");
+        var containerRect = container.getBoundingClientRect();
+
+        var top = buttonRect.bottom - containerRect.top + 8;
+        var left = buttonRect.left - containerRect.left;
+
+        var sheetWidth = 320;
+        if (left + sheetWidth > containerRect.width) {
+          left = containerRect.width - sheetWidth - 16;
+        }
+
+        sheet.style.top = top + "px";
+        sheet.style.left = Math.max(16, left) + "px";
+        sheet.style.right = "auto";
+      }
+    }
+
+    minInput.addEventListener("input", updateSliderUI);
+    maxInput.addEventListener("input", updateSliderUI);
+
+    var initialRange = loadRange();
+    setInputs(initialRange);
+    setButtonLabel(initialRange);
+
+    toggleButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      setOpen(sheet.hidden);
+    });
+
+    backdrop.addEventListener("click", function (event) {
+      event.preventDefault();
+      setOpen(false);
+    });
+
+    if (closeButton) {
+      closeButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        setOpen(false);
+      });
+    }
+
+    if (clearButton) {
+      clearButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        setInputs(null);
+        saveRange(null);
+        updateUrlParams(null);
+        setButtonLabel(null);
+        setOpen(false);
+        if (CURRENT_MAP_STATE) {
+          renderList(CURRENT_MAP_STATE);
+          renderOverlays(CURRENT_MAP_STATE);
+        }
+      });
+    }
+
+    if (applyButton) {
+      applyButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        var range = getRangeFromInputs();
+        saveRange(range);
+        updateUrlParams(range);
+        setButtonLabel(range);
+        setOpen(false);
+        if (CURRENT_MAP_STATE) {
+          renderList(CURRENT_MAP_STATE);
+          renderOverlays(CURRENT_MAP_STATE);
+        }
+      });
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !sheet.hidden) {
+        setOpen(false);
+      }
+    });
+  }
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
+      initDateMinConstraints();
+      applySearchParamsFromUrl();
       initKakaoMap();
       initMapDetailPanelToggle();
       initMapPoiPanelToggle();
+      initPriceRangeSheet();
       initMapDragScroll();
     });
   } else {
+    initDateMinConstraints();
+    applySearchParamsFromUrl();
     initKakaoMap();
     initMapDetailPanelToggle();
     initMapPoiPanelToggle();
+    initPriceRangeSheet();
     initMapDragScroll();
   }
 })();

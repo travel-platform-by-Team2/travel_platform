@@ -22,7 +22,7 @@ public class ReplyService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void createReply(Integer sessionUserId, Integer boardId, ReplyRequest.CreateDTO reqDTO) {
+    public Reply createReply(Integer sessionUserId, Integer boardId, ReplyRequest.CreateDTO reqDTO) {
         User sessionUser = userRepository.findById(sessionUserId)
                 .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
         Board board = boardRepository.findById(boardId)
@@ -32,7 +32,7 @@ public class ReplyService {
         reply.setBoard(board);
         reply.setUser(sessionUser);
         reply.setContent(reqDTO.getContent());
-        replyRepository.save(reply);
+        return replyRepository.save(reply);
     }
 
     @Transactional

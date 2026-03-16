@@ -120,6 +120,67 @@
   resize: vertical;
 }
 
+.community-detail-div-01 .p-8 {
+  padding-left: 2rem;
+}
+
+.community-detail-div-01 .prose-reading-lg {
+  padding-left: 0;
+}
+
+.community-detail-div-01 .community-detail-div-08 {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.community-list-span-01,
+.community-detail-span-02 {
+  border: 1px solid #e2e8f0;
+}
+
+.community-list-span-01.cat-tips,
+.community-detail-span-02.cat-tips {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.community-list-span-01.cat-plan,
+.community-detail-span-02.cat-plan {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.community-list-span-01.cat-food,
+.community-detail-span-02.cat-food {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+
+.community-list-span-01.cat-review,
+.community-detail-span-02.cat-review {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.community-list-span-01.cat-qna,
+.community-detail-span-02.cat-qna {
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+  color: #7e22ce;
+}
+
+.community-list-span-01.cat-default,
+.community-detail-span-02.cat-default {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
 /* ===== community-edit.css ===== */
 /* Community edit page */
 .page-community-edit .layout-center-row > .col-lg-9 {
@@ -151,6 +212,128 @@
 .page-community-list .table th:nth-child(2) {
   width: 45%;
   white-space: normal;
+}
+
+.community-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.community-filter-btn.cat-all {
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.community-filter-btn.cat-tips {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background-color: #eff6ff;
+}
+
+.community-filter-btn.cat-plan {
+  color: #334155;
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.community-filter-btn.cat-food {
+  color: #c2410c;
+  border-color: #fed7aa;
+  background-color: #fff7ed;
+}
+
+.community-filter-btn.cat-review {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background-color: #f0fdf4;
+}
+
+.community-filter-btn.cat-qna {
+  color: #7e22ce;
+  border-color: #e9d5ff;
+  background-color: #faf5ff;
+}
+
+.community-filter-btn.is-active {
+  color: #ffffff;
+}
+
+.community-filter-btn.cat-all.is-active {
+  background-color: #0f172a;
+  border-color: #0f172a;
+}
+
+.community-filter-btn.cat-tips.is-active {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.community-filter-btn.cat-plan.is-active {
+  background-color: #334155;
+  border-color: #334155;
+}
+
+.community-filter-btn.cat-food.is-active {
+  background-color: #c2410c;
+  border-color: #c2410c;
+}
+
+.community-filter-btn.cat-review.is-active {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+.community-filter-btn.cat-qna.is-active {
+  background-color: #7e22ce;
+  border-color: #7e22ce;
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.community-page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  border: 1px solid #dbe3ef;
+  background: #ffffff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.community-page-btn:hover {
+  border-color: #94a3b8;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.community-page-btn.is-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
 }
 
 /* ===== header-login-demo.css ===== */
@@ -361,3 +544,7 @@ body.page-body-overflow-hidden-shell > .calendar-add-event-div-01 > .chat-panel-
 
 
 
+.trip-plan-list-button-03{align-items:center;border-radius:.5rem;display:flex;height:2.25rem;justify-content:center;width:2.25rem;font-weight:700;box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+.trip-plan-list-button-03.active{background-color:#1152d4;color:#fff}
+.trip-plan-list-button-03.inactive{background-color:#f8fafc;color:#616f89;border:1px solid #e2e8f0;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.trip-plan-list-button-03.inactive:hover{background-color:#f1f5f9;color:#334155;border-color:#cbd5e1}

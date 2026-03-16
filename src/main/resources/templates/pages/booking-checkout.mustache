@@ -90,79 +90,81 @@
         </div>
       </div>
 
-      <div class="panel-elevated-lg">
-        <h3 class="section-title-row">
-          <span class="icon-ms-primary">person</span>
-          예약자 정보
-        </h3>
-        <div class="checkout-form-grid">
+      <form action="/bookings/complete" method="get">
+        <input type="hidden" name="lodgingName" value="{{lodgingName}}">
+        <input type="hidden" name="region" value="{{address}}">
+        <input type="hidden" name="guests" value="{{guests}}">
+        <input type="hidden" name="checkIn" value="{{checkIn}}">
+        <input type="hidden" name="checkOut" value="{{checkOut}}">
+        <input type="hidden" name="totalPriceText" value="{{totalPriceText}}">
+        <input type="hidden" name="totalPriceRaw" value="{{totalPriceRaw}}">
+        <input type="hidden" name="imageUrl" value="{{imageUrl}}">
+
+        <div class="panel-elevated-lg">
+          <h3 class="section-title-row">
+            <span class="icon-ms-primary">person</span>
+            예약자 정보
+          </h3>
+          <div class="checkout-form-grid">
           <div class="field-col-2-md-1">
             <label class="label-sm-strong" for="name">이름</label>
-            <input class="input-control" id="name" placeholder="홍길동" type="text"/>
+            <input class="input-control" id="name" name="bookerName" placeholder="홍길동" value="{{bookerName}}" type="text" required/>
           </div>
           <div class="field-col-2-md-1">
             <label class="label-sm-strong" for="phone">연락처</label>
-            <input class="input-control" id="phone" placeholder="010-1234-5678" type="tel"/>
+            <input class="input-control" id="phone" name="bookerPhone" placeholder="010-1234-5678" value="{{bookerPhone}}" type="tel" required/>
           </div>
           <div class="checkout-field-full">
             <label class="label-sm-strong" for="email">이메일</label>
-            <input class="input-control" id="email" placeholder="example@email.com" type="email"/>
+            <input class="input-control" id="email" name="bookerEmail" placeholder="example@email.com" value="{{bookerEmail}}" type="email" required/>
             <p class="checkout-help-text">예약 확정 메일이 발송됩니다.</p>
           </div>
-          <div class="checkout-field-full">
-            <label class="checkout-label-between" for="requests">
-              요청사항
-              <span class="checkout-label-optional">(선택)</span>
-            </label>
-            <textarea class="checkout-textarea" id="requests" placeholder="호텔에 전달할 요청사항이 있다면 적어주세요. (예: 고층 객실 희망, 금연 객실 등)" rows="4"></textarea>
+            <div class="checkout-field-full">
+              <label class="checkout-label-between" for="requests">
+                요청사항
+                <span class="checkout-label-optional">(선택)</span>
+              </label>
+              <textarea class="checkout-textarea" id="requests" name="requests" placeholder="호텔에 전달할 요청사항이 있다면 적어주세요. (예: 고층 객실 희망, 금연 객실 등)" rows="4"></textarea>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="panel-elevated-lg">
-        <h3 class="section-title-row">
-          <span class="icon-ms-primary">credit_card</span>
-          결제 수단
-        </h3>
-        <div class="checkout-pay-grid">
-          <button class="checkout-pay-option-active">
-            <span class="icon-ms-2xl">credit_card</span>
-            <span class="text-sm-base">신용카드</span>
-          </button>
-          <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
-            <span class="icon-ms-2xl">account_balance_wallet</span>
-            <span class="text-sm-base">계좌이체 (이용불가)</span>
-          </button>
-          <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
-            <span class="icon-ms-2xl">payments</span>
-            <span class="text-sm-base">현장결제 (이용불가)</span>
-          </button>
-          <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
-            <span class="icon-ms-2xl">smartphone</span>
-            <span class="text-sm-base">간편결제 (이용불가)</span>
-          </button>
+        <div class="panel-elevated-lg">
+          <h3 class="section-title-row">
+            <span class="icon-ms-primary">credit_card</span>
+            결제 수단
+          </h3>
+          <div class="checkout-pay-grid">
+            <button class="checkout-pay-option-active" type="button">
+              <span class="icon-ms-2xl">credit_card</span>
+              <span class="text-sm-base">신용카드</span>
+            </button>
+            <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
+              <span class="icon-ms-2xl">account_balance_wallet</span>
+              <span class="text-sm-base">계좌이체 (이용불가)</span>
+            </button>
+            <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
+              <span class="icon-ms-2xl">payments</span>
+              <span class="text-sm-base">현장결제 (이용불가)</span>
+            </button>
+            <button class="option-tile" type="button" disabled aria-disabled="true" title="현재 신용카드 결제만 지원합니다.">
+              <span class="icon-ms-2xl">smartphone</span>
+              <span class="text-sm-base">간편결제 (이용불가)</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="pt-4">
-        <form action="/bookings/complete" method="get">
-          <input type="hidden" name="lodgingName" value="{{lodgingName}}">
-          <input type="hidden" name="region" value="{{address}}">
-          <input type="hidden" name="guests" value="{{guests}}">
-          <input type="hidden" name="checkIn" value="{{checkIn}}">
-          <input type="hidden" name="checkOut" value="{{checkOut}}">
-          <input type="hidden" name="totalPriceText" value="{{totalPriceText}}">
-          <input type="hidden" name="imageUrl" value="{{imageUrl}}">
-        <button class="checkout-pay-btn" type="submit">
-          <span>{{totalPriceText}} 결제하기</span>
-          <span class="icon-ms-base">arrow_forward</span>
-        </button>
-        </form>
-        <p class="checkout-terms-text">
-          계속 진행하면 <a class="link-underline-primary" href="#">이용약관</a> 및
-          <a class="link-underline-primary" href="#">개인정보 처리방침</a>에 동의하는 것으로 간주됩니다.
-        </p>
-      </div>
+        <div class="pt-4">
+          <button class="checkout-pay-btn" type="submit">
+            <span>{{totalPriceText}} 결제하기</span>
+            <span class="icon-ms-base">arrow_forward</span>
+          </button>
+          <p class="checkout-terms-text">
+            계속 진행하면 <a class="link-underline-primary" href="#">이용약관</a> 및
+            <a class="link-underline-primary" href="#">개인정보 처리방침</a>에 동의하는 것으로 간주됩니다.
+          </p>
+        </div>
+      </form>
     </div>
   </div>
 </main>

@@ -1,5 +1,8 @@
 package com.example.travel_platform.trip;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -28,10 +31,95 @@ public class TripService {
         // TODO: TripPlace 엔티티 변환 후 저장
     }
 
-    public List<TripResponse.PlanSummaryDTO> getPlanList(Integer sessionUserId) {
-        // TODO: 사용자별 여행 계획 목록 조회
-        // TODO: PlanSummaryDTO 매핑
-        return List.of();
+    public TripResponse.PlanListPageDTO getPlanList(Integer userId, String category, int page) {
+        int size = 9; // 슬롯 갯수
+        int offset = page * size;
+        int blockSize = 10; // 1~10까지 페이징 사이즈
+        LocalDate today = LocalDate.now();
+
+        List<TripPlan> tripPlans;
+        Long totalCount;
+
+        if ("upcoming".equals(category)) {
+            tripPlans = tripRepository.findUpcomingPlanListByUserId(userId, today, offset, size);
+            totalCount = tripRepository.countUpcomingPlanByUserId(userId, today);
+        } else if ("past".equals(category)) {
+            tripPlans = tripRepository.findPastPlanListByUserId(userId, today, offset, size);
+            totalCount = tripRepository.countPastPlanByUserId(userId, today);
+        } else {
+            tripPlans = tripRepository.findPlanListByUserId(userId, offset, size);
+            totalCount = tripRepository.countPlanByUserId(userId);
+        }
+
+        List<TripResponse.PlanSummaryDTO> result = new ArrayList<>();
+
+        for (TripPlan tripPlan : tripPlans) {
+            String placeName = "장소 확인 안됨";
+
+            if (tripPlan.getRegion() != null && !tripPlan.getRegion().isBlank()) {
+                placeName = tripPlan.getRegion();
+            }
+
+            long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
+
+            String dDay = "비활성화";
+            boolean disabled = true;
+
+            if (diff > 0) {
+                dDay = "D-" + diff;
+                disabled = false;
+            }
+
+            TripResponse.PlanSummaryDTO dto = TripResponse.PlanSummaryDTO.builder()
+                    .id(tripPlan.getId())
+                    .title(tripPlan.getTitle())
+                    .imgUrl(tripPlan.getImgUrl())
+                    .startDate(tripPlan.getStartDate())
+                    .endDate(tripPlan.getEndDate())
+                    .placeName(placeName)
+                    .dDay(dDay)
+                    .disabled(disabled)
+                    .build();
+
+            result.add(dto);
+        }
+
+        int totalPage = (int) Math.ceil((double) totalCount / size);
+
+        int startPage = (page / blockSize) * blockSize;
+        int endPage = startPage + blockSize - 1;
+
+        if (endPage >= totalPage) {
+            endPage = totalPage - 1;
+        }
+
+        List<TripResponse.PageNumberDTO> pageNumbers = new ArrayList<>();
+        for (int i = startPage; i <= endPage; i++) {
+            pageNumbers.add(new TripResponse.PageNumberDTO(i, i + 1, i == page));
+        }
+
+        boolean hasPrev = startPage > 0;
+        boolean hasNext = endPage < totalPage - 1;
+
+        int prevPage = startPage - 1;
+        int nextPage = endPage + 1;
+
+        return TripResponse.PlanListPageDTO.builder()
+                .plans(result)
+                .currentPage(page)
+                .displayPage(page + 1)
+                .size(size)
+                .totalCount(totalCount)
+                .totalPage(totalPage)
+                .hasPrev(hasPrev)
+                .hasNext(hasNext)
+                .prevPage(prevPage)
+                .nextPage(nextPage)
+                .pageNumbers(pageNumbers)
+                .startPage(startPage)
+                .endPage(endPage)
+                .category(category)
+                .build();
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
@@ -40,4 +128,3 @@ public class TripService {
         return null;
     }
 }
-
