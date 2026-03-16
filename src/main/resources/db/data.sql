@@ -10,66 +10,15 @@ values ('admin', '1234', 'admin@nate.com', '010-1111-2222', 'ADMIN', now());
 
 
 -- 여행 계획
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '제주 2박 3일', date '2026-04-10', date '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10');
+insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
+values (1, '제주 2박 3일', date '2026-04-10', date '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10', '인천천');
 
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2026-05-01', date '2026-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
+insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
+values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', '부산');
 
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '제주 2박 3일', date '2026-04-10', date '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2026-05-01', date '2026-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '제주 2박 3일', date '2026-04-10', date '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2026-05-01', date '2026-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '제주 2박 3일', date '2026-04-10', date '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2026-05-01', date '2026-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '제주 2박 3일', date '2026-04-10', date '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2026-05-01', date '2026-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuCi-Ka8pgbPrh-8RkSkPR3aVcjKSYl0YGtUEOSbWnziYoC2JrMK3RYLLaoCD4HEBCWNeqrjKzrmRXb5YlWZT91iRiERBZxufNe8hPT7oISlwLR-iLyjN94RYlygERYdoNjx3Id4GyvMMqBHeC3dUoMlfyzAXCWwzbBx5ak777_c29rT2FSBF6ghsfmPtjhUJ2DzkKUd-eYJrbjq6IGRtOW4ZqTN2Ig8tmPr7AfCP-lWaPXL5XhK4bGCRKIEimLRaR-mAW3W8Xc7Rek');
-    
+insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
+values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', '서울');
+     
 -- 여행 장소
 insert into trip_place_tb (trip_plan_id, place_name, address, latitude, longitude, day_order)
 values (1, '성산일출봉', '제주특별자치도 서귀포시 성산읍 성산리 1', 33.4588790, 126.9425580, 1);

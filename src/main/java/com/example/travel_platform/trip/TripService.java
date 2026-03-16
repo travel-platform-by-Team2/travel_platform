@@ -56,8 +56,8 @@ public class TripService {
         for (TripPlan tripPlan : tripPlans) {
             String placeName = "장소 확인 안됨";
 
-            if (tripPlan.getPlaces() != null && !tripPlan.getPlaces().isEmpty()) {
-                placeName = tripPlan.getPlaces().get(0).getPlaceName();
+            if (tripPlan.getRegion() != null && !tripPlan.getRegion().isBlank()) {
+                placeName = tripPlan.getRegion();
             }
 
             long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());

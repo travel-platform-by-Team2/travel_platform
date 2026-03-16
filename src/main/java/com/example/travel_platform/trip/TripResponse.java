@@ -64,6 +64,7 @@ public class TripResponse {
         private List<PlaceDTO> places;
     }
 
+    // 페이징 DTO
     @Data
     @Builder
     @AllArgsConstructor
