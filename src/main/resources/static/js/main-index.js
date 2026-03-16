@@ -1,6 +1,43 @@
 (function () {
   "use strict";
 
+  function formatLocalDateISO(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
+  function initDateMinConstraints() {
+    var today = formatLocalDateISO(new Date());
+    var startDateEl = document.getElementById("startDate");
+    var endDateEl = document.getElementById("endDate");
+
+    if (startDateEl) {
+      startDateEl.min = today;
+      if (startDateEl.value && startDateEl.value < today) {
+        startDateEl.value = today;
+      }
+    }
+
+    if (endDateEl) {
+      endDateEl.min = today;
+      if (endDateEl.value && endDateEl.value < today) {
+        endDateEl.value = today;
+      }
+    }
+
+    if (startDateEl && endDateEl) {
+      startDateEl.addEventListener("change", function () {
+        var minEnd = startDateEl.value && startDateEl.value > today ? startDateEl.value : today;
+        endDateEl.min = minEnd;
+        if (endDateEl.value && endDateEl.value < minEnd) {
+          endDateEl.value = minEnd;
+        }
+      });
+    }
+  }
+
   function normalizeText(text) {
     return String(text || "")
       .replace(/\s+/g, " ")
@@ -88,8 +125,12 @@
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initRegionCardLinks);
+    document.addEventListener("DOMContentLoaded", function () {
+      initDateMinConstraints();
+      initRegionCardLinks();
+    });
   } else {
+    initDateMinConstraints();
     initRegionCardLinks();
   }
 })();
