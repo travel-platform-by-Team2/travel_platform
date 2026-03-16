@@ -50,6 +50,7 @@ create table trip_plan_tb (
   start_date date not null,
   end_date date not null,
   created_at datetime not null default current_timestamp,
+  img_url varchar(500) not null,
   constraint fk_trip_plan_user foreign key (user_id) references user_tb(id)
 );
 
