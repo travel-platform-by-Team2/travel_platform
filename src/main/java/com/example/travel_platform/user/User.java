@@ -33,6 +33,10 @@ public class User {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    public boolean isAdmin() {
+        return "ADMIN".equals(this.role);
+    }
+
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
