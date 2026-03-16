@@ -27,7 +27,7 @@ public class FilterConfig {
     public FilterRegistrationBean<AdminFilter> adminFilter() {
         FilterRegistrationBean<AdminFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(new AdminFilter());
-        bean.addUrlPatterns("/admin/*");
+        bean.addUrlPatterns("/admin", "/admin/*");
         bean.setOrder(1);
         return bean;
     }
