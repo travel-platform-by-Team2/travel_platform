@@ -53,6 +53,9 @@ public class Booking {
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
