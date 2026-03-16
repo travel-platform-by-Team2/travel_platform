@@ -11,7 +11,7 @@
 
 <div class="trip-plan-add-place-div-01">
 <div class="community-create-div-03">
-<h2 class="trip-plan-add-place-h2-01">제주도 3박 4일 여행</h2>
+<h2 class="trip-plan-add-place-h2-01">{{#plan}}{{plan.title}}{{/plan}}{{^plan}}제주도 3박 4일 여행{{/plan}}</h2>
 <div class="trip-plan-add-place-div-02"></div>
 <div class="trip-plan-add-place-div-03">
 <span class="icon-ms-base">calendar_month</span>
@@ -35,129 +35,18 @@
 <span class="trip-plan-add-place-span-01">
 <span class="icon-ms-base">search</span>
 </span>
-<input class="trip-plan-add-place-input-01" placeholder="장소 검색 (예: 협재 해수욕장, 흑돼지 맛집)" type="text"/>
+<input id="placeSearchInput" class="trip-plan-add-place-input-01" placeholder="장소 검색 (예: 협재 해수욕장, 흑돼지 맛집)" type="text"/>
 </div>
 </div>
 <div class="trip-plan-add-place-div-06">
-<div class="strip-scroll-gap6">
-<button class="trip-plan-add-place-button-03">추천</button>
-<button class="tab-link-muted">맛집</button>
-<button class="tab-link-muted">명소</button>
-<button class="tab-link-muted">숙소</button>
-<button class="tab-link-muted">카페</button>
+<div class="strip-scroll-gap6" id="categoryTabs">
+<button class="trip-plan-add-place-button-03 active" data-category="">추천</button>
+<button class="tab-link-muted" data-category="AT4">명소</button>
+<button class="tab-link-muted" data-category="AD5">숙소</button>
 </div>
 </div>
-<div class="trip-plan-add-place-div-07">
-<div class="place-option-card">
-<div class="place-option-thumb">
-<img alt="Place" class="media-cover-zoom110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10"/>
-</div>
-<div class="place-option-content">
-<div>
-<div class="row-between-start">
-<h3 class="text-main-base-strong">협재 해수욕장</h3>
-<span class="tag-surface-xs">명소</span>
-</div>
-<p class="text-sub-xs-truncate-mt1">제주특별자치도 제주시 한림읍 협재리 2497-1</p>
-<div class="inline-row-gap1-mt1">
-<span class="icon-ms-14-yellow-fill">star</span>
-<span class="trip-plan-add-place-span-02">4.8</span>
-<span class="trip-plan-add-place-span-03">(1,240)</span>
-</div>
-</div>
-</div>
-<button class="btn-round-add">
-<span class="icon-ms-xl">add</span>
-</button>
-</div>
-<div class="place-option-card">
-<div class="place-option-thumb">
-<img alt="Place" class="media-cover-zoom110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4ZheqmQogrR8X2-TKdy7R2gqxXEdqGUc9nE2nyWSvokMy9r-n2ev_5V4Qtfbvt3uvfw5M37yadCMfc3GdSlL6yS0aVReS7ul0-_r_mSPPLrWx-ykBrD6lM-jZSuCm3iI9u9ZgjwBmSyN5LjNQwIVwvOYDz7ihdQXhCUp86NU5NUxcdQzH7T0RWWF5k-5Lfs4AILaSfXiNiHiCF7dLyQFAhcbSh1IaXN23mX8_DgNse_PlFHdqYhpU57nuj-g1XAOSJ-MRvZldGqE"/>
-</div>
-<div class="place-option-content">
-<div>
-<div class="row-between-start">
-<h3 class="text-main-base-strong">금능 샌드</h3>
-<span class="tag-surface-xs">맛집</span>
-</div>
-<p class="text-sub-xs-truncate-mt1">제주 제주시 한림읍 금능길 89</p>
-<div class="inline-row-gap1-mt1">
-<span class="icon-ms-14-yellow-fill">star</span>
-<span class="trip-plan-add-place-span-02">4.5</span>
-<span class="trip-plan-add-place-span-03">(328)</span>
-</div>
-</div>
-</div>
-<button class="btn-round-add">
-<span class="icon-ms-xl">add</span>
-</button>
-</div>
-<div class="place-option-card">
-<div class="place-option-thumb">
-<img alt="Place" class="media-cover-zoom110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi2NdRCW1SBlRz6WFyDqfR1zLd53ejViEvcZyYDFQjYmrGYrzFcV9z0Jyw-Y03hP-4c2evLKW5rgxKYjoomo4fSldV2txOYNzb5j8MAnvw-OKB8QXitr4WW6iG2AMlJLvZG_goYesomAN6kOeZHm0Bwfm7HTdqd-HsYauQegt-tRVVBnDsG4sZ4VC7F97MXeYGpYiWb7XBnGf1v_Jdli6jicrrc3Frh1rwpyQhogrwyQtBVi2PNEaFDvhapAGmJ3nk-QTvhK02wuI"/>
-</div>
-<div class="place-option-content">
-<div>
-<div class="row-between-start">
-<h3 class="text-main-base-strong">오설록 티뮤지엄</h3>
-<span class="tag-surface-xs">명소</span>
-</div>
-<p class="text-sub-xs-truncate-mt1">제주 서귀포시 안덕면 신화역사로 15</p>
-<div class="inline-row-gap1-mt1">
-<span class="icon-ms-14-yellow-fill">star</span>
-<span class="trip-plan-add-place-span-02">4.7</span>
-<span class="trip-plan-add-place-span-03">(5,102)</span>
-</div>
-</div>
-</div>
-<button class="btn-round-add">
-<span class="icon-ms-xl">add</span>
-</button>
-</div>
-<div class="place-option-card">
-<div class="place-option-thumb">
-<img alt="Place" class="media-cover-zoom110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZY3yiihf1PeNsnK1KoU1CWgEawVUaLPnAA5adx0jVY1cbN-3-AmzZf4al3a4_FidBlv12tUdTe6ZLfeim-YazKTAlNJhDq3sgRp5kCwa2dKQDvW6hKBH6lmqz0-H_AsX3g66gAfD1tDxz5Q3WltJv5IW03NFYeNh48SqS4ofN_7zxQ2UWVwGwlpPULsermaiEhIkQPjKPbhn3TsvSmtahZw3sou8d5pvL_3VPw6xvGDspu2sMRsvEbR798G2xYvretGtq1Mh0d1E"/>
-</div>
-<div class="place-option-content">
-<div>
-<div class="row-between-start">
-<h3 class="text-main-base-strong">앤트러사이트 한림</h3>
-<span class="tag-surface-xs">카페</span>
-</div>
-<p class="text-sub-xs-truncate-mt1">제주 제주시 한림읍 한림로 564</p>
-<div class="inline-row-gap1-mt1">
-<span class="icon-ms-14-yellow-fill">star</span>
-<span class="trip-plan-add-place-span-02">4.6</span>
-<span class="trip-plan-add-place-span-03">(890)</span>
-</div>
-</div>
-</div>
-<button class="btn-round-add">
-<span class="icon-ms-xl">add</span>
-</button>
-</div>
-<div class="place-option-card">
-<div class="place-option-thumb">
-<img alt="Place" class="media-cover-zoom110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmgkJ_kQZHzXRjsxioVBIQOdy_MHo09_7WmxvHA3VpNv1G0hJpGijsgc8DT520zX0waprIJ95hGmSuAFsB4mx4B84gI_CQ8JaL3KvIusBYqDCJ7TH8oUpH-m8gbMn3eguGYtEPTRKmJnjDHNUDGbH6iUHCGQ93TVjyCYIi48iUMDcykZUrvSZvClj8fNzHjuHDXQLhaf8NVQo6u7Th90EXKKTZo_IUkcT87tLSs7K9Y_Wt5BgGVpP_aJ24C2WwaIMRLv7gP0jfo0w"/>
-</div>
-<div class="place-option-content">
-<div>
-<div class="row-between-start">
-<h3 class="text-main-base-strong">아르떼뮤지엄 제주</h3>
-<span class="tag-surface-xs">명소</span>
-</div>
-<p class="text-sub-xs-truncate-mt1">제주 제주시 애월읍 어림비로 478</p>
-<div class="inline-row-gap1-mt1">
-<span class="icon-ms-14-yellow-fill">star</span>
-<span class="trip-plan-add-place-span-02">4.9</span>
-<span class="trip-plan-add-place-span-03">(3,421)</span>
-</div>
-</div>
-</div>
-<button class="btn-round-add">
-<span class="icon-ms-xl">add</span>
-</button>
-</div>
+<div class="trip-plan-add-place-div-07" id="placeListContainer">
+<!-- 장소 리스트 동적 렌더링 -->
 </div>
 <div class="trip-plan-add-place-div-08">
 <div class="trip-plan-add-place-div-09">
@@ -194,60 +83,30 @@
 </div>
 </div>
 <div class="trip-plan-add-place-div-13">
-<div class="trip-plan-add-place-div-14" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
-<div class="trip-plan-add-place-div-15">
-<button class="trip-plan-add-place-button-06">
+<div class="trip-plan-add-place-div-14" style="position: relative;">
+<div id="tripMap" style="width:100%;height:100%;"></div>
+<div class="trip-plan-add-place-div-15" style="z-index: 2;">
+<button class="trip-plan-add-place-button-06" id="btnMyLocation">
 <span class="icon-ms-xl">my_location</span>
 </button>
 <div class="trip-plan-add-place-div-16">
-<button class="trip-plan-add-place-button-07">
+<button class="trip-plan-add-place-button-07" id="btnZoomIn">
 <span class="icon-ms-xl">add</span>
 </button>
-<button class="trip-plan-add-place-button-08">
+<button class="trip-plan-add-place-button-08" id="btnZoomOut">
 <span class="icon-ms-xl">remove</span>
 </button>
-</div>
-</div>
-<div class="fx-map-pin-f">
-<div class="trip-plan-add-place-div-17">
-                    협재 해수욕장
-                </div>
-<div class="is-relative">
-<span class="icon-ms-5xl-primary-shadow">location_on</span>
-<div class="trip-plan-add-place-div-18">1</div>
-</div>
-</div>
-<div class="fx-map-pin-g">
-<div class="trip-plan-add-place-div-17">
-                    금능 샌드
-                </div>
-<div class="is-relative">
-<span class="icon-ms-5xl-primary-shadow">location_on</span>
-<div class="trip-plan-add-place-div-18">2</div>
-</div>
-</div>
-<div class="fx-map-pin-h">
-<div class="trip-plan-add-place-div-19">
-                    오설록 티뮤지엄
-                </div>
-<div class="trip-plan-add-place-div-20">
-<span class="icon-ms-lg">local_cafe</span>
-</div>
-</div>
-<div class="fx-map-pin-i">
-<div class="trip-plan-add-place-div-19">
-                    아르떼뮤지엄
-                </div>
-<div class="trip-plan-add-place-div-20">
-<span class="icon-ms-lg">museum</span>
 </div>
 </div>
 </div>
 </div>
 </main>
 
-  {{>partials/chatbot}}
   {{>partials/footer}}
+  {{#kakaoMapAppKey}}
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  {{/kakaoMapAppKey}}
+  <script src="/js/trip-add-place.js"></script>
   {{>partials/scripts}}
 </body>
 </html>

@@ -123,8 +123,31 @@ public class TripService {
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
-        // TODO: 단건 조회 + 소유권 검증
-        // TODO: PlanDetailDTO 매핑
-        return null;
+        TripPlan tripPlan = tripRepository.findPlanById(planId)
+                .orElseThrow(() -> new com.example.travel_platform._core.handler.ex.Exception404("해당 여행 계획을 찾을 수 없습니다."));
+
+        if (!tripPlan.getUser().getId().equals(sessionUserId)) {
+            throw new com.example.travel_platform._core.handler.ex.Exception403("권한이 없습니다.");
+        }
+
+        List<TripResponse.PlaceDTO> places = new ArrayList<>();
+        if (tripPlan.getPlaces() != null) {
+            places = tripPlan.getPlaces().stream().map(place -> 
+                TripResponse.PlaceDTO.builder()
+                    .id(place.getId())
+                    .placeName(place.getPlaceName())
+                    .address(place.getAddress())
+                    .dayOrder(place.getDayOrder())
+                    .build()
+            ).toList();
+        }
+
+        return TripResponse.PlanDetailDTO.builder()
+                .id(tripPlan.getId())
+                .title(tripPlan.getTitle())
+                .startDate(tripPlan.getStartDate())
+                .endDate(tripPlan.getEndDate())
+                .places(places)
+                .build();
     }
 }

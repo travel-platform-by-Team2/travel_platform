@@ -14,12 +14,18 @@ import com.example.travel_platform.user.User;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @RequestMapping("/trip")
 @Controller
 public class TripController {
 
     private final TripService tripService;
+    private final String kakaoMapAppKey;
+
+    public TripController(TripService tripService, 
+            @org.springframework.beans.factory.annotation.Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey) {
+        this.tripService = tripService;
+        this.kakaoMapAppKey = kakaoMapAppKey;
+    }
 
     @GetMapping()
     public String tripListPage(@RequestParam(value = "category", defaultValue = "result") String category,
@@ -51,12 +57,31 @@ public class TripController {
     }
 
     @GetMapping("/detail")
-    public String tripDetailPage() {
+    public String tripDetailPage(@RequestParam(value = "id", required = false) Integer id, HttpSession session, Model model) {
+        if (id != null) {
+            User sessionUser = (User) session.getAttribute("sessionUser");
+            if (sessionUser == null) {
+                return "redirect:/login-form";
+            }
+            TripResponse.PlanDetailDTO plan = tripService.getPlanDetail(sessionUser.getId(), id);
+            model.addAttribute("plan", plan);
+        }
         return "pages/trip-detail";
     }
 
     @GetMapping("/place")
-    public String tripAddPlacePage() {
+    public String tripAddPlacePage(@RequestParam(value = "id", required = false) Integer id, HttpSession session, Model model) {
+        model.addAttribute("kakaoMapAppKey", kakaoMapAppKey == null ? "" : kakaoMapAppKey);
+        
+        if (id != null) {
+            User sessionUser = (User) session.getAttribute("sessionUser");
+            if (sessionUser == null) {
+                return "redirect:/login-form";
+            }
+            TripResponse.PlanDetailDTO plan = tripService.getPlanDetail(sessionUser.getId(), id);
+            model.addAttribute("plan", plan);
+        }
+        
         return "pages/trip-add-place";
     }
 }

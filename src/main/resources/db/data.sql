@@ -17,7 +17,7 @@ insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_
 values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', '부산');
 
 insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', '서울');
+values (1, '서울 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', '서울');
      
 -- 여행 장소
 insert into trip_place_tb (trip_plan_id, place_name, address, latitude, longitude, day_order)

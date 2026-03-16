@@ -62,6 +62,13 @@ public class TripResponse {
         private LocalDate startDate;
         private LocalDate endDate;
         private List<PlaceDTO> places;
+
+        public String getFormattedTitle() {
+            if (title == null || title.trim().isEmpty()) {
+                return "여행";
+            }
+            return title.split(" ")[0] + " 여행";
+        }
     }
 
     // 페이징 DTO
