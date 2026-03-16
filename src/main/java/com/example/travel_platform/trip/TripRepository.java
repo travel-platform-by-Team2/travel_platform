@@ -38,7 +38,7 @@ public class TripRepository {
                 select tp
                 from TripPlan tp
                 where tp.user.id = :userId
-                order by tp.startDate asc
+                order by tp.startDate desc
                 """, TripPlan.class)
                 .setParameter("userId", userId)
                 .setFirstResult(offset)

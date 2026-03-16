@@ -100,9 +100,19 @@ style="background-image: url('{{imgUrl}}');"></div>
   </a>
   {{/pageDTO.hasPrev}}
 
-  <button class="trip-plan-list-button-03" type="button">
-    {{pageDTO.displayPage}}
-  </button>
+  {{#pageDTO.pageNumbers}}
+    {{#current}}
+    <button class="trip-plan-list-button-03 active" type="button">
+      {{displayPage}}
+    </button>
+    {{/current}}
+
+    {{^current}}
+    <a class="trip-plan-list-button-03 inactive" href="/trip?category={{category}}&page={{page}}">
+      {{displayPage}}
+    </a>
+    {{/current}}
+  {{/pageDTO.pageNumbers}}
 
   {{#pageDTO.hasNext}}
   <a class="icon-btn-surface" href="/trip?category={{category}}&page={{pageDTO.nextPage}}">

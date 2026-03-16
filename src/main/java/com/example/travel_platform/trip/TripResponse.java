@@ -3,6 +3,7 @@ package com.example.travel_platform.trip;
 import java.time.LocalDate;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,6 +23,10 @@ public class TripResponse {
         private boolean hasNext;
         private int prevPage;
         private int nextPage;
+        private int startPage;
+        private int endPage;
+        private List<PageNumberDTO> pageNumbers;
+        private String category;
     }
 
     // 여행 계획 목록 아이템 응답 DTO
@@ -57,5 +62,14 @@ public class TripResponse {
         private LocalDate startDate;
         private LocalDate endDate;
         private List<PlaceDTO> places;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class PageNumberDTO {
+        private int page;
+        private int displayPage;
+        private boolean current;
     }
 }

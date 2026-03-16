@@ -32,8 +32,9 @@ public class TripService {
     }
 
     public TripResponse.PlanListPageDTO getPlanList(Integer userId, String category, int page) {
-        int size = 9;
+        int size = 10;
         int offset = page * size;
+        int blockSize = 10;
         LocalDate today = LocalDate.now();
 
         List<TripPlan> tripPlans;
@@ -85,6 +86,24 @@ public class TripService {
 
         int totalPage = (int) Math.ceil((double) totalCount / size);
 
+        int startPage = (page / blockSize) * blockSize;
+        int endPage = startPage + blockSize - 1;
+
+        if (endPage >= totalPage) {
+            endPage = totalPage - 1;
+        }
+
+        List<TripResponse.PageNumberDTO> pageNumbers = new ArrayList<>();
+        for (int i = startPage; i <= endPage; i++) {
+            pageNumbers.add(new TripResponse.PageNumberDTO(i, i + 1, i == page));
+        }
+
+        boolean hasPrev = startPage > 0;
+        boolean hasNext = endPage < totalPage - 1;
+
+        int prevPage = startPage - 1;
+        int nextPage = endPage + 1;
+
         return TripResponse.PlanListPageDTO.builder()
                 .plans(result)
                 .currentPage(page)
@@ -92,10 +111,14 @@ public class TripService {
                 .size(size)
                 .totalCount(totalCount)
                 .totalPage(totalPage)
-                .hasPrev(page > 0)
-                .hasNext(page < totalPage - 1)
-                .prevPage(page - 1)
-                .nextPage(page + 1)
+                .hasPrev(hasPrev)
+                .hasNext(hasNext)
+                .prevPage(prevPage)
+                .nextPage(nextPage)
+                .pageNumbers(pageNumbers)
+                .startPage(startPage)
+                .endPage(endPage)
+                .category(category)
                 .build();
     }
 
