@@ -16,7 +16,11 @@ public class TripRepository {
     private final EntityManager em;
 
     public TripPlan savePlan(TripPlan tripPlan) {
-        // TODO: 저장 전략 확정 후 persist/merge 처리
+        if (tripPlan.getId() == null) {
+            em.persist(tripPlan);
+        } else {
+            em.merge(tripPlan);
+        }
         return tripPlan;
     }
 
