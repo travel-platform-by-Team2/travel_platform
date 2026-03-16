@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class TripService {
 
     private final TripRepository tripRepository;
+    private static final String NotImg = "/images/dumimg.jpg";
 
     @Transactional
     public void createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
@@ -54,10 +55,15 @@ public class TripService {
         List<TripResponse.PlanSummaryDTO> result = new ArrayList<>();
 
         for (TripPlan tripPlan : tripPlans) {
-            String placeName = "장소 확인 안됨";
+            String region = RegionLabel(tripPlan.getRegion());
 
-            if (tripPlan.getRegion() != null && !tripPlan.getRegion().isBlank()) {
-                placeName = tripPlan.getRegion();
+            if (region == null || region.isBlank()) {
+                region = "지역 정보 없음";
+            }
+
+            String imageUrl = tripPlan.getImgUrl();
+            if (imageUrl == null || imageUrl.isBlank()) {
+                imageUrl = NotImg;
             }
 
             long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
@@ -73,10 +79,10 @@ public class TripService {
             TripResponse.PlanSummaryDTO dto = TripResponse.PlanSummaryDTO.builder()
                     .id(tripPlan.getId())
                     .title(tripPlan.getTitle())
-                    .imgUrl(tripPlan.getImgUrl())
+                    .imgUrl(imageUrl)
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
-                    .placeName(placeName)
+                    .placeName(region)
                     .dDay(dDay)
                     .disabled(disabled)
                     .build();
@@ -120,6 +126,34 @@ public class TripService {
                 .endPage(endPage)
                 .category(category)
                 .build();
+    }
+
+    // 지역 영어 db 한글로 출력
+    private String RegionLabel(String region) {
+        if (region == null || region.isBlank()) {
+            return "지역 정보 없음";
+        }
+
+        return switch (region) {
+            case "seoul" -> "서울특별시";
+            case "busan" -> "부산광역시";
+            case "daegu" -> "대구광역시";
+            case "incheon" -> "인천광역시";
+            case "gwangju" -> "광주광역시";
+            case "daejeon" -> "대전광역시";
+            case "ulsan" -> "울산광역시";
+            case "sejong" -> "세종특별자치시";
+            case "gyeonggi" -> "경기도";
+            case "gangwon" -> "강원특별자치도";
+            case "chungbuk" -> "충청북도";
+            case "chungnam" -> "충청남도";
+            case "jeonbuk" -> "전라북도";
+            case "jeonnam" -> "전라남도";
+            case "gyeongbuk" -> "경상북도";
+            case "gyeongnam" -> "경상남도";
+            case "jeju" -> "제주특별자치도";
+            default -> region;
+        };
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
