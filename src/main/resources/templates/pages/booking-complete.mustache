@@ -72,14 +72,35 @@
 <span class="mr-2-fixed">💡</span>예약 정보는 자동으로 여행 계획과 캘린더에 등록되었습니다.
         </p>
 <div class="booking-complete-div-15">
-<button class="booking-complete-button-01">
-<span class="icon-ms-20">map</span>
-                여행 계획 보기
-            </button>
-<button class="booking-complete-button-02">
-<span class="icon-ms-20">calendar_month</span>
-                캘린더 확인하기
-            </button>
+  <form action="/trip" method="get" style="display: inline-block; margin: 0;">
+    <input type="hidden" name="regionKey" value="{{regionKey}}"/>
+    <input type="hidden" name="region" value="{{region}}"/>
+    <input type="hidden" name="lodgingName" value="{{lodgingName}}"/>
+    <input type="hidden" name="checkIn" value="{{checkIn}}"/>
+    <input type="hidden" name="checkOut" value="{{checkOut}}"/>
+    <input type="hidden" name="guests" value="{{guests}}"/>
+    <input type="hidden" name="bookingNumber" value="{{bookingNumber}}"/>
+    <input type="hidden" name="totalPriceText" value="{{totalPriceText}}"/>
+    <button class="booking-complete-button-01" type="submit">
+      <span class="icon-ms-20">map</span>
+      여행 계획 보기
+    </button>
+  </form>
+
+  <form action="/calendar" method="get" style="display: inline-block; margin: 0;">
+    <input type="hidden" name="regionKey" value="{{regionKey}}"/>
+    <input type="hidden" name="region" value="{{region}}"/>
+    <input type="hidden" name="lodgingName" value="{{lodgingName}}"/>
+    <input type="hidden" name="checkIn" value="{{checkIn}}"/>
+    <input type="hidden" name="checkOut" value="{{checkOut}}"/>
+    <input type="hidden" name="guests" value="{{guests}}"/>
+    <input type="hidden" name="bookingNumber" value="{{bookingNumber}}"/>
+    <input type="hidden" name="totalPriceText" value="{{totalPriceText}}"/>
+    <button class="booking-complete-button-02" type="submit">
+      <span class="icon-ms-20">calendar_month</span>
+      캘린더 확인하기
+    </button>
+  </form>
 </div>
 <div class="mt-6">
 <a class="fx-group-link-muted" href="/bookings/map-detail?region={{regionKey}}&checkIn={{checkIn}}&checkOut={{checkOut}}&guests={{guests}}">

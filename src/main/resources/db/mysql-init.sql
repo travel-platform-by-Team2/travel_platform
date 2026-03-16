@@ -111,6 +111,7 @@ create table booking_tb (
   check_out date not null,
   guest_count int not null,
   total_price int not null,
+  image_url text,
   created_at datetime not null default current_timestamp,
   constraint fk_booking_user foreign key (user_id) references user_tb(id),
   constraint fk_booking_plan foreign key (trip_plan_id) references trip_plan_tb(id)
