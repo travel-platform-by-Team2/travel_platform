@@ -24,14 +24,20 @@ public class BookingController {
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
     private final String kakaoMapAppKey;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final com.example.travel_platform.trip.TripRepository tripRepository;
     private final HttpSession session;
 
     public BookingController(
             @Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey,
             UserRepository userRepository,
+            BookingRepository bookingRepository,
+            com.example.travel_platform.trip.TripRepository tripRepository,
             HttpSession session) {
         this.kakaoMapAppKey = kakaoMapAppKey;
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
+        this.tripRepository = tripRepository;
         this.session = session;
     }
 
@@ -72,20 +78,23 @@ public class BookingController {
         model.addAttribute("roomSubtotalText", String.format("%,d원", roomSubtotal));
         model.addAttribute("feeText", String.format("%,d원", feeSubtotal));
         model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
+        model.addAttribute("totalPriceRaw", totalPrice);
 
         User sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             User user = userRepository.findById(sessionUser.getId()).orElse(sessionUser);
             model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
             model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
+            model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
         } else {
             model.addAttribute("bookerName", "");
             model.addAttribute("bookerEmail", "");
+            model.addAttribute("bookerPhone", "");
         }
-        model.addAttribute("bookerPhone", "");
         return "pages/booking-checkout";
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @GetMapping("/complete")
     public String completePage(
             @RequestParam(value = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
@@ -94,8 +103,52 @@ public class BookingController {
             @RequestParam(value = "checkIn", required = false, defaultValue = "") String checkIn,
             @RequestParam(value = "checkOut", required = false, defaultValue = "") String checkOut,
             @RequestParam(value = "totalPriceText", required = false, defaultValue = "") String totalPriceText,
+            @RequestParam(value = "totalPriceRaw", required = false) Integer totalPriceRaw,
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
             Model model) {
+
+        User sessionUser = resolveSessionUser();
+        if (sessionUser != null) {
+            // DB에서 유저를 다시 조회하여 영속 상태로 만듦
+            User user = userRepository.findById(sessionUser.getId()).orElse(sessionUser);
+            
+            // Save to DB
+            Booking booking = new Booking();
+            booking.setUser(user);
+            
+            // Find or create a default trip plan if none exists for the user
+            var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
+            com.example.travel_platform.trip.TripPlan plan = null;
+            if (!plans.isEmpty()) {
+                plan = plans.get(0);
+            } else {
+                // Dummy plan for consistency if user has no plans
+                plan = new com.example.travel_platform.trip.TripPlan();
+                plan.setUser(user);
+                plan.setTitle("나의 여행 계획");
+                plan.setStartDate(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
+                plan.setEndDate(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
+                plan.setImgUrl(imageUrl == null || imageUrl.isBlank() ? "" : imageUrl);
+                plan = tripRepository.savePlan(plan);
+            }
+            
+            booking.setTripPlan(plan);
+            booking.setLodgingName(lodgingName);
+            booking.setCheckIn(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
+            booking.setCheckOut(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
+            
+            // Extract guest count from string (e.g., "성인 2명" -> 2)
+            int guestCount = 2;
+            try {
+                guestCount = Integer.parseInt(guests.replaceAll("[^0-9]", ""));
+            } catch (Exception e) {}
+            booking.setGuestCount(guestCount);
+            
+            booking.setTotalPrice(totalPriceRaw == null ? 0 : totalPriceRaw);
+            booking.setImageUrl(imageUrl);
+            
+            bookingRepository.save(booking);
+        }
 
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
         String safeTotalPriceText = (totalPriceText == null || totalPriceText.isBlank()) ? "0원" : totalPriceText;

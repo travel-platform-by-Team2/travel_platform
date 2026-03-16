@@ -50,6 +50,43 @@
   window.TRAVEL_PLATFORM.REGION_VIEW = REGION_VIEW;
   window.TRAVEL_PLATFORM.REGION_KEYWORDS = REGION_KEYWORDS;
 
+  function formatLocalDateISO(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
+  function initDateMinConstraints() {
+    var today = formatLocalDateISO(new Date());
+    var startDateEl = document.getElementById("mapStartDate");
+    var endDateEl = document.getElementById("mapEndDate");
+
+    if (startDateEl) {
+      startDateEl.min = today;
+      if (startDateEl.value && startDateEl.value < today) {
+        startDateEl.value = today;
+      }
+    }
+
+    if (endDateEl) {
+      endDateEl.min = today;
+      if (endDateEl.value && endDateEl.value < today) {
+        endDateEl.value = today;
+      }
+    }
+
+    if (startDateEl && endDateEl) {
+      startDateEl.addEventListener("change", function () {
+        var minEnd = startDateEl.value && startDateEl.value > today ? startDateEl.value : today;
+        endDateEl.min = minEnd;
+        if (endDateEl.value && endDateEl.value < minEnd) {
+          endDateEl.value = minEnd;
+        }
+      });
+    }
+  }
+
   function applySearchParamsFromUrl() {
     var params = new URLSearchParams(window.location.search || "");
     var regionSelect = document.getElementById("mapRegion");
@@ -128,6 +165,7 @@
             nearbyById: {},
             focusOverlay: null
           };
+          CURRENT_MAP_STATE = state;
 
           initializeResultPanel(state);
           bindViewportSync(state);
@@ -756,7 +794,19 @@
   function renderOverlays(state) {
     clearOverlays(state);
 
-    state.items.forEach(function (item) {
+    // Load price filter from URL
+    var params = new URLSearchParams(window.location.search);
+    var minPrice = parseInt(params.get("priceMin")) || 0;
+    var maxPrice = parseInt(params.get("priceMax")) || Infinity;
+
+    var filteredItems = state.items.filter(function (item) {
+      if (item.type !== "hotel") return true; // 관광지는 그대로 표시 (원할 경우 관광지도 필터 가능)
+      
+      var pricing = getPricing(item, 1);
+      return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
+    });
+
+    filteredItems.forEach(function (item) {
       var position = new kakao.maps.LatLng(item.lat, item.lng);
       var node = createPoiMarkerNode(item);
       var overlay = new kakao.maps.CustomOverlay({
@@ -844,12 +894,20 @@
     setResultPanelExpanded(true);
     container.hidden = false;
 
+    // Load price filter from URL
+    var params = new URLSearchParams(window.location.search);
+    var minPrice = parseInt(params.get("priceMin")) || 0;
+    var maxPrice = parseInt(params.get("priceMax")) || Infinity;
+
     var listItems = state.items.filter(function (item) {
-      return item.type === "hotel";
+      if (item.type !== "hotel") return false;
+      
+      var pricing = getPricing(item, 1); // Get 1-night price for filtering
+      return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
     });
 
     if (!listItems.length) {
-      container.innerHTML = '<div class="panel-muted-center-sm">현재 지도 영역에 검색 결과가 없습니다.</div>';
+      container.innerHTML = '<div class="panel-muted-center-sm">현재 설정된 가격 범위 내 숙소가 없습니다.</div>';
       updateResultCount(0);
       return;
     }
@@ -1416,19 +1474,226 @@
     });
   }
 
+  var CURRENT_MAP_STATE = null;
+
+  function initPriceRangeSheet() {
+    var toggleButton = document.querySelector("[data-price-range-toggle]");
+    var sheet = document.querySelector("[data-price-range-sheet]");
+    var backdrop = document.querySelector("[data-price-range-backdrop]");
+
+    if (!toggleButton || !sheet || !backdrop) {
+      return;
+    }
+
+    var labelEl = toggleButton.querySelector("[data-price-range-label]");
+    var closeButton = sheet.querySelector("[data-price-range-close]");
+    var applyButton = sheet.querySelector("[data-price-range-apply]");
+    var clearButton = sheet.querySelector("[data-price-range-clear]");
+    var minInput = sheet.querySelector("#priceMin");
+    var maxInput = sheet.querySelector("#priceMax");
+    var minLabel = sheet.querySelector("#priceMinLabel");
+    var maxLabel = sheet.querySelector("#priceMaxLabel");
+    var sliderRange = sheet.querySelector("#priceSliderRange");
+
+    var defaultLabelText = labelEl ? labelEl.textContent : toggleButton.textContent;
+    var storageKey = "travel_platform_price_range_v1";
+
+    function updateSliderUI() {
+      var min = parseInt(minInput.value);
+      var max = parseInt(maxInput.value);
+
+      if (min > max - 50000) {
+        if (event && event.target === minInput) {
+          minInput.value = max - 50000;
+          min = max - 50000;
+        } else {
+          maxInput.value = min + 50000;
+          max = min + 50000;
+        }
+      }
+
+      var minPercent = (min / minInput.max) * 100;
+      var maxPercent = (max / maxInput.max) * 100;
+
+      sliderRange.style.left = minPercent + "%";
+      sliderRange.style.width = (maxPercent - minPercent) + "%";
+
+      if (minLabel) minLabel.textContent = (min / 10000) + "만원";
+      if (maxLabel) maxLabel.textContent = max >= 1000000 ? "100만원+" : (max / 10000) + "만원";
+    }
+
+    function getRangeFromInputs() {
+      return {
+        min: parseInt(minInput.value),
+        max: parseInt(maxInput.value) >= 1000000 ? null : parseInt(maxInput.value)
+      };
+    }
+
+    function setInputs(range) {
+      minInput.value = range && range.min != null ? String(range.min) : "0";
+      maxInput.value = range && range.max != null ? String(range.max) : "1000000";
+      updateSliderUI();
+    }
+
+    function updateUrlParams(range) {
+      var url = new URL(window.location.href);
+      var params = url.searchParams;
+
+      if (!range || range.min == null || range.min === 0) {
+        params.delete("priceMin");
+      } else {
+        params.set("priceMin", String(range.min));
+      }
+
+      if (!range || range.max == null) {
+        params.delete("priceMax");
+      } else {
+        params.set("priceMax", String(range.max));
+      }
+
+      var qs = params.toString();
+      var next = url.pathname + (qs ? "?" + qs : "") + url.hash;
+      window.history.replaceState(null, "", next);
+    }
+
+    function rangeToLabel(range) {
+      if (!range || (range.min <= 0 && range.max == null)) {
+        return defaultLabelText;
+      }
+      var minWon = range.min ? (range.min / 10000) + "만" : "0";
+      var maxWon = range.max ? (range.max / 10000) + "만" : "제한없음";
+      return "가격: " + minWon + "~" + maxWon;
+    }
+
+    function setButtonLabel(range) {
+      if (labelEl) {
+        labelEl.textContent = rangeToLabel(range);
+      }
+    }
+
+    function saveRange(range) {
+      if (!range || (range.min <= 0 && range.max == null)) {
+        localStorage.removeItem(storageKey);
+      } else {
+        localStorage.setItem(storageKey, JSON.stringify(range));
+      }
+    }
+
+    function loadRange() {
+      var params = new URLSearchParams(window.location.search);
+      var min = params.get("priceMin");
+      var max = params.get("priceMax");
+      if (min !== null || max !== null) {
+        return { min: parseInt(min) || 0, max: max === null ? null : parseInt(max) };
+      }
+      try {
+        var raw = localStorage.getItem(storageKey);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    function setOpen(open) {
+      sheet.hidden = !open;
+      backdrop.hidden = !open;
+      toggleButton.setAttribute("aria-expanded", String(open));
+
+      if (open) {
+        var buttonRect = toggleButton.getBoundingClientRect();
+        var container = document.querySelector(".map-detail-div-01");
+        var containerRect = container.getBoundingClientRect();
+
+        var top = buttonRect.bottom - containerRect.top + 8;
+        var left = buttonRect.left - containerRect.left;
+
+        var sheetWidth = 320;
+        if (left + sheetWidth > containerRect.width) {
+          left = containerRect.width - sheetWidth - 16;
+        }
+
+        sheet.style.top = top + "px";
+        sheet.style.left = Math.max(16, left) + "px";
+        sheet.style.right = "auto";
+      }
+    }
+
+    minInput.addEventListener("input", updateSliderUI);
+    maxInput.addEventListener("input", updateSliderUI);
+
+    var initialRange = loadRange();
+    setInputs(initialRange);
+    setButtonLabel(initialRange);
+
+    toggleButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      setOpen(sheet.hidden);
+    });
+
+    backdrop.addEventListener("click", function (event) {
+      event.preventDefault();
+      setOpen(false);
+    });
+
+    if (closeButton) {
+      closeButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        setOpen(false);
+      });
+    }
+
+    if (clearButton) {
+      clearButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        setInputs(null);
+        saveRange(null);
+        updateUrlParams(null);
+        setButtonLabel(null);
+        setOpen(false);
+        if (CURRENT_MAP_STATE) {
+          renderList(CURRENT_MAP_STATE);
+          renderOverlays(CURRENT_MAP_STATE);
+        }
+      });
+    }
+
+    if (applyButton) {
+      applyButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        var range = getRangeFromInputs();
+        saveRange(range);
+        updateUrlParams(range);
+        setButtonLabel(range);
+        setOpen(false);
+        if (CURRENT_MAP_STATE) {
+          renderList(CURRENT_MAP_STATE);
+          renderOverlays(CURRENT_MAP_STATE);
+        }
+      });
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !sheet.hidden) {
+        setOpen(false);
+      }
+    });
+  }
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
+      initDateMinConstraints();
       applySearchParamsFromUrl();
       initKakaoMap();
       initMapDetailPanelToggle();
       initMapPoiPanelToggle();
+      initPriceRangeSheet();
       initMapDragScroll();
     });
   } else {
+    initDateMinConstraints();
     applySearchParamsFromUrl();
     initKakaoMap();
     initMapDetailPanelToggle();
     initMapPoiPanelToggle();
+    initPriceRangeSheet();
     initMapDragScroll();
   }
 })();

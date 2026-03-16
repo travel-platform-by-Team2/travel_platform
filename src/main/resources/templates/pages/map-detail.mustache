@@ -270,6 +270,169 @@
         max-width: calc(100vw - 5.25rem);
       }
     }
+
+    .map-detail-div-01 {
+      position: relative;
+      z-index: 20;
+    }
+
+    .price-range-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+      z-index: 300;
+    }
+
+    .price-range-sheet {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 1.5rem;
+      width: 320px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.15);
+      z-index: 301;
+    }
+
+    /* 가격 슬라이더 스타일 */
+    .price-slider-container {
+      position: relative;
+      width: 100%;
+      height: 32px;
+      margin: 1.25rem 0 0.5rem;
+    }
+    .price-slider-track {
+      position: absolute;
+      width: 100%;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .price-slider-range {
+      position: absolute;
+      height: 4px;
+      background: #2563eb;
+      border-radius: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .price-slider-input {
+      position: absolute;
+      width: 100%;
+      background: none;
+      pointer-events: none;
+      appearance: none;
+      -webkit-appearance: none;
+      top: 50%;
+      transform: translateY(-50%);
+      margin: 0;
+    }
+    .price-slider-input::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #2563eb;
+      pointer-events: auto;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .price-slider-input::-moz-range-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #2563eb;
+      pointer-events: auto;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .price-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #1e293b;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+
+    .price-range-sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .price-range-sheet-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+
+    .price-range-sheet-close {
+      border: 0;
+      background: transparent;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    .price-range-sheet-close:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .price-range-sheet-desc {
+      margin: 0 0 0.875rem;
+      color: #64748b;
+      font-size: 0.9rem;
+      line-height: 1.35rem;
+    }
+
+    .price-range-sheet-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.95rem;
+    }
+
+    .price-range-sheet-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 520px) {
+      .price-range-sheet-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .price-range-sheet-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .price-range-sheet-actions .pill-neutral,
+    .price-range-sheet-actions .fx-group-cta-primary {
+      height: 2.5rem;
+    }
   </style>
 </head>
 <body class="page-body-screen-neutral-hidden map-detail-page">
@@ -310,7 +473,7 @@
 <label class="map-detail-search-label" for="mapStartDate">가는 날</label>
 <div class="map-detail-search-control">
 <span class="map-detail-search-icon-left icon-ms-18">calendar_today</span>
-<input class="map-detail-search-input" id="mapStartDate" type="date" value="2025-11-15" required/>
+<input class="map-detail-search-input" id="mapStartDate" type="date" required/>
 <span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
 </div>
 </div>
@@ -318,7 +481,7 @@
 <label class="map-detail-search-label" for="mapEndDate">오는 날</label>
 <div class="map-detail-search-control">
 <span class="map-detail-search-icon-left icon-ms-18">event</span>
-<input class="map-detail-search-input" id="mapEndDate" type="date" value="2025-11-18" required/>
+<input class="map-detail-search-input" id="mapEndDate" type="date" required/>
 <span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
 </div>
 </div>
@@ -358,21 +521,39 @@
                     관광지
                 </button>
 <div class="map-detail-div-05"></div>
-<button class="pill-neutral">
-                    가격 범위
-                    <span class="icon-ms-14">expand_more</span>
-</button>
-<button class="pill-neutral">
-                    평점
-                    <span class="icon-ms-14">expand_more</span>
-</button>
-<button class="pill-neutral">
-                    필터 더보기
-                    <span class="icon-ms-14">tune</span>
+<button class="pill-neutral" type="button" data-price-range-toggle aria-controls="priceRangeSheet" aria-expanded="false">
+  <span data-price-range-label>가격 범위</span>
+  <span class="icon-ms-14">expand_more</span>
 </button>
 </div>
 </div>
 </div>
+
+<div class="price-range-sheet-backdrop" data-price-range-backdrop hidden></div>
+<section class="price-range-sheet" id="priceRangeSheet" data-price-range-sheet hidden aria-label="가격 범위 설정">
+  <div class="price-range-sheet-header">
+    <h3 class="price-range-sheet-title">가격 범위 (1박 기준)</h3>
+    <button class="price-range-sheet-close" type="button" data-price-range-close aria-label="닫기">
+      <span class="icon-ms-20">close</span>
+    </button>
+  </div>
+
+  <div class="price-slider-container">
+    <div class="price-slider-track"></div>
+    <div class="price-slider-range" id="priceSliderRange"></div>
+    <input type="range" class="price-slider-input" id="priceMin" min="0" max="1000000" step="10000" value="0">
+    <input type="range" class="price-slider-input" id="priceMax" min="0" max="1000000" step="10000" value="1000000">
+  </div>
+  <div class="price-display">
+    <span id="priceMinLabel">0원</span>
+    <span id="priceMaxLabel">100만원+</span>
+  </div>
+
+  <div class="price-range-sheet-actions">
+    <button type="button" class="pill-neutral" data-price-range-clear>초기화</button>
+    <button type="button" class="fx-group-cta-primary" data-price-range-apply>적용</button>
+  </div>
+</section>
 <main class="map-detail-main-01">
 <aside class="map-detail-aside-01" id="mapResultPanel" data-map-result-panel hidden>
 <div class="map-detail-div-06">
@@ -486,22 +667,7 @@
 <div class="map-detail-div-11" data-alt="Map of Busan area" data-location="Busan">
 <div id="kakaoMap"></div>
 </div>
-<div class="map-detail-div-22">
-<button class="map-detail-button-04">
-<span class="icon-ms-20-block">layers</span>
-</button>
-<button class="map-detail-button-05">
-<span class="icon-ms-20-block">my_location</span>
-</button>
-<div class="map-detail-div-23">
-<button class="map-detail-button-06">
-<span class="icon-ms-20-block">add</span>
-</button>
-<button class="map-detail-button-07">
-<span class="icon-ms-20-block">remove</span>
-</button>
-</div>
-</div></div>
+  </div></div>
   {{>partials/map-poi-side-sheet}}
 </main>
 
