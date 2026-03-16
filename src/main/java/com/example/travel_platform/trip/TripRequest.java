@@ -10,6 +10,7 @@ public class TripRequest {
     @Data
     public static class CreatePlanDTO {
         private String title;
+        private String region;
         private LocalDate startDate;
         private LocalDate endDate;
     }

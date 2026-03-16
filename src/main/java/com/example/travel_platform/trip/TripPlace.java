@@ -46,4 +46,5 @@ public class TripPlace {
 
     @Column(name = "day_order", nullable = false)
     private Integer dayOrder;
+
 }

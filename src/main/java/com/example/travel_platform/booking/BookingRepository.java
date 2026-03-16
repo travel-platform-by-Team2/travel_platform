@@ -15,7 +15,11 @@ public class BookingRepository {
     private final EntityManager em;
 
     public Booking save(Booking booking) {
-        // TODO: 예약 저장 처리
+        if (booking.getId() == null) {
+            em.persist(booking);
+        } else {
+            em.merge(booking);
+        }
         return booking;
     }
 
