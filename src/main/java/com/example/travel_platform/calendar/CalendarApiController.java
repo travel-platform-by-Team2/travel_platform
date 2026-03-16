@@ -31,7 +31,8 @@ public class CalendarApiController {
     }
 
     @PutMapping("/update/{eventId}")
-    public void updateEvent(@PathVariable("eventId") Integer eventId, @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
+    public void updateEvent(@PathVariable("eventId") Integer eventId,
+            @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
         Integer userId = resolveUserId();
         calendarService.updateEvent(userId, eventId, reqDTO);
     }
@@ -42,11 +43,11 @@ public class CalendarApiController {
     }
 
     @GetMapping
-    public Object getCalendar(@RequestParam(name = "startDate", required = false) LocalDate startDate,
-            @RequestParam(name = "endDate", required = false) LocalDate endDate,
-            @RequestParam(name = "year", required = false) Integer year,
-            @RequestParam(name = "month", required = false) Integer month,
-            @RequestParam(name = "date", required = false) LocalDate date) {
+    public Object getCalendar(@RequestParam(value = "startDate", required = false) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) LocalDate endDate,
+            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "date", required = false) LocalDate date) {
 
         Integer sessionUserId = resolveUserId();
 

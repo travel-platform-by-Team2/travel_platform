@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  var CALENDAR_MEMO_MAX_LENGTH = 500;
   var selectedDate = "";
   var cachedEvents = [];
   var currentMonthDate = new Date();
@@ -13,14 +14,25 @@
     var panel = root.querySelector("[data-calendar-event-panel]");
     var closeButtons = root.querySelectorAll("[data-calendar-event-close]");
     var saveButton = root.querySelector("[data-calendar-event-save]");
-    var deleteButton = document.querySelector("[data-calendar-event-delete]");
-    var deleteAction = document.querySelector("[data-calendar-event-action]");
+    var deleteButton = panel.querySelector("[data-calendar-event-delete]");
+    var deleteAction = panel.querySelector("[data-calendar-event-action]");
+    var startDateWrap = panel.querySelector("[data-calendar-start-date-wrap]");
+    var endDateWrap = panel.querySelector("[data-calendar-end-date-wrap]");
+    var startDateField = panel.querySelector("[data-calendar-start-date]");
+    var endDateField = panel.querySelector("[data-calendar-end-date]");
+    var startTimeWrap = panel.querySelector("[data-calendar-start-time-wrap]");
+    var endTimeWrap = panel.querySelector("[data-calendar-end-time-wrap]");
+    var startTimeField = panel.querySelector("[data-calendar-start-time]");
+    var endTimeField = panel.querySelector("[data-calendar-end-time]");
+    var memoField = panel.querySelector("[data-calendar-memo]");
+    var memoGuide = panel.querySelector("[data-calendar-memo-guide]");
     var prevMonthButton = document.querySelector("[data-calendar-prev-month]");
     var nextMonthButton = document.querySelector("[data-calendar-next-month]");
     if (!openButton || !panel) return;
 
     var fields = panel.querySelectorAll("input, textarea, select");
     var initialState = new Map();
+    var hasShownMemoLimitAlert = false;
     fields.forEach(function (field) {
       if (field.type === "checkbox" || field.type === "radio") {
         initialState.set(field, field.checked);
@@ -38,9 +50,36 @@
           field.value = value;
         }
       });
+      updateMemoGuide();
+      hasShownMemoLimitAlert = false;
+    }
+
+    function updateMemoGuide() {
+      if (!memoGuide || !memoField) return;
+      memoGuide.textContent = memoField.value.length + " / " + CALENDAR_MEMO_MAX_LENGTH;
+    }
+
+    function handleMemoInput() {
+      if (!memoField) return;
+      updateMemoGuide();
+      if (memoField.value.length >= CALENDAR_MEMO_MAX_LENGTH) {
+        if (!hasShownMemoLimitAlert) {
+          alert("메모는 공백 포함 500자까지 입력할 수 있습니다.");
+          hasShownMemoLimitAlert = true;
+        }
+        return;
+      }
+      hasShownMemoLimitAlert = false;
+    }
+
+    function getDefaultFormDate() {
+      return dateFromYmd(selectedDate) || currentMonthDate || new Date();
     }
 
     function openPanel() {
+      if (!currentEditId) {
+        syncDefaultFormDate(getDefaultFormDate());
+      }
       panel.hidden = false;
       openButton.setAttribute("aria-expanded", "true");
       var firstField = panel.querySelector("input, textarea, select");
@@ -83,6 +122,40 @@
       var timeText = (timeValue || "00:00").trim();
       if (timeText.length === 4) timeText = "0" + timeText;
       return dateText + "T" + timeText + ":00";
+    }
+
+    function bindDatePickerOpen(wrapper, input) {
+      if (!wrapper || !input) return;
+      function openDatePicker(event) {
+        if (event) {
+          event.preventDefault();
+        }
+        if (typeof input.showPicker === "function") {
+          input.showPicker();
+          return;
+        }
+        input.focus();
+      }
+
+      wrapper.addEventListener("pointerdown", openDatePicker);
+      input.addEventListener("pointerdown", openDatePicker);
+    }
+
+    function bindTimePickerOpen(wrapper, input) {
+      if (!wrapper || !input) return;
+      function openTimePicker(event) {
+        if (event) {
+          event.preventDefault();
+        }
+        if (typeof input.showPicker === "function") {
+          input.showPicker();
+          return;
+        }
+        input.focus();
+      }
+
+      wrapper.addEventListener("pointerdown", openTimePicker);
+      input.addEventListener("pointerdown", openTimePicker);
     }
 
     function parseYearMonthFromDate(value) {
@@ -224,10 +297,7 @@
 
     function formatDateInput(value) {
       if (!value) return "";
-      var datePart = value.split("T")[0];
-      var parts = datePart.split("-");
-      if (parts.length !== 3) return datePart;
-      return parts[0] + ". " + parts[1] + ". " + parts[2];
+      return value.split("T")[0];
     }
 
     function formatTimeInput(value) {
@@ -278,6 +348,8 @@
       if (memoInput) {
         memoInput.value = event.memo || "";
       }
+      updateMemoGuide();
+      hasShownMemoLimitAlert = memoInput ? memoInput.value.length >= CALENDAR_MEMO_MAX_LENGTH : false;
       openPanel();
       setEditMode(event.id);
     }
@@ -331,7 +403,8 @@
     }
 
     function syncDefaultFormDate(date) {
-      var dateText = date.getFullYear() + ". " + String(date.getMonth() + 1).padStart(2, "0") + ". " + String(date.getDate()).padStart(2, "0");
+      if (!date) return;
+      var dateText = ymdFromDate(date);
       var startDateInput = panel.querySelector("[data-calendar-start-date]");
       var endDateInput = panel.querySelector("[data-calendar-end-date]");
       if (startDateInput) startDateInput.value = dateText;
@@ -343,7 +416,8 @@
       setMonthTitle(currentMonthDate);
       buildCalendarGrid(currentMonthDate);
       if (shouldSyncFormDate) {
-        syncDefaultFormDate(currentMonthDate);
+        syncDefaultFormDate(getDefaultFormDate());
+
       }
       return fetchEventList();
     }
@@ -370,7 +444,7 @@
         .then(function (data) {
           cachedEvents = Array.isArray(data) ? data : data.events || [];
           renderEventsOnGrid(cachedEvents);
-          renderSelectedDate(renderEventList);
+          renderSelectedDate(renderEventList, applyEventToForm);
           return cachedEvents;
         })
         .catch(function () {
@@ -398,6 +472,11 @@
 
       if (!payload.title || !payload.startAt || !payload.endAt) {
         alert("일정 제목과 일시를 입력해주세요.");
+        return;
+      }
+
+      if (memoText.length > CALENDAR_MEMO_MAX_LENGTH) {
+        alert("메모는 공백 포함 500자까지 입력할 수 있습니다.");
         return;
       }
 
@@ -486,6 +565,17 @@
       });
     }
 
+
+    if (memoField) {
+      memoField.addEventListener("input", handleMemoInput);
+      updateMemoGuide();
+    }
+
+    bindDatePickerOpen(startDateWrap, startDateField);
+    bindDatePickerOpen(endDateWrap, endDateField);
+    bindTimePickerOpen(startTimeWrap, startTimeField);
+    bindTimePickerOpen(endTimeWrap, endTimeField);
+
     if (prevMonthButton) {
       prevMonthButton.addEventListener("click", function (event) {
         event.preventDefault();
@@ -509,10 +599,10 @@
 
     refreshMonthView();
     syncDeleteAction();
-    bindDaySelection(renderEventList);
+    bindDaySelection(renderEventList, applyEventToForm);
   }
 
-  function appendMemoCard(container, event) {
+  function appendMemoCard(container, event, onMemoClick) {
     var card = document.createElement("div");
     card.className = "info-card-amber";
     var header = document.createElement("div");
@@ -526,10 +616,15 @@
     body.textContent = event.memo;
     card.appendChild(header);
     card.appendChild(body);
+    if (typeof onMemoClick === "function") {
+      card.addEventListener("click", function () {
+        onMemoClick(event);
+      });
+    }
     container.appendChild(card);
   }
 
-  function renderMemoList(filteredEvents) {
+  function renderMemoList(filteredEvents, onMemoClick) {
     var listRoot = document.querySelector("[data-calendar-memo-list]");
     if (!listRoot) return;
     listRoot.innerHTML = "";
@@ -544,11 +639,12 @@
       return;
     }
     memEvents.forEach(function (event) {
-      appendMemoCard(listRoot, event);
+
+      appendMemoCard(listRoot, event, onMemoClick);
     });
   }
 
-  function renderSelectedDate(renderEventList) {
+  function renderSelectedDate(renderEventList, onMemoClick) {
     var heading = document.querySelector("[data-calendar-selected-date]");
     if (heading) {
       heading.textContent = selectedDate;
@@ -560,10 +656,11 @@
       return selectedDate >= startKey && selectedDate <= endKey;
     });
     renderEventList(filtered);
-    renderMemoList(filtered);
+
+    renderMemoList(filtered, onMemoClick);
   }
 
-  function bindDaySelection(renderEventList) {
+  function bindDaySelection(renderEventList, onMemoClick) {
     var grid = document.querySelector("[data-calendar-grid]");
     if (!grid) return;
     grid.addEventListener("click", function (event) {
@@ -573,7 +670,7 @@
       if (previous) previous.classList.remove("calendar-day-selected");
       cell.classList.add("calendar-day-selected");
       selectedDate = cell.getAttribute("data-calendar-date");
-      renderSelectedDate(renderEventList);
+      renderSelectedDate(renderEventList, onMemoClick);
     });
   }
 
