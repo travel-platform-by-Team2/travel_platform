@@ -544,3 +544,7 @@ body.page-body-overflow-hidden-shell > .calendar-add-event-div-01 > .chat-panel-
 
 
 
+.trip-plan-list-button-03{align-items:center;border-radius:.5rem;display:flex;height:2.25rem;justify-content:center;width:2.25rem;font-weight:700;box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+.trip-plan-list-button-03.active{background-color:#1152d4;color:#fff}
+.trip-plan-list-button-03.inactive{background-color:#f8fafc;color:#616f89;border:1px solid #e2e8f0;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.trip-plan-list-button-03.inactive:hover{background-color:#f1f5f9;color:#334155;border-color:#cbd5e1}

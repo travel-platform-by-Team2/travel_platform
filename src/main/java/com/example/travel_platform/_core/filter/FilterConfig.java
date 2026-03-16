@@ -10,9 +10,25 @@ public class FilterConfig {
     public FilterRegistrationBean<LoginFilter> loginFilter() {
         FilterRegistrationBean<LoginFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(new LoginFilter());
-        bean.addUrlPatterns("/boards/*", "/calendar", "/calendar/*", "/api/calendar", "/api/calendar/*");
+        bean.addUrlPatterns(
+                "/boards/*",
+                "/calendar",
+                "/calendar/*",
+                "/api/calendar",
+                "/api/calendar/*",
+                "/mypage",
+                "/mypage/*");
 
         bean.setOrder(2);
+        return bean;
+    }
+
+    @Bean
+    public FilterRegistrationBean<AdminFilter> adminFilter() {
+        FilterRegistrationBean<AdminFilter> bean = new FilterRegistrationBean<>();
+        bean.setFilter(new AdminFilter());
+        bean.addUrlPatterns("/admin/*");
+        bean.setOrder(1);
         return bean;
     }
 }

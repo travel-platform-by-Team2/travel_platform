@@ -19,7 +19,7 @@ public class UserService {
 
     // 회원가입 실패 : 중복 체크 후 예외발생 :지윤
     @Transactional
-    public void join(String username, String password, String email) {
+    public void join(String username, String password, String email, String tel) {
         // 1. 유저네임 중복 체크 (필터링)!!
         Optional<User> optUser = userRepository.findByUsername(username);
 
@@ -32,7 +32,8 @@ public class UserService {
         user.setUsername(username);
         user.setPassword(password);
         user.setEmail(email);
-
+        user.setTel(tel);
+        user.setRole("USER");
         // 3. save() 호출
         userRepository.save(user);
 
