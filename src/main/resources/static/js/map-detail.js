@@ -1,6 +1,9 @@
 ﻿(function () {
   "use strict";
 
+  // Expose region maps for other pages (e.g. main-index) without duplicating constants.
+  window.TRAVEL_PLATFORM = window.TRAVEL_PLATFORM || {};
+
   var CATEGORY = {
     STAY: "AD5", // 숙박
     ATTRACTION: "AT4" // 관광명소
@@ -8,17 +11,44 @@
   var REGION_VIEW = {
     seoul: { lat: 37.5665, lng: 126.978, level: 7 },
     busan: { lat: 35.1796, lng: 129.0756, level: 6 },
-    jeju: { lat: 33.4996, lng: 126.5312, level: 8 },
-    gyeongju: { lat: 35.8562, lng: 129.2247, level: 6 },
-    gangwon: { lat: 37.8228, lng: 128.1555, level: 9 }
+    daegu: { lat: 35.8714, lng: 128.6014, level: 7 },
+    incheon: { lat: 37.4563, lng: 126.7052, level: 7 },
+    gwangju: { lat: 35.1595, lng: 126.8526, level: 7 },
+    daejeon: { lat: 36.3504, lng: 127.3845, level: 7 },
+    ulsan: { lat: 35.5384, lng: 129.3114, level: 7 },
+    sejong: { lat: 36.4801, lng: 127.2891, level: 8 },
+    gyeonggi: { lat: 37.2636, lng: 127.0286, level: 9 },
+    gangwon: { lat: 37.8813, lng: 127.7298, level: 9 },
+    chungbuk: { lat: 36.6424, lng: 127.489, level: 9 },
+    chungnam: { lat: 36.6013, lng: 126.6608, level: 9 },
+    jeonbuk: { lat: 35.8242, lng: 127.148, level: 9 },
+    jeonnam: { lat: 34.9913, lng: 126.4789, level: 9 },
+    gyeongbuk: { lat: 36.5684, lng: 128.7294, level: 9 },
+    gyeongnam: { lat: 35.2279, lng: 128.6811, level: 9 },
+    jeju: { lat: 33.4996, lng: 126.5312, level: 8 }
   };
   var REGION_KEYWORDS = {
-    seoul: ["서울"],
-    busan: ["부산"],
-    jeju: ["제주"],
-    gyeongju: ["경주"],
-    gangwon: ["강원", "춘천", "원주", "강릉", "속초", "동해", "삼척", "태백"]
+    seoul: ["서울", "서울특별시"],
+    busan: ["부산", "부산광역시"],
+    daegu: ["대구", "대구광역시"],
+    incheon: ["인천", "인천광역시"],
+    gwangju: ["광주", "광주광역시"],
+    daejeon: ["대전", "대전광역시"],
+    ulsan: ["울산", "울산광역시"],
+    sejong: ["세종", "세종특별자치시"],
+    gyeonggi: ["경기도", "경기", "수원", "성남", "용인", "고양", "부천", "안산", "화성", "평택", "의정부", "남양주"],
+    gangwon: ["강원", "강원도", "강원특별자치도", "춘천", "원주", "강릉", "속초", "동해", "삼척", "태백"],
+    chungbuk: ["충북", "충청북도", "청주", "충주", "제천"],
+    chungnam: ["충남", "충청남도", "천안", "아산", "서산", "당진", "공주", "보령", "홍성"],
+    jeonbuk: ["전북", "전라북도", "전주", "군산", "익산", "정읍", "남원"],
+    jeonnam: ["전남", "전라남도", "여수", "순천", "목포", "나주", "광양", "무안"],
+    gyeongbuk: ["경북", "경상북도", "포항", "경주", "구미", "안동", "김천", "영주", "경산"],
+    gyeongnam: ["경남", "경상남도", "창원", "김해", "진주", "거제", "통영", "양산", "사천"],
+    jeju: ["제주", "제주특별자치도", "제주시", "서귀포"]
   };
+
+  window.TRAVEL_PLATFORM.REGION_VIEW = REGION_VIEW;
+  window.TRAVEL_PLATFORM.REGION_KEYWORDS = REGION_KEYWORDS;
 
   function applySearchParamsFromUrl() {
     var params = new URLSearchParams(window.location.search || "");
@@ -1095,8 +1125,33 @@
     if (!regionSelect || !submitButton) {
       return;
     }
+    var searchForm = submitButton.closest ? submitButton.closest("form") : null;
 
-    function searchBySelectedRegion() {
+    function canSearch() {
+      return Boolean(startDateEl && endDateEl && startDateEl.value && endDateEl.value);
+    }
+
+    function reportFormValidity() {
+      if (searchForm && typeof searchForm.reportValidity === "function") {
+        searchForm.reportValidity();
+        return;
+      }
+      if (startDateEl && !startDateEl.value) {
+        startDateEl.focus();
+        return;
+      }
+      if (endDateEl && !endDateEl.value) {
+        endDateEl.focus();
+      }
+    }
+
+    function searchBySelectedRegion(triggerValidation) {
+      if (!canSearch()) {
+        if (triggerValidation) {
+          reportFormValidity();
+        }
+        return;
+      }
       var regionKey = regionSelect.value;
       var view = REGION_VIEW[regionKey];
       if (!view) {
@@ -1114,7 +1169,7 @@
 
     submitButton.addEventListener("click", function (event) {
       event.preventDefault();
-      searchBySelectedRegion();
+      searchBySelectedRegion(true);
     });
 
     regionSelect.addEventListener("change", function () {
@@ -1144,7 +1199,7 @@
     }
 
     if (hasSearchParamsInUrl()) {
-      searchBySelectedRegion();
+      searchBySelectedRegion(false);
     }
   }
 
@@ -1363,12 +1418,14 @@
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
+      applySearchParamsFromUrl();
       initKakaoMap();
       initMapDetailPanelToggle();
       initMapPoiPanelToggle();
       initMapDragScroll();
     });
   } else {
+    applySearchParamsFromUrl();
     initKakaoMap();
     initMapDetailPanelToggle();
     initMapPoiPanelToggle();

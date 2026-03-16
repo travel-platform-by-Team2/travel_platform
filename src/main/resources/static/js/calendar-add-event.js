@@ -3,7 +3,6 @@
 
   var selectedDate = "";
   var cachedEvents = [];
-  var memoStore = [];
   var currentMonthDate = new Date();
 
   function initCalendarAddEventPanel() {
@@ -16,6 +15,8 @@
     var saveButton = root.querySelector("[data-calendar-event-save]");
     var deleteButton = document.querySelector("[data-calendar-event-delete]");
     var deleteAction = document.querySelector("[data-calendar-event-action]");
+    var prevMonthButton = document.querySelector("[data-calendar-prev-month]");
+    var nextMonthButton = document.querySelector("[data-calendar-next-month]");
     if (!openButton || !panel) return;
 
     var fields = panel.querySelectorAll("input, textarea, select");
@@ -258,6 +259,7 @@
       var startTimeInput = panel.querySelector("[data-calendar-start-time]");
       var endDateInput = panel.querySelector("[data-calendar-end-date]");
       var endTimeInput = panel.querySelector("[data-calendar-end-time]");
+      var memoInput = panel.querySelector("[data-calendar-memo]");
 
       if (titleInput) titleInput.value = event.title || "";
       if (startDateInput) startDateInput.value = formatDateInput(event.startAt);
@@ -273,6 +275,9 @@
         });
       }
 
+      if (memoInput) {
+        memoInput.value = event.memo || "";
+      }
       openPanel();
       setEditMode(event.id);
     }
@@ -333,6 +338,26 @@
       if (endDateInput) endDateInput.value = dateText;
     }
 
+    function refreshMonthView(options) {
+      var shouldSyncFormDate = !options || options.syncFormDate !== false;
+      setMonthTitle(currentMonthDate);
+      buildCalendarGrid(currentMonthDate);
+      if (shouldSyncFormDate) {
+        syncDefaultFormDate(currentMonthDate);
+      }
+      return fetchEventList();
+    }
+
+    function changeMonth(diff) {
+      currentMonthDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + diff, 1);
+      selectedDate = ymdFromDate(currentMonthDate);
+      clearEditMode();
+      closePanel({ reset: true });
+      refreshMonthView().catch(function () {
+        alert("월별 일정 조회에 실패했습니다.");
+      });
+    }
+
     function fetchEventList() {
       var range = getMonthRangeFromDate(currentMonthDate);
       if (!range) return Promise.resolve([]);
@@ -361,14 +386,15 @@
       var endTimeInput = panel.querySelector("[data-calendar-end-time]");
       var memoInput = panel.querySelector("[data-calendar-memo]");
 
+      var memoText = memoInput ? memoInput.value.trim() : "";
       var payload = {
         tripPlanId: null,
         title: titleInput ? titleInput.value.trim() : "",
         startAt: buildDateTime(startDateInput ? startDateInput.value : "", startTimeInput ? startTimeInput.value : ""),
         endAt: buildDateTime(endDateInput ? endDateInput.value : "", endTimeInput ? endTimeInput.value : ""),
-        eventType: eventType
+        eventType: eventType,
+        memo: memoText
       };
-      var memoText = memoInput ? memoInput.value.trim() : "";
 
       if (!payload.title || !payload.startAt || !payload.endAt) {
         alert("일정 제목과 일시를 입력해주세요.");
@@ -400,9 +426,6 @@
           }
           closePanel({ reset: true });
           clearEditMode();
-          if (memoText) {
-            storeMemo(payload.title, memoText, payload.startAt.split("T")[0]);
-          }
           return fetchEventList().catch(function () {
             alert("일정은 저장됐지만 목록 갱신에 실패했습니다.");
           });
@@ -463,6 +486,20 @@
       });
     }
 
+    if (prevMonthButton) {
+      prevMonthButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        changeMonth(-1);
+      });
+    }
+
+    if (nextMonthButton) {
+      nextMonthButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        changeMonth(1);
+      });
+    }
+
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && !panel.hidden) {
         closePanel({ reset: true });
@@ -470,69 +507,44 @@
       }
     });
 
-    setMonthTitle(currentMonthDate);
-    buildCalendarGrid(currentMonthDate);
-    syncDefaultFormDate(currentMonthDate);
+    refreshMonthView();
     syncDeleteAction();
     bindDaySelection(renderEventList);
-    fetchEventList();
   }
 
-  function storeMemo(title, memo, dateKey) {
-    memoStore.push({
-      id: Date.now(),
-      title: title || "메모",
-      memo: memo,
-      dateKey: dateKey
-    });
-    if (dateKey === selectedDate) {
-      renderMemoList();
-    }
-  }
-
-  function appendMemoCard(container, item) {
+  function appendMemoCard(container, event) {
     var card = document.createElement("div");
     card.className = "info-card-amber";
     var header = document.createElement("div");
     header.className = "row-between-start-mb2";
     var titleSpan = document.createElement("span");
     titleSpan.className = "calendar-add-event-span-03";
-    titleSpan.textContent = item.title || "메모";
-    var closeBtn = document.createElement("button");
-    closeBtn.className = "action-fade-danger";
-    closeBtn.innerHTML = "<span class=\"icon-ms-sm\">close</span>";
-    closeBtn.addEventListener("click", function () {
-      memoStore = memoStore.filter(function (entry) {
-        return entry.id !== item.id;
-      });
-      card.remove();
-    });
+    titleSpan.textContent = event.title || "메모";
     header.appendChild(titleSpan);
-    header.appendChild(closeBtn);
     var body = document.createElement("p");
     body.className = "text-body-sm-relaxed";
-    body.textContent = item.memo;
+    body.textContent = event.memo;
     card.appendChild(header);
     card.appendChild(body);
     container.appendChild(card);
   }
 
-  function renderMemoList() {
+  function renderMemoList(filteredEvents) {
     var listRoot = document.querySelector("[data-calendar-memo-list]");
     if (!listRoot) return;
     listRoot.innerHTML = "";
-    var filtered = memoStore.filter(function (item) {
-      return item.dateKey === selectedDate;
+    var memEvents = (filteredEvents || []).filter(function (event) {
+      return event.memo && event.memo.trim();
     });
-    if (!filtered.length) {
+    if (!memEvents.length) {
       var empty = document.createElement("p");
       empty.className = "text-body-sm-relaxed";
       empty.textContent = "등록된 메모가 없습니다.";
       listRoot.appendChild(empty);
       return;
     }
-    filtered.forEach(function (item) {
-      appendMemoCard(listRoot, item);
+    memEvents.forEach(function (event) {
+      appendMemoCard(listRoot, event);
     });
   }
 
@@ -548,7 +560,7 @@
       return selectedDate >= startKey && selectedDate <= endKey;
     });
     renderEventList(filtered);
-    renderMemoList();
+    renderMemoList(filtered);
   }
 
   function bindDaySelection(renderEventList) {

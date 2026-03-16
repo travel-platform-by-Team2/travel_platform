@@ -46,4 +46,7 @@ public class CalendarEvent {
 
     @Column(name = "event_type", nullable = false, length = 50)
     private String eventType;
+
+    @Column(columnDefinition = "TEXT")
+    private String memo;
 }

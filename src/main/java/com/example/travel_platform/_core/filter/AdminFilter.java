@@ -13,37 +13,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-public class LoginFilter implements Filter {
+public class AdminFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        System.out.println("------Login Filter-----------");
+        System.out.println("------Admin Filter-----------");
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
         HttpSession session = req.getSession();
         User sessionUser = (User) session.getAttribute("sessionUser");
 
-        // 예외: GET /boards/{id}는 로그인 없이도 조회
-        String uri = req.getRequestURI();
-        if ("GET".equals(req.getMethod()) && uri.matches(".*/boards/\\d+$")) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        // 로그인 필터 적용 대상
-        if (sessionUser == null) {
-            if (uri.startsWith("/api/")) {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-            resp.sendRedirect("/login-form");
+        // 1. 로그인을 안 했거나 2. 권한이 "ADMIN"이 아니면 입구 컷!
+        if (sessionUser == null || !"ADMIN".equals(sessionUser.getRole())) {
+            resp.setContentType("text/html; charset=utf-8");
+            resp.getWriter().println("<script>alert('관리자 권한이 필요합니다'); location.href='/';</script>");
             return;
         }
 
         chain.doFilter(request, response);
-
     }
 
 }

@@ -6,15 +6,29 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class FilterConfig {
-    // 로그인 필터
     @Bean
     public FilterRegistrationBean<LoginFilter> loginFilter() {
         FilterRegistrationBean<LoginFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(new LoginFilter());
-        bean.addUrlPatterns("/boards/*"); // /boards/ 로 시작하는 모든 요청에 대해 검사
+        bean.addUrlPatterns(
+                "/boards/*",
+                "/calendar",
+                "/calendar/*",
+                "/api/calendar",
+                "/api/calendar/*",
+                "/mypage",
+                "/mypage/*");
 
-        // bean.addUrlPatterns("/replies/*"); // /replies/ 로 시작하는 모든 요청에 대해 검사
-        bean.setOrder(2); // 필터 순서
+        bean.setOrder(2);
+        return bean;
+    }
+
+    @Bean
+    public FilterRegistrationBean<AdminFilter> adminFilter() {
+        FilterRegistrationBean<AdminFilter> bean = new FilterRegistrationBean<>();
+        bean.setFilter(new AdminFilter());
+        bean.addUrlPatterns("/admin/*");
+        bean.setOrder(1);
         return bean;
     }
 }
