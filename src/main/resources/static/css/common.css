@@ -102,7 +102,7 @@ body {
 }
 
 .calendar-shell-fixed {
-  width: min(1280px, calc(100vw - 32px));
+  width: min(1360px, calc(100vw - 32px));
   height: min(860px, calc(100vh - 140px));
   margin: 24px auto;
   overflow: hidden;
@@ -113,6 +113,19 @@ body {
 
 .calendar-shell-fixed > .calendar-add-event-div-01 {
   height: 100%;
+}
+
+.calendar-add-event-div-02 {
+  gap: 1rem;
+}
+
+.calendar-month-title-fixed {
+  min-width: 8ch;
+  text-align: center;
+}
+
+.calendar-add-event-div-02 > .pager-shell {
+  flex-shrink: 0;
 }
 
 .app-navbar {

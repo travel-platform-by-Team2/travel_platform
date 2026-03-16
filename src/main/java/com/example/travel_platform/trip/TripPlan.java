@@ -57,4 +57,7 @@ public class TripPlan {
 
     @OneToMany(mappedBy = "tripPlan", fetch = FetchType.LAZY)
     private List<TripPlace> places;
+
+    @Column(name = "region", nullable = false, length = 30)
+    private String region;
 }
