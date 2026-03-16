@@ -32,9 +32,9 @@ public class TripService {
     }
 
     public TripResponse.PlanListPageDTO getPlanList(Integer userId, String category, int page) {
-        int size = 10;
+        int size = 9; // 슬롯 갯수
         int offset = page * size;
-        int blockSize = 10;
+        int blockSize = 10; // 1~10까지 페이징 사이즈
         LocalDate today = LocalDate.now();
 
         List<TripPlan> tripPlans;
