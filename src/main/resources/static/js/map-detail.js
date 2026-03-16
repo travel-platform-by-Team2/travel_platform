@@ -794,7 +794,19 @@
   function renderOverlays(state) {
     clearOverlays(state);
 
-    state.items.forEach(function (item) {
+    // Load price filter from URL
+    var params = new URLSearchParams(window.location.search);
+    var minPrice = parseInt(params.get("priceMin")) || 0;
+    var maxPrice = parseInt(params.get("priceMax")) || Infinity;
+
+    var filteredItems = state.items.filter(function (item) {
+      if (item.type !== "hotel") return true; // 관광지는 그대로 표시 (원할 경우 관광지도 필터 가능)
+      
+      var pricing = getPricing(item, 1);
+      return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
+    });
+
+    filteredItems.forEach(function (item) {
       var position = new kakao.maps.LatLng(item.lat, item.lng);
       var node = createPoiMarkerNode(item);
       var overlay = new kakao.maps.CustomOverlay({
@@ -1636,7 +1648,10 @@
         updateUrlParams(null);
         setButtonLabel(null);
         setOpen(false);
-        if (CURRENT_MAP_STATE) renderList(CURRENT_MAP_STATE);
+        if (CURRENT_MAP_STATE) {
+          renderList(CURRENT_MAP_STATE);
+          renderOverlays(CURRENT_MAP_STATE);
+        }
       });
     }
 
@@ -1648,7 +1663,10 @@
         updateUrlParams(range);
         setButtonLabel(range);
         setOpen(false);
-        if (CURRENT_MAP_STATE) renderList(CURRENT_MAP_STATE);
+        if (CURRENT_MAP_STATE) {
+          renderList(CURRENT_MAP_STATE);
+          renderOverlays(CURRENT_MAP_STATE);
+        }
       });
     }
 
