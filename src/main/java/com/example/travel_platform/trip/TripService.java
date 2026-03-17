@@ -145,6 +145,7 @@ public class TripService {
         return TripResponse.PlanDetailDTO.builder()
                 .id(tripPlan.getId())
                 .title(tripPlan.getTitle())
+                .region(tripPlan.getRegion())
                 .startDate(tripPlan.getStartDate())
                 .endDate(tripPlan.getEndDate())
                 .places(places)

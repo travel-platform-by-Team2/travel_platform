@@ -59,15 +59,19 @@ public class TripResponse {
     public static class PlanDetailDTO {
         private Integer id;
         private String title;
+        private String region;
         private LocalDate startDate;
         private LocalDate endDate;
         private List<PlaceDTO> places;
 
         public String getFormattedTitle() {
-            if (title == null || title.trim().isEmpty()) {
-                return "여행";
+            if (region == null || region.trim().isEmpty()) {
+                if (title == null || title.trim().isEmpty()) {
+                    return "여행";
+                }
+                return title.split(" ")[0] + " 여행";
             }
-            return title.split(" ")[0] + " 여행";
+            return region + " 여행";
         }
     }
 
