@@ -25,13 +25,15 @@ public class TripRepository {
     }
 
     public TripPlace savePlace(TripPlace tripPlace) {
-        // TODO: 장소 저장 처리
+        if (tripPlace.getId() == null) {
+            em.persist(tripPlace);
+        } else {
+            em.merge(tripPlace);
+        }
         return tripPlace;
     }
 
     public Optional<TripPlan> findPlanById(Integer planId) {
-        // TODO: planId 기준 조회 쿼리 구현
-
         TripPlan tripPlan = em.find(TripPlan.class, planId);
         return Optional.ofNullable(tripPlan);
     }
