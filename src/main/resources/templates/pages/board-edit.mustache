@@ -10,7 +10,7 @@
 <body class="page-body-smooth">
   {{>partials/header}}
 
-  {{#board}}
+  {{#page}}
   <main class="page-main-compact">
     <div class="surface-panel">
       <form action="/boards/{{id}}/update" method="post">
@@ -81,7 +81,7 @@
       </form>
     </div>
   </main>
-  {{/board}}
+  {{/page}}
 
   {{>partials/chatbot}}
   {{>partials/footer}}

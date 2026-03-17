@@ -1,19 +1,12 @@
 package com.example.travel_platform.board.reply;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
-import com.example.travel_platform.board.reply.Reply;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -35,38 +28,20 @@ public class ReplyController {
 
     @ResponseBody
     @PostMapping("/ajax")
-    public Map<String, Object> createAjax(@PathVariable("boardId") Integer boardId, ReplyRequest.CreateDTO reqDTO) {
+    public ReplyResponse.CreateAjaxDTO createAjax(@PathVariable("boardId") Integer boardId,
+            ReplyRequest.CreateDTO reqDTO) {
         Reply reply = replyService.createReply(requireSessionUserId(), boardId, reqDTO);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        LocalDateTime createdAt = reply.getCreatedAt() == null ? LocalDateTime.now() : reply.getCreatedAt();
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("id", reply.getId());
-        response.put("boardId", boardId);
-        response.put("username", reply.getUser().getUsername());
-        response.put("content", reply.getContent());
-        response.put("createdAtDisplay", createdAt.format(formatter));
-        response.put("isOwner", true);
-        return response;
+        return ReplyResponse.CreateAjaxDTO.from(reply, boardId);
     }
 
     @ResponseBody
     @PostMapping("/{replyId}/update")
-    public Map<String, Object> update(@PathVariable("boardId") Integer boardId,
+    public ReplyResponse.UpdateAjaxDTO update(@PathVariable("boardId") Integer boardId,
             @PathVariable("replyId") Integer replyId,
             ReplyRequest.UpdateDTO reqDTO) {
 
         replyService.updateReply(requireSessionUserId(), replyId, reqDTO);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("boardId", boardId);
-        response.put("replyId", replyId);
-        response.put("content", reqDTO.getContent());
-
-        return response;
+        return ReplyResponse.UpdateAjaxDTO.of(boardId, replyId, reqDTO.getContent());
     }
 
     @PostMapping("/{replyId}/delete")
