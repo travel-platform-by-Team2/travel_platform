@@ -16,10 +16,16 @@
         {{>partials/admin-sidebar}}
 
         <section class="admin-content">
+
+          <!-- 수정: model 안에서만 전체 렌더링 -->
+          {{#model}}
+
           <div class="admin-page-header">
             <div>
               <h1 class="admin-page-title">게시글 관리</h1>
-              <p class="admin-page-subtitle">커뮤니티의 모든 게시글을 관리하고 모니터링하는 관리자 화면을 현재 공용 템플릿 구조에 맞게 정리했습니다.</p>
+              <p class="admin-page-subtitle">
+                커뮤니티의 모든 게시글을 관리하고 모니터링하는 관리자 화면을 현재 공용 템플릿 구조에 맞게 정리했습니다.
+              </p>
             </div>
           </div>
 
@@ -28,12 +34,8 @@
               <div class="admin-metric-card__top">
                 <div>
                   <span class="admin-metric-label">전체 게시글</span>
-                  <p class="admin-metric-value">1,284</p>
+                  <p class="admin-metric-value">{{allCount}}</p>
                 </div>
-                <span class="admin-kpi-trend">
-                  <span class="material-symbols-outlined">trending_up</span>
-                  <span>12%</span>
-                </span>
               </div>
             </article>
           </div>
@@ -41,19 +43,51 @@
           <section class="admin-panel">
             <div class="admin-toolbar">
               <div class="admin-tab-shell" aria-label="게시글 카테고리 필터">
-                <button class="admin-tab-button is-active-tab" type="button">전체</button>
-                <button class="admin-tab-button" type="button">여행 팁</button>
-                <button class="admin-tab-button" type="button">여행 계획</button>
-                <button class="admin-tab-button" type="button">맛집/카페</button>
-                <button class="admin-tab-button" type="button">숙소 후기</button>
-                <button class="admin-tab-button" type="button">질문/답변</button>
+                <!-- 수정: 탭 링크에서 keyword 유지 기능 제거 -->
+                <a href="/admin/boards"
+                   class="admin-tab-button cat-all {{^category}}is-active-tab{{/category}}">
+                  전체
+                </a>
+
+                <a href="/admin/boards?category=tips"
+                   class="admin-tab-button cat-tips {{#isTips}}is-active-tab{{/isTips}}">
+                  여행 팁
+                </a>
+
+                <a href="/admin/boards?category=plan"
+                   class="admin-tab-button cat-plan {{#isPlan}}is-active-tab{{/isPlan}}">
+                  여행 계획
+                </a>
+
+                <a href="/admin/boards?category=food"
+                   class="admin-tab-button cat-food {{#isFood}}is-active-tab{{/isFood}}">
+                  맛집/카페
+                </a>
+
+                <a href="/admin/boards?category=review"
+                   class="admin-tab-button cat-review {{#isReview}}is-active-tab{{/isReview}}">
+                  숙소 후기
+                </a>
+
+                <a href="/admin/boards?category=qna"
+                   class="admin-tab-button cat-qna {{#isQna}}is-active-tab{{/isQna}}">
+                  질문/답변
+                </a>
               </div>
 
               <div class="admin-search-group">
-                <div class="admin-search-wrap">
+                <form action="/admin/boards" method="get" class="admin-search-wrap">
                   <span class="material-symbols-outlined">search</span>
-                  <input class="form-control admin-search-field" type="text" placeholder="게시글 검색...">
-                </div>
+
+                  <!-- 수정: keyword 출력 자체가 계속 터지면 value도 일단 제거 -->
+                  <input
+                    class="form-control admin-search-field"
+                    type="text"
+                    name="keyword"
+                    placeholder="게시글 검색...">
+
+                  <!-- 수정: hidden category 제거 -->
+                </form>
               </div>
             </div>
 
@@ -70,99 +104,72 @@
                   </tr>
                 </thead>
                 <tbody>
+                  {{#boards}}
                   <tr>
-                    <td><span class="admin-category-badge category-blue">여행 팁</span></td>
-                    <td><p class="admin-name">유럽 배낭여행 꿀팁 BEST 10</p></td>
-                    <td>김철수</td>
-                    <td>2023-10-24</td>
-                    <td class="text-center">1,420</td>
-                    <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                    <td>
+                      <span class="admin-category-badge {{categoryClass}}">{{category}}</span>
                     </td>
-                  </tr>
-                  <tr>
-                    <td><span class="admin-category-badge category-orange">맛집/카페</span></td>
-                    <td><p class="admin-name">제주도 현지인만 아는 숨은 맛집 공개</p></td>
-                    <td>이영희</td>
-                    <td>2023-10-23</td>
-                    <td class="text-center">892</td>
-                    <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                    <td>
+                      <a href="/boards/{{id}}" class="admin-name admin-title-link">{{title}}</a>
                     </td>
-                  </tr>
-                  <tr>
-                    <td><span class="admin-category-badge category-purple">질문/답변</span></td>
-                    <td><p class="admin-name">일본 비자 신청 관련 질문드려요</p></td>
-                    <td>박민수</td>
-                    <td>2023-10-23</td>
-                    <td class="text-center">156</td>
+                    <td>{{userName}}</td>
+                    <td>{{startDate}}</td>
+                    <td class="text-center">{{viewCount}}</td>
                     <td class="text-end">
-                      <div class="admin-action-menu">
-                        <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                          <span class="material-symbols-outlined">more_vert</span>
-                        </button>
-                        <div class="admin-action-card">
-                          <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
-                            <span class="material-symbols-outlined">visibility</span>
-                            <span>보기</span>
-                          </a>
-                          <a class="admin-action-link is-danger" href="#" onclick="return false;" aria-disabled="true">
-                            <span class="material-symbols-outlined">delete</span>
-                            <span>삭제</span>
-                          </a>
-                        </div>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-board-action-menu}}
                       </div>
                     </td>
                   </tr>
+                  {{/boards}}
+
+                  {{^boards}}
                   <tr>
-                    <td><span class="admin-category-badge category-green">숙소 후기</span></td>
-                    <td><p class="admin-name">강릉 오션뷰 펜션 솔직 방문기</p></td>
-                    <td>최수지</td>
-                    <td>2023-10-22</td>
-                    <td class="text-center">2,104</td>
-                    <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </td>
+                    <td colspan="6" class="text-center">게시글이 없습니다.</td>
                   </tr>
-                  <tr>
-                    <td><span class="admin-category-badge category-indigo">여행 계획</span></td>
-                    <td><p class="admin-name">3박 4일 도쿄 쇼핑 여행 일정 공유</p></td>
-                    <td>정우성</td>
-                    <td>2023-10-21</td>
-                    <td class="text-center">543</td>
-                    <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="게시글 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </td>
-                  </tr>
+                  {{/boards}}
                 </tbody>
               </table>
             </div>
 
             <div class="admin-panel__footer">
-              <p class="admin-pagination-note">총 1,284개 중 1-20 표시</p>
               <div class="admin-pagination">
-                <button class="admin-page-button" type="button" disabled>
+
+                {{#prevPage}}
+                <!-- 수정: prevPage에서 category/keyword 유지 제거 -->
+                <a class="admin-page-button" href="/admin/boards?page={{prevPage}}">
                   <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <button class="admin-page-button is-active-page" type="button">1</button>
-                <button class="admin-page-button" type="button">2</button>
-                <button class="admin-page-button" type="button">3</button>
-                <span class="text-muted">...</span>
-                <button class="admin-page-button" type="button">65</button>
-                <button class="admin-page-button" type="button">
+                </a>
+                {{/prevPage}}
+
+                {{#pageItems}}
+                  {{#current}}
+                  <button class="admin-page-button is-active-page" type="button">
+                    {{displayNumber}}
+                  </button>
+                  {{/current}}
+
+                  {{^current}}
+                  <!-- 수정: pageItems 안에서는 pageItem 필드만 사용 -->
+                  <a class="admin-page-button" href="/admin/boards?page={{page}}">
+                    {{displayNumber}}
+                  </a>
+                  {{/current}}
+                {{/pageItems}}
+
+                {{#nextPage}}
+                <!-- 수정: nextPage에서도 category/keyword 유지 제거 -->
+                <a class="admin-page-button" href="/admin/boards?page={{nextPage}}">
                   <span class="material-symbols-outlined">chevron_right</span>
-                </button>
+                </a>
+                {{/nextPage}}
+
               </div>
             </div>
           </section>
+
+          {{/model}}
+
         </section>
       </div>
     </div>
@@ -170,5 +177,6 @@
 
   {{>partials/footer}}
   {{>partials/scripts}}
+  {{>partials/admin-page-scripts}}
 </body>
 </html>
