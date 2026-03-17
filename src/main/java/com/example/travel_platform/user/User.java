@@ -33,6 +33,9 @@ public class User {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     public boolean isAdmin() {
         return "ADMIN".equals(this.role);
     }
