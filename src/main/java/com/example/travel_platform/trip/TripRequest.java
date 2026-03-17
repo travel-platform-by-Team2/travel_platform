@@ -10,6 +10,7 @@ public class TripRequest {
     @Data
     public static class CreatePlanDTO {
         private String title;
+        private String whoWith; // 추가
         private String region;
         private LocalDate startDate;
         private LocalDate endDate;
