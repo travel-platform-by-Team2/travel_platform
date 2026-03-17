@@ -4,10 +4,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/admin")
+@RequiredArgsConstructor
 public class AdminController {
+    private final AdminService adminService;
 
     @GetMapping("")
     public String dashboard(Model model) {
@@ -21,14 +26,15 @@ public class AdminController {
         return "pages/admin-users";
     }
 
-    @GetMapping("/lodgings")
-    public String lodgings(Model model) {
-        applySidebarState(model, "lodgings");
-        return "pages/admin-lodgings";
-    }
-
     @GetMapping("/boards")
-    public String boards(Model model) {
+    public String boards(@RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            Model model) {
+
+        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardList(category, keyword, page);
+
+        model.addAttribute("model", responseDTO);
         applySidebarState(model, "boards");
         return "pages/admin-boards";
     }

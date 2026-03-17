@@ -58,6 +58,9 @@ public class TripPlan {
     @Column(name = "img_url", nullable = false, length = 500)
     private String imgUrl;
 
+    @OneToMany(mappedBy = "tripPlan", fetch = FetchType.LAZY)
+    private List<TripPlace> places;
+
     @Column(name = "region", nullable = false, length = 30)
     private String region;
 }

@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -132,6 +133,68 @@ public class BoardRepository {
                 .setParameter("boardId", boardId)
                 .setParameter("userId", userId)
                 .executeUpdate();
+    }
+
+    public List<Board> search(String category, String[] words, int offset, int size) {
+        StringBuilder jpql = new StringBuilder();
+        jpql.append("select b from Board b where 1=1 ");
+
+        boolean hasCategory = category != null && !category.isBlank();
+        if (hasCategory) {
+            jpql.append("and b.category = :category");
+        }
+
+        for (int i = 0; i < words.length; i++) {
+            jpql.append("and (");
+            jpql.append("lower(b.title) like lower(:word)").append(i).append(") ");
+            jpql.append("or lower(b.content) like lower(:word)").append(i).append(")");
+            jpql.append(") ");
+        }
+
+        jpql.append("order by b.id desc");
+
+        TypedQuery<Board> query = em.createQuery(jpql.toString(), Board.class);
+
+        if (hasCategory) {
+            query.setParameter("category", category);
+        }
+
+        for (int i = 0; i < words.length; i++) {
+            query.setParameter("word" + i, "%" + words[i] + "%");
+        }
+
+        return query.setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultList();
+    }
+
+    public long countSearch(String category, String[] words) {
+        StringBuilder jpql = new StringBuilder();
+        jpql.append("select count(b) from Board b where 1=1 ");
+
+        boolean hasCategory = category != null && !category.isBlank();
+        if (hasCategory) {
+            jpql.append("and b.category = :category");
+        }
+
+        for (int i = 0; i < words.length; i++) {
+            jpql.append("and (");
+            jpql.append("lower(b.title) like lower(:word)").append(i).append(") ");
+            jpql.append("or lower(b.content) like lower(:word)").append(i).append(")");
+            jpql.append(") ");
+        }
+
+        TypedQuery<Long> query = em.createQuery(jpql.toString(), Long.class);
+
+        if (hasCategory) {
+            query.setParameter("category", category);
+        }
+
+        for (int i = 0; i < words.length; i++) {
+            query.setParameter("word" + i, "%" + words[i] + "%");
+        }
+
+        return query.getSingleResult();
     }
 
 }
