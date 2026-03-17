@@ -40,6 +40,11 @@ public class BoardResponse {
         private Integer prevPage;
         private Integer nextPage;
         private String category;
+        private boolean isTips;
+        private boolean isPlan;
+        private boolean isFood;
+        private boolean isReview;
+        private boolean isQna;
     }
 
     @Data
@@ -85,6 +90,65 @@ public class BoardResponse {
 
         private Long likeCount;
         private Boolean likedByMe;
+    }
+
+    @Data
+    @Builder
+    public static class BoardFormDTO {
+        private Integer id;
+        private String category;
+        private String title;
+        private String content;
+        private String categoryError;
+        private String titleError;
+        private String contentError;
+
+        public static BoardFormDTO empty() {
+            return BoardFormDTO.builder()
+                    .category("")
+                    .title("")
+                    .content("")
+                    .build();
+        }
+
+        public static BoardFormDTO fromCreate(BoardRequest.CreateBoardDTO reqDTO,
+                String categoryError,
+                String titleError,
+                String contentError) {
+            return BoardFormDTO.builder()
+                    .category(reqDTO.getCategory())
+                    .title(reqDTO.getTitle())
+                    .content(reqDTO.getContent())
+                    .categoryError(categoryError)
+                    .titleError(titleError)
+                    .contentError(contentError)
+                    .build();
+        }
+
+        public static BoardFormDTO fromDetail(BoardDetailDTO board) {
+            return BoardFormDTO.builder()
+                    .id(board.getId())
+                    .category(board.getCategory())
+                    .title(board.getTitle())
+                    .content(board.getContent())
+                    .build();
+        }
+
+        public static BoardFormDTO fromUpdate(BoardDetailDTO board,
+                BoardRequest.UpdateBoardDTO reqDTO,
+                String categoryError,
+                String titleError,
+                String contentError) {
+            return BoardFormDTO.builder()
+                    .id(board.getId())
+                    .category(reqDTO.getCategory())
+                    .title(reqDTO.getTitle())
+                    .content(reqDTO.getContent())
+                    .categoryError(categoryError)
+                    .titleError(titleError)
+                    .contentError(contentError)
+                    .build();
+        }
     }
 
     @Data
