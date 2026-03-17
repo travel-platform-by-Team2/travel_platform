@@ -164,30 +164,31 @@ public class TripService {
         }
 
         return switch (region) {
-            case "seoul" -> "서울특별시";
-            case "busan" -> "부산광역시";
-            case "daegu" -> "대구광역시";
-            case "incheon" -> "인천광역시";
-            case "gwangju" -> "광주광역시";
-            case "daejeon" -> "대전광역시";
-            case "ulsan" -> "울산광역시";
-            case "sejong" -> "세종특별자치시";
+            case "seoul" -> "서울";
+            case "busan" -> "부산";
+            case "daegu" -> "대구";
+            case "incheon" -> "인천";
+            case "gwangju" -> "광주";
+            case "daejeon" -> "대전";
+            case "ulsan" -> "울산";
+            case "sejong" -> "세종";
             case "gyeonggi" -> "경기도";
-            case "gangwon" -> "강원특별자치도";
+            case "gangwon" -> "강원도";
             case "chungbuk" -> "충청북도";
             case "chungnam" -> "충청남도";
             case "jeonbuk" -> "전라북도";
             case "jeonnam" -> "전라남도";
             case "gyeongbuk" -> "경상북도";
             case "gyeongnam" -> "경상남도";
-            case "jeju" -> "제주특별자치도";
+            case "jeju" -> "제주도";
             default -> region;
         };
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
         TripPlan tripPlan = tripRepository.findPlanById(planId)
-                .orElseThrow(() -> new com.example.travel_platform._core.handler.ex.Exception404("해당 여행 계획을 찾을 수 없습니다."));
+                .orElseThrow(
+                        () -> new com.example.travel_platform._core.handler.ex.Exception404("해당 여행 계획을 찾을 수 없습니다."));
 
         if (!tripPlan.getUser().getId().equals(sessionUserId)) {
             throw new com.example.travel_platform._core.handler.ex.Exception403("권한이 없습니다.");
@@ -195,20 +196,18 @@ public class TripService {
 
         List<TripResponse.PlaceDTO> places = new ArrayList<>();
         if (tripPlan.getPlaces() != null) {
-            places = tripPlan.getPlaces().stream().map(place -> 
-                TripResponse.PlaceDTO.builder()
+            places = tripPlan.getPlaces().stream().map(place -> TripResponse.PlaceDTO.builder()
                     .id(place.getId())
                     .placeName(place.getPlaceName())
                     .address(place.getAddress())
                     .dayOrder(place.getDayOrder())
-                    .build()
-            ).toList();
+                    .build()).toList();
         }
 
         return TripResponse.PlanDetailDTO.builder()
                 .id(tripPlan.getId())
                 .title(tripPlan.getTitle())
-                .region(tripPlan.getRegion())
+                .region(RegionLabel(tripPlan.getRegion()))
                 .startDate(tripPlan.getStartDate())
                 .endDate(tripPlan.getEndDate())
                 .places(places)
