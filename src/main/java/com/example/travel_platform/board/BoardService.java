@@ -62,7 +62,7 @@ public class BoardService {
     }
 
     public BoardResponse.BoardListPageDTO getBoardList(String category, int page) {
-        int size = 3;
+        int size = 10;
         int offset = page * size;
 
         List<Board> boards;

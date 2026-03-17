@@ -1,12 +1,12 @@
 -- H2 seed data for core domain tables
-insert into user_tb (username, password, email, tel, role, created_at)
-values ('ssar', '1234', 'ssar@nate.com', '010-3333-4444', 'USER', now());
+insert into user_tb (username, password, email, tel, role, created_at, active)
+values ('ssar', '1234', 'ssar@nate.com', '010-3333-4444', 'USER', now(), true);
 
-insert into user_tb (username, password, email, tel, role, created_at)
-values ('cos', '1234', 'cos@nate.com', '010-5555-6666', 'USER', now());
+insert into user_tb (username, password, email, tel, role, created_at, active)
+values ('cos', '1234', 'cos@nate.com', '010-5555-6666', 'USER', now(), false);
 
-insert into user_tb (username, password, email, tel, role, created_at)
-values ('admin', '1234', 'admin@nate.com', '010-1111-2222', 'ADMIN', now());
+insert into user_tb (username, password, email, tel, role, created_at, active)
+values ('admin', '1234', 'admin@nate.com', '010-1111-2222', 'ADMIN', now(), true);
 
 
 -- 여행 계획
@@ -40,7 +40,7 @@ insert into board_tb (user_id, category, title, content, view_count, like_count,
 values (2, 'qna', '부산 당일치기 가능할까요?', '해운대 중심으로 일정을 짜보려는데 조언 부탁드립니다.', 5, 0, now());
 
 insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
-values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
+values (1, 'food', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());
 
 insert into board_tb (user_id, category, title, content, view_count, like_count, created_at)
 values (1, 'plan', '제주 여행 코스 추천', '성산일출봉과 우도 코스를 추천합니다.', 12, 0, now());

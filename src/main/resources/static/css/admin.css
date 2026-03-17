@@ -310,6 +310,115 @@
   box-shadow: 0 10px 20px rgba(13, 110, 253, 0.18);
 }
 
+.page-admin .admin-tab-button {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+    box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.page-admin .admin-tab-button:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.page-admin .admin-tab-button.cat-all {
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #94a3b8;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+}
+
+.page-admin .admin-tab-button.cat-all:hover {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.page-admin .admin-tab-button.cat-all.is-active-tab {
+  color: #0f172a;
+  background: #94a3b8;
+  border-color: #94a3b8;
+  box-shadow: 0 10px 22px rgba(71, 85, 105, 0.24);
+}
+
+.page-admin .admin-tab-button.cat-tips {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.page-admin .admin-tab-button.cat-tips:hover {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.page-admin .admin-tab-button.cat-tips.is-active-tab {
+  color: #ffffff;
+  background: #1d4ed8;
+  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.22);
+}
+
+.page-admin .admin-tab-button.cat-plan {
+  color: #334155;
+  background: #f8fafc;
+}
+
+.page-admin .admin-tab-button.cat-plan:hover {
+  color: #1e293b;
+  background: #e2e8f0;
+}
+
+.page-admin .admin-tab-button.cat-plan.is-active-tab {
+  color: #ffffff;
+  background: #475569;
+  box-shadow: 0 10px 20px rgba(71, 85, 105, 0.22);
+}
+
+.page-admin .admin-tab-button.cat-food {
+  color: #ea580c;
+  background: #fff7ed;
+}
+
+.page-admin .admin-tab-button.cat-food:hover {
+  color: #c2410c;
+  background: #ffedd5;
+}
+
+.page-admin .admin-tab-button.cat-food.is-active-tab {
+  color: #ffffff;
+  background: #c2410c;
+  box-shadow: 0 10px 20px rgba(194, 65, 12, 0.22);
+}
+
+.page-admin .admin-tab-button.cat-review {
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.page-admin .admin-tab-button.cat-review:hover {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.page-admin .admin-tab-button.cat-review.is-active-tab {
+  color: #ffffff;
+  background: #15803d;
+  box-shadow: 0 10px 20px rgba(21, 128, 61, 0.22);
+}
+
+.page-admin .admin-tab-button.cat-qna {
+  color: #9333ea;
+  background: #faf5ff;
+}
+
+.page-admin .admin-tab-button.cat-qna:hover {
+  color: #7e22ce;
+  background: #f3e8ff;
+}
+
+.page-admin .admin-tab-button.cat-qna.is-active-tab {
+  color: #ffffff;
+  background: #7e22ce;
+  box-shadow: 0 10px 20px rgba(126, 34, 206, 0.22);
+}
+
 .page-admin .admin-search-group {
   justify-content: flex-end;
 }
@@ -487,6 +596,36 @@
   border-color: #c7d2fe;
 }
 
+.page-admin .admin-category-badge.cat-tips {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.page-admin .admin-category-badge.cat-plan {
+  color: #334155;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.page-admin .admin-category-badge.cat-food {
+  color: #c2410c;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.page-admin .admin-category-badge.cat-review {
+  color: #15803d;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.page-admin .admin-category-badge.cat-qna {
+  color: #7e22ce;
+  background: #faf5ff;
+  border-color: #e9d5ff;
+}
+
 .page-admin .admin-action-menu {
   justify-content: flex-end;
   position: relative;
@@ -576,6 +715,35 @@
   align-items: center;
   border: 1px solid #e2e8f0;
   background: #ffffff;
+  color: #475569;
+  border-radius: 0.8rem;
+  font-weight: 700;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+    box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.page-admin .admin-page-button:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+  text-decoration: none;
+}
+
+.page-admin .admin-page-button:active {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #60a5fa;
+  transform: translateY(1px);
+}
+
+.page-admin .admin-page-button.is-active-page,
+.page-admin .admin-page-button.is-active-page:hover,
+.page-admin .admin-page-button.is-active-page:active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 10px 20px -12px rgba(37, 99, 235, 0.85);
+  transform: none;
 }
 
 .page-admin .admin-feed-list {
