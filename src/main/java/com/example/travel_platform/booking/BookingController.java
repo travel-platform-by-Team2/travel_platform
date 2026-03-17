@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserRepository;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -20,24 +19,19 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/bookings")
 public class BookingController {
 
-    private static final String DEFAULT_COMPLETE_IMAGE_URL =
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+    // 숙소 이미지 URL이 넘어오지 않았을 때 예약 완료 페이지에서 빈 화면이 뜨는 것을
+    // 방지하기 위한 기본 Placeholder 이미지 (DEFAULT_COMPLETE_IMAGE_URL)
+    private static final String DEFAULT_COMPLETE_IMAGE_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
     private final String kakaoMapAppKey;
-    private final UserRepository userRepository;
-    private final BookingRepository bookingRepository;
-    private final com.example.travel_platform.trip.TripRepository tripRepository;
+    private final BookingService bookingService;
     private final HttpSession session;
 
     public BookingController(
             @Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey,
-            UserRepository userRepository,
-            BookingRepository bookingRepository,
-            com.example.travel_platform.trip.TripRepository tripRepository,
+            BookingService bookingService,
             HttpSession session) {
         this.kakaoMapAppKey = kakaoMapAppKey;
-        this.userRepository = userRepository;
-        this.bookingRepository = bookingRepository;
-        this.tripRepository = tripRepository;
+        this.bookingService = bookingService;
         this.session = session;
     }
 
@@ -82,7 +76,9 @@ public class BookingController {
 
         User sessionUser = resolveSessionUser();
         if (sessionUser != null) {
-            User user = userRepository.findById(sessionUser.getId()).orElse(sessionUser);
+            User user = bookingService.getUserById(sessionUser.getId());
+            if (user == null)
+                user = sessionUser;
             model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
             model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
             model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
@@ -94,7 +90,6 @@ public class BookingController {
         return "pages/booking-checkout";
     }
 
-    @org.springframework.transaction.annotation.Transactional
     @GetMapping("/complete")
     public String completePage(
             @RequestParam(value = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
@@ -109,45 +104,8 @@ public class BookingController {
 
         User sessionUser = resolveSessionUser();
         if (sessionUser != null) {
-            // DB에서 유저를 다시 조회하여 영속 상태로 만듦
-            User user = userRepository.findById(sessionUser.getId()).orElse(sessionUser);
-            
-            // Save to DB
-            Booking booking = new Booking();
-            booking.setUser(user);
-            
-            // Find or create a default trip plan if none exists for the user
-            var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
-            com.example.travel_platform.trip.TripPlan plan = null;
-            if (!plans.isEmpty()) {
-                plan = plans.get(0);
-            } else {
-                // Dummy plan for consistency if user has no plans
-                plan = new com.example.travel_platform.trip.TripPlan();
-                plan.setUser(user);
-                plan.setTitle("나의 여행 계획");
-                plan.setStartDate(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
-                plan.setEndDate(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
-                plan.setImgUrl(imageUrl == null || imageUrl.isBlank() ? "" : imageUrl);
-                plan = tripRepository.savePlan(plan);
-            }
-            
-            booking.setTripPlan(plan);
-            booking.setLodgingName(lodgingName);
-            booking.setCheckIn(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
-            booking.setCheckOut(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
-            
-            // Extract guest count from string (e.g., "성인 2명" -> 2)
-            int guestCount = 2;
-            try {
-                guestCount = Integer.parseInt(guests.replaceAll("[^0-9]", ""));
-            } catch (Exception e) {}
-            booking.setGuestCount(guestCount);
-            
-            booking.setTotalPrice(totalPriceRaw == null ? 0 : totalPriceRaw);
-            booking.setImageUrl(imageUrl);
-            
-            bookingRepository.save(booking);
+            bookingService.processBookingCompletion(
+                    sessionUser.getId(), lodgingName, checkIn, checkOut, guests, totalPriceRaw, imageUrl);
         }
 
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
