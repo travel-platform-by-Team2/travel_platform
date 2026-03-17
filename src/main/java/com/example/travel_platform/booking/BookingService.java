@@ -39,46 +39,48 @@ public class BookingService {
     public void processBookingCompletion(
             Integer sessionUserId,
             String lodgingName,
+            String regionKey,
             String checkIn,
             String checkOut,
             String guests,
             Integer totalPriceRaw,
             String imageUrl) {
-        
+
         User user = userRepository.findById(sessionUserId).orElse(null);
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
+
+        LocalDate checkInDate = resolveDate(checkIn, LocalDate.now());
+        LocalDate checkOutDate = resolveDate(checkOut, LocalDate.now().plusDays(1));
 
         Booking booking = new Booking();
         booking.setUser(user);
-        
+
         var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
-        TripPlan plan = null;
+        TripPlan plan;
         if (!plans.isEmpty()) {
             plan = plans.get(0);
         } else {
-            plan = new TripPlan();
-            plan.setUser(user);
-            plan.setTitle("나의 여행 계획");
-            plan.setStartDate(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
-            plan.setEndDate(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
-            plan.setImgUrl(imageUrl == null || imageUrl.isBlank() ? "" : imageUrl);
+            plan = TripPlan.create(
+                    user,
+                    "나의 여행 계획",
+                    blankToDefault(regionKey, "busan"),
+                    null,
+                    checkInDate,
+                    checkOutDate,
+                    blankToDefault(imageUrl, ""));
             plan = tripRepository.savePlan(plan);
         }
-        
+
         booking.setTripPlan(plan);
         booking.setLodgingName(lodgingName);
-        booking.setCheckIn(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
-        booking.setCheckOut(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
-        
-        int guestCount = 2;
-        try {
-            guestCount = Integer.parseInt(guests.replaceAll("[^0-9]", ""));
-        } catch (Exception e) {}
-        booking.setGuestCount(guestCount);
-        
+        booking.setCheckIn(checkInDate);
+        booking.setCheckOut(checkOutDate);
+        booking.setGuestCount(parseGuestCount(guests));
         booking.setTotalPrice(totalPriceRaw == null ? 0 : totalPriceRaw);
         booking.setImageUrl(imageUrl);
-        
+
         bookingRepository.save(booking);
     }
 
@@ -159,6 +161,25 @@ public class BookingService {
         return new ArrayList<>(merged.values());
     }
 
+    private LocalDate resolveDate(String dateText, LocalDate defaultDate) {
+        try {
+            if (dateText == null || dateText.isBlank()) {
+                return defaultDate;
+            }
+            return LocalDate.parse(dateText);
+        } catch (Exception e) {
+            return defaultDate;
+        }
+    }
+
+    private int parseGuestCount(String guests) {
+        try {
+            return Integer.parseInt(guests.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            return 2;
+        }
+    }
+
     private String normalizeName(String name) {
         if (name == null) {
             return "";
@@ -199,7 +220,7 @@ public class BookingService {
         }
         BookingRequest.MapPoiDTO poi = new BookingRequest.MapPoiDTO();
         poi.setExternalPlaceId(blankToDefault(item.getExternalPlaceId(), ""));
-        poi.setName(blankToDefault(item.getName(), "장소"));
+        poi.setName(blankToDefault(item.getName(), "숙소"));
         poi.setPhone(blankToDefault(item.getPhone(), ""));
         poi.setAddress(blankToDefault(item.getAddress(), ""));
         poi.setRoadAddress(blankToDefault(item.getRoadAddress(), ""));
@@ -272,4 +293,3 @@ public class BookingService {
         }
     }
 }
-
