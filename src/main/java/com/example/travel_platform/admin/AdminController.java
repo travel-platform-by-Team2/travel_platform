@@ -26,12 +26,6 @@ public class AdminController {
         return "pages/admin-users";
     }
 
-    @GetMapping("/lodgings")
-    public String lodgings(Model model) {
-        applySidebarState(model, "lodgings");
-        return "pages/admin-lodgings";
-    }
-
     @GetMapping("/boards")
     public String boards(@RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "keyword", required = false) String keyword,
@@ -41,15 +35,6 @@ public class AdminController {
         AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardList(category, keyword, page);
 
         model.addAttribute("model", responseDTO);
-        model.addAttribute("totalCount", responseDTO.getAllCount());
-        model.addAttribute("selectCategory", category);
-
-        model.addAttribute("isTips", "tips".equals(category));
-        model.addAttribute("isPlan", "plan".equals(category));
-        model.addAttribute("isFood", "food".equals(category));
-        model.addAttribute("isReview", "review".equals(category));
-        model.addAttribute("isQna", "qna".equals(category));
-
         applySidebarState(model, "boards");
         return "pages/admin-boards";
     }
