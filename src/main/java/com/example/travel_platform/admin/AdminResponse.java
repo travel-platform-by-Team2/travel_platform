@@ -33,6 +33,12 @@ public class AdminResponse {
         private Integer nextPage;
         private String category;
         private String keyword;
+        private String selectCategory;
+        private boolean isTips;
+        private boolean isPlan;
+        private boolean isFood;
+        private boolean isReview;
+        private boolean isQna;
     }
 
     @Data

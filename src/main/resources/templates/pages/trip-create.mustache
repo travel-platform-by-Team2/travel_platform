@@ -35,7 +35,7 @@
   <div class="col-span-2-md-1">
   <label class="block-title">여행 지역</label>
   <div class="is-relative">
-  <select class="trip-plan-create-select-01">
+  <select name="region" class="trip-plan-create-select-01">
   <option disabled="" selected="" value="">도시나 지역을 선택하세요</option>
   <option value="seoul">서울특별시</option>
   <option value="busan">부산광역시</option>
@@ -88,10 +88,10 @@
   <div class="trip-plan-create-div-06">
   <div class="layout-narrow-fill">
   <div class="row-between-center-mb4-px2">
-  <button class="trip-plan-create-button-02">
+  <button type="button" class="trip-plan-create-button-02" id="prevMonthBtn">
   <span class="icon-ms-lg">chevron_left</span>
   </button>
-  <span class="text-main-lg-bold">2023년 10월</span>
+  <span class="text-main-lg-bold" id="leftMonthLabel" style="cursor: pointer;"></span>
   <div class="w-8-fixed"></div> 
   </div>
   <div class="trip-plan-create-div-07">
@@ -103,46 +103,15 @@
   <div class="calendar-weekday">F</div>
   <div class="calendar-weekday">S</div>
   </div>
-  <div class="calendar-week-grid-body">
-  <div class="h-10-fixed"></div><div class="h-10-fixed"></div><div class="h-10-fixed"></div>
-  <button class="calendar-chip-btn">1</button>
-  <button class="calendar-chip-btn">2</button>
-  <button class="calendar-chip-btn">3</button>
-  <button class="calendar-chip-btn">4</button>
-  <button class="calendar-chip-btn">5</button>
-  <button class="calendar-chip-btn">6</button>
-  <button class="calendar-chip-btn">7</button>
-  <button class="calendar-chip-btn">8</button>
-  <button class="calendar-chip-btn">9</button>
-  <button class="calendar-chip-btn">10</button>
-  <button class="calendar-chip-btn">11</button>
-  <button class="calendar-chip-btn">12</button>
-  <button class="calendar-chip-btn">13</button>
-  <button class="calendar-chip-btn">14</button>
-  <button class="calendar-chip-btn">15</button>
-  <button class="calendar-chip-btn">16</button>
-  <button class="calendar-chip-btn">17</button>
-  <button class="calendar-chip-btn">18</button>
-  <button class="calendar-chip-btn">19</button>
-  <button class="calendar-chip-btn">20</button>
-  <button class="calendar-chip-btn">21</button>
-  <button class="calendar-chip-btn">22</button>
-  <button class="calendar-chip-btn">23</button>
-  <button class="calendar-chip-btn">24</button>
-  <button class="calendar-chip-btn">25</button>
-  <button class="calendar-chip-btn">26</button>
-  <button class="calendar-chip-btn">27</button>
-  <button class="calendar-chip-btn">28</button>
-  <button class="calendar-chip-btn">29</button>
-  <button class="calendar-chip-btn">30</button>
-  <button class="calendar-chip-btn">31</button>
+  <div class="calendar-week-grid-body" id="leftCalendarGrid">
+  <!-- JS dynamic render -->
   </div>
   </div>
   <div class="calendar-preview-pane">
   <div class="row-between-center-mb4-px2">
   <div class="w-8-fixed"></div>
-  <span class="text-main-lg-bold">2023년 11월</span>
-  <button class="trip-plan-create-button-02">
+  <span class="text-main-lg-bold" id="rightMonthLabel" style="cursor: pointer;"></span>
+  <button type="button" class="trip-plan-create-button-02" id="nextMonthBtn">
   <span class="icon-ms-lg">chevron_right</span>
   </button>
   </div>
@@ -155,41 +124,12 @@
   <div class="calendar-weekday">F</div>
   <div class="calendar-weekday">S</div>
   </div>
-  <div class="calendar-week-grid-body">
-  <div class="h-10-fixed"></div><div class="h-10-fixed"></div><div class="h-10-fixed"></div>
-  <button class="calendar-chip-btn">1</button>
-  <button class="calendar-chip-btn">2</button>
-  <button class="calendar-chip-btn">3</button>
-  <button class="calendar-chip-btn">4</button>
-  <button class="calendar-chip-btn">5</button>
-  <button class="calendar-chip-btn">6</button>
-  <button class="calendar-chip-btn">7</button>
-  <button class="calendar-chip-btn">8</button>
-  <button class="calendar-chip-btn">9</button>
-  <button class="calendar-chip-btn">10</button>
-  <button class="calendar-chip-btn">11</button>
-  <button class="calendar-chip-btn">12</button>
-  <button class="calendar-chip-btn">13</button>
-  <button class="calendar-chip-btn">14</button>
-  <button class="calendar-chip-btn">15</button>
-  <button class="calendar-chip-btn">16</button>
-  <button class="calendar-chip-btn">17</button>
-  <button class="calendar-chip-btn">18</button>
-  <button class="calendar-chip-btn">19</button>
-  <button class="calendar-chip-btn">20</button>
-  <button class="calendar-chip-btn">21</button>
-  <button class="calendar-chip-btn">22</button>
-  <button class="calendar-chip-btn">23</button>
-  <button class="calendar-chip-btn">24</button>
-  <button class="calendar-chip-btn">25</button>
-  <button class="calendar-chip-btn">26</button>
-  <button class="calendar-chip-btn">27</button>
-  <button class="calendar-chip-btn">28</button>
-  <button class="calendar-chip-btn">29</button>
-  <button class="calendar-chip-btn">30</button>
+  <div class="calendar-week-grid-body" id="rightCalendarGrid">
+  <!-- JS dynamic render -->
   </div>
   </div>
   </div>
+  <input type="month" id="monthPicker" style="display:none; position:absolute;">
   </div>
   <div class="trip-plan-create-div-09">
 
@@ -232,107 +172,147 @@
     });
   });
 
-  // 2. 달력 날짜 클릭 및 범위 선택 로직
+  // 2. 달력 데이터 및 동적 렌더링 로직
   let startDate = null;
   let endDate = null;
+  let viewDate = new Date(); // 현재 기준 월 (좌측 달력 기준)
+  viewDate.setDate(1);
 
-  // 화면에 있는 두 개의 달력 영역(10월, 11월)을 각각 찾아서 날짜 데이터(data-date)를 부여합니다.
-  const calendarPanes = document.querySelectorAll('.layout-narrow-fill, .calendar-preview-pane');
-  
-  calendarPanes.forEach(pane => {
-      // "2023년 10월" 같은 텍스트에서 연도와 월 추출
-      const yearMonthText = pane.querySelector('.text-main-lg-bold').innerText;
-      const match = yearMonthText.match(/(\d+)년\s*(\d+)월/);
-      if (!match) return;
-      
-      const year = match[1];
-      const month = match[2].padStart(2, '0');
-      
-      // 달력의 실제 날짜 버튼들만 선택 (이전/다음 달 버튼 제외)
-      const buttons = pane.querySelectorAll('.calendar-chip-btn, .chip-primary-soft, .trip-plan-create-button-03, .trip-plan-create-button-04');
-      
-      buttons.forEach(button => {
-          button.setAttribute('type', 'button'); // submit 방지
-          
-          const day = button.innerText.trim();
-          if (day) {
-              const fullDate = `${year}-${month}-${day.padStart(2, '0')}`;
-              button.setAttribute('data-date', fullDate);
-              
-              button.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  
-                  const clickedDate = this.getAttribute('data-date');
-                  
-                  if (!startDate || (startDate && endDate)) {
-                      // 처음 클릭하거나, 이미 범위가 선택된 상태에서 다시 클릭하면 새로운 시작일로 지정
-                      startDate = clickedDate;
-                      endDate = null;
-                  } else {
-                      // 두 번째 클릭: 종료일 지정 (시작일보다 앞선 날짜를 클릭하면 서로 바꿈)
-                      if (clickedDate < startDate) {
-                          endDate = startDate;
-                          startDate = clickedDate;
-                      } else {
-                          endDate = clickedDate;
-                      }
-                  }
-                  
-                  // hidden input 업데이트
-                  document.getElementById('startDateInput').value = startDate;
-                  document.getElementById('endDateInput').value = endDate || '';
-                  
-                  updateCalendarUI(); // 화면 갱신
-              });
-          }
-      });
+  const leftMonthLabel = document.getElementById('leftMonthLabel');
+  const rightMonthLabel = document.getElementById('rightMonthLabel');
+  const leftGrid = document.getElementById('leftCalendarGrid');
+  const rightGrid = document.getElementById('rightCalendarGrid');
+  const monthPicker = document.getElementById('monthPicker');
+
+  // 달력 그리기 실행
+  renderCalendars();
+
+  // 월 이동 버튼 이벤트
+  document.getElementById('prevMonthBtn').addEventListener('click', () => {
+    viewDate.setMonth(viewDate.getMonth() - 1);
+    renderCalendars();
   });
+  document.getElementById('nextMonthBtn').addEventListener('click', () => {
+    viewDate.setMonth(viewDate.getMonth() + 1);
+    renderCalendars();
+  });
+
+  // 월 레이블 클릭 시 월 선택기 열기
+  [leftMonthLabel, rightMonthLabel].forEach(label => {
+    label.addEventListener('click', (e) => {
+      monthPicker.style.left = e.pageX + 'px';
+      monthPicker.style.top = e.pageY + 'px';
+      monthPicker.showPicker();
+    });
+  });
+
+  monthPicker.addEventListener('change', (e) => {
+    if (e.target.value) {
+      const [y, m] = e.target.value.split('-');
+      viewDate = new Date(parseInt(y), parseInt(m) - 1, 1);
+      renderCalendars();
+    }
+  });
+
+  function renderCalendars() {
+    const nextDate = new Date(viewDate);
+    nextDate.setMonth(nextDate.getMonth() + 1);
+
+    renderSingleMonth(viewDate, leftMonthLabel, leftGrid);
+    renderSingleMonth(nextDate, rightMonthLabel, rightGrid);
+    
+    updateCalendarUI(); // 렌더링 후 선택된 범위 표시
+  }
+
+  function renderSingleMonth(date, labelElement, gridElement) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    labelElement.innerText = `${year}년 ${month + 1}월`;
+    gridElement.innerHTML = ''; // 기존 내용 삭제
+
+    // 1일의 요일 (0: 일요일 ~ 6: 토요일)
+    const firstDay = new Date(year, month, 1).getDay();
+    // 해당 월의 마지막 날짜
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    // 시작 요일 맞추기 위한 빈 칸 추가
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'h-10-fixed';
+      gridElement.appendChild(empty);
+    }
+
+    // 날짜 버튼 생성
+    for (let day = 1; day <= lastDate; day++) {
+      const btn = document.createElement('button');
+      btn.className = 'calendar-chip-btn';
+      btn.type = 'button';
+      btn.innerText = day;
+      
+      const fullDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      btn.setAttribute('data-date', fullDate);
+      
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const clickedDate = this.getAttribute('data-date');
+        
+        if (!startDate || (startDate && endDate)) {
+          startDate = clickedDate;
+          endDate = null;
+        } else {
+          if (clickedDate < startDate) {
+            endDate = startDate;
+            startDate = clickedDate;
+          } else {
+            endDate = clickedDate;
+          }
+        }
+        
+        document.getElementById('startDateInput').value = startDate;
+        document.getElementById('endDateInput').value = endDate || '';
+        updateCalendarUI();
+      });
+      
+      gridElement.appendChild(btn);
+    }
+  }
 
   // 달력 UI 갱신 함수 (선택된 날짜와 범위 색상 칠하기)
   function updateCalendarUI() {
       const allButtons = Array.from(document.querySelectorAll('button[data-date]'));
 
-      // 범위 내의 날짜들만 필터링 (시작일과 종료일 제외)
       const rangeButtons = allButtons.filter(btn => {
           const d = btn.getAttribute('data-date');
           return startDate && endDate && d > startDate && d < endDate;
       });
 
-      // 정렬 (날짜 순)
       rangeButtons.sort((a, b) => a.getAttribute('data-date').localeCompare(b.getAttribute('data-date')));
 
       allButtons.forEach(btn => {
           const d = btn.getAttribute('data-date');
-
-          // 1. 기본 스타일로 초기화
           btn.style.backgroundColor = '';
           btn.style.color = '';
-          btn.style.borderRadius = '45px'; // 기본적으로 약간 둥근 직사각형 유지
+          btn.style.borderRadius = '45px'; 
           
-          // 2. 시작일 또는 종료일인 경우 (진한 파란색)
           if (d === startDate || d === endDate) {
               btn.style.backgroundColor = '#1152D4';
               btn.style.color = 'white';
-              btn.style.borderRadius = '12px'; // 너무 타원형이지 않게 조정
+              btn.style.borderRadius = '12px';
           } 
-          // 3. 시작일과 종료일 사이의 범위인 경우 (연한 바 형태)
           else if (startDate && endDate && d > startDate && d < endDate) {
               btn.style.backgroundColor = '#f1f5f9'; 
               btn.style.color = '#333';
 
-              // 범위가 하루뿐인 경우 (양쪽 모두 둥글게)
               if (rangeButtons.length === 1) {
                   btn.style.borderRadius = '12px';
               } 
-              // 범위의 첫 번째 날인 경우 (왼쪽만 둥글게)
               else if (btn === rangeButtons[0]) {
                   btn.style.borderRadius = '12px 0 0 12px';
               } 
-              // 범위의 마지막 날인 경우 (오른쪽만 둥글게)
               else if (btn === rangeButtons[rangeButtons.length - 1]) {
                   btn.style.borderRadius = '0 12px 12px 0';
               } 
-              // 완전 중간 날짜인 경우 (곡선 없이 직사각형)
               else {
                   btn.style.borderRadius = '0'; 
               }

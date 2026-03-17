@@ -2,6 +2,7 @@ package com.example.travel_platform.booking;
 
 import java.net.URI;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,6 +12,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.trip.TripRepository;
+import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +28,59 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final MapPlaceImageRepository mapPlaceImageRepository;
     private final LodgingQueryRepository lodgingQueryRepository;
+    private final UserRepository userRepository;
+    private final TripRepository tripRepository;
+
+    public User getUserById(Integer id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+    @Transactional
+    public void processBookingCompletion(
+            Integer sessionUserId,
+            String lodgingName,
+            String checkIn,
+            String checkOut,
+            String guests,
+            Integer totalPriceRaw,
+            String imageUrl) {
+        
+        User user = userRepository.findById(sessionUserId).orElse(null);
+        if (user == null) return;
+
+        Booking booking = new Booking();
+        booking.setUser(user);
+        
+        var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
+        TripPlan plan = null;
+        if (!plans.isEmpty()) {
+            plan = plans.get(0);
+        } else {
+            plan = new TripPlan();
+            plan.setUser(user);
+            plan.setTitle("나의 여행 계획");
+            plan.setStartDate(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
+            plan.setEndDate(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
+            plan.setImgUrl(imageUrl == null || imageUrl.isBlank() ? "" : imageUrl);
+            plan = tripRepository.savePlan(plan);
+        }
+        
+        booking.setTripPlan(plan);
+        booking.setLodgingName(lodgingName);
+        booking.setCheckIn(LocalDate.parse(checkIn.isBlank() ? LocalDate.now().toString() : checkIn));
+        booking.setCheckOut(LocalDate.parse(checkOut.isBlank() ? LocalDate.now().plusDays(1).toString() : checkOut));
+        
+        int guestCount = 2;
+        try {
+            guestCount = Integer.parseInt(guests.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {}
+        booking.setGuestCount(guestCount);
+        
+        booking.setTotalPrice(totalPriceRaw == null ? 0 : totalPriceRaw);
+        booking.setImageUrl(imageUrl);
+        
+        bookingRepository.save(booking);
+    }
 
     @Transactional
     public void createBooking(Integer sessionUserId, BookingRequest.CreateBookingDTO reqDTO) {

@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardRepository;
-import com.example.travel_platform.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminService {
     private final BoardRepository boardRepository;
-    private final UserRepository userRepository;
 
     public AdminResponse.AdminBoardListDTO getBoardList(String category, String keyword, int page) {
         int size = 10;
@@ -91,7 +89,17 @@ public class AdminService {
                 .nextPage(nextPage)
                 .category(category)
                 .keyword(keyword)
+                .selectCategory(category)
+                .isTips(isCategory(category, "tips"))
+                .isPlan(isCategory(category, "plan"))
+                .isFood(isCategory(category, "food"))
+                .isReview(isCategory(category, "review"))
+                .isQna(isCategory(category, "qna"))
                 .build();
+    }
+
+    private boolean isCategory(String category, String targetCategory) {
+        return targetCategory.equals(category);
     }
 
     private String toCategoryLabel(String category) {

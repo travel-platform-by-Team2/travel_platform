@@ -24,23 +24,24 @@ public class TripService {
     private final TripPlaceRepository tripPlaceRepository; // 추가!
     private static final String NotImg = "/images/dumimg.jpg";
 
-    // TripService.java
     @Transactional
     public void createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
         // 1. 세션 유저 정보 조회 (유저가 존재하는지 확인)
-        // userRepository가 주입되어 있어야 합니다.
         User user = userRepository.findById(sessionUserId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
         // 2. DTO 데이터를 엔티티(TripPlan)로 변환
         TripPlan tripPlan = new TripPlan();
         tripPlan.setUser(user); // 작성자 설정
         tripPlan.setTitle(reqDTO.getTitle()); // 여행 제목
-        tripPlan.setWhoWith(reqDTO.getWhoWith()); // 누구와 함께 (추가된 필드)
+        tripPlan.setRegion(reqDTO.getRegion()); // 여행 지역
+        tripPlan.setWhoWith(reqDTO.getWhoWith()); // 누구와 함께
         tripPlan.setStartDate(reqDTO.getStartDate()); // 시작일
         tripPlan.setEndDate(reqDTO.getEndDate()); // 종료일
 
         // 기본 이미지 설정 (엔티티에 nullable=false 설정이 되어 있으므로 필수)
-        tripPlan.setImgUrl("placeholder-card.svg");
+        // src/main/resources/static/images/placeholder-card.svg 경로가 있다고 가정하거나 상수 활용
+        tripPlan.setImgUrl("/images/placeholder-card.svg");
 
         // 3. DB에 저장
         tripRepository.savePlan(tripPlan);
@@ -164,30 +165,53 @@ public class TripService {
         }
 
         return switch (region) {
-            case "seoul" -> "서울특별시";
-            case "busan" -> "부산광역시";
-            case "daegu" -> "대구광역시";
-            case "incheon" -> "인천광역시";
-            case "gwangju" -> "광주광역시";
-            case "daejeon" -> "대전광역시";
-            case "ulsan" -> "울산광역시";
-            case "sejong" -> "세종특별자치시";
+            case "seoul" -> "서울";
+            case "busan" -> "부산";
+            case "daegu" -> "대구";
+            case "incheon" -> "인천";
+            case "gwangju" -> "광주";
+            case "daejeon" -> "대전";
+            case "ulsan" -> "울산";
+            case "sejong" -> "세종";
             case "gyeonggi" -> "경기도";
-            case "gangwon" -> "강원특별자치도";
+            case "gangwon" -> "강원도";
             case "chungbuk" -> "충청북도";
             case "chungnam" -> "충청남도";
             case "jeonbuk" -> "전라북도";
             case "jeonnam" -> "전라남도";
             case "gyeongbuk" -> "경상북도";
             case "gyeongnam" -> "경상남도";
-            case "jeju" -> "제주특별자치도";
+            case "jeju" -> "제주도";
             default -> region;
         };
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
-        // TODO: 단건 조회 + 소유권 검증
-        // TODO: PlanDetailDTO 매핑
-        return null;
+        TripPlan tripPlan = tripRepository.findPlanById(planId)
+                .orElseThrow(
+                        () -> new com.example.travel_platform._core.handler.ex.Exception404("해당 여행 계획을 찾을 수 없습니다."));
+
+        if (!tripPlan.getUser().getId().equals(sessionUserId)) {
+            throw new com.example.travel_platform._core.handler.ex.Exception403("권한이 없습니다.");
+        }
+
+        List<TripResponse.PlaceDTO> places = new ArrayList<>();
+        if (tripPlan.getPlaces() != null) {
+            places = tripPlan.getPlaces().stream().map(place -> TripResponse.PlaceDTO.builder()
+                    .id(place.getId())
+                    .placeName(place.getPlaceName())
+                    .address(place.getAddress())
+                    .dayOrder(place.getDayOrder())
+                    .build()).toList();
+        }
+
+        return TripResponse.PlanDetailDTO.builder()
+                .id(tripPlan.getId())
+                .title(tripPlan.getTitle())
+                .region(RegionLabel(tripPlan.getRegion()))
+                .startDate(tripPlan.getStartDate())
+                .endDate(tripPlan.getEndDate())
+                .places(places)
+                .build();
     }
 }
