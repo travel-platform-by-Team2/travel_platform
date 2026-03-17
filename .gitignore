@@ -44,6 +44,6 @@ out/
 
 ### Local docs ###
 .docs/
-.AGENTS.md
-.GEMINI.md
-.CLAUDE.md
+AGENTS.md
+GEMINI.md
+CLAUDE.md
