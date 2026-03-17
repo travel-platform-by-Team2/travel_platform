@@ -13,11 +13,12 @@ values ('admin', '1234', 'admin@nate.com', '010-1111-2222', 'ADMIN', now(), true
 insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
 values (1, '제주 2박 3일', date '2026-04-10', date '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10', 'jeju');
 
+
 insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
 values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', 'busan');
 
 insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
-values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', 'seoul');
+values (1, '서울 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', 'seoul');
 
 insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region)
 values (1, '부산 1박 2일', date '2025-05-01', date '2025-05-02', now(), '', '');

@@ -17,14 +17,14 @@
 <div class="trip-plan-detail-div-03">
 <div class="trip-plan-detail-div-04">
 <div class="trip-plan-detail-div-05">
-<h1 class="trip-plan-detail-h1-01">제주도 여행</h1>
+<h1 class="trip-plan-detail-h1-01">{{#plan}}{{plan.formattedTitle}}{{/plan}}{{^plan}}제주도 여행{{/plan}}</h1>
 <div class="inline-items-gap-2">
 <span class="trip-plan-detail-span-01">
-                                            D-5
+                                            D-5 
                                         </span>
 <span class="trip-plan-detail-span-02">
 <span class="icon-ms-14-mr1">location_on</span>
-                                            제주특별자치도
+                                            {{#plan}}{{plan.region}}{{/plan}}{{^plan}}제주특별자치도{{/plan}}
                                         </span>
 </div>
 </div>
@@ -258,7 +258,7 @@
 </div>
 </div>
 </div>
-<button class="fx-dashed-add-btn" type="button" onclick="location.href='/trip/place'">
+<button class="fx-dashed-add-btn" type="button" onclick="location.href='/trip/place?id={{#plan}}{{plan.id}}{{/plan}}'">
 <span class="icon-ms-hover-scale">add_circle</span>
                             장소 추가하기
                         </button>
@@ -266,14 +266,13 @@
 </div>
 </div>
 <div class="trip-plan-detail-div-23">
-<button class="trip-plan-detail-button-03" type="button" onclick="location.href='/trip/place'">
+<button class="trip-plan-detail-button-03" type="button" onclick="location.href='/trip/place?id={{#plan}}{{plan.id}}{{/plan}}'">
 <span class="icon-ms-2xl">add_location_alt</span>
 </button>
 </div>
 </div>
 </div>
 
-  {{>partials/chatbot}}
   {{>partials/footer}}
   {{>partials/scripts}}
 </body>

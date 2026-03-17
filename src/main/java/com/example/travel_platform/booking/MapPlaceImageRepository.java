@@ -8,6 +8,11 @@ import org.springframework.stereotype.Repository;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 지도 장소 마커(POI)의 이미지 URL을 캐싱하고 관리하는 Repository.
+ * 카카오맵 웹 스크래핑 등으로 얻어온 외부 이미지 URL을 DB에 저장(Upsert)하여,
+ * 동일한 장소를 조회할 때 스크래핑을 피하고 DB에서 빠르게 이미지를 불러오도록 돕습니다.
+ */
 @Repository
 @RequiredArgsConstructor
 public class MapPlaceImageRepository {
