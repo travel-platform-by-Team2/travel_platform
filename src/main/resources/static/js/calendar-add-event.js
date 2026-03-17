@@ -2,15 +2,24 @@
   "use strict";
 
   var CALENDAR_MEMO_MAX_LENGTH = 500;
+
+  // 사용자가 선택한 날짜 
   var selectedDate = "";
+
+  // 서버에서 가져온 현재 월 일정 캐시
   var cachedEvents = [];
+  
+  // 현재 보고 있는 달
   var currentMonthDate = new Date();
 
+  // 캘린더 진입점 함수
+  // 버튼 이벤트 연결, 입력창 이벤트 연결, 월 이동 이벤트 연결, 저장 / 삭제 이벤트 연결
   function initCalendarAddEventPanel() {
     var root = document.querySelector(".calendar-add-event-div-03");
     if (!root) return;
 
     var openButton = root.querySelector("[data-calendar-event-open]");
+    // 일정 입력 패널
     var panel = root.querySelector("[data-calendar-event-panel]");
     var closeButtons = root.querySelectorAll("[data-calendar-event-close]");
     var saveButton = root.querySelector("[data-calendar-event-save]");
@@ -365,6 +374,7 @@
       title.textContent = date.getFullYear() + "년 " + (date.getMonth() + 1) + "월";
     }
 
+    // 달력 42칸 생성
     function buildCalendarGrid(date) {
       var grid = document.querySelector("[data-calendar-grid]");
       if (!grid) return;
@@ -422,6 +432,7 @@
       return fetchEventList();
     }
 
+    // 월 변경
     function changeMonth(diff) {
       currentMonthDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + diff, 1);
       selectedDate = ymdFromDate(currentMonthDate);

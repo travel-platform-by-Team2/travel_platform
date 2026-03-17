@@ -19,7 +19,6 @@
           <div class="admin-page-header">
             <div>
               <h1 class="admin-page-title">유저 관리</h1>
-              <p class="admin-page-subtitle">플랫폼의 모든 사용자 계정을 실시간으로 관리하고 모니터링하는 화면 시안을 Mustache 구조로 옮겼습니다.</p>
             </div>
           </div>
 
@@ -30,8 +29,8 @@
                   <span class="material-symbols-outlined">groups</span>
                 </div>
               </div>
-              <span class="admin-metric-label">전체 유저</span>
-              <p class="admin-metric-value">12,840</p>
+              <span class="admin-metric-label">전체 유저 수</span>
+              <p class="admin-metric-value">0</p>
             </article>
 
             <article class="admin-metric-card">
@@ -40,36 +39,37 @@
                   <span class="material-symbols-outlined">block</span>
                 </div>
               </div>
-              <span class="admin-metric-label">정지 유저</span>
-              <p class="admin-metric-value">128</p>
+              <span class="admin-metric-label">비활성 유저 수</span>
+              <p class="admin-metric-value">0</p>
             </article>
           </div>
 
           <section class="admin-panel">
             <div class="admin-toolbar">
-              <div class="admin-tab-shell" aria-label="유저 상태 필터">
-                <button class="admin-tab-button is-active-tab" type="button">전체</button>
-                <button class="admin-tab-button" type="button">활성</button>
-                <button class="admin-tab-button" type="button">정지</button>
-                <button class="admin-tab-button" type="button">탈퇴</button>
+              <div class="admin-tab-shell" aria-label="유저 상태 탭">
+                <a class="admin-tab-button is-active-tab" href="/admin/users">전체</a>
+                <a class="admin-tab-button" href="/admin/users?active=true">활성</a>
+                <a class="admin-tab-button" href="/admin/users?active=false">비활성</a>
               </div>
 
-              <div class="admin-search-group">
+              <form class="admin-search-group" action="/admin/users" method="get">
                 <div class="admin-search-wrap">
                   <span class="material-symbols-outlined">search</span>
-                  <input class="form-control admin-search-field" type="text" placeholder="이름 또는 이메일 검색...">
+                  <input
+                    class="form-control admin-search-field"
+                    type="text"
+                    name="keyword"
+                    placeholder="이름 또는 이메일 검색"
+                  >
                 </div>
-                <button class="admin-icon-button" type="button" aria-label="필터">
-                  <span class="material-symbols-outlined">filter_list</span>
-                </button>
-              </div>
+              </form>
             </div>
 
             <div class="admin-table-wrap">
               <table class="table admin-table">
                 <thead>
                   <tr>
-                    <th>사용자 정보</th>
+                    <th>유저 정보</th>
                     <th>가입일</th>
                     <th>상태</th>
                     <th class="text-end">관리</th>
@@ -77,89 +77,12 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>
-                      <p class="admin-name">김민수</p>
-                      <p class="admin-meta">minsu.k@example.com</p>
-                    </td>
-                    <td>2023.12.15</td>
-                    <td><span class="admin-status-badge status-active">활성</span></td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-user-action-menu}}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="admin-name">이서윤</p>
-                      <p class="admin-meta">seoyun.l@example.com</p>
-                    </td>
-                    <td>2024.01.10</td>
-                    <td><span class="admin-status-badge status-active">활성</span></td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-user-action-menu}}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="admin-name">박지훈</p>
-                      <p class="admin-meta">jihoon.p@example.com</p>
-                    </td>
-                    <td>2024.02.05</td>
-                    <td><span class="admin-status-badge status-danger">정지</span></td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-user-action-menu}}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="admin-name">최수진</p>
-                      <p class="admin-meta">sujin.c@example.com</p>
-                    </td>
-                    <td>2024.03.20</td>
-                    <td><span class="admin-status-badge status-active">활성</span></td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-user-action-menu}}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p class="admin-name">정대현</p>
-                      <p class="admin-meta">daehyun.j@example.com</p>
-                    </td>
-                    <td>2024.04.12</td>
-                    <td><span class="admin-status-badge status-neutral">미인증</span></td>
-                    <td class="text-end">
-                      <div class="admin-action-menu" data-admin-action-menu>
-                        {{>partials/admin-user-action-menu}}
-                      </div>
+                    <td colspan="4" class="text-center text-muted py-5">
+                      유저 데이터가 연결되면 이 영역에 목록이 표시됩니다.
                     </td>
                   </tr>
                 </tbody>
               </table>
-            </div>
-
-            <div class="admin-panel__footer">
-              <p class="admin-pagination-note">전체 12,840개 중 1-10개 표시 중</p>
-              <div class="admin-pagination">
-                <button class="admin-page-button" type="button" disabled>
-                  <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <button class="admin-page-button is-active-page" type="button">1</button>
-                <button class="admin-page-button" type="button">2</button>
-                <button class="admin-page-button" type="button">3</button>
-                <span class="text-muted">...</span>
-                <button class="admin-page-button" type="button">1,284</button>
-                <button class="admin-page-button" type="button">
-                  <span class="material-symbols-outlined">chevron_right</span>
-                </button>
-              </div>
             </div>
           </section>
         </section>
