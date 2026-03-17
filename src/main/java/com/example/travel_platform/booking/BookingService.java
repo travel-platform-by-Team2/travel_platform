@@ -107,14 +107,26 @@ public class BookingService {
         return null;
     }
 
+    @Transactional
     public Map<String, Object> getPlaceImage(String placeUrl, String name) {
         String normalizedName = normalizeName(name);
-        String imageUrl = mapPlaceImageRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
+        String imageUrl = mapPlaceImageRepository.findByNormalizedName(normalizedName)
+                .map(MapPlaceImage::getImageUrl)
+                .orElse(null);
 
         if (imageUrl == null || imageUrl.isBlank()) {
             imageUrl = resolveImageFromKakaoPlace(placeUrl);
             if (imageUrl != null && !imageUrl.isBlank() && !normalizedName.isBlank()) {
-                mapPlaceImageRepository.upsert(name, normalizedName, imageUrl, "KAKAO_PLACE");
+                // JPA 방식: 존재 여부 확인 후 객체 수정 또는 신규 생성
+                MapPlaceImage image = mapPlaceImageRepository.findByNormalizedName(normalizedName)
+                        .orElse(new MapPlaceImage());
+                
+                image.setNormalizedName(normalizedName);
+                image.setPlaceName(name == null ? "" : name);
+                image.setImageUrl(imageUrl);
+                image.setSource("KAKAO_PLACE");
+                
+                mapPlaceImageRepository.save(image);
             }
         }
 
@@ -129,13 +141,15 @@ public class BookingService {
                 : reqDTO.getKakaoPois();
 
         String regionKey = reqDTO == null ? "" : blankToDefault(reqDTO.getRegionKey(), "");
-        double[] bounds = resolveBounds(reqDTO == null ? null : reqDTO.getBounds());
-        List<BookingRequest.MapPoiDTO> dbPois = lodgingQueryRepository.findActiveLodgingsInBounds(
+        double[] boundsArr = resolveBounds(reqDTO == null ? null : reqDTO.getBounds());
+        
+        // 순수 JPA 리포지토리 사용
+        List<Lodging> dbLodgings = lodgingQueryRepository.findActiveLodgingsInBounds(
                 regionKey,
-                bounds[0],
-                bounds[1],
-                bounds[2],
-                bounds[3]);
+                java.math.BigDecimal.valueOf(boundsArr[0]),
+                java.math.BigDecimal.valueOf(boundsArr[1]),
+                java.math.BigDecimal.valueOf(boundsArr[2]),
+                java.math.BigDecimal.valueOf(boundsArr[3]));
 
         LinkedHashMap<String, BookingRequest.MapPoiDTO> merged = new LinkedHashMap<>();
         for (BookingRequest.MapPoiDTO item : kakaoPois) {
@@ -145,8 +159,10 @@ public class BookingService {
             }
             merged.put(buildPoiKey(normalized), normalized);
         }
-        for (BookingRequest.MapPoiDTO item : dbPois) {
-            BookingRequest.MapPoiDTO normalized = normalizePoi(item, "DB");
+        
+        // JPA 결과(Lodging 엔티티 리스트)를 DTO로 변환하여 병합
+        for (Lodging lodging : dbLodgings) {
+            BookingRequest.MapPoiDTO normalized = convertToPoiDTO(lodging);
             if (normalized == null) {
                 continue;
             }
@@ -157,6 +173,23 @@ public class BookingService {
             }
         }
         return new ArrayList<>(merged.values());
+    }
+
+    private BookingRequest.MapPoiDTO convertToPoiDTO(Lodging l) {
+        BookingRequest.MapPoiDTO dto = new BookingRequest.MapPoiDTO();
+        dto.setExternalPlaceId(l.getExternalPlaceId());
+        dto.setName(l.getName());
+        dto.setPhone(l.getPhone());
+        dto.setAddress(l.getAddress());
+        dto.setRoadAddress(l.getRoadAddress());
+        dto.setPlaceUrl(l.getPlaceUrl());
+        dto.setCategoryName(l.getCategoryName());
+        dto.setCategoryGroupCode(l.getCategoryGroupCode());
+        dto.setLat(l.getLat() == null ? 0.0 : l.getLat().doubleValue());
+        dto.setLng(l.getLng() == null ? 0.0 : l.getLng().doubleValue());
+        dto.setType("hotel");
+        dto.setSource("DB");
+        return dto;
     }
 
     private String normalizeName(String name) {

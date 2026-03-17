@@ -1,61 +1,41 @@
 package com.example.travel_platform.booking;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-
-import lombok.RequiredArgsConstructor;
-
-/**
- * 지도 화면에 표시할 활성화된 숙소(Lodging) 목록을 조회하는 Repository.
- * 제공된 지도 경계 좌표(Bounds: 위도/경도)와 지역 키(Region Key)를 기반으로
- * 해당 영역 내에 있는 DB 상의 숙소 마커(POI) 데이터들을 조회합니다.
- */
 @Repository
 @RequiredArgsConstructor
 public class LodgingQueryRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final EntityManager em;
 
-    public List<BookingRequest.MapPoiDTO> findActiveLodgingsInBounds(
+    /**
+     * JPA 전용 쿼리(JPQL)를 사용하여 숙소 목록을 조회합니다.
+     * SQL과 비슷하지만, 테이블이 아닌 '객체(Lodging)'를 대상으로 쿼리합니다.
+     */
+    public List<Lodging> findActiveLodgingsInBounds(
             String regionKey,
-            double minLat,
-            double maxLat,
-            double minLng,
-            double maxLng) {
+            BigDecimal minLat, BigDecimal maxLat,
+            BigDecimal minLng, BigDecimal maxLng) {
 
-        String sql = "select external_place_id, name, phone, address, road_address, place_url, category_name, category_group_code, lat, lng " +
-                "from lodging_tb " +
-                "where is_active = true " +
-                "and (? = '' or region_key = ?) " +
-                "and lat between ? and ? " +
-                "and lng between ? and ?";
+        String jpql = "SELECT l FROM Lodging l " +
+                      "WHERE l.isActive = true " +
+                      "AND (:regionKey = '' OR l.regionKey = :regionKey) " +
+                      "AND l.lat BETWEEN :minLat AND :maxLat " +
+                      "AND l.lng BETWEEN :minLng AND :maxLng";
 
-        return jdbcTemplate.query(
-                sql,
-                (rs, rowNum) -> {
-                    BookingRequest.MapPoiDTO item = new BookingRequest.MapPoiDTO();
-                    item.setExternalPlaceId(rs.getString("external_place_id"));
-                    item.setName(rs.getString("name"));
-                    item.setPhone(rs.getString("phone"));
-                    item.setAddress(rs.getString("address"));
-                    item.setRoadAddress(rs.getString("road_address"));
-                    item.setPlaceUrl(rs.getString("place_url"));
-                    item.setCategoryName(rs.getString("category_name"));
-                    item.setCategoryGroupCode(rs.getString("category_group_code"));
-                    item.setLat(rs.getDouble("lat"));
-                    item.setLng(rs.getDouble("lng"));
-                    item.setType("hotel");
-                    item.setSource("DB");
-                    return item;
-                },
-                regionKey,
-                regionKey,
-                minLat,
-                maxLat,
-                minLng,
-                maxLng);
+        TypedQuery<Lodging> query = em.createQuery(jpql, Lodging.class);
+        query.setParameter("regionKey", regionKey);
+        query.setParameter("minLat", minLat);
+        query.setParameter("maxLat", maxLat);
+        query.setParameter("minLng", minLng);
+        query.setParameter("maxLng", maxLng);
+
+        // 결과는 JPA가 자동으로 Lodging 객체 리스트로 조립해줍니다.
+        return query.getResultList();
     }
 }
-
