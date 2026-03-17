@@ -28,16 +28,22 @@ public class TripService {
 
     @Transactional
     public void createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
+
+        // 1. 세션 유저 정보 조회 (유저가 존재하는지 확인)
         User user = userRepository.findById(sessionUserId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-
+        // 2. DTO 데이터를 엔티티(TripPlan)로 변환
         TripPlan tripPlan = new TripPlan();
-        tripPlan.setUser(user);
-        tripPlan.setTitle(reqDTO.getTitle());
-        tripPlan.setWhoWith(reqDTO.getWhoWith());
-        tripPlan.setStartDate(reqDTO.getStartDate());
-        tripPlan.setEndDate(reqDTO.getEndDate());
-        tripPlan.setImgUrl("placeholder-card.svg");
+        tripPlan.setUser(user); // 작성자 설정
+        tripPlan.setTitle(reqDTO.getTitle()); // 여행 제목
+        tripPlan.setRegion(reqDTO.getRegion()); // 여행 지역
+        tripPlan.setWhoWith(reqDTO.getWhoWith()); // 누구와 함께
+        tripPlan.setStartDate(reqDTO.getStartDate()); // 시작일
+        tripPlan.setEndDate(reqDTO.getEndDate()); // 종료일
+
+        // 기본 이미지 설정 (엔티티에 nullable=false 설정이 되어 있으므로 필수)
+        // src/main/resources/static/images/placeholder-card.svg 경로가 있다고 가정하거나 상수 활용
+        tripPlan.setImgUrl("/images/placeholder-card.svg");
 
         tripRepository.savePlan(tripPlan);
     }
