@@ -141,6 +141,11 @@ public class BoardService {
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .category(category)
+                .isTips("tips".equals(category))
+                .isPlan("plan".equals(category))
+                .isFood("food".equals(category))
+                .isReview("review".equals(category))
+                .isQna("qna".equals(category))
                 .pageItems(pageItems)
                 .build();
     }

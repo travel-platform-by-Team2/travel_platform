@@ -26,27 +26,27 @@
 <div class="community-list-div-02">
   <div class="community-list-div-03">
     <div class="chips-scroll-mask"> 
-      <a class="community-filter-btn cat-all {{^selectedCategory}}is-active{{/selectedCategory}}" href="/boards">
+      <a class="community-filter-btn cat-all {{^model.category}}is-active{{/model.category}}" href="/boards">
         전체
       </a>
 
-      <a class="community-filter-btn cat-tips {{#isTips}}is-active{{/isTips}}" href="/boards?category=tips">
+      <a class="community-filter-btn cat-tips {{#model.isTips}}is-active{{/model.isTips}}" href="/boards?category=tips">
         여행 팁
       </a>
 
-      <a class="community-filter-btn cat-plan {{#isPlan}}is-active{{/isPlan}}" href="/boards?category=plan">
+      <a class="community-filter-btn cat-plan {{#model.isPlan}}is-active{{/model.isPlan}}" href="/boards?category=plan">
         여행 계획
       </a>
 
-      <a class="community-filter-btn cat-food {{#isFood}}is-active{{/isFood}}" href="/boards?category=food">
+      <a class="community-filter-btn cat-food {{#model.isFood}}is-active{{/model.isFood}}" href="/boards?category=food">
         맛집/카페
       </a>
 
-      <a class="community-filter-btn cat-review {{#isReview}}is-active{{/isReview}}" href="/boards?category=review">
+      <a class="community-filter-btn cat-review {{#model.isReview}}is-active{{/model.isReview}}" href="/boards?category=review">
         숙소 후기
       </a>
 
-      <a class="community-filter-btn cat-qna {{#isQna}}is-active{{/isQna}}" href="/boards?category=qna">
+      <a class="community-filter-btn cat-qna {{#model.isQna}}is-active{{/model.isQna}}" href="/boards?category=qna">
         질문/답변
       </a>
     </div>
@@ -95,7 +95,7 @@
 
 <div class="pagination-wrap">
   {{#model.prevPage}}
-  <a class="community-page-btn" href="/boards?page={{model.prevPage}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+  <a class="community-page-btn" href="/boards?page={{model.prevPage}}{{#model.category}}&category={{model.category}}{{/model.category}}">
     이전
   </a>
   {{/model.prevPage}}
@@ -106,14 +106,14 @@
     {{/current}}
 
     {{^current}}
-    <a class="community-page-btn" href="/boards?page={{page}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+    <a class="community-page-btn" href="/boards?page={{page}}{{#model.category}}&category={{model.category}}{{/model.category}}">
       {{displayNumber}}
     </a>
     {{/current}}
   {{/model.pageItems}}
 
   {{#model.nextPage}}
-  <a class="community-page-btn" href="/boards?page={{model.nextPage}}{{#selectedCategory}}&category={{selectedCategory}}{{/selectedCategory}}">
+  <a class="community-page-btn" href="/boards?page={{model.nextPage}}{{#model.category}}&category={{model.category}}{{/model.category}}">
     다음
   </a>
   {{/model.nextPage}}
