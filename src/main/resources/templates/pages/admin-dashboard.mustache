@@ -24,8 +24,8 @@
 
           <div class="admin-page-header">
             <div>
-              <h1 class="admin-page-title">플랫폼 현황 요약</h1>
-              <p class="admin-page-subtitle">관리자 시안의 핵심 지표와 최근 운영 흐름을 현재 프로젝트 템플릿 구조 안으로 옮긴 정적 화면입니다.</p>
+              <h1 class="admin-page-title">관리자 홈 요약</h1>
+              <p class="admin-page-subtitle">현재 관리자 범위에 맞춰 유저와 커뮤니티 현황만 빠르게 볼 수 있도록 단순화한 대시보드 시안입니다.</p>
             </div>
           </div>
 
@@ -33,21 +33,11 @@
             <article class="admin-metric-card">
               <div class="admin-metric-card__top">
                 <div class="admin-metric-icon metric-icon-blue">
-                  <span class="material-symbols-outlined">person</span>
+                  <span class="material-symbols-outlined">groups</span>
                 </div>
               </div>
-              <span class="admin-metric-label">총 사용자 수</span>
+              <span class="admin-metric-label">사용자 수</span>
               <p class="admin-metric-value">125,400명</p>
-            </article>
-
-            <article class="admin-metric-card">
-              <div class="admin-metric-card__top">
-                <div class="admin-metric-icon metric-icon-emerald">
-                  <span class="material-symbols-outlined">home_work</span>
-                </div>
-              </div>
-              <span class="admin-metric-label">숙소 수</span>
-              <p class="admin-metric-value">8,231개</p>
             </article>
 
             <article class="admin-metric-card">
@@ -56,18 +46,8 @@
                   <span class="material-symbols-outlined">edit_note</span>
                 </div>
               </div>
-              <span class="admin-metric-label">오늘 신규 게시글</span>
+              <span class="admin-metric-label">신규 게시글</span>
               <p class="admin-metric-value">452개</p>
-            </article>
-
-            <article class="admin-metric-card">
-              <div class="admin-metric-card__top">
-                <div class="admin-metric-icon metric-icon-orange">
-                  <span class="material-symbols-outlined">payments</span>
-                </div>
-              </div>
-              <span class="admin-metric-label">금일 예약 매출</span>
-              <p class="admin-metric-value">₩12.4M</p>
             </article>
           </div>
 
@@ -75,49 +55,56 @@
             <section class="admin-panel">
               <div class="admin-panel__header">
                 <h2 class="admin-panel__title">
-                  <span class="material-symbols-outlined">hotel</span>
-                  <span>숙소 리스트</span>
+                  <span class="material-symbols-outlined">group</span>
+                  <span>유저 리스트</span>
                 </h2>
-                <a class="admin-link" href="/admin/lodgings">전체보기</a>
+                <a class="admin-link" href="/admin/users">전체보기</a>
               </div>
 
-              <div class="admin-table-wrap">
-                <table class="table admin-table">
-                  <thead>
-                    <tr>
-                      <th>숙소명</th>
-                      <th>지역</th>
-                      <th class="text-center">상태</th>
-                      <th class="text-end">등록일</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><p class="admin-name">제주 귤림 스테이</p></td>
-                      <td>제주도</td>
-                      <td class="text-center"><span class="admin-status-badge status-success">운영중</span></td>
-                      <td class="text-end">2023.10.20</td>
-                    </tr>
-                    <tr>
-                      <td><p class="admin-name">강릉 바다향기 펜션</p></td>
-                      <td>강원도</td>
-                      <td class="text-center"><span class="admin-status-badge status-success">운영중</span></td>
-                      <td class="text-end">2023.10.15</td>
-                    </tr>
-                    <tr>
-                      <td><p class="admin-name">경주 한옥 고택</p></td>
-                      <td>경상북도</td>
-                      <td class="text-center"><span class="admin-status-badge status-warning">점검중</span></td>
-                      <td class="text-end">2023.09.28</td>
-                    </tr>
-                    <tr>
-                      <td><p class="admin-name">서울 남산 뷰 호텔</p></td>
-                      <td>서울</td>
-                      <td class="text-center"><span class="admin-status-badge status-success">운영중</span></td>
-                      <td class="text-end">2023.09.12</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="admin-panel__body">
+                <div class="admin-feed-list">
+                  <article class="admin-feed-item">
+                    <div class="admin-feed-icon">
+                      <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                      <p class="admin-feed-title">김민수</p>
+                      <p class="admin-feed-meta">
+                        <span class="admin-status-badge status-active">활성</span>
+                        <span>•</span>
+                        <span>가입일: 2023.12.15</span>
+                      </p>
+                    </div>
+                  </article>
+
+                  <article class="admin-feed-item">
+                    <div class="admin-feed-icon">
+                      <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                      <p class="admin-feed-title">박지훈</p>
+                      <p class="admin-feed-meta">
+                        <span class="admin-status-badge status-danger">정지</span>
+                        <span>•</span>
+                        <span>가입일: 2024.02.05</span>
+                      </p>
+                    </div>
+                  </article>
+
+                  <article class="admin-feed-item">
+                    <div class="admin-feed-icon">
+                      <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                      <p class="admin-feed-title">최수진</p>
+                      <p class="admin-feed-meta">
+                        <span class="admin-status-badge status-active">활성</span>
+                        <span>•</span>
+                        <span>가입일: 2024.03.20</span>
+                      </p>
+                    </div>
+                  </article>
+                </div>
               </div>
             </section>
 
@@ -125,7 +112,7 @@
               <div class="admin-panel__header">
                 <h2 class="admin-panel__title">
                   <span class="material-symbols-outlined">forum</span>
-                  <span>실시간 커뮤니티 게시글</span>
+                  <span>커뮤니티 게시글 리스트</span>
                 </h2>
                 <a class="admin-link" href="/admin/boards">전체보기</a>
               </div>
