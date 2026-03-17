@@ -19,15 +19,23 @@ public class AdminService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
 
-    public AdminResponse.AdminBoardListDTO getBoardList(String category, int page) {
-        int size = 5;
+    public AdminResponse.AdminBoardListDTO getBoardList(String category, String keyword, int page) {
+        int size = 10;
         int offset = page * size;
 
         List<Board> boards;
-
         long categoryCount;
 
-        if (category != null && !category.isBlank()) {
+        long allCount = boardRepository.count();
+
+        boolean hasCategory = category != null && !category.isBlank();
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+
+        if (hasKeyword) {
+            String[] words = keyword.trim().split("\\s+");
+            boards = boardRepository.search(category, words, offset, size);
+            categoryCount = boardRepository.countSearch(category, words);
+        } else if (hasCategory) {
             boards = boardRepository.findAllPagingByCategory(category, offset, size);
             categoryCount = boardRepository.countByCategory(category);
         } else {
@@ -77,9 +85,12 @@ public class AdminService {
                 .boards(boardDTOs)
                 .pageItems(pageItems)
                 .currentPage(page)
+                .totalCount(categoryCount)
+                .allCount(allCount)
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .category(category)
+                .keyword(keyword)
                 .build();
     }
 
@@ -98,6 +109,7 @@ public class AdminService {
         };
     }
 
+    // css용
     private String toCategoryClass(String category) {
         if (category == null || category.isBlank()) {
             return "cat-plan";

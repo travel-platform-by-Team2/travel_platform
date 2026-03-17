@@ -27,9 +27,12 @@ public class AdminResponse {
         private List<PageItemDTO> pageItems;
         private int currentPage;
         private int totalPages;
+        private long totalCount;
+        private long allCount;
         private Integer prevPage;
         private Integer nextPage;
         private String category;
+        private String keyword;
     }
 
     @Data
