@@ -27,6 +27,9 @@ public class TripResponse {
         private int endPage;
         private List<PageNumberDTO> pageNumbers;
         private String category;
+        private boolean isResult;
+        private boolean isUpcoming;
+        private boolean isPast;
     }
 
     // 여행 계획 목록 아이템 응답 DTO
