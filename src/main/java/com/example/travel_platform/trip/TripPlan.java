@@ -42,6 +42,9 @@ public class TripPlan {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Column(name = "who_with")
+    private String whoWith; // "혼자", "친구와", "가족과", "연인과" 등 저장
+
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 

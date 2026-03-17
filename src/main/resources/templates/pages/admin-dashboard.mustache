@@ -27,10 +27,6 @@
               <h1 class="admin-page-title">플랫폼 현황 요약</h1>
               <p class="admin-page-subtitle">관리자 시안의 핵심 지표와 최근 운영 흐름을 현재 프로젝트 템플릿 구조 안으로 옮긴 정적 화면입니다.</p>
             </div>
-            <div class="admin-summary-note">
-              <span class="material-symbols-outlined">monitoring</span>
-              <span>더미 데이터 기준</span>
-            </div>
           </div>
 
           <div class="admin-metric-grid">
@@ -82,7 +78,7 @@
                   <span class="material-symbols-outlined">hotel</span>
                   <span>숙소 리스트</span>
                 </h2>
-                <a class="admin-link" href="#" onclick="return false;" aria-disabled="true">전체보기</a>
+                <a class="admin-link" href="/admin/lodgings">전체보기</a>
               </div>
 
               <div class="admin-table-wrap">
@@ -131,7 +127,7 @@
                   <span class="material-symbols-outlined">forum</span>
                   <span>실시간 커뮤니티 게시글</span>
                 </h2>
-                <a class="admin-link" href="#" onclick="return false;" aria-disabled="true">전체보기</a>
+                <a class="admin-link" href="/admin/boards">전체보기</a>
               </div>
 
               <div class="admin-panel__body">
@@ -191,5 +187,6 @@
 
   {{>partials/footer}}
   {{>partials/scripts}}
+  {{>partials/admin-page-scripts}}
 </body>
 </html>

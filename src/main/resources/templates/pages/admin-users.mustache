@@ -84,25 +84,8 @@
                     <td>2023.12.15</td>
                     <td><span class="admin-status-badge status-active">활성</span></td>
                     <td class="text-end">
-                      <div class="admin-action-menu">
-                        <button class="admin-icon-button" type="button" aria-label="사용자 액션">
-                          <span class="material-symbols-outlined">more_vert</span>
-                        </button>
-                        <div class="admin-action-card">
-                          <p class="admin-action-card__label">상태 변경</p>
-                          <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
-                            <span class="material-symbols-outlined">check_circle</span>
-                            <span>활성</span>
-                          </a>
-                          <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
-                            <span class="material-symbols-outlined">block</span>
-                            <span>비활성</span>
-                          </a>
-                          <a class="admin-action-link is-danger" href="#" onclick="return false;" aria-disabled="true">
-                            <span class="material-symbols-outlined">delete</span>
-                            <span>삭제</span>
-                          </a>
-                        </div>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-user-action-menu}}
                       </div>
                     </td>
                   </tr>
@@ -114,9 +97,9 @@
                     <td>2024.01.10</td>
                     <td><span class="admin-status-badge status-active">활성</span></td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-user-action-menu}}
+                      </div>
                     </td>
                   </tr>
                   <tr>
@@ -127,9 +110,9 @@
                     <td>2024.02.05</td>
                     <td><span class="admin-status-badge status-danger">정지</span></td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-user-action-menu}}
+                      </div>
                     </td>
                   </tr>
                   <tr>
@@ -140,9 +123,9 @@
                     <td>2024.03.20</td>
                     <td><span class="admin-status-badge status-active">활성</span></td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-user-action-menu}}
+                      </div>
                     </td>
                   </tr>
                   <tr>
@@ -153,9 +136,9 @@
                     <td>2024.04.12</td>
                     <td><span class="admin-status-badge status-neutral">미인증</span></td>
                     <td class="text-end">
-                      <button class="admin-icon-button" type="button" aria-label="사용자 액션">
-                        <span class="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-user-action-menu}}
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -186,5 +169,6 @@
 
   {{>partials/footer}}
   {{>partials/scripts}}
+  {{>partials/admin-page-scripts}}
 </body>
 </html>

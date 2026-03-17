@@ -19,188 +19,326 @@
             </p>
 </div>
 <div class="community-detail-div-01">
-<div class="community-detail-div-02">
-<div class="trip-plan-create-div-02">
-<div class="col-span-2">
-<label class="block-title">여행 제목</label>
-<input class="trip-plan-create-input-01" placeholder="여행 제목을 입력하세요 (예: 제주도 가족 여행)" type="text"/>
+<form action="/trip/create" method="post"> <!-- form 태그 추가 (지윤)-->
+<!-- hidden input들 추가(지윤)-->
+   <input type="hidden" name="whoWith" id="whoWithInput">
+   <input type="hidden" name="startDate" id="startDateInput">
+   <input type="hidden" name="endDate" id="endDateInput">
+
+  <div class="community-detail-div-02">
+  <div class="trip-plan-create-div-02">
+  <div class="col-span-2">
+  <label class="block-title">여행 제목</label>
+  <!--name="title 추가 (지윤)-->
+  <input name="title" class="trip-plan-create-input-01" placeholder="여행 제목을 입력하세요 (예: 제주도 가족 여행)" type="text"/>
+  </div>
+  <div class="col-span-2-md-1">
+  <label class="block-title">여행 지역</label>
+  <div class="is-relative">
+  <select class="trip-plan-create-select-01">
+  <option disabled="" selected="" value="">도시나 지역을 선택하세요</option>
+  <option value="seoul">서울특별시</option>
+  <option value="busan">부산광역시</option>
+  <option value="daegu">대구광역시</option>
+  <option value="incheon">인천광역시</option>
+  <option value="gwangju">광주광역시</option>
+  <option value="daejeon">대전광역시</option>
+  <option value="ulsan">울산광역시</option>
+  <option value="sejong">세종특별자치시</option>
+  <option value="gyeonggi">경기도</option>
+  <option value="gangwon">강원특별자치도</option>
+  <option value="chungbuk">충청북도</option>
+  <option value="chungnam">충청남도</option>
+  <option value="jeonbuk">전라북도</option>
+  <option value="jeonnam">전라남도</option>
+  <option value="gyeongbuk">경상북도</option>
+  <option value="gyeongnam">경상남도</option>
+  <option value="jeju">제주특별자치도</option>
+  </select>
+  <div class="trip-plan-create-div-03">
+  <span class="icon-ms-base">expand_more</span>
+  </div>
+  </div>
+  </div>
+  <div class="col-span-2-md-1">
+  <label class="block-title">누구와 함께하나요?</label>
+  <div class="trip-plan-create-div-04">
+  <button class="feature-tile">
+  <span class="icon-ms-2xl-hover-scale">person</span>
+  <span class="trip-plan-create-span-01">혼자</span>
+  </button>
+  <button class="feature-tile">
+  <span class="icon-ms-2xl-hover-scale">group</span>
+  <span class="trip-plan-create-span-01">친구와</span>
+  </button>
+  <button class="feature-tile">
+  <span class="icon-ms-2xl-hover-scale">family_restroom</span>
+  <span class="trip-plan-create-span-01">가족과</span>
+  </button>
+  <button class="feature-tile">
+  <span class="icon-ms-2xl-hover-scale">favorite</span>
+  <span class="trip-plan-create-span-01">연인과</span>
+  </button>
+  </div>
+  </div>
+  </div>
+  </div>
+  <div class="trip-plan-create-div-05">
+  <label class="trip-plan-create-label-01">여행 일정 선택</label>
+  <div class="trip-plan-create-div-06">
+  <div class="layout-narrow-fill">
+  <div class="row-between-center-mb4-px2">
+  <button class="trip-plan-create-button-02">
+  <span class="icon-ms-lg">chevron_left</span>
+  </button>
+  <span class="text-main-lg-bold">2023년 10월</span>
+  <div class="w-8-fixed"></div> 
+  </div>
+  <div class="trip-plan-create-div-07">
+  <div class="calendar-weekday">S</div>
+  <div class="calendar-weekday">M</div>
+  <div class="calendar-weekday">T</div>
+  <div class="calendar-weekday">W</div>
+  <div class="calendar-weekday">T</div>
+  <div class="calendar-weekday">F</div>
+  <div class="calendar-weekday">S</div>
+  </div>
+  <div class="calendar-week-grid-body">
+  <div class="h-10-fixed"></div><div class="h-10-fixed"></div><div class="h-10-fixed"></div>
+  <button class="calendar-chip-btn">1</button>
+  <button class="calendar-chip-btn">2</button>
+  <button class="calendar-chip-btn">3</button>
+  <button class="calendar-chip-btn">4</button>
+  <button class="calendar-chip-btn">5</button>
+  <button class="calendar-chip-btn">6</button>
+  <button class="calendar-chip-btn">7</button>
+  <button class="calendar-chip-btn">8</button>
+  <button class="calendar-chip-btn">9</button>
+  <button class="calendar-chip-btn">10</button>
+  <button class="calendar-chip-btn">11</button>
+  <button class="calendar-chip-btn">12</button>
+  <button class="calendar-chip-btn">13</button>
+  <button class="calendar-chip-btn">14</button>
+  <button class="calendar-chip-btn">15</button>
+  <button class="calendar-chip-btn">16</button>
+  <button class="calendar-chip-btn">17</button>
+  <button class="calendar-chip-btn">18</button>
+  <button class="calendar-chip-btn">19</button>
+  <button class="calendar-chip-btn">20</button>
+  <button class="calendar-chip-btn">21</button>
+  <button class="calendar-chip-btn">22</button>
+  <button class="calendar-chip-btn">23</button>
+  <button class="calendar-chip-btn">24</button>
+  <button class="calendar-chip-btn">25</button>
+  <button class="calendar-chip-btn">26</button>
+  <button class="calendar-chip-btn">27</button>
+  <button class="calendar-chip-btn">28</button>
+  <button class="calendar-chip-btn">29</button>
+  <button class="calendar-chip-btn">30</button>
+  <button class="calendar-chip-btn">31</button>
+  </div>
+  </div>
+  <div class="calendar-preview-pane">
+  <div class="row-between-center-mb4-px2">
+  <div class="w-8-fixed"></div>
+  <span class="text-main-lg-bold">2023년 11월</span>
+  <button class="trip-plan-create-button-02">
+  <span class="icon-ms-lg">chevron_right</span>
+  </button>
+  </div>
+  <div class="trip-plan-create-div-07">
+  <div class="calendar-weekday">S</div>
+  <div class="calendar-weekday">M</div>
+  <div class="calendar-weekday">T</div>
+  <div class="calendar-weekday">W</div>
+  <div class="calendar-weekday">T</div>
+  <div class="calendar-weekday">F</div>
+  <div class="calendar-weekday">S</div>
+  </div>
+  <div class="calendar-week-grid-body">
+  <div class="h-10-fixed"></div><div class="h-10-fixed"></div><div class="h-10-fixed"></div>
+  <button class="calendar-chip-btn">1</button>
+  <button class="calendar-chip-btn">2</button>
+  <button class="calendar-chip-btn">3</button>
+  <button class="calendar-chip-btn">4</button>
+  <button class="calendar-chip-btn">5</button>
+  <button class="calendar-chip-btn">6</button>
+  <button class="calendar-chip-btn">7</button>
+  <button class="calendar-chip-btn">8</button>
+  <button class="calendar-chip-btn">9</button>
+  <button class="calendar-chip-btn">10</button>
+  <button class="calendar-chip-btn">11</button>
+  <button class="calendar-chip-btn">12</button>
+  <button class="calendar-chip-btn">13</button>
+  <button class="calendar-chip-btn">14</button>
+  <button class="calendar-chip-btn">15</button>
+  <button class="calendar-chip-btn">16</button>
+  <button class="calendar-chip-btn">17</button>
+  <button class="calendar-chip-btn">18</button>
+  <button class="calendar-chip-btn">19</button>
+  <button class="calendar-chip-btn">20</button>
+  <button class="calendar-chip-btn">21</button>
+  <button class="calendar-chip-btn">22</button>
+  <button class="calendar-chip-btn">23</button>
+  <button class="calendar-chip-btn">24</button>
+  <button class="calendar-chip-btn">25</button>
+  <button class="calendar-chip-btn">26</button>
+  <button class="calendar-chip-btn">27</button>
+  <button class="calendar-chip-btn">28</button>
+  <button class="calendar-chip-btn">29</button>
+  <button class="calendar-chip-btn">30</button>
+  </div>
+  </div>
+  </div>
+  </div>
+  <div class="trip-plan-create-div-09">
+
+  <button class="trip-plan-create-button-05">
+                      취소
+                  </button>
+  <!-- type="submit" 추가 (지윤)-->                
+  <button type="submit" class="trip-plan-create-button-06">
+                      계획 생성하기
+                  </button>
+  </div>
 </div>
-<div class="col-span-2-md-1">
-<label class="block-title">여행 지역</label>
-<div class="is-relative">
-<select class="trip-plan-create-select-01">
-<option disabled="" selected="" value="">도시나 지역을 선택하세요</option>
-<option value="seoul">서울특별시</option>
-<option value="busan">부산광역시</option>
-<option value="daegu">대구광역시</option>
-<option value="incheon">인천광역시</option>
-<option value="gwangju">광주광역시</option>
-<option value="daejeon">대전광역시</option>
-<option value="ulsan">울산광역시</option>
-<option value="sejong">세종특별자치시</option>
-<option value="gyeonggi">경기도</option>
-<option value="gangwon">강원특별자치도</option>
-<option value="chungbuk">충청북도</option>
-<option value="chungnam">충청남도</option>
-<option value="jeonbuk">전라북도</option>
-<option value="jeonnam">전라남도</option>
-<option value="gyeongbuk">경상북도</option>
-<option value="gyeongnam">경상남도</option>
-<option value="jeju">제주특별자치도</option>
-</select>
-<div class="trip-plan-create-div-03">
-<span class="icon-ms-base">expand_more</span>
-</div>
-</div>
-</div>
-<div class="col-span-2-md-1">
-<label class="block-title">누구와 함께하나요?</label>
-<div class="trip-plan-create-div-04">
-<button class="feature-tile">
-<span class="icon-ms-2xl-hover-scale">person</span>
-<span class="trip-plan-create-span-01">혼자</span>
-</button>
-<button class="trip-plan-create-button-01">
-<span class="icon-ms-2xl">group</span>
-<span class="trip-plan-create-span-02">친구와</span>
-</button>
-<button class="feature-tile">
-<span class="icon-ms-2xl-hover-scale">family_restroom</span>
-<span class="trip-plan-create-span-01">가족과</span>
-</button>
-<button class="feature-tile">
-<span class="icon-ms-2xl-hover-scale">favorite</span>
-<span class="trip-plan-create-span-01">연인과</span>
-</button>
-</div>
-</div>
-</div>
-</div>
-<div class="trip-plan-create-div-05">
-<label class="trip-plan-create-label-01">여행 일정 선택</label>
-<div class="trip-plan-create-div-06">
-<div class="layout-narrow-fill">
-<div class="row-between-center-mb4-px2">
-<button class="trip-plan-create-button-02">
-<span class="icon-ms-lg">chevron_left</span>
-</button>
-<span class="text-main-lg-bold">2023년 10월</span>
-<div class="w-8-fixed"></div> 
-</div>
-<div class="trip-plan-create-div-07">
-<div class="calendar-weekday">S</div>
-<div class="calendar-weekday">M</div>
-<div class="calendar-weekday">T</div>
-<div class="calendar-weekday">W</div>
-<div class="calendar-weekday">T</div>
-<div class="calendar-weekday">F</div>
-<div class="calendar-weekday">S</div>
-</div>
-<div class="calendar-week-grid-body">
-<div class="h-10-fixed"></div><div class="h-10-fixed"></div><div class="h-10-fixed"></div>
-<button class="calendar-chip-btn">1</button>
-<button class="calendar-chip-btn">2</button>
-<button class="calendar-chip-btn">3</button>
-<button class="calendar-chip-btn">4</button>
-<button class="trip-plan-create-button-03">
-<div class="trip-plan-create-div-08">5</div>
-</button>
-<button class="chip-primary-soft">6</button>
-<button class="chip-primary-soft">7</button>
-<button class="chip-primary-soft">8</button>
-<button class="chip-primary-soft">9</button>
-<button class="chip-primary-soft">10</button>
-<button class="chip-primary-soft">11</button>
-<button class="chip-primary-soft">12</button>
-<button class="trip-plan-create-button-04">
-<div class="trip-plan-create-div-08">13</div>
-</button>
-<button class="calendar-chip-btn">14</button>
-<button class="calendar-chip-btn">15</button>
-<button class="calendar-chip-btn">16</button>
-<button class="calendar-chip-btn">17</button>
-<button class="calendar-chip-btn">18</button>
-<button class="calendar-chip-btn">19</button>
-<button class="calendar-chip-btn">20</button>
-<button class="calendar-chip-btn">21</button>
-<button class="calendar-chip-btn">22</button>
-<button class="calendar-chip-btn">23</button>
-<button class="calendar-chip-btn">24</button>
-<button class="calendar-chip-btn">25</button>
-<button class="calendar-chip-btn">26</button>
-<button class="calendar-chip-btn">27</button>
-<button class="calendar-chip-btn">28</button>
-<button class="calendar-chip-btn">29</button>
-<button class="calendar-chip-btn">30</button>
-<button class="calendar-chip-btn">31</button>
-</div>
-</div>
-<div class="calendar-preview-pane">
-<div class="row-between-center-mb4-px2">
-<div class="w-8-fixed"></div>
-<span class="text-main-lg-bold">2023년 11월</span>
-<button class="trip-plan-create-button-02">
-<span class="icon-ms-lg">chevron_right</span>
-</button>
-</div>
-<div class="trip-plan-create-div-07">
-<div class="calendar-weekday">S</div>
-<div class="calendar-weekday">M</div>
-<div class="calendar-weekday">T</div>
-<div class="calendar-weekday">W</div>
-<div class="calendar-weekday">T</div>
-<div class="calendar-weekday">F</div>
-<div class="calendar-weekday">S</div>
-</div>
-<div class="calendar-week-grid-body">
-<div class="h-10-fixed"></div><div class="h-10-fixed"></div><div class="h-10-fixed"></div>
-<button class="calendar-chip-btn">1</button>
-<button class="calendar-chip-btn">2</button>
-<button class="calendar-chip-btn">3</button>
-<button class="calendar-chip-btn">4</button>
-<button class="calendar-chip-btn">5</button>
-<button class="calendar-chip-btn">6</button>
-<button class="calendar-chip-btn">7</button>
-<button class="calendar-chip-btn">8</button>
-<button class="calendar-chip-btn">9</button>
-<button class="calendar-chip-btn">10</button>
-<button class="calendar-chip-btn">11</button>
-<button class="calendar-chip-btn">12</button>
-<button class="calendar-chip-btn">13</button>
-<button class="calendar-chip-btn">14</button>
-<button class="calendar-chip-btn">15</button>
-<button class="calendar-chip-btn">16</button>
-<button class="calendar-chip-btn">17</button>
-<button class="calendar-chip-btn">18</button>
-<button class="calendar-chip-btn">19</button>
-<button class="calendar-chip-btn">20</button>
-<button class="calendar-chip-btn">21</button>
-<button class="calendar-chip-btn">22</button>
-<button class="calendar-chip-btn">23</button>
-<button class="calendar-chip-btn">24</button>
-<button class="calendar-chip-btn">25</button>
-<button class="calendar-chip-btn">26</button>
-<button class="calendar-chip-btn">27</button>
-<button class="calendar-chip-btn">28</button>
-<button class="calendar-chip-btn">29</button>
-<button class="calendar-chip-btn">30</button>
-</div>
-</div>
-</div>
-</div>
-<div class="trip-plan-create-div-09">
-<button class="trip-plan-create-button-05">
-                    취소
-                </button>
-<button class="trip-plan-create-button-06">
-                    계획 생성하기
-                </button>
-</div>
+</form> <!-- form 태그 끝끝(지윤)-->
 </div>
 </main>
 
   {{>partials/chatbot}}
   {{>partials/footer}}
+  <script>
+  // 1. '누구와 함께하나?' 버튼 클릭 이벤트 로직
+  const whoWithButtons = document.querySelectorAll('.feature-tile, .trip-plan-create-button-01');
+  whoWithButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault(); 
+      
+      // 모든 버튼 스타일 초기화
+      whoWithButtons.forEach(btn => {
+          btn.style.border = '';
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+      });
+      
+      // 클릭된 버튼에 시각적 효과 (파란색 테두리와 연한 배경)
+      this.style.border = '2px solid #1152D4';
+      this.style.backgroundColor = '#f1f5f9';
+      this.style.color = '#1152D4';
+
+      const selection = this.querySelector('span:last-child').innerText;
+      document.getElementById('whoWithInput').value = selection;
+    });
+  });
+
+  // 2. 달력 날짜 클릭 및 범위 선택 로직
+  let startDate = null;
+  let endDate = null;
+
+  // 화면에 있는 두 개의 달력 영역(10월, 11월)을 각각 찾아서 날짜 데이터(data-date)를 부여합니다.
+  const calendarPanes = document.querySelectorAll('.layout-narrow-fill, .calendar-preview-pane');
+  
+  calendarPanes.forEach(pane => {
+      // "2023년 10월" 같은 텍스트에서 연도와 월 추출
+      const yearMonthText = pane.querySelector('.text-main-lg-bold').innerText;
+      const match = yearMonthText.match(/(\d+)년\s*(\d+)월/);
+      if (!match) return;
+      
+      const year = match[1];
+      const month = match[2].padStart(2, '0');
+      
+      // 달력의 실제 날짜 버튼들만 선택 (이전/다음 달 버튼 제외)
+      const buttons = pane.querySelectorAll('.calendar-chip-btn, .chip-primary-soft, .trip-plan-create-button-03, .trip-plan-create-button-04');
+      
+      buttons.forEach(button => {
+          button.setAttribute('type', 'button'); // submit 방지
+          
+          const day = button.innerText.trim();
+          if (day) {
+              const fullDate = `${year}-${month}-${day.padStart(2, '0')}`;
+              button.setAttribute('data-date', fullDate);
+              
+              button.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  
+                  const clickedDate = this.getAttribute('data-date');
+                  
+                  if (!startDate || (startDate && endDate)) {
+                      // 처음 클릭하거나, 이미 범위가 선택된 상태에서 다시 클릭하면 새로운 시작일로 지정
+                      startDate = clickedDate;
+                      endDate = null;
+                  } else {
+                      // 두 번째 클릭: 종료일 지정 (시작일보다 앞선 날짜를 클릭하면 서로 바꿈)
+                      if (clickedDate < startDate) {
+                          endDate = startDate;
+                          startDate = clickedDate;
+                      } else {
+                          endDate = clickedDate;
+                      }
+                  }
+                  
+                  // hidden input 업데이트
+                  document.getElementById('startDateInput').value = startDate;
+                  document.getElementById('endDateInput').value = endDate || '';
+                  
+                  updateCalendarUI(); // 화면 갱신
+              });
+          }
+      });
+  });
+
+  // 달력 UI 갱신 함수 (선택된 날짜와 범위 색상 칠하기)
+  function updateCalendarUI() {
+      const allButtons = Array.from(document.querySelectorAll('button[data-date]'));
+
+      // 범위 내의 날짜들만 필터링 (시작일과 종료일 제외)
+      const rangeButtons = allButtons.filter(btn => {
+          const d = btn.getAttribute('data-date');
+          return startDate && endDate && d > startDate && d < endDate;
+      });
+
+      // 정렬 (날짜 순)
+      rangeButtons.sort((a, b) => a.getAttribute('data-date').localeCompare(b.getAttribute('data-date')));
+
+      allButtons.forEach(btn => {
+          const d = btn.getAttribute('data-date');
+
+          // 1. 기본 스타일로 초기화
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+          btn.style.borderRadius = '45px'; // 기본적으로 약간 둥근 직사각형 유지
+          
+          // 2. 시작일 또는 종료일인 경우 (진한 파란색)
+          if (d === startDate || d === endDate) {
+              btn.style.backgroundColor = '#1152D4';
+              btn.style.color = 'white';
+              btn.style.borderRadius = '12px'; // 너무 타원형이지 않게 조정
+          } 
+          // 3. 시작일과 종료일 사이의 범위인 경우 (연한 바 형태)
+          else if (startDate && endDate && d > startDate && d < endDate) {
+              btn.style.backgroundColor = '#f1f5f9'; 
+              btn.style.color = '#333';
+
+              // 범위가 하루뿐인 경우 (양쪽 모두 둥글게)
+              if (rangeButtons.length === 1) {
+                  btn.style.borderRadius = '12px';
+              } 
+              // 범위의 첫 번째 날인 경우 (왼쪽만 둥글게)
+              else if (btn === rangeButtons[0]) {
+                  btn.style.borderRadius = '12px 0 0 12px';
+              } 
+              // 범위의 마지막 날인 경우 (오른쪽만 둥글게)
+              else if (btn === rangeButtons[rangeButtons.length - 1]) {
+                  btn.style.borderRadius = '0 12px 12px 0';
+              } 
+              // 완전 중간 날짜인 경우 (곡선 없이 직사각형)
+              else {
+                  btn.style.borderRadius = '0'; 
+              }
+          }
+      });
+  }  </script>
   {{>partials/scripts}}
 </body>
 </html>
