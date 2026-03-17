@@ -26,12 +26,6 @@ public class AdminController {
         return "pages/admin-users";
     }
 
-    @GetMapping("/lodgings")
-    public String lodgings(Model model) {
-        applySidebarState(model, "lodgings");
-        return "pages/admin-lodgings";
-    }
-
     @GetMapping("/boards")
     public String boards(@RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "keyword", required = false) String keyword,
