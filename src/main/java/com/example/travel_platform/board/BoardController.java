@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
@@ -99,13 +98,6 @@ public class BoardController {
     public String delete(@PathVariable("boardId") Integer boardId) {
         boardService.deleteBoard(requireSessionUserId(), boardId);
         return "redirect:/boards";
-    }
-
-    @PostMapping("/{boardId}/likes/toggle")
-    @ResponseBody
-    public BoardResponse.ToggleLikeDTO toggleLikeDTO(@PathVariable("boardId") Integer boardId) {
-        Integer sessionUserId = requireSessionUserId();
-        return boardService.toggleBoardLike(sessionUserId, boardId);
     }
 
     private Integer requireSessionUserId() {
