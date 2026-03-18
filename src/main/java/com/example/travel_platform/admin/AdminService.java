@@ -21,21 +21,29 @@ public class AdminService {
         int size = 10;
         int offset = page * size;
 
+        String allCategory = (category == null || category.isBlank()) ? "all" : category;
+
         List<Board> boards;
         long categoryCount;
 
         long allCount = boardRepository.count();
 
-        boolean hasCategory = category != null && !category.isBlank();
+        boolean isAllCategory = "all".equals(allCategory);
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
 
         if (hasKeyword) {
             String[] words = keyword.trim().split("\\s+");
-            boards = boardRepository.search(category, words, offset, size);
-            categoryCount = boardRepository.countSearch(category, words);
-        } else if (hasCategory) {
-            boards = boardRepository.findAllPagingByCategory(category, offset, size);
-            categoryCount = boardRepository.countByCategory(category);
+
+            if (isAllCategory) {
+                boards = boardRepository.search(null, words, offset, size);
+                categoryCount = boardRepository.countSearch(null, words);
+            } else {
+                boards = boardRepository.search(allCategory, words, offset, size);
+                categoryCount = boardRepository.countSearch(allCategory, words);
+            }
+        } else if (!isAllCategory) {
+            boards = boardRepository.findAllPagingByCategory(allCategory, offset, size);
+            categoryCount = boardRepository.countByCategory(allCategory);
         } else {
             boards = boardRepository.findAllPaging(offset, size);
             categoryCount = boardRepository.count();
@@ -60,6 +68,7 @@ public class AdminService {
             pageItems.add(AdminResponse.PageItemDTO.builder()
                     .page(i)
                     .displayNumber(i + 1)
+                    .keyword(keyword)
                     .current(i == page)
                     .build());
         }
@@ -79,7 +88,7 @@ public class AdminService {
         Integer prevPage = page == 0 ? null : page - 1;
         Integer nextPage = boardDTOs.size() < size ? null : page + 1;
 
-        return AdminResponse.AdminBoardListDTO.builder()
+        AdminResponse.AdminBoardListDTO adminListDTO = AdminResponse.AdminBoardListDTO.builder()
                 .boards(boardDTOs)
                 .pageItems(pageItems)
                 .currentPage(page)
@@ -87,15 +96,16 @@ public class AdminService {
                 .allCount(allCount)
                 .prevPage(prevPage)
                 .nextPage(nextPage)
-                .category(category)
                 .keyword(keyword)
-                .selectCategory(category)
+                .allCategory(allCategory)
                 .isTips(isCategory(category, "tips"))
                 .isPlan(isCategory(category, "plan"))
                 .isFood(isCategory(category, "food"))
                 .isReview(isCategory(category, "review"))
                 .isQna(isCategory(category, "qna"))
                 .build();
+
+        return adminListDTO;
     }
 
     private boolean isCategory(String category, String targetCategory) {
