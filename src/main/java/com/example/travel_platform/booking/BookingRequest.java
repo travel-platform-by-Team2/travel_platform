@@ -3,7 +3,9 @@ package com.example.travel_platform.booking;
 import java.time.LocalDate;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public class BookingRequest {
 
@@ -33,6 +35,8 @@ public class BookingRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor // JPQL 'new' 키워드 사용을 위해 추가
     public static class MapPoiDTO {
         private String externalPlaceId;
         private String name;
