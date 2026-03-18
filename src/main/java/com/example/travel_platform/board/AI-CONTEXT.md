@@ -1,5 +1,7 @@
 <!-- Parent: ../AI-CONTEXT.md -->
 
+리팩토링 완료
+
 # board
 
 ## 목적
@@ -8,17 +10,17 @@
 
 ## 주요 파일
 
-| 파일명 | 설명 |
-| --- | --- |
-| `Board.java` | 게시글 엔티티 |
-| `BoardLike.java` | 게시글 좋아요 이력 엔티티 |
-| `BoardLikeRepository.java` | 게시글 좋아요 저장/조회용 JPA Repository |
-| `BoardController.java` | 목록/상세/작성/수정/삭제 같은 SSR 화면 요청 처리 |
-| `BoardApiController.java` | 좋아요 토글 JSON 응답 처리 |
-| `BoardRepository.java` | 게시글 조회/저장과 검색용 Repository |
-| `BoardRequest.java` | 게시글 입력 DTO |
-| `BoardResponse.java` | 게시글 화면용/응답용 DTO |
-| `BoardService.java` | 게시글 화면 DTO 조립, 권한 검사, 좋아요 토글 처리 |
+| 파일명                     | 설명                                              |
+| -------------------------- | ------------------------------------------------- |
+| `Board.java`               | 게시글 엔티티                                     |
+| `BoardLike.java`           | 게시글 좋아요 이력 엔티티                         |
+| `BoardLikeRepository.java` | 게시글 좋아요 저장/조회용 JPA Repository          |
+| `BoardController.java`     | 목록/상세/작성/수정/삭제 같은 SSR 화면 요청 처리  |
+| `BoardApiController.java`  | 좋아요 토글 JSON 응답 처리                        |
+| `BoardRepository.java`     | 게시글 조회/저장과 검색용 Repository              |
+| `BoardRequest.java`        | 게시글 입력 DTO                                   |
+| `BoardResponse.java`       | 게시글 화면용/응답용 DTO                          |
+| `BoardService.java`        | 게시글 화면 DTO 조립, 권한 검사, 좋아요 토글 처리 |
 
 ## 하위 디렉토리
 
