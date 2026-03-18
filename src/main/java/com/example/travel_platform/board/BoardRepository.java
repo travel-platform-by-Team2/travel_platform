@@ -141,13 +141,13 @@ public class BoardRepository {
 
         boolean hasCategory = category != null && !category.isBlank();
         if (hasCategory) {
-            jpql.append("and b.category = :category");
+            jpql.append("and b.category = :category ");
         }
 
         for (int i = 0; i < words.length; i++) {
             jpql.append("and (");
-            jpql.append("lower(b.title) like lower(:word)").append(i).append(") ");
-            jpql.append("or lower(b.content) like lower(:word)").append(i).append(")");
+            jpql.append("lower(b.title) like :titleWord").append(i).append(" ");
+            jpql.append("or b.content like :contentWord").append(i).append(" ");
             jpql.append(") ");
         }
 
@@ -160,7 +160,8 @@ public class BoardRepository {
         }
 
         for (int i = 0; i < words.length; i++) {
-            query.setParameter("word" + i, "%" + words[i] + "%");
+            query.setParameter("titleWord" + i, "%" + words[i].toLowerCase() + "%");
+            query.setParameter("contentWord" + i, "%" + words[i] + "%");
         }
 
         return query.setFirstResult(offset)
@@ -174,13 +175,13 @@ public class BoardRepository {
 
         boolean hasCategory = category != null && !category.isBlank();
         if (hasCategory) {
-            jpql.append("and b.category = :category");
+            jpql.append("and b.category = :category ");
         }
 
         for (int i = 0; i < words.length; i++) {
             jpql.append("and (");
-            jpql.append("lower(b.title) like lower(:word)").append(i).append(") ");
-            jpql.append("or lower(b.content) like lower(:word)").append(i).append(")");
+            jpql.append("lower(b.title) like :titleWord").append(i).append(" ");
+            jpql.append("or b.content like :contentWord").append(i).append(" ");
             jpql.append(") ");
         }
 
@@ -191,7 +192,8 @@ public class BoardRepository {
         }
 
         for (int i = 0; i < words.length; i++) {
-            query.setParameter("word" + i, "%" + words[i] + "%");
+            query.setParameter("titleWord" + i, "%" + words[i].toLowerCase() + "%");
+            query.setParameter("contentWord" + i, "%" + words[i] + "%");
         }
 
         return query.getSingleResult();
