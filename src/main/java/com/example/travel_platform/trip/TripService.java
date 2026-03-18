@@ -2,11 +2,13 @@ package com.example.travel_platform.trip;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.user.User;
@@ -30,9 +32,9 @@ public class TripService {
     private final TripPlaceRepository tripPlaceRepository;
 
     @Transactional
-    public void createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
-        User user = userRepository.findById(sessionUserId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    public TripResponse.CreatedDTO createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
+        validatePlanDates(reqDTO.getStartDate(), reqDTO.getEndDate());
+        User user = findUser(sessionUserId);
 
         TripPlan tripPlan = TripPlan.create(
                 user,
@@ -44,11 +46,13 @@ public class TripService {
                 DEFAULT_PLAN_IMAGE);
 
         tripRepository.savePlan(tripPlan);
+        return TripResponse.CreatedDTO.of(tripPlan.getId());
     }
 
     @Transactional
-    public void addPlace(Integer sessionUserId, Integer planId, TripRequest.AddPlaceDTO reqDTO) {
-        TripPlan tripPlan = tripRepository.findPlanById(planId).orElseThrow();
+    public TripResponse.PlaceAddedDTO addPlace(Integer sessionUserId, Integer planId, TripRequest.AddPlaceDTO reqDTO) {
+        validateDayOrder(reqDTO.getDayOrder());
+        TripPlan tripPlan = findOwnedPlan(sessionUserId, planId);
 
         TripPlace tripPlace = TripPlace.create(
                 tripPlan,
@@ -59,19 +63,21 @@ public class TripService {
                 reqDTO.getDayOrder());
 
         tripPlaceRepository.save(tripPlace);
+        long placeCount = tripPlaceRepository.countByTripPlanId(planId);
+        return TripResponse.PlaceAddedDTO.of(tripPlace, placeCount);
     }
 
-    public TripResponse.PlanListPageDTO getPlanList(Integer userId, String category, int page) {
+    public TripResponse.ListPageDTO getPlanList(Integer userId, String category, int page) {
         int currentPage = Math.max(page, 0);
         LocalDate today = LocalDate.now();
         String normalizedCategory = normalizeCategory(category);
 
         PlanPageQueryResult planPageQueryResult = findPlanPage(userId, normalizedCategory, today, currentPage);
-        List<TripResponse.PlanSummaryDTO> plans = planPageQueryResult.tripPlans().stream()
+        List<TripResponse.SummaryDTO> plans = planPageQueryResult.tripPlans().stream()
                 .map(tripPlan -> toPlanSummaryDTO(tripPlan, today))
                 .toList();
 
-        return TripResponse.PlanListPageDTO.of(
+        return TripResponse.ListPageDTO.of(
                 plans,
                 currentPage,
                 planPageQueryResult.totalCount(),
@@ -79,19 +85,23 @@ public class TripService {
                 PLAN_PAGE_SIZE);
     }
 
-    public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
-        TripPlan tripPlan = tripRepository.findPlanById(planId)
-                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
+    public TripResponse.DetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
+        TripPlan tripPlan = findOwnedPlanWithPlaces(sessionUserId, planId);
 
-        if (!tripPlan.getUser().getId().equals(sessionUserId)) {
-            throw new Exception403("권한이 없습니다.");
-        }
-
-        List<TripResponse.PlaceDTO> places = tripPlan.getPlaces() == null
+        List<TripResponse.PlaceItemDTO> places = tripPlan.getPlaces() == null
                 ? List.of()
-                : tripPlan.getPlaces().stream().map(TripResponse.PlaceDTO::new).toList();
+                : tripPlan.getPlaces().stream()
+                        .sorted(Comparator
+                                .comparing(TripPlace::getDayOrder, Comparator.nullsLast(Integer::compareTo))
+                                .thenComparing(TripPlace::getId, Comparator.nullsLast(Integer::compareTo)))
+                        .map(TripResponse.PlaceItemDTO::from)
+                        .toList();
 
-        return new TripResponse.PlanDetailDTO(tripPlan, regionLabel(tripPlan.getRegion()), places);
+        return TripResponse.DetailDTO.of(
+                tripPlan,
+                regionLabel(tripPlan.getRegion()),
+                whoWithLabel(tripPlan.getWhoWith()),
+                places);
     }
 
     private String normalizeCategory(String category) {
@@ -117,17 +127,19 @@ public class TripService {
         };
     }
 
-    private TripResponse.PlanSummaryDTO toPlanSummaryDTO(TripPlan tripPlan, LocalDate today) {
+    private TripResponse.SummaryDTO toPlanSummaryDTO(TripPlan tripPlan, LocalDate today) {
         long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
         boolean disabled = diff <= 0;
         String dDay = disabled ? DISABLED_D_DAY : "D-" + diff;
+        long placeCount = tripPlaceRepository.countByTripPlanId(tripPlan.getId());
 
-        return new TripResponse.PlanSummaryDTO(
+        return TripResponse.SummaryDTO.of(
                 tripPlan,
                 resolveImageUrl(tripPlan.getImgUrl()),
                 regionLabel(tripPlan.getRegion()),
                 dDay,
-                disabled);
+                disabled,
+                placeCount);
     }
 
     private String resolveImageUrl(String imageUrl) {
@@ -162,6 +174,53 @@ public class TripService {
             case "jeju" -> "제주도";
             default -> region;
         };
+    }
+
+    private String whoWithLabel(String whoWith) {
+        if (whoWith == null || whoWith.isBlank()) {
+            return "동행 정보 없음";
+        }
+        return whoWith;
+    }
+
+    private void validatePlanDates(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            return;
+        }
+        if (endDate.isBefore(startDate)) {
+            throw new Exception400("여행 종료일은 시작일보다 빠를 수 없습니다.");
+        }
+    }
+
+    private void validateDayOrder(Integer dayOrder) {
+        if (dayOrder == null || dayOrder < 1) {
+            throw new Exception400("여행 일차 정보가 올바르지 않습니다.");
+        }
+    }
+
+    private User findUser(Integer sessionUserId) {
+        return userRepository.findById(sessionUserId)
+                .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
+    }
+
+    private TripPlan findOwnedPlan(Integer sessionUserId, Integer planId) {
+        TripPlan tripPlan = tripRepository.findPlanById(planId)
+                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
+        validateOwner(sessionUserId, tripPlan);
+        return tripPlan;
+    }
+
+    private TripPlan findOwnedPlanWithPlaces(Integer sessionUserId, Integer planId) {
+        TripPlan tripPlan = tripRepository.findPlanByIdWithPlaces(planId)
+                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
+        validateOwner(sessionUserId, tripPlan);
+        return tripPlan;
+    }
+
+    private void validateOwner(Integer sessionUserId, TripPlan tripPlan) {
+        if (!tripPlan.isOwnedBy(sessionUserId)) {
+            throw new Exception403("권한이 없습니다.");
+        }
     }
 
     private record PlanPageQueryResult(List<TripPlan> tripPlans, long totalCount) {

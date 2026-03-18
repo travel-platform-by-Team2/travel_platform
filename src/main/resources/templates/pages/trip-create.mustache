@@ -19,24 +19,30 @@
             </p>
 </div>
 <div class="community-detail-div-01">
-<form action="/trip/create" method="post"> <!-- form 태그 추가 (지윤)-->
-<!-- hidden input들 추가(지윤)-->
-   <input type="hidden" name="whoWith" id="whoWithInput">
-   <input type="hidden" name="startDate" id="startDateInput">
-   <input type="hidden" name="endDate" id="endDateInput">
+<form action="/trip/create" method="post">
+{{#page}}
+  <div id="tripCreatePageMeta"
+       data-region="{{region}}"
+       data-who-with="{{whoWith}}"
+       data-start-date="{{startDate}}"
+       data-end-date="{{endDate}}"></div>
+{{/page}}
+   <input type="hidden" name="whoWith" id="whoWithInput" value="{{#page}}{{whoWith}}{{/page}}">
+   <input type="hidden" name="startDate" id="startDateInput" value="{{#page}}{{startDate}}{{/page}}">
+   <input type="hidden" name="endDate" id="endDateInput" value="{{#page}}{{endDate}}{{/page}}">
 
   <div class="community-detail-div-02">
   <div class="trip-plan-create-div-02">
   <div class="col-span-2">
   <label class="block-title">여행 제목</label>
-  <!--name="title 추가 (지윤)-->
-  <input name="title" class="trip-plan-create-input-01" placeholder="여행 제목을 입력하세요 (예: 제주도 가족 여행)" type="text"/>
+  <input name="title" class="trip-plan-create-input-01" placeholder="여행 제목을 입력하세요 (예: 제주도 가족 여행)" type="text" value="{{#page}}{{title}}{{/page}}"/>
+  {{#page.titleError}}<p class="trip-plan-detail-p-01">{{page.titleError}}</p>{{/page.titleError}}
   </div>
   <div class="col-span-2-md-1">
   <label class="block-title">여행 지역</label>
   <div class="is-relative">
-  <select name="region" class="trip-plan-create-select-01">
-  <option disabled="" selected="" value="">도시나 지역을 선택하세요</option>
+  <select name="region" class="trip-plan-create-select-01" id="regionSelect">
+  <option disabled="" value="">도시나 지역을 선택하세요</option>
   <option value="seoul">서울특별시</option>
   <option value="busan">부산광역시</option>
   <option value="daegu">대구광역시</option>
@@ -59,26 +65,29 @@
   <span class="icon-ms-base">expand_more</span>
   </div>
   </div>
+  {{#page.regionError}}<p class="trip-plan-detail-p-01">{{page.regionError}}</p>{{/page.regionError}}
   </div>
   <div class="col-span-2-md-1">
   <label class="block-title">누구와 함께하나요?</label>
   <div class="trip-plan-create-div-04">
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="혼자">
   <span class="icon-ms-2xl-hover-scale">person</span>
   <span class="trip-plan-create-span-01">혼자</span>
   </button>
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="친구와">
   <span class="icon-ms-2xl-hover-scale">group</span>
   <span class="trip-plan-create-span-01">친구와</span>
   </button>
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="가족과">
   <span class="icon-ms-2xl-hover-scale">family_restroom</span>
   <span class="trip-plan-create-span-01">가족과</span>
   </button>
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="연인과">
   <span class="icon-ms-2xl-hover-scale">favorite</span>
   <span class="trip-plan-create-span-01">연인과</span>
   </button>
+  </div>
+  {{#page.whoWithError}}<p class="trip-plan-detail-p-01">{{page.whoWithError}}</p>{{/page.whoWithError}}
   </div>
   </div>
   </div>
@@ -104,7 +113,6 @@
   <div class="calendar-weekday">S</div>
   </div>
   <div class="calendar-week-grid-body" id="leftCalendarGrid">
-  <!-- JS dynamic render -->
   </div>
   </div>
   <div class="calendar-preview-pane">
@@ -125,7 +133,6 @@
   <div class="calendar-weekday">S</div>
   </div>
   <div class="calendar-week-grid-body" id="rightCalendarGrid">
-  <!-- JS dynamic render -->
   </div>
   </div>
   </div>
@@ -133,50 +140,76 @@
   </div>
   <div class="trip-plan-create-div-09">
 
-  <button class="trip-plan-create-button-05">
+  <button class="trip-plan-create-button-05" type="button" onclick="location.href='/trip'">
                       취소
                   </button>
-  <!-- type="submit" 추가 (지윤)-->                
   <button type="submit" class="trip-plan-create-button-06">
                       계획 생성하기
                   </button>
   </div>
+  {{#page.startDateError}}<p class="trip-plan-detail-p-01">{{page.startDateError}}</p>{{/page.startDateError}}
+  {{#page.endDateError}}<p class="trip-plan-detail-p-01">{{page.endDateError}}</p>{{/page.endDateError}}
 </div>
-</form> <!-- form 태그 끝끝(지윤)-->
+</form>
 </div>
 </main>
 
   {{>partials/chatbot}}
   {{>partials/footer}}
   <script>
-  // 1. '누구와 함께하나?' 버튼 클릭 이벤트 로직
-  const whoWithButtons = document.querySelectorAll('.feature-tile, .trip-plan-create-button-01');
+  const pageMeta = document.getElementById('tripCreatePageMeta');
+  const initialRegion = pageMeta ? pageMeta.dataset.region || '' : '';
+  const initialWhoWith = pageMeta ? pageMeta.dataset.whoWith || '' : '';
+
+  const whoWithButtons = Array.from(document.querySelectorAll('.feature-tile'));
+  const regionSelect = document.getElementById('regionSelect');
+  const whoWithInput = document.getElementById('whoWithInput');
+
+  function applyWhoWithSelection(button) {
+    whoWithButtons.forEach(btn => {
+      btn.style.border = '';
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+    });
+
+    if (!button) {
+      whoWithInput.value = '';
+      return;
+    }
+
+    button.style.border = '2px solid #1152D4';
+    button.style.backgroundColor = '#f1f5f9';
+    button.style.color = '#1152D4';
+    whoWithInput.value = button.dataset.whoWith || '';
+  }
+
   whoWithButtons.forEach(button => {
     button.addEventListener('click', function(e) {
-      e.preventDefault(); 
-      
-      // 모든 버튼 스타일 초기화
-      whoWithButtons.forEach(btn => {
-          btn.style.border = '';
-          btn.style.backgroundColor = '';
-          btn.style.color = '';
-      });
-      
-      // 클릭된 버튼에 시각적 효과 (파란색 테두리와 연한 배경)
-      this.style.border = '2px solid #1152D4';
-      this.style.backgroundColor = '#f1f5f9';
-      this.style.color = '#1152D4';
-
-      const selection = this.querySelector('span:last-child').innerText;
-      document.getElementById('whoWithInput').value = selection;
+      e.preventDefault();
+      applyWhoWithSelection(this);
     });
   });
 
-  // 2. 달력 데이터 및 동적 렌더링 로직
-  let startDate = null;
-  let endDate = null;
-  let viewDate = new Date(); // 현재 기준 월 (좌측 달력 기준)
+  if (regionSelect && initialRegion) {
+    regionSelect.value = initialRegion;
+  }
+
+  if (initialWhoWith) {
+    const selectedButton = whoWithButtons.find(button => button.dataset.whoWith === initialWhoWith);
+    applyWhoWithSelection(selectedButton || null);
+  }
+
+  let startDate = document.getElementById('startDateInput').value || null;
+  let endDate = document.getElementById('endDateInput').value || null;
+  let viewDate = new Date();
   viewDate.setDate(1);
+
+  if (startDate) {
+    const [year, month] = startDate.split('-').map(Number);
+    if (year && month) {
+      viewDate = new Date(year, month - 1, 1);
+    }
+  }
 
   const leftMonthLabel = document.getElementById('leftMonthLabel');
   const rightMonthLabel = document.getElementById('rightMonthLabel');
@@ -184,20 +217,18 @@
   const rightGrid = document.getElementById('rightCalendarGrid');
   const monthPicker = document.getElementById('monthPicker');
 
-  // 달력 그리기 실행
   renderCalendars();
 
-  // 월 이동 버튼 이벤트
   document.getElementById('prevMonthBtn').addEventListener('click', () => {
     viewDate.setMonth(viewDate.getMonth() - 1);
     renderCalendars();
   });
+
   document.getElementById('nextMonthBtn').addEventListener('click', () => {
     viewDate.setMonth(viewDate.getMonth() + 1);
     renderCalendars();
   });
 
-  // 월 레이블 클릭 시 월 선택기 열기
   [leftMonthLabel, rightMonthLabel].forEach(label => {
     label.addEventListener('click', (e) => {
       monthPicker.style.left = e.pageX + 'px';
@@ -209,7 +240,7 @@
   monthPicker.addEventListener('change', (e) => {
     if (e.target.value) {
       const [y, m] = e.target.value.split('-');
-      viewDate = new Date(parseInt(y), parseInt(m) - 1, 1);
+      viewDate = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
       renderCalendars();
     }
   });
@@ -220,68 +251,59 @@
 
     renderSingleMonth(viewDate, leftMonthLabel, leftGrid);
     renderSingleMonth(nextDate, rightMonthLabel, rightGrid);
-    
-    updateCalendarUI(); // 렌더링 후 선택된 범위 표시
+    updateCalendarUI();
   }
 
   function renderSingleMonth(date, labelElement, gridElement) {
     const year = date.getFullYear();
     const month = date.getMonth();
-    
-    labelElement.innerText = `${year}년 ${month + 1}월`;
-    gridElement.innerHTML = ''; // 기존 내용 삭제
 
-    // 1일의 요일 (0: 일요일 ~ 6: 토요일)
+    labelElement.innerText = `${year}년 ${month + 1}월`;
+    gridElement.innerHTML = '';
+
     const firstDay = new Date(year, month, 1).getDay();
-    // 해당 월의 마지막 날짜
     const lastDate = new Date(year, month + 1, 0).getDate();
 
-    // 시작 요일 맞추기 위한 빈 칸 추가
     for (let i = 0; i < firstDay; i++) {
       const empty = document.createElement('div');
       empty.className = 'h-10-fixed';
       gridElement.appendChild(empty);
     }
 
-    // 날짜 버튼 생성
     for (let day = 1; day <= lastDate; day++) {
       const btn = document.createElement('button');
       btn.className = 'calendar-chip-btn';
       btn.type = 'button';
       btn.innerText = day;
-      
+
       const fullDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       btn.setAttribute('data-date', fullDate);
-      
+
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         const clickedDate = this.getAttribute('data-date');
-        
+
         if (!startDate || (startDate && endDate)) {
           startDate = clickedDate;
           endDate = null;
+        } else if (clickedDate < startDate) {
+          endDate = startDate;
+          startDate = clickedDate;
         } else {
-          if (clickedDate < startDate) {
-            endDate = startDate;
-            startDate = clickedDate;
-          } else {
-            endDate = clickedDate;
-          }
+          endDate = clickedDate;
         }
-        
+
         document.getElementById('startDateInput').value = startDate;
         document.getElementById('endDateInput').value = endDate || '';
         updateCalendarUI();
       });
-      
+
       gridElement.appendChild(btn);
     }
   }
 
-  // 달력 UI 갱신 함수 (선택된 날짜와 범위 색상 칠하기)
   function updateCalendarUI() {
       const allButtons = Array.from(document.querySelectorAll('button[data-date]'));
-
       const rangeButtons = allButtons.filter(btn => {
           const d = btn.getAttribute('data-date');
           return startDate && endDate && d > startDate && d < endDate;
@@ -293,32 +315,29 @@
           const d = btn.getAttribute('data-date');
           btn.style.backgroundColor = '';
           btn.style.color = '';
-          btn.style.borderRadius = '45px'; 
-          
+          btn.style.borderRadius = '45px';
+
           if (d === startDate || d === endDate) {
               btn.style.backgroundColor = '#1152D4';
               btn.style.color = 'white';
               btn.style.borderRadius = '12px';
-          } 
-          else if (startDate && endDate && d > startDate && d < endDate) {
-              btn.style.backgroundColor = '#f1f5f9'; 
+          } else if (startDate && endDate && d > startDate && d < endDate) {
+              btn.style.backgroundColor = '#f1f5f9';
               btn.style.color = '#333';
 
               if (rangeButtons.length === 1) {
                   btn.style.borderRadius = '12px';
-              } 
-              else if (btn === rangeButtons[0]) {
+              } else if (btn === rangeButtons[0]) {
                   btn.style.borderRadius = '12px 0 0 12px';
-              } 
-              else if (btn === rangeButtons[rangeButtons.length - 1]) {
+              } else if (btn === rangeButtons[rangeButtons.length - 1]) {
                   btn.style.borderRadius = '0 12px 12px 0';
-              } 
-              else {
-                  btn.style.borderRadius = '0'; 
+              } else {
+                  btn.style.borderRadius = '0';
               }
           }
       });
-  }  </script>
+  }
+  </script>
   {{>partials/scripts}}
 </body>
 </html>

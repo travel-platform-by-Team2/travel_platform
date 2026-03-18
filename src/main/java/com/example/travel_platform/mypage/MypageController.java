@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
-import com.example.travel_platform._core.handler.ex.Exception401;
-import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,6 @@ public class MypageController {
             return "pages/mypage";
         }
 
-        syncSessionPassword(reqDTO.getNewPassword());
         redirectAttributes.addFlashAttribute("passwordSuccessMessage", "비밀번호가 변경되었습니다.");
         return "redirect:/mypage";
     }
@@ -56,19 +54,6 @@ public class MypageController {
     }
 
     private Integer requireSessionUserId() {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            throw new Exception401("로그인이 필요합니다.");
-        }
-        return sessionUser.getId();
-    }
-
-    private void syncSessionPassword(String newPassword) {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            return;
-        }
-        sessionUser.setPassword(newPassword);
-        session.setAttribute("sessionUser", sessionUser);
+        return SessionUsers.requireUserId(session);
     }
 }

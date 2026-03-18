@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
-import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.SessionUser;
+import com.example.travel_platform.user.SessionUsers;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -61,9 +62,9 @@ public class CalendarApiController {
     }
 
     private Integer resolveUserId() {
-        Object sessionUser = session.getAttribute("sessionUser");
-        if (sessionUser instanceof User user) {
-            return user.getId();
+        SessionUser sessionUser = SessionUsers.getOrNull(session);
+        if (sessionUser != null) {
+            return sessionUser.getId();
         }
         throw new Exception400("로그인이 필요합니다.");
     }

@@ -6,9 +6,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.util.Resp;
-import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +28,6 @@ public class BoardApiController {
     }
 
     private Integer requireSessionUserId() {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            throw new Exception401("로그인이 필요합니다.");
-        }
-        return sessionUser.getId();
+        return SessionUsers.requireUserId(session);
     }
 }

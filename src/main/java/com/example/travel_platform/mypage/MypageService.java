@@ -68,7 +68,7 @@ public class MypageService {
             throw new Exception400("새 비밀번호와 확인값이 일치하지 않습니다.");
         }
 
-        user.setPassword(newPassword);
+        user.changePassword(newPassword);
     }
 
     private MypageResponse.ProfileDTO loadProfile(Integer sessionUserId) {
