@@ -16,6 +16,7 @@ public class AdminResponse {
         private String userName;
         private LocalDate startDate;
         private Integer viewCount;
+
         private String category;
         private String categoryClass;
     }
@@ -32,8 +33,9 @@ public class AdminResponse {
         private Integer prevPage;
         private Integer nextPage;
         private String category;
+
         private String keyword;
-        private String selectCategory;
+        private String allCategory;
         private boolean isTips;
         private boolean isPlan;
         private boolean isFood;
@@ -47,5 +49,6 @@ public class AdminResponse {
         private int page;
         private int displayNumber;
         private boolean current;
+        private String keyword;
     }
 }

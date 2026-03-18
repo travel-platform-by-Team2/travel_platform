@@ -10,6 +10,47 @@
 
     var openMenu = null;
 
+    function positionMenu(menu) {
+      if (!menu) {
+        return;
+      }
+
+      var actionButton = menu.querySelector("[data-admin-action-button]");
+      var actionCard = menu.querySelector("[data-admin-action-card]");
+
+      if (!actionButton || !actionCard) {
+        return;
+      }
+
+      var buttonRect = actionButton.getBoundingClientRect();
+      var cardRect = actionCard.getBoundingClientRect();
+      var viewportWidth = window.innerWidth;
+      var viewportHeight = window.innerHeight;
+      var gap = 10;
+
+      var left = buttonRect.right - cardRect.width;
+      var top = buttonRect.bottom + gap;
+
+      if (left < gap) {
+        left = gap;
+      }
+
+      if (left + cardRect.width > viewportWidth - gap) {
+        left = viewportWidth - cardRect.width - gap;
+      }
+
+      if (top + cardRect.height > viewportHeight - gap) {
+        top = buttonRect.top - cardRect.height - gap;
+      }
+
+      if (top < gap) {
+        top = gap;
+      }
+
+      actionCard.style.left = left + "px";
+      actionCard.style.top = top + "px";
+    }
+
     function setMenuState(menu, shouldOpen) {
       if (!menu) {
         return;
@@ -25,6 +66,13 @@
       menu.classList.toggle("is-open", shouldOpen);
       actionButton.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
       actionCard.hidden = !shouldOpen;
+
+      if (shouldOpen) {
+        positionMenu(menu);
+      } else {
+        actionCard.style.left = "";
+        actionCard.style.top = "";
+      }
     }
 
     document.addEventListener("click", function (event) {
@@ -51,5 +99,17 @@
         openMenu = null;
       }
     });
+
+    window.addEventListener("resize", function () {
+      if (openMenu) {
+        positionMenu(openMenu);
+      }
+    });
+
+    window.addEventListener("scroll", function () {
+      if (openMenu) {
+        positionMenu(openMenu);
+      }
+    }, true);
   });
 </script>
