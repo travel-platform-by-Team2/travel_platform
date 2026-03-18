@@ -155,7 +155,6 @@ public class BoardService {
     public BoardResponse.BoardDetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
-        board.increaseViewCount(sessionUserId);
 
         List<BoardResponse.ReplyDTO> replies = board.getReplies().stream()
                 .map(reply -> toReplyDTO(sessionUserId, reply))
@@ -178,6 +177,10 @@ public class BoardService {
             User sessionUser = userRepository.findById(sessionUserId)
                     .orElseThrow(() -> new Exception404("사용자를 찾을 수가 없습니다."));
             isAdmin = sessionUser.isAdmin();
+        }
+
+        if (!isAdmin) {
+            board.increaseViewCount(sessionUserId);
         }
 
         return BoardResponse.BoardDetailDTO.builder()

@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.example.travel_platform.board.BoardService;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
-    private final BoardService boardService;
     private final HttpSession session;
 
     @GetMapping("")
@@ -49,7 +47,7 @@ public class AdminController {
     @PostMapping("/boards/{boardId}/delete")
     public String deleteBoard(@PathVariable("boardId") Integer boardId) {
         User sessionUser = (User) session.getAttribute("sessionUser");
-        boardService.deleteBoard(sessionUser, boardId);
+        adminService.deleteBoard(sessionUser, boardId);
         return "redirect:/admin/boards";
     }
 
