@@ -20,15 +20,15 @@ public class ReplyController {
     private final HttpSession session;
 
     @PostMapping("")
-    public String create(@PathVariable("boardId") Integer boardId, ReplyRequest.CreateDTO reqDTO) {
+    public String create(@PathVariable(name = "boardId") Integer boardId, ReplyRequest.CreateDTO reqDTO) {
         replyService.createReply(requireSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{replyId}/delete")
-    public String delete(@PathVariable("boardId") Integer boardId,
-            @PathVariable("replyId") Integer replyId) {
-        replyService.deleteReply(requireSessionUserId(), replyId);
+    public String delete(@PathVariable(name = "boardId") Integer boardId,
+            @PathVariable(name = "replyId") Integer replyId) {
+        replyService.deleteReply(requireSessionUserId(), boardId, replyId);
         return "redirect:/boards/" + boardId;
     }
 

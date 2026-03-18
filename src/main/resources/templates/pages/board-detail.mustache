@@ -222,6 +222,29 @@
       document.getElementById("reply-edit-box-" + replyId).hidden = true;
     }
 
+    async function readApiBody(response, fallbackMessage) {
+      let payload = null;
+
+      try {
+        payload = await response.json();
+      } catch (e) {
+        payload = null;
+      }
+
+      if (!response.ok) {
+        const message = payload && payload.message ? payload.message : fallbackMessage;
+        alert(message);
+
+        if (response.status === 401) {
+          window.location.href = "/login-form";
+        }
+
+        throw new Error(message);
+      }
+
+      return payload && payload.body ? payload.body : null;
+    }
+
     async function updateReply(boardId, replyId) {
       const textarea = document.getElementById("reply-textarea-" + replyId);
       const content = textarea.value.trim();
@@ -232,28 +255,23 @@
       }
 
       try {
-        const response = await fetch("/boards/" + boardId + "/replies/" + replyId + "/update", {
-          method: "POST",
+        const response = await fetch("/api/boards/" + boardId + "/replies/" + replyId, {
+          method: "PUT",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/json"
           },
-          body: new URLSearchParams({
-            content: content
-          })
+          body: JSON.stringify({ content: content })
         });
 
-        if (!response.ok) {
-          alert("댓글 수정에 실패했습니다.");
-          return;
-        }
-
-        const data = await response.json();
+        const data = await readApiBody(response, "댓글 수정에 실패했습니다.");
 
         document.getElementById("reply-content-" + replyId).innerText = data.content;
         document.getElementById("reply-content-" + replyId).hidden = false;
         document.getElementById("reply-edit-box-" + replyId).hidden = true;
       } catch (e) {
-        alert("서버 요청 중 오류가 발생했습니다.");
+        if (e.message !== "댓글 수정에 실패했습니다.") {
+          console.error(e);
+        }
       }
     }
 
@@ -265,14 +283,8 @@
   const iconEl = document.getElementById("board-like-icon");
 
   try {
-    const response = await fetch("/boards/" + boardId + "/likes/toggle", { method: "POST" });
-
-    if (!response.ok) {
-      alert("자신의 글에는 좋아요를 누를 수 없습니다.");
-      return;
-    }
-
-    const data = await response.json(); // { liked, likeCount }
+    const response = await fetch("/api/boards/" + boardId + "/likes/toggle", { method: "POST" });
+    const data = await readApiBody(response, "좋아요 처리에 실패했습니다.");
 
     countEl.innerText = data.likeCount;
 
@@ -284,7 +296,9 @@
       iconEl.innerText = "favorite_border";
     }
   } catch (e) {
-    alert("서버 요청 중 오류가 발생했습니다.");
+    if (e.message !== "좋아요 처리에 실패했습니다.") {
+      console.error(e);
+    }
   }
 }
 
@@ -365,14 +379,7 @@ function escapeHtml(str) {
 }
 
 function createReplyItemHtml(reply) {
-  return `
-    <div class="fx-group-flex-gap4 reply-item">
-      <div class="flex-fill">
-        <div class="row-between-center-mb1">
-          <div class="inline-items-gap-2">
-            <span class="community-detail-span-05">${escapeHtml(reply.username)}</span>
-            <span class="community-detail-span-06">${escapeHtml(reply.createdAtDisplay)}</span>
-          </div>
+  const ownerActions = reply.isOwner ? `
           <div class="inline-items-gap-2">
             <button class="link-inline-xs" type="button" onclick="showReplyEdit(${reply.boardId}, ${reply.id})">
               <span class="icon-ms-sm">edit</span> 수정
@@ -383,6 +390,17 @@ function createReplyItemHtml(reply) {
               </button>
             </form>
           </div>
+  ` : "";
+
+  return `
+    <div class="fx-group-flex-gap4 reply-item">
+      <div class="flex-fill">
+        <div class="row-between-center-mb1">
+          <div class="inline-items-gap-2">
+            <span class="community-detail-span-05">${escapeHtml(reply.username)}</span>
+            <span class="community-detail-span-06">${escapeHtml(reply.createdAtDisplay)}</span>
+          </div>
+          ${ownerActions}
         </div>
 
         <p class="text-body-sm-relaxed" id="reply-content-${reply.id}">
@@ -427,24 +445,15 @@ async function createReplyAjax(e) {
   const boardId = form.dataset.boardId;
 
   try {
-    const response = await fetch("/boards/" + boardId + "/replies/ajax", {
+    const response = await fetch("/api/boards/" + boardId + "/replies", {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/json"
       },
-      body: new URLSearchParams({ content: content })
+      body: JSON.stringify({ content: content })
     });
 
-    if (!response.ok) {
-      alert("댓글 등록에 실패했습니다.");
-      return;
-    }
-
-    const data = await response.json();
-    if (!data.success) {
-      alert("댓글 등록에 실패했습니다.");
-      return;
-    }
+    const data = await readApiBody(response, "댓글 등록에 실패했습니다.");
 
     const list = document.getElementById("reply-list-container");
     const moreWrap = document.querySelector(".community-detail-div-14");
@@ -470,7 +479,9 @@ async function createReplyAjax(e) {
     replyVisibleCount += 1;
     renderReplyPage();
   } catch (e2) {
-    alert("서버 요청 중 오류가 발생했습니다.");
+    if (e2.message !== "댓글 등록에 실패했습니다.") {
+      console.error(e2);
+    }
   }
 }
 

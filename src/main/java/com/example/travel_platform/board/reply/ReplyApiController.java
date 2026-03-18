@@ -1,37 +1,42 @@
 package com.example.travel_platform.board.reply;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
+import com.example.travel_platform._core.util.Resp;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/boards/{boardId}/replies")
+@RequestMapping("/api/boards/{boardId}/replies")
 @RequiredArgsConstructor
 public class ReplyApiController {
 
     private final ReplyService replyService;
     private final HttpSession session;
 
-    @PostMapping("/ajax")
-    public ReplyResponse.CreateAjaxDTO createAjax(@PathVariable("boardId") Integer boardId,
-            ReplyRequest.CreateDTO reqDTO) {
-        Reply reply = replyService.createReply(requireSessionUserId(), boardId, reqDTO);
-        return ReplyResponse.CreateAjaxDTO.from(reply, boardId);
+    @PostMapping("")
+    public ResponseEntity<Resp<ReplyResponse.CreatedDTO>> create(
+            @PathVariable(name = "boardId") Integer boardId,
+            @Valid @RequestBody ReplyRequest.CreateDTO reqDTO) {
+        return Resp.ok(replyService.createReply(requireSessionUserId(), boardId, reqDTO));
     }
 
-    @PostMapping("/{replyId}/update")
-    public ReplyResponse.UpdateAjaxDTO update(@PathVariable("boardId") Integer boardId,
-            @PathVariable("replyId") Integer replyId,
-            ReplyRequest.UpdateDTO reqDTO) {
-        replyService.updateReply(requireSessionUserId(), replyId, reqDTO);
-        return ReplyResponse.UpdateAjaxDTO.of(boardId, replyId, reqDTO.getContent());
+    @PutMapping("/{replyId}")
+    public ResponseEntity<Resp<ReplyResponse.UpdatedDTO>> update(
+            @PathVariable(name = "boardId") Integer boardId,
+            @PathVariable(name = "replyId") Integer replyId,
+            @Valid @RequestBody ReplyRequest.UpdateDTO reqDTO) {
+        return Resp.ok(replyService.updateReply(requireSessionUserId(), boardId, replyId, reqDTO));
     }
 
     private Integer requireSessionUserId() {
