@@ -3,9 +3,15 @@ package com.example.travel_platform.admin;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.travel_platform.board.BoardService;
+import com.example.travel_platform.user.User;
+
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -13,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
+    private final BoardService boardService;
+    private final HttpSession session;
 
     @GetMapping("")
     public String dashboard(Model model) {
@@ -36,6 +44,13 @@ public class AdminController {
         model.addAttribute("model", responseDTO);
         applySidebarState(model, "boards");
         return "pages/admin-boards";
+    }
+
+    @PostMapping("/boards/{boardId}/delete")
+    public String deleteBoard(@PathVariable("boardId") Integer boardId) {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        boardService.deleteBoard(sessionUser, boardId);
+        return "redirect:/admin/boards";
     }
 
     private void applySidebarState(Model model, String currentMenu) {

@@ -90,13 +90,13 @@ public class BoardController {
             return "pages/board-edit";
         }
 
-        boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
+        boardService.updateBoard(requireSessionUser(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{boardId}/delete")
     public String delete(@PathVariable("boardId") Integer boardId) {
-        boardService.deleteBoard(requireSessionUserId(), boardId);
+        boardService.deleteBoard(requireSessionUser(), boardId);
         return "redirect:/boards";
     }
 
@@ -106,6 +106,15 @@ public class BoardController {
             throw new Exception401("로그인이 필요합니다.");
         }
         return sessionUser.getId();
+    }
+
+    // 유저의 아이디값이 아닌 유저비교(어드민용)
+    private User requireSessionUser() {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            throw new Exception401("로그인이 필요합니다.");
+        }
+        return sessionUser;
     }
 
     private Integer resolveSessionUserIdOrNull() {

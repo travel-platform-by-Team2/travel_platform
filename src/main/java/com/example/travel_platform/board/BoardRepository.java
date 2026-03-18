@@ -135,6 +135,17 @@ public class BoardRepository {
                 .executeUpdate();
     }
 
+    // 좋아요 달린 게시글 삭제 기능 : 좋아요 db 날림
+    @Transactional
+    public int deleteLikesByBoard(Integer boardId) {
+        return em.createNativeQuery("""
+                delete from board_like_tb
+                where board_id = :boardId
+                """)
+                .setParameter("boardId", boardId)
+                .executeUpdate();
+    }
+
     public List<Board> search(String category, String[] words, int offset, int size) {
         StringBuilder jpql = new StringBuilder();
         jpql.append("select b from Board b where 1=1 ");

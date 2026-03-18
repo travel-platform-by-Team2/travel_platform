@@ -41,7 +41,7 @@ public class BoardService {
     }
 
     @Transactional
-    public void updateBoard(Integer sessionUserId, Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
+    public void updateBoard(User sessionUserId, Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
@@ -53,12 +53,13 @@ public class BoardService {
     }
 
     @Transactional
-    public void deleteBoard(Integer sessionUserId, Integer boardId) {
+    public void deleteBoard(User sessionUserId, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
         validateOwner(sessionUserId, board);
-        boardRepository.delete(board);
+        boardRepository.deleteLikesByBoard(boardId); // 좋아요 먼저 삭제
+        boardRepository.delete(board); // 글삭제
     }
 
     public BoardResponse.BoardListPageDTO getBoardList(String category, int page) {
@@ -170,8 +171,13 @@ public class BoardService {
         long likeCount = boardRepository.countLike(boardId);
 
         boolean isOwner = false;
+        boolean isAdmin = false;
+
         if (sessionUserId != null) {
             isOwner = board.getUser().getId().equals(sessionUserId);
+            User sessionUser = userRepository.findById(sessionUserId)
+                    .orElseThrow(() -> new Exception404("사용자를 찾을 수가 없습니다."));
+            isAdmin = sessionUser.isAdmin();
         }
 
         return BoardResponse.BoardDetailDTO.builder()
@@ -187,6 +193,7 @@ public class BoardService {
                 .createdAtDisplay(board.getCreatedAt().format(formatter))
                 .replies(replies)
                 .isOwner(isOwner)
+                .isAdmin(isAdmin)
                 .likeCount(likeCount)
                 .likedByMe(likedByMe)
                 .build();
@@ -271,8 +278,11 @@ public class BoardService {
                 .build();
     }
 
-    private void validateOwner(Integer sessionUserId, Board board) {
-        if (!board.getUser().getId().equals(sessionUserId)) {
+    private void validateOwner(User sessionUser, Board board) {
+        boolean isOwner = board.getUser().getId().equals(sessionUser.getId());
+        boolean isAdmin = sessionUser.isAdmin();
+
+        if (!isOwner && !isAdmin) {
             throw new Exception403("본인 게시글만 수정/삭제할 수 있습니다.");
         }
     }

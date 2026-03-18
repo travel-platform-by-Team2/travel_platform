@@ -84,6 +84,7 @@ public class BoardResponse {
         private List<ReplyDTO> replies;
 
         private Boolean isOwner;
+        private Boolean isAdmin;
         private String titleError;
         private String contentError;
         private String categoryError;
