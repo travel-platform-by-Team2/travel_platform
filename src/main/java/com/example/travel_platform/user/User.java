@@ -30,6 +30,9 @@ public class User {
     private String tel;
     private String role;
 
+    private String provider;   // kakao, naver, google
+    private String providerId; // SNS 고유 식별값
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -46,6 +49,18 @@ public class User {
         return user;
     }
 
+    // SNS 유저 전용 생성 메서드
+    public static User createSNS(String username, String email, String provider, String providerId) {
+        User user = new User();
+        user.username = username;
+        user.password = java.util.UUID.randomUUID().toString(); // 랜덤 비밀번호
+        user.email = email;
+        user.provider = provider;
+        user.providerId = providerId;
+        user.role = "USER";
+        return user;
+    }
+
     public boolean isAdmin() {
         return "ADMIN".equals(this.role);
     }
@@ -57,7 +72,7 @@ public class User {
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", email=" + email
-                + ", tel=" + tel + ", role=" + role + ", createdAt=" + createdAt + "]";
+                + ", tel=" + tel + ", role=" + role + ", provider=" + provider + ", createdAt=" + createdAt + "]";
 
     }
 
