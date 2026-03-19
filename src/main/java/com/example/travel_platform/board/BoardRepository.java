@@ -1,5 +1,6 @@
 package com.example.travel_platform.board;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,25 @@ public class BoardRepository {
                 .getSingleResult();
     }
 
+    public long countByCreatedAtAfter(LocalDateTime since) {
+        return em.createQuery("""
+                select count(b)
+                from Board b
+                where b.createdAt >= :since
+                """, Long.class)
+                .setParameter("since", since)
+                .getSingleResult();
+    }
+
+    public long sumViewCount() {
+        Long totalViewCount = em.createQuery("""
+                select coalesce(sum(b.viewCount), 0)
+                from Board b
+                """, Long.class)
+                .getSingleResult();
+        return totalViewCount == null ? 0L : totalViewCount;
+    }
+
     public List<Board> findAllPagingByCategory(String category, String sort, int offset, int size) {
         String jpql = """
                 select b
@@ -80,6 +100,17 @@ public class BoardRepository {
 
     public List<Board> findAllPagingByCategory(String category, int offset, int size) {
         return findAllPagingByCategory(category, "latest", offset, size);
+    }
+
+    public List<Board> findRecentBoards(int size) {
+        return em.createQuery("""
+                select b
+                from Board b
+                join fetch b.user
+                order by b.createdAt desc, b.id desc
+                """, Board.class)
+                .setMaxResults(size)
+                .getResultList();
     }
 
     public long countByCategory(String category) {
