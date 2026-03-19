@@ -57,6 +57,10 @@ public class UserService {
         User findUser = userRepository.findByEmail(reqDTO.getEmail())
                 .orElseThrow(() -> new Exception400("email을 찾을 수가 없어요"));
 
+        if (!findUser.isAdmin() && !findUser.isActive()) {
+            throw new Exception403("현재 로그인할 수 없는 계정입니다.");
+        }
+
         if (!findUser.getPassword().equals(reqDTO.getPassword())) {
             throw new Exception401("패스워드가 일치하지 않아요");
         }

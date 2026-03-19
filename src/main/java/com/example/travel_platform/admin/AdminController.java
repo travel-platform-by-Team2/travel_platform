@@ -23,6 +23,7 @@ public class AdminController {
     @GetMapping("")
     public String dashboard(Model model) {
         applySidebarState(model, "dashboard");
+        model.addAttribute("page", adminService.getDashboardPage());
         return "pages/admin-dashboard";
     }
 
@@ -31,19 +32,10 @@ public class AdminController {
             @RequestParam(name = "active", required = false) Boolean active,
             @RequestParam(name = "keyword", required = false) String keyword,
             Model model) {
-        if (keyword == null) {
-            keyword = "";
-        }
+        AdminResponse.UserListPageDTO page = adminService.getUsersPage(active, keyword);
 
         applySidebarState(model, "users");
-        model.addAttribute("users", adminService.getAdminUsers(active, keyword));
-        model.addAttribute("totalUserCount", adminService.getTotalUserCount());
-        model.addAttribute("inactiveUserCount", adminService.getInactiveUserCount());
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("currentActive", active);
-        model.addAttribute("isAllTab", active == null);
-        model.addAttribute("isActiveTab", Boolean.TRUE.equals(active));
-        model.addAttribute("isInactiveTab", Boolean.FALSE.equals(active));
+        applyUsersPageModel(model, page);
         return "pages/admin-users";
     }
 
@@ -53,7 +45,7 @@ public class AdminController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             Model model) {
 
-        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardList(category, keyword, page);
+        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardsPage(category, keyword, page);
         model.addAttribute("model", responseDTO);
         applySidebarState(model, "boards");
         return "pages/admin-boards";
@@ -71,6 +63,17 @@ public class AdminController {
         model.addAttribute("usersActiveClass", isCurrentMenu(currentMenu, "users"));
         model.addAttribute("lodgingsActiveClass", isCurrentMenu(currentMenu, "lodgings"));
         model.addAttribute("boardsActiveClass", isCurrentMenu(currentMenu, "boards"));
+    }
+
+    private void applyUsersPageModel(Model model, AdminResponse.UserListPageDTO page) {
+        model.addAttribute("users", page.getUsers());
+        model.addAttribute("totalUserCount", page.getTotalUserCount());
+        model.addAttribute("inactiveUserCount", page.getInactiveUserCount());
+        model.addAttribute("keyword", page.getKeyword());
+        model.addAttribute("currentActive", page.getCurrentActive());
+        model.addAttribute("isAllTab", page.isAllTab());
+        model.addAttribute("isActiveTab", page.isActiveTab());
+        model.addAttribute("isInactiveTab", page.isInactiveTab());
     }
 
     private String isCurrentMenu(String currentMenu, String targetMenu) {

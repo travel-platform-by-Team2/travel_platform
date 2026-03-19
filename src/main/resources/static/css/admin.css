@@ -214,6 +214,13 @@
   color: #0f172a;
 }
 
+.page-admin .admin-metric-helper {
+  margin: 0.55rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
 .page-admin .admin-panel {
   border: 1px solid #e2e8f0;
   border-radius: 1.35rem;
@@ -254,9 +261,19 @@
   padding: 1.5rem;
 }
 
+.page-admin .admin-panel__subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
 .page-admin .admin-grid-2 {
   display: grid;
   gap: 1.5rem;
+}
+
+.page-admin .admin-grid-2--feeds {
+  margin-top: 1.5rem;
 }
 
 .page-admin .admin-toolbar {
@@ -814,6 +831,97 @@
 
 .page-admin .admin-feed-actions {
   color: #cbd5e1;
+}
+
+.page-admin .admin-chart-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-admin .admin-chart-row {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.page-admin .admin-chart-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-admin .admin-chart-row__title {
+  min-width: 0;
+}
+
+.page-admin .admin-chart-row__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.page-admin .admin-chart-track {
+  width: 100%;
+  height: 0.8rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.page-admin .admin-chart-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.24s ease;
+}
+
+.page-admin .admin-chart-bar--blue {
+  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+}
+
+.page-admin .admin-chart-bar--rose {
+  background: linear-gradient(90deg, #e11d48 0%, #fb7185 100%);
+}
+
+.page-admin .admin-chart-bar--tips {
+  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+}
+
+.page-admin .admin-chart-bar--plan {
+  background: linear-gradient(90deg, #475569 0%, #94a3b8 100%);
+}
+
+.page-admin .admin-chart-bar--food {
+  background: linear-gradient(90deg, #ea580c 0%, #fb923c 100%);
+}
+
+.page-admin .admin-chart-bar--review {
+  background: linear-gradient(90deg, #16a34a 0%, #4ade80 100%);
+}
+
+.page-admin .admin-chart-bar--qna {
+  background: linear-gradient(90deg, #7c3aed 0%, #c084fc 100%);
+}
+
+.page-admin .admin-empty-state {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 1rem;
+  color: #64748b;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.page-admin .admin-empty-state .material-symbols-outlined {
+  font-size: 2rem;
+  color: #94a3b8;
 }
 
 .page-admin .admin-summary-note {
