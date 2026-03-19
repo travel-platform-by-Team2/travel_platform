@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Repository
@@ -38,7 +38,6 @@ public class BoardRepository {
                 """, Board.class).getResultList();
     }
 
-    // 페이징 조회
     public List<Board> findAllPaging(String sort, int offset, int size) {
         String jpql = """
                 select b
@@ -47,8 +46,8 @@ public class BoardRepository {
                 """ + " " + toOrderBy(sort);
 
         return em.createQuery(jpql, Board.class)
-                .setFirstResult(offset) // 몇 개 건너뛸지
-                .setMaxResults(size) // 몇 개 가져올지
+                .setFirstResult(offset)
+                .setMaxResults(size)
                 .getResultList();
     }
 
@@ -56,7 +55,6 @@ public class BoardRepository {
         return findAllPaging("latest", offset, size);
     }
 
-    // 전체 개수 조회
     public long count() {
         return em.createQuery("""
                 select count(b)
@@ -65,7 +63,6 @@ public class BoardRepository {
                 .getSingleResult();
     }
 
-    // 카테고리
     public List<Board> findAllPagingByCategory(String category, String sort, int offset, int size) {
         String jpql = """
                 select b
@@ -85,7 +82,6 @@ public class BoardRepository {
         return findAllPagingByCategory(category, "latest", offset, size);
     }
 
-    // 카테고리 전체 페이지
     public long countByCategory(String category) {
         return em.createQuery("""
                 select count(b)
@@ -98,32 +94,6 @@ public class BoardRepository {
 
     public void delete(Board board) {
         em.remove(board);
-    }
-
-    // 사용자가 게시글에 좋아요 눌렀는지 true/false 변환식
-    public boolean existsLike(Integer boardId, Integer userId) {
-        Number result = (Number) em.createNativeQuery("""
-                select count(*)
-                from board_like_tb
-                where board_id = :boardId
-                  and user_id = :userId
-                """)
-                .setParameter("boardId", boardId)
-                .setParameter("userId", userId)
-                .getSingleResult();
-        return result.longValue() > 0;
-    }
-
-    // 게시글 총 좋아요 수
-    public long countLike(Integer boardId) {
-        Number result = (Number) em.createNativeQuery("""
-                select count(*)
-                from board_like_tb
-                where board_id = :boardId
-                """)
-                .setParameter("boardId", boardId)
-                .getSingleResult();
-        return result.longValue();
     }
 
     public Map<Integer, Long> countLikesByBoardIds(List<Integer> boardIds) {
@@ -149,30 +119,6 @@ public class BoardRepository {
         return likeCounts;
     }
 
-    @Transactional
-    public int insertLike(Integer boardId, Integer userId) {
-        return em.createNativeQuery("""
-                insert into board_like_tb (board_id, user_id, created_at)
-                values (:boardId, :userId, current_timestamp)
-                """)
-                .setParameter("boardId", boardId)
-                .setParameter("userId", userId)
-                .executeUpdate();
-    }
-
-    @Transactional
-    public int deleteLike(Integer boardId, Integer userId) {
-        return em.createNativeQuery("""
-                delete from board_like_tb
-                where board_id = :boardId
-                  and user_id = :userId
-                """)
-                .setParameter("boardId", boardId)
-                .setParameter("userId", userId)
-                .executeUpdate();
-    }
-
-    // 좋아요 달린 게시글 삭제 기능 : 좋아요 db 날림
     @Transactional
     public int deleteLikesByBoard(Integer boardId) {
         return em.createNativeQuery("""
@@ -262,5 +208,4 @@ public class BoardRepository {
             default -> "b.createdAt desc, b.id desc";
         };
     }
-
 }

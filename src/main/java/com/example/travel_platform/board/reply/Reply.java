@@ -17,8 +17,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -30,10 +33,14 @@ public class Reply {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -46,4 +53,22 @@ public class Reply {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Builder
+    private Reply(Board board, User user, String content) {
+        this.board = board;
+        this.user = user;
+        this.content = content;
+    }
+
+    public static Reply create(Board board, User user, String content) {
+        return Reply.builder()
+                .board(board)
+                .user(user)
+                .content(content)
+                .build();
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

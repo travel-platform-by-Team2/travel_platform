@@ -31,8 +31,7 @@ public class UserController {
     // 로그인 성공 : 메인 페이지(/)로 리다이렉트 : 지윤
     @PostMapping("/login")
     public String login(UserRequest.LoginDTO reqDTO) {
-        User sessionUser = userService.login(reqDTO.getEmail(), reqDTO.getPassword());
-        session.setAttribute("sessionUser", sessionUser);
+        SessionUsers.save(session, userService.login(reqDTO));
         return "redirect:/";
     }
 
@@ -42,7 +41,7 @@ public class UserController {
         if (errors.hasErrors()) {
             return "pages/signup";
         }
-        userService.join(reqDTO.getUsername(), reqDTO.getPassword(), reqDTO.getEmail(), reqDTO.getTel());
+        userService.join(reqDTO);
         return "redirect:/login-form";
     }
 

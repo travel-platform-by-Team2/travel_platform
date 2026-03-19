@@ -24,7 +24,7 @@ public class MapPlaceImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "normalized_name", unique = true, nullable = false, length = 200)
     private String normalizedName;
@@ -39,6 +39,6 @@ public class MapPlaceImage {
     private String source;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

@@ -56,16 +56,16 @@ style="background-image: url('{{imgUrl}}');"></div>{{^disabled}}
 </div>
 <div class="trip-card-meta">
 <span class="icon-ms-18">location_on</span>
-<span>{{placeName}}</span>
+<span>{{regionLabel}}</span>
 </div>
 <div class="trip-card-meta-stack">
 <span class="icon-ms-18">calendar_today</span>
-<span>{{startDate}} - {{endDate}}</span>
+<span>{{dateRangeLabel}}</span>
 </div>
 <div class="trip-card-footer">
 <div class="trip-card-count">
 <span class="icon-ms-20-primary">bookmark</span>
-<span>장소 12개</span>
+<span>장소 {{placeCount}}개</span>
 </div>
 <button class="trip-card-link" type="button" onclick="location.href='/trip/detail?id={{id}}'">
                             상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
