@@ -36,13 +36,27 @@ public class User {
     @Column(nullable = false)
     private boolean active = true;
 
+    public static User create(String username, String password, String email, String tel, String role) {
+        User user = new User();
+        user.username = username;
+        user.password = password;
+        user.email = email;
+        user.tel = tel;
+        user.role = role;
+        return user;
+    }
+
     public boolean isAdmin() {
         return "ADMIN".equals(this.role);
     }
 
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
     @Override
     public String toString() {
-        return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
+        return "User [id=" + id + ", username=" + username + ", email=" + email
                 + ", tel=" + tel + ", role=" + role + ", createdAt=" + createdAt + "]";
 
     }

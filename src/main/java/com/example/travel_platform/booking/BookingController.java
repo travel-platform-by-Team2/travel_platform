@@ -10,7 +10,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.travel_platform.user.SessionUser;
+import com.example.travel_platform.user.SessionUsers;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -23,14 +26,17 @@ public class BookingController {
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
 
     private final String kakaoMapAppKey;
+    private final String tourApiServiceKey;
     private final BookingService bookingService;
     private final HttpSession session;
 
     public BookingController(
             @Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey,
+            @Value("${TOUR_API_SERVICE_KEY:}") String tourApiServiceKey,
             BookingService bookingService,
             HttpSession session) {
         this.kakaoMapAppKey = kakaoMapAppKey;
+        this.tourApiServiceKey = tourApiServiceKey;
         this.bookingService = bookingService;
         this.session = session;
     }
@@ -44,6 +50,7 @@ public class BookingController {
     @GetMapping("/checkout")
     public String checkoutPage(
             @RequestParam(name = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
+            @RequestParam(name = "roomName", required = false, defaultValue = "기본 객실") String roomName,
             @RequestParam(name = "address", required = false, defaultValue = "주소 정보 없음") String address,
             @RequestParam(name = "imageUrl", required = false) String imageUrl,
             @RequestParam(name = "checkIn", required = false, defaultValue = "") String checkIn,
@@ -62,6 +69,7 @@ public class BookingController {
         long totalPrice = roomSubtotal + feeSubtotal;
 
         model.addAttribute("lodgingName", lodgingName);
+        model.addAttribute("roomName", roomName);
         model.addAttribute("address", address);
         model.addAttribute("imageUrl", imageUrl == null || imageUrl.isBlank() ? "" : imageUrl);
         model.addAttribute("checkIn", checkIn);
@@ -74,15 +82,18 @@ public class BookingController {
         model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
         model.addAttribute("totalPriceRaw", totalPrice);
 
-        User sessionUser = resolveSessionUser();
+        SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             User user = bookingService.getUserById(sessionUser.getId());
-            if (user == null) {
-                user = sessionUser;
+            if (user != null) {
+                model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
+                model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
+                model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
+            } else {
+                model.addAttribute("bookerName", sessionUser.getUsername() == null ? "" : sessionUser.getUsername());
+                model.addAttribute("bookerEmail", sessionUser.getEmail() == null ? "" : sessionUser.getEmail());
+                model.addAttribute("bookerPhone", sessionUser.getTel() == null ? "" : sessionUser.getTel());
             }
-            model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
-            model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
-            model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
         } else {
             model.addAttribute("bookerName", "");
             model.addAttribute("bookerEmail", "");
@@ -94,6 +105,7 @@ public class BookingController {
     @GetMapping("/complete")
     public String completePage(
             @RequestParam(name = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
+            @RequestParam(name = "roomName", required = false, defaultValue = "기본 객실") String roomName,
             @RequestParam(name = "region", required = false, defaultValue = "") String region,
             @RequestParam(name = "guests", required = false, defaultValue = "성인 2명") String guests,
             @RequestParam(name = "checkIn", required = false, defaultValue = "") String checkIn,
@@ -106,11 +118,11 @@ public class BookingController {
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
         String regionKey = normalizeRegionKey(safeRegion);
 
-        User sessionUser = resolveSessionUser();
+        SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             bookingService.processBookingCompletion(
                     sessionUser.getId(),
-                    lodgingName,
+                    lodgingName + " (" + roomName + ")",
                     regionKey,
                     checkIn,
                     checkOut,
@@ -123,6 +135,7 @@ public class BookingController {
 
         model.addAttribute("bookingNumber", buildBookingNumber());
         model.addAttribute("lodgingName", lodgingName);
+        model.addAttribute("roomName", roomName);
         model.addAttribute("region", safeRegion);
         model.addAttribute("regionKey", regionKey);
         model.addAttribute("guests", guests);
@@ -233,11 +246,7 @@ public class BookingController {
         return "busan";
     }
 
-    private User resolveSessionUser() {
-        Object sessionUser = session.getAttribute("sessionUser");
-        if (sessionUser instanceof User user) {
-            return user;
-        }
-        return null;
+    private SessionUser resolveSessionUser() {
+        return SessionUsers.getOrNull(session);
     }
 }

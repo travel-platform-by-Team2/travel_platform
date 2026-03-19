@@ -2,7 +2,8 @@ package com.example.travel_platform._core.filter;
 
 import java.io.IOException;
 
-import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.SessionUser;
+import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -23,10 +24,10 @@ public class AdminFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
 
         HttpSession session = req.getSession();
-        User sessionUser = (User) session.getAttribute("sessionUser");
+        SessionUser sessionUser = SessionUsers.getOrNull(session);
 
         // 1. 로그인을 안 했거나 2. 권한이 "ADMIN"이 아니면 입구 컷!
-        if (sessionUser == null || !"ADMIN".equals(sessionUser.getRole())) {
+        if (sessionUser == null || !sessionUser.isAdmin()) {
             resp.setContentType("text/html; charset=utf-8");
             resp.getWriter().println("<script>alert('관리자 권한이 필요합니다'); location.href='/';</script>");
             return;

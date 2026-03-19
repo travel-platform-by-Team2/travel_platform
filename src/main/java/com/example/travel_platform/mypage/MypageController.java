@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
-import com.example.travel_platform._core.handler.ex.Exception401;
-import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +22,9 @@ public class MypageController {
     private final HttpSession session;
 
     @GetMapping
-    public String mypage(Model model) {
+    public String showMainPage(Model model) {
         Integer sessionUserId = requireSessionUserId();
-        model.addAttribute("page", mypageService.getMainPage(sessionUserId));
+        renderMainPage(model, sessionUserId, null, false);
         return "pages/mypage";
     }
 
@@ -39,36 +38,26 @@ public class MypageController {
         try {
             mypageService.changePassword(sessionUserId, reqDTO);
         } catch (Exception400 e) {
-            model.addAttribute("page", mypageService.getMainPage(sessionUserId));
-            model.addAttribute("passwordError", e.getMessage());
-            model.addAttribute("passwordModalOpen", true);
+            renderMainPage(model, sessionUserId, e.getMessage(), true);
             return "pages/mypage";
         }
 
-        syncSessionPassword(reqDTO.getNewPassword());
         redirectAttributes.addFlashAttribute("passwordSuccessMessage", "비밀번호가 변경되었습니다.");
         return "redirect:/mypage";
     }
 
     @GetMapping("/booking")
-    public String bookingDetail() {
+    public String showBookingDetailPage() {
         return "pages/booking-detail";
     }
 
     private Integer requireSessionUserId() {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            throw new Exception401("로그인이 필요합니다.");
-        }
-        return sessionUser.getId();
+        return SessionUsers.requireUserId(session);
     }
 
-    private void syncSessionPassword(String newPassword) {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            return;
-        }
-        sessionUser.setPassword(newPassword);
-        session.setAttribute("sessionUser", sessionUser);
+    private void renderMainPage(Model model, Integer sessionUserId, String passwordError, boolean passwordModalOpen) {
+        model.addAttribute("page", mypageService.getMainPage(sessionUserId));
+        model.addAttribute("passwordError", passwordError);
+        model.addAttribute("passwordModalOpen", passwordModalOpen);
     }
 }

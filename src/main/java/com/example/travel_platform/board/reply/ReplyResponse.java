@@ -10,8 +10,7 @@ public class ReplyResponse {
 
     @Data
     @Builder
-    public static class CreateAjaxDTO {
-        private boolean success;
+    public static class CreatedDTO {
         private Integer id;
         private Integer boardId;
         private String username;
@@ -19,14 +18,13 @@ public class ReplyResponse {
         private String createdAtDisplay;
         private boolean isOwner;
 
-        public static CreateAjaxDTO from(Reply reply, Integer boardId) {
+        public static CreatedDTO from(Reply reply) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime createdAt = reply.getCreatedAt() == null ? LocalDateTime.now() : reply.getCreatedAt();
 
-            return CreateAjaxDTO.builder()
-                    .success(true)
+            return CreatedDTO.builder()
                     .id(reply.getId())
-                    .boardId(boardId)
+                    .boardId(reply.getBoard().getId())
                     .username(reply.getUser().getUsername())
                     .content(reply.getContent())
                     .createdAtDisplay(createdAt.format(formatter))
@@ -37,18 +35,16 @@ public class ReplyResponse {
 
     @Data
     @Builder
-    public static class UpdateAjaxDTO {
-        private boolean success;
+    public static class UpdatedDTO {
         private Integer boardId;
         private Integer replyId;
         private String content;
 
-        public static UpdateAjaxDTO of(Integer boardId, Integer replyId, String content) {
-            return UpdateAjaxDTO.builder()
-                    .success(true)
-                    .boardId(boardId)
-                    .replyId(replyId)
-                    .content(content)
+        public static UpdatedDTO from(Reply reply) {
+            return UpdatedDTO.builder()
+                    .boardId(reply.getBoard().getId())
+                    .replyId(reply.getId())
+                    .content(reply.getContent())
                     .build();
         }
     }
