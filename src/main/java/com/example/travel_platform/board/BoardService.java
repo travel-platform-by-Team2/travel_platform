@@ -27,7 +27,6 @@ public class BoardService {
 
     @Transactional
     public void createBoard(Integer sessionUserId, BoardRequest.CreateBoardDTO reqDTO) {
-
         User sessionUser = userRepository.findById(sessionUserId)
                 .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
 
@@ -42,11 +41,11 @@ public class BoardService {
     }
 
     @Transactional
-    public void updateBoard(User sessionUserId, Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
+    public void updateBoard(User sessionUser, Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
-        validateOwner(sessionUserId, board);
+        validateOwner(sessionUser, board);
 
         board.setTitle(reqDTO.getTitle());
         board.setContent(reqDTO.getContent());
@@ -54,28 +53,28 @@ public class BoardService {
     }
 
     @Transactional
-    public void deleteBoard(User sessionUserId, Integer boardId) {
+    public void deleteBoard(User sessionUser, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
-        validateOwner(sessionUserId, board);
-        boardRepository.deleteLikesByBoard(boardId); // 좋아요 먼저 삭제
-        boardRepository.delete(board); // 글삭제
+        validateOwner(sessionUser, board);
+        boardRepository.deleteLikesByBoard(boardId);
+        boardRepository.delete(board);
     }
 
     public BoardResponse.BoardListPageDTO getBoardList(String category, String sort, int page) {
         int size = 10;
         int offset = page * size;
-        String normalizedSort = normalizeSort(sort);
+        String sortList = normalizeSort(sort);
 
         List<Board> boards;
         long totalCount;
 
         if (category != null && !category.isBlank()) {
-            boards = boardRepository.findAllPagingByCategory(category, normalizedSort, offset, size);
+            boards = boardRepository.findAllPagingByCategory(category, sortList, offset, size);
             totalCount = boardRepository.countByCategory(category);
         } else {
-            boards = boardRepository.findAllPaging(normalizedSort, offset, size);
+            boards = boardRepository.findAllPaging(sortList, offset, size);
             totalCount = boardRepository.count();
         }
 
@@ -106,8 +105,6 @@ public class BoardService {
                 .toList();
 
         int totalPages = (int) Math.ceil((double) totalCount / size);
-
-        // 게시글이 하나도 없을 때 page=0 기준 유지
         if (totalPages == 0) {
             totalPages = 1;
         }
@@ -121,13 +118,11 @@ public class BoardService {
         int blockSize = 5;
         int startPage = (page / blockSize) * blockSize;
         int endPage = startPage + blockSize - 1;
-
         if (endPage >= totalPages) {
             endPage = totalPages - 1;
         }
 
         List<BoardResponse.PageItemDTO> pageItems = new ArrayList<>();
-
         for (int i = startPage; i <= endPage; i++) {
             pageItems.add(BoardResponse.PageItemDTO.builder()
                     .page(i)
@@ -148,12 +143,14 @@ public class BoardService {
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .category(category)
-                .sort(normalizedSort)
-                .sortLabel(toSortLabel(normalizedSort))
-                .isSortLikes("likes".equals(normalizedSort))
-                .isSortViews("views".equals(normalizedSort))
-                .isSortLatest("latest".equals(normalizedSort))
-                .isSortDate("date".equals(normalizedSort))
+                .sort(sortList)
+                .sortLabel(toSortLabel(sortList))
+                .isSortLikes("likes".equals(sortList))
+                .isSortDownlikes("downlikes".equals(sortList))
+                .isSortViews("view".equals(sortList))
+                .isSortDownviews("downview".equals(sortList))
+                .isSortLatest("latest".equals(sortList))
+                .isSortDate("date".equals(sortList))
                 .isTips("tips".equals(category))
                 .isPlan("plan".equals(category))
                 .isFood("food".equals(category))
@@ -169,17 +166,19 @@ public class BoardService {
         }
 
         return switch (sort) {
-            case "likes", "views", "latest", "date" -> sort;
+            case "likes", "downlikes", "view", "downview", "latest", "date" -> sort;
             default -> "latest";
         };
     }
 
     private String toSortLabel(String sort) {
         return switch (sort) {
-            case "likes" -> "좋아요순";
-            case "views" -> "조회순";
-            case "date" -> "날짜순";
-            default -> "최신순";
+            case "likes" -> "좋아요순 ↑";
+            case "downlikes" -> "좋아요순 ↓";
+            case "view" -> "조회순 ↑";
+            case "downview" -> "조회순 ↓";
+            case "date" -> "날짜순 ↓";
+            default -> "날짜순 ↑";
         };
     }
 
@@ -194,7 +193,6 @@ public class BoardService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-        // 좋아요 계산
         boolean likedByMe = false;
         if (sessionUserId != null) {
             likedByMe = boardRepository.existsLike(boardId, sessionUserId);
@@ -208,7 +206,7 @@ public class BoardService {
         if (sessionUserId != null) {
             isOwner = board.getUser().getId().equals(sessionUserId);
             User sessionUser = userRepository.findById(sessionUserId)
-                    .orElseThrow(() -> new Exception404("사용자를 찾을 수가 없습니다."));
+                    .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
             isAdmin = sessionUser.isAdmin();
         }
 
@@ -235,7 +233,6 @@ public class BoardService {
                 .build();
     }
 
-    // 화면에 보여주는 한글 텍스트 변환
     private String toCategoryLabel(String category) {
         if (category == null || category.isBlank()) {
             return "기타";
@@ -250,7 +247,6 @@ public class BoardService {
         };
     }
 
-    // css 변환 파일
     private String toCategoryClass(String category) {
         if (category == null || category.isBlank()) {
             return "cat-default";
@@ -282,10 +278,8 @@ public class BoardService {
                 .build();
     }
 
-    // 좋아요 버튼을 누르면 응답을 즉시 주기위해 비즈니스 규칙을 한곳에 모은곳
     @Transactional
     public BoardResponse.ToggleLikeDTO toggleBoardLike(Integer sessionUserId, Integer boardId) {
-
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 

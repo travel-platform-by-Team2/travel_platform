@@ -44,7 +44,9 @@ public class BoardResponse {
         private String sort;
         private String sortLabel;
         private boolean isSortLikes;
+        private boolean isSortDownlikes;
         private boolean isSortViews;
+        private boolean isSortDownviews;
         private boolean isSortLatest;
         private boolean isSortDate;
         private boolean isTips;

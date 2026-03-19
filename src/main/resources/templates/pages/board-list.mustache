@@ -25,7 +25,7 @@
 </div>
 <div class="community-list-div-02">
   <div class="community-list-div-03">
-    <div class="chips-scroll-mask"> 
+    <div class="chips-scroll-mask">
       <a class="community-filter-btn cat-all {{^model.category}}is-active{{/model.category}}" href="/boards{{#model.sort}}?sort={{model.sort}}{{/model.sort}}">
         전체
       </a>
@@ -65,10 +65,23 @@
       </summary>
 
       <div class="community-sort-menu" aria-label="게시글 정렬">
-        <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}" href="/boards?sort=views{{#model.category}}&category={{model.category}}{{/model.category}}">조회순</a>
-        <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}" href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}">좋아요순</a>
-        <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}" href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}">최신순</a>
-        <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}" href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}">날짜순</a>
+        <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
+        href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}">날짜순 ↑</a>
+
+        <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
+        href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}">날짜순 ↓</a>
+
+        <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
+        href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}">조회순 ↑</a>
+
+        <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
+        href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}">조회순 ↓</a>
+
+        <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
+        href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}">좋아요순 ↑</a>
+
+        <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
+        href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}">좋아요순 ↓</a>
       </div>
     </details>
   </div>

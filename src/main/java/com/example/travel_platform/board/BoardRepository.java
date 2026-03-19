@@ -250,7 +250,10 @@ public class BoardRepository {
     private String toOrderBy(String sort) {
         return switch (sort) {
             case "likes" -> "(select count(bl) from BoardLike bl where bl.board = b) desc, b.createdAt desc, b.id desc";
-            case "views" -> "b.viewCount desc, b.createdAt desc, b.id desc";
+            case "downlikes" ->
+                "(select count(bl) from BoardLike bl where bl.board = b) asc, b.createdAt asc, b.id asc";
+            case "view" -> "b.viewCount desc, b.createdAt desc, b.id desc";
+            case "downview" -> "b.viewCount asc, b.createdAt asc, b.id asc";
             case "date" -> "b.createdAt asc, b.id asc";
             default -> "b.createdAt desc, b.id desc";
         };
