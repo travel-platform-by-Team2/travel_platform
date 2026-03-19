@@ -19,6 +19,7 @@ public class BoardResponse {
         private String categoryLabel;
         private String categoryClass;
         private Integer viewCount;
+        private Integer likeCount;
         private Integer replyCount;
         private LocalDateTime createdAt;
         private String createdAtDisplay;
@@ -40,6 +41,12 @@ public class BoardResponse {
         private Integer prevPage;
         private Integer nextPage;
         private String category;
+        private String sort;
+        private String sortLabel;
+        private boolean isSortLikes;
+        private boolean isSortViews;
+        private boolean isSortLatest;
+        private boolean isSortDate;
         private boolean isTips;
         private boolean isPlan;
         private boolean isFood;

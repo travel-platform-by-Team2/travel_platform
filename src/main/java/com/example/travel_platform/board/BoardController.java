@@ -26,8 +26,9 @@ public class BoardController {
 
     @GetMapping
     public String boardlist(@RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
-        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, page);
+        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, sort, page);
         model.addAttribute("model", responseDTO);
         return "pages/board-list";
     }

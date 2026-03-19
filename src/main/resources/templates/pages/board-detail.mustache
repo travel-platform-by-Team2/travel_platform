@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Community Post Detail</title>
   {{>partials/head-assets}}
-  <!--버튼 좋아요 css -->
-  <style>
-    #board-like-btn.is-liked { border-color:#ec4899; color:#ec4899; }
-    #board-like-btn.is-liked #board-like-icon { color:#ec4899; font-variation-settings:"FILL" 1; }
-  </style>
 </head>
 
 <body class="page-body">
@@ -68,6 +63,12 @@
           </div>
 
           <div>
+            <div class="mb-3">
+              <button class="board-copy-link-btn" type="button" onclick="copyCurrentUrl()">
+                <span class="icon-ms-sm">content_copy</span>
+                <span>URL 복사</span>
+              </button>
+            </div>
             <h1 class="community-detail-h1-01">
               {{title}}
             </h1>
@@ -305,7 +306,7 @@
 const likeBtn = document.getElementById("board-like-btn");
 if (likeBtn) likeBtn.addEventListener("click", toggleBoardLike);
 
-// 공유하기 버튼 프론트 web api
+// 주소 복사 버튼
 async function copyCurrentUrl() {
   const url = window.location.href;
 
@@ -331,12 +332,36 @@ async function copyCurrentUrl() {
   }
 }
 
+// 공유하기 버튼 Web Share API
+async function shareCurrentPage() {
+  if (!navigator.share) {
+    alert("이 브라우저에서는 공유하기를 지원하지 않습니다.");
+    return;
+  }
+
+  const titleEl = document.querySelector(".community-detail-h1-01");
+  const shareTitle = titleEl ? titleEl.textContent.trim() : document.title;
+
+  try {
+    await navigator.share({
+      title: shareTitle,
+      text: shareTitle,
+      url: window.location.href
+    });
+  } catch (e) {
+    if (e && e.name === "AbortError") {
+      return;
+    }
+    alert("공유하기에 실패했습니다.");
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   const shareBtn = document.getElementById("board-share-btn");
   if (shareBtn) {
-    shareBtn.addEventListener("click", function (e) {
+    shareBtn.addEventListener("click", async function (e) {
       e.preventDefault();
-      copyCurrentUrl();
+      await shareCurrentPage();
     });
   }
   initReplyPaging();
