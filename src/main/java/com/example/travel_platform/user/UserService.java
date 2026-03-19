@@ -15,7 +15,6 @@ import com.example.travel_platform.booking.BookingRepository;
 import com.example.travel_platform.calendar.CalendarRepository;
 import com.example.travel_platform.trip.TripPlaceRepository;
 import com.example.travel_platform.trip.TripRepository;
-
 import lombok.RequiredArgsConstructor;
 
 @Transactional(readOnly = true)
@@ -130,7 +129,5 @@ public class UserService {
             return "";
         }
         return value;
-    }<<<<<<<HEAD=======
-
-    >>>>>>>dev
+    }
 }
