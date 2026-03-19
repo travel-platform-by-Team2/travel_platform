@@ -26,7 +26,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleValidationError(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
-                .map(FieldError::getDefaultMessage)
+                .map(fieldError -> fieldError.getDefaultMessage())
                 .orElse("잘못된 요청 값입니다.");
         return build(HttpStatus.BAD_REQUEST, "API_BAD_REQUEST", message);
     }

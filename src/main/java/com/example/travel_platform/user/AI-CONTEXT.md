@@ -6,7 +6,7 @@
 
 ## 목적
 
-회원가입, 로그인, 세션 사용자/권한 처리와 메인 진입 화면을 담당한다.
+회원가입, 로그인, 세션 사용자/권한 처리, 마이페이지 탈퇴를 포함한 사용자 계정 핵심 흐름과 메인 진입 화면을 담당한다.
 
 ## 주요 파일
 
@@ -16,10 +16,10 @@
 | SessionUser.java    | 세션에 저장하는 사용자 전용 DTO다.                     |
 | SessionUsers.java   | 세션 사용자 조회/저장 helper다.                        |
 | UserController.java | 로그인, 로그아웃, 회원가입, 메인 화면 요청을 처리한다. |
-| UserRepository.java | 사용자 저장/조회 저장소다.                             |
+| UserRepository.java | 사용자 저장/조회/삭제 저장소다.                         |
 | UserRequest.java    | 사용자 입력 DTO를 정의한다.                            |
 | UserResponse.java   | 사용자 응답 DTO를 정의한다.                            |
-| UserService.java    | 회원 비즈니스 로직을 처리한다.                         |
+| UserService.java    | 회원가입, 로그인, 회원 탈퇴 비즈니스 로직을 처리한다.   |
 
 ## 하위 디렉토리
 
@@ -33,6 +33,9 @@
 - 로그인/회원가입 폼 필드 이름은 DTO와 템플릿이 맞물려 있으므로 이름 변경을 한쪽만 하지 않는다.
 - `UserController`는 `/`, `/login-form`, `/join-form`, `/login`, `/join`, `/logout`를 담당하므로 인증 진입 경로를 바꿀 때 redirect 흐름도 같이 확인한다.
 - `SessionUser` 계약은 `mypage`, `_core/filter`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
+- 회원 탈퇴는 `active` 변경이 아니라 실제 `user_tb` 삭제이며, 관리자 계정은 서비스 레벨에서 탈퇴를 막는다.
+- 탈퇴 로직은 FK 제약 때문에 `board_like`, `reply`, `board`, `calendar_event`, `booking`, `trip_place`, `trip_plan`, `user` 순의 정리 흐름을 함께 봐야 한다.
+- `UserService.withdrawAccount(...)`는 현재 비밀번호 확인 후 관련 저장소를 호출해 연관 데이터를 지운 다음 `UserRepository.delete(...)`를 수행한다.
 
 ## 테스트
 
@@ -41,6 +44,7 @@
 - `/login-form` 접근, `/join` 검증 실패 시 `pages/signup` 재렌더링, `/logout` 후 세션 제거를 함께 점검한다.
 - 관리자 계정이 도입된 상태라면 로그인 후 `sessionUser.role` 값, 헤더의 관리자 버튼 노출, `/admin` 접근, 관리자 필터 동작을 함께 확인한다.
 - `mypage` 비밀번호 변경 후에도 세션/필터/헤더 흐름이 정상인지 함께 확인한다.
+- 회원 탈퇴 시 일반 사용자 삭제, 관리자 탈퇴 차단, 비밀번호 불일치 실패, 세션 종료를 함께 확인한다.
 
 ## 의존성
 

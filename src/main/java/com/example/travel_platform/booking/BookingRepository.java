@@ -1,8 +1,10 @@
 package com.example.travel_platform.booking;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +18,27 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
+
+    List<Booking> findByUser_IdAndCheckInGreaterThanEqualOrderByCheckInAscIdAsc(
+            Integer userId,
+            LocalDate checkIn,
+            Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("""
+            delete from Booking b
+            where b.user.id = :userId
+            """)
+    int deleteByUserId(@Param("userId") Integer userId);
+
+    @Modifying
+    @Transactional
+    @Query("""
+            delete from Booking b
+            where b.tripPlan.user.id = :userId
+            """)
+    int deleteByTripPlanUserId(@Param("userId") Integer userId);
 
     /**
      * 특정 지도 경계 영역 내의 활성화된 숙소 목록을 조회하여 DTO로 즉시 반환합니다.

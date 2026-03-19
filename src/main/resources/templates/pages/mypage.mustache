@@ -82,7 +82,7 @@
                 <span class="material-symbols-outlined">map</span>
               </div>
             </div>
-            <a class="mypage-secondary-button" href="#" onclick="return false;" aria-disabled="true">상세 보기</a>
+            <a class="mypage-secondary-button" href="{{detailLink}}">상세 보기</a>
           </article>
           {{/page.tripPlans}}
         </div>
@@ -121,6 +121,21 @@
             </div>
             <span class="material-symbols-outlined">chevron_right</span>
           </a>
+          {{#page.user.withdrawAllowed}}
+          <button
+            class="mypage-account-row mypage-account-row--danger"
+            type="button"
+            data-withdraw-modal-open
+            aria-controls="mypage-withdraw-modal"
+            aria-haspopup="dialog"
+          >
+            <div>
+              <span class="material-symbols-outlined">person_off</span>
+              <span>회원 탈퇴</span>
+            </div>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+          {{/page.user.withdrawAllowed}}
         </div>
       </section>
     </div>
@@ -172,6 +187,46 @@
         </form>
       </div>
     </div>
+
+    <div
+      class="mypage-password-overlay {{^withdrawModalOpen}}is-hidden{{/withdrawModalOpen}}"
+      data-withdraw-modal-overlay
+      aria-hidden="{{^withdrawModalOpen}}true{{/withdrawModalOpen}}{{#withdrawModalOpen}}false{{/withdrawModalOpen}}"
+    >
+      <div
+        class="mypage-password-modal"
+        id="mypage-withdraw-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mypage-withdraw-modal-title"
+      >
+        <div class="mypage-password-modal__head">
+          <h3 class="mypage-password-modal__title" id="mypage-withdraw-modal-title">회원 탈퇴</h3>
+          <button class="mypage-password-modal__close" type="button" data-withdraw-modal-close aria-label="회원 탈퇴 팝업 닫기">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <form class="mypage-password-form" action="/mypage/withdraw" method="post">
+          {{#withdrawError}}
+          <p class="mypage-password-form__error">{{withdrawError}}</p>
+          {{/withdrawError}}
+
+          <p class="mypage-password-form__help">
+            <span class="material-symbols-outlined">warning</span>
+            계정과 관련 데이터가 삭제되며 복구할 수 없습니다.
+          </p>
+          <label class="mypage-password-field">
+            <span>현재 비밀번호</span>
+            <input type="password" name="currentPassword" placeholder="현재 비밀번호를 입력하세요" required>
+          </label>
+          <div class="mypage-password-form__actions">
+            <button class="mypage-secondary-button" type="button" data-withdraw-modal-close>취소</button>
+            <button class="mypage-primary-button" type="submit">탈퇴하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </main>
 
   {{>partials/footer}}
@@ -182,47 +237,58 @@
       var closeButtons = document.querySelectorAll("[data-password-modal-close]");
       var overlay = document.querySelector("[data-password-modal-overlay]");
       var modal = document.getElementById("mypage-password-modal");
+      var withdrawOpenButtons = document.querySelectorAll("[data-withdraw-modal-open]");
+      var withdrawCloseButtons = document.querySelectorAll("[data-withdraw-modal-close]");
+      var withdrawOverlay = document.querySelector("[data-withdraw-modal-overlay]");
       var feedbackToast = document.querySelector("[data-feedback-toast]");
 
-      if (!overlay || !modal || openButtons.length === 0) {
-        return;
-      }
-
-      function openModal() {
-        overlay.classList.remove("is-hidden");
-        overlay.setAttribute("aria-hidden", "false");
-        document.body.classList.add("mypage-modal-open");
-      }
-
-      function closeModal() {
-        overlay.classList.add("is-hidden");
-        overlay.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("mypage-modal-open");
-      }
-
-      if (!overlay.classList.contains("is-hidden")) {
-        document.body.classList.add("mypage-modal-open");
-      }
-
-      openButtons.forEach(function (button) {
-        button.addEventListener("click", openModal);
-      });
-
-      closeButtons.forEach(function (button) {
-        button.addEventListener("click", closeModal);
-      });
-
-      overlay.addEventListener("click", function (event) {
-        if (event.target === overlay) {
-          closeModal();
+      function bindModal(openTargets, closeTargets, targetOverlay) {
+        if (!targetOverlay || openTargets.length === 0) {
+          return;
         }
-      });
 
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && !overlay.classList.contains("is-hidden")) {
-          closeModal();
+        function openModal() {
+          targetOverlay.classList.remove("is-hidden");
+          targetOverlay.setAttribute("aria-hidden", "false");
+          document.body.classList.add("mypage-modal-open");
         }
-      });
+
+        function closeModal() {
+          targetOverlay.classList.add("is-hidden");
+          targetOverlay.setAttribute("aria-hidden", "true");
+          if ((overlay == null || overlay.classList.contains("is-hidden"))
+              && (withdrawOverlay == null || withdrawOverlay.classList.contains("is-hidden"))) {
+            document.body.classList.remove("mypage-modal-open");
+          }
+        }
+
+        if (!targetOverlay.classList.contains("is-hidden")) {
+          document.body.classList.add("mypage-modal-open");
+        }
+
+        openTargets.forEach(function (button) {
+          button.addEventListener("click", openModal);
+        });
+
+        closeTargets.forEach(function (button) {
+          button.addEventListener("click", closeModal);
+        });
+
+        targetOverlay.addEventListener("click", function (event) {
+          if (event.target === targetOverlay) {
+            closeModal();
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && !targetOverlay.classList.contains("is-hidden")) {
+            closeModal();
+          }
+        });
+      }
+
+      bindModal(openButtons, closeButtons, overlay);
+      bindModal(withdrawOpenButtons, withdrawCloseButtons, withdrawOverlay);
 
       if (feedbackToast) {
         window.setTimeout(function () {
