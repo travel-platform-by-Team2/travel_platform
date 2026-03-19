@@ -26,7 +26,7 @@ public class Lodging {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "external_place_id", unique = true, nullable = false, length = 64)
     private String externalPlaceId;
