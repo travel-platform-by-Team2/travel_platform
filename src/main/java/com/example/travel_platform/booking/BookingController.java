@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.travel_platform.user.SessionUser;
+import com.example.travel_platform.user.SessionUsers;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -74,15 +76,18 @@ public class BookingController {
         model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
         model.addAttribute("totalPriceRaw", totalPrice);
 
-        User sessionUser = resolveSessionUser();
+        SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             User user = bookingService.getUserById(sessionUser.getId());
-            if (user == null) {
-                user = sessionUser;
+            if (user != null) {
+                model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
+                model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
+                model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
+            } else {
+                model.addAttribute("bookerName", sessionUser.getUsername() == null ? "" : sessionUser.getUsername());
+                model.addAttribute("bookerEmail", sessionUser.getEmail() == null ? "" : sessionUser.getEmail());
+                model.addAttribute("bookerPhone", sessionUser.getTel() == null ? "" : sessionUser.getTel());
             }
-            model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
-            model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
-            model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
         } else {
             model.addAttribute("bookerName", "");
             model.addAttribute("bookerEmail", "");
@@ -106,7 +111,7 @@ public class BookingController {
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
         String regionKey = normalizeRegionKey(safeRegion);
 
-        User sessionUser = resolveSessionUser();
+        SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             bookingService.processBookingCompletion(
                     sessionUser.getId(),
@@ -233,11 +238,7 @@ public class BookingController {
         return "busan";
     }
 
-    private User resolveSessionUser() {
-        Object sessionUser = session.getAttribute("sessionUser");
-        if (sessionUser instanceof User user) {
-            return user;
-        }
-        return null;
+    private SessionUser resolveSessionUser() {
+        return SessionUsers.getOrNull(session);
     }
 }

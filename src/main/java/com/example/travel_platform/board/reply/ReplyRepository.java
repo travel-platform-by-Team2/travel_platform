@@ -30,6 +30,7 @@ public class ReplyRepository {
         return em.createQuery("""
                 select r
                 from Reply r
+                join fetch r.user
                 where r.board.id = :boardId
                 order by r.id asc
                 """, Reply.class)
