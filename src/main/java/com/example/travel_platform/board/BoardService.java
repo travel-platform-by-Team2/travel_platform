@@ -64,7 +64,7 @@ public class BoardService {
         }
 
         Map<Integer, Long> likeCounts = boardRepository.countLikesByBoardIds(
-                boards.stream().map(Board::getId).toList());
+                boards.stream().map(board -> board.getId()).toList());
 
         List<BoardResponse.SummaryDTO> boardDTOs = boards.stream()
                 .map(board -> BoardResponse.SummaryDTO.from(

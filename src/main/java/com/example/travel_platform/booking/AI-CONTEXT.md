@@ -24,6 +24,7 @@
 
 - 지도 상세, 체크아웃, 예약 완료 화면은 템플릿 변수명과 쿼리 파라미터 이름이 강하게 연결돼 있다.
 - `BookingApiController`의 예약 생성/조회/취소는 아직 `userId=1` placeholder를 사용하므로 실제 인증 연동 시 API 계약을 함께 정리한다.
+- `BookingRepository`는 `mypage`의 다가오는 예약 카드 조회에도 재사용되므로, 예약 정렬/필터 기준 변경 시 마이페이지 영향 범위를 같이 본다.
 - `mergeMapPois`는 Kakao POI와 DB 숙소 목록을 합치는 보조 API이고, `getPlaceImage`는 DB 캐시 + Kakao 페이지 scraping 순서로 이미지를 찾는다.
 - `BookingService.processBookingCompletion(...)`은 새 여행 계획이 필요할 때 `TripPlan.create(...)`를 사용하고, `BookingController`가 넘기는 `regionKey`를 저장한다.
 - 예약 완료 화면의 `region` 문자열은 표시용이고, 실제 `TripPlan.region`에는 길이/매핑 제약을 고려해 `regionKey`를 넣는다.

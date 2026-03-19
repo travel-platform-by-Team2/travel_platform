@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform.booking.BookingRepository;
 import com.example.travel_platform.trip.TripRepository;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
@@ -19,17 +21,31 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class MypageService {
 
+    private static final int UPCOMING_BOOKING_LIMIT = 2;
     private static final int UPCOMING_TRIP_PLAN_LIMIT = 2;
 
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
     private final TripRepository tripRepository;
 
     public MypageResponse.PageDTO getMainPage(Integer sessionUserId) {
         MypageResponse.ProfileDTO user = loadProfile(sessionUserId);
-        List<MypageResponse.BookingCardDTO> bookings = List.of();
+        List<MypageResponse.BookingCardDTO> bookings = loadUpcomingBookings(sessionUserId);
         List<MypageResponse.PlanCardDTO> tripPlans = loadUpcomingTripPlans(sessionUserId);
 
         return MypageResponse.PageDTO.of(user, bookings, tripPlans);
+    }
+
+    private List<MypageResponse.BookingCardDTO> loadUpcomingBookings(Integer sessionUserId) {
+        LocalDate today = LocalDate.now();
+
+        return bookingRepository.findByUser_IdAndCheckInGreaterThanEqualOrderByCheckInAscIdAsc(
+                        sessionUserId,
+                        today,
+                        PageRequest.of(0, UPCOMING_BOOKING_LIMIT))
+                .stream()
+                .map(booking -> MypageResponse.BookingCardDTO.from(booking))
+                .collect(Collectors.toList());
     }
 
     private List<MypageResponse.PlanCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
@@ -39,7 +55,7 @@ public class MypageService {
         // TripRepository 조회 조건이 startDate > 기준일이므로 오늘 출발 계획도 포함되게 하루를 보정한다.
         return tripRepository.findUpcomingPlanListByUserId(sessionUserId, inclusiveToday, 0, UPCOMING_TRIP_PLAN_LIMIT)
                 .stream()
-                .map(MypageResponse.PlanCardDTO::from)
+                .map(tripPlan -> MypageResponse.PlanCardDTO.from(tripPlan))
                 .collect(Collectors.toList());
     }
 
