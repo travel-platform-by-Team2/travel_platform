@@ -95,4 +95,11 @@ public class TripPlan {
                 .imgUrl(imgUrl)
                 .build();
     }
+
+    public boolean isOwnedBy(Integer sessionUserId) {
+        return sessionUserId != null
+                && user != null
+                && user.getId() != null
+                && user.getId().equals(sessionUserId);
+    }
 }

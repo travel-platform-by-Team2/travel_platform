@@ -16,6 +16,10 @@ public class FilterConfig {
                                 "/calendar/*",
                                 "/api/calendar",
                                 "/api/calendar/*",
+                                "/trip",
+                                "/trip/*",
+                                "/api/trips",
+                                "/api/trips/*",
                                 "/mypage",
                                 "/mypage/*");
 

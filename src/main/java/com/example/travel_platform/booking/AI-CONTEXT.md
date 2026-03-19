@@ -8,13 +8,13 @@
 
 ## 주요 파일
 
-| 파일명 | 설명 |
-| --- | --- |
-| `Booking.java` | 예약 엔티티 |
-| `BookingApiController.java` | 예약 관련 REST API |
-| `BookingController.java` | 지도 상세, 체크아웃, 예약 완료 SSR 화면 라우팅 |
-| `BookingRepository.java` | 예약, 숙소 POI 조회, 장소 이미지 캐싱 통합 리포지토리 |
-| `BookingRequest.java` | 예약 입력 DTO |
+| 파일명                      | 설명                                                  |
+| --------------------------- | ----------------------------------------------------- |
+| `Booking.java`              | 예약 엔티티                                           |
+| `BookingApiController.java` | 예약 관련 REST API                                    |
+| `BookingController.java`    | 지도 상세, 체크아웃, 예약 완료 SSR 화면 라우팅        |
+| `BookingRepository.java`    | 예약, 숙소 POI 조회, 장소 이미지 캐싱 통합 리포지토리 |
+| `BookingRequest.java`       | 예약 입력 DTO                                         |
 
 ## 하위 디렉토리
 

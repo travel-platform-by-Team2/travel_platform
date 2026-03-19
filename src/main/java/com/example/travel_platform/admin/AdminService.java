@@ -12,6 +12,7 @@ import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardRepository;
 import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +20,38 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AdminService {
+
+    private final AdminRepository adminRepository;
     private final BoardRepository boardRepository;
+
+    public List<UserResponse.AdminListDTO> getAdminUsers(Boolean active, String keyword) {
+        List<User> users;
+        String searchKeyword = keyword;
+
+        if (searchKeyword != null) {
+            searchKeyword = searchKeyword.trim();
+        }
+
+        if (searchKeyword != null && !searchKeyword.isEmpty()) {
+            users = adminRepository.findByUsernameContainingOrEmailContaining(searchKeyword, searchKeyword);
+        } else if (active == null) {
+            users = adminRepository.findAll();
+        } else {
+            users = adminRepository.findByActive(active);
+        }
+
+        return users.stream()
+                .map(user -> UserResponse.AdminListDTO.fromUser(user))
+                .toList();
+    }
+
+    public long getTotalUserCount() {
+        return adminRepository.count();
+    }
+
+    public long getInactiveUserCount() {
+        return adminRepository.countByActiveFalse();
+    }
 
     @Transactional
     public void deleteBoard(User sessionUser, Integer boardId) {
@@ -148,7 +180,6 @@ public class AdminService {
         };
     }
 
-    // css용
     private String toCategoryClass(String category) {
         if (category == null || category.isBlank()) {
             return "cat-plan";
@@ -163,5 +194,4 @@ public class AdminService {
             default -> "cat-plan";
         };
     }
-
 }
