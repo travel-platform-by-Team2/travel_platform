@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TravelMate 관리자 - 유저 관리</title>
+  <title>TravelMate 관리자 - 사용자 관리</title>
   {{>partials/head-assets}}
   <link href="/css/admin.css" rel="stylesheet">
 </head>
@@ -18,7 +18,7 @@
         <section class="admin-content">
           <div class="admin-page-header">
             <div>
-              <h1 class="admin-page-title">유저 관리</h1>
+              <h1 class="admin-page-title">사용자 관리</h1>
             </div>
           </div>
 
@@ -29,8 +29,8 @@
                   <span class="material-symbols-outlined">groups</span>
                 </div>
               </div>
-              <span class="admin-metric-label">전체 유저 수</span>
-              <p class="admin-metric-value">0</p>
+              <span class="admin-metric-label">전체 사용자 수</span>
+              <p class="admin-metric-value">{{totalUserCount}}</p>
             </article>
 
             <article class="admin-metric-card">
@@ -39,26 +39,35 @@
                   <span class="material-symbols-outlined">block</span>
                 </div>
               </div>
-              <span class="admin-metric-label">비활성 유저 수</span>
-              <p class="admin-metric-value">0</p>
+              <span class="admin-metric-label">비활성 사용자 수</span>
+              <p class="admin-metric-value">{{inactiveUserCount}}</p>
             </article>
           </div>
 
           <section class="admin-panel">
             <div class="admin-toolbar">
-              <div class="admin-tab-shell" aria-label="유저 상태 탭">
-                <a class="admin-tab-button is-active-tab" href="/admin/users">전체</a>
-                <a class="admin-tab-button" href="/admin/users?active=true">활성</a>
-                <a class="admin-tab-button" href="/admin/users?active=false">비활성</a>
+              <div class="admin-tab-shell" aria-label="사용자 상태 탭">
+                <a class="admin-tab-button{{#isAllTab}} is-active-tab{{/isAllTab}}" href="/admin/users">전체</a>
+                <a class="admin-tab-button{{#isActiveTab}} is-active-tab{{/isActiveTab}}" href="/admin/users?active=true">활성</a>
+                <a class="admin-tab-button{{#isInactiveTab}} is-active-tab{{/isInactiveTab}}" href="/admin/users?active=false">비활성</a>
               </div>
 
               <form class="admin-search-group" action="/admin/users" method="get">
+                {{#currentActive}}
+                <input type="hidden" name="active" value="true">
+                {{/currentActive}}
+                {{^isAllTab}}
+                {{^currentActive}}
+                <input type="hidden" name="active" value="false">
+                {{/currentActive}}
+                {{/isAllTab}}
                 <div class="admin-search-wrap">
                   <span class="material-symbols-outlined">search</span>
                   <input
                     class="form-control admin-search-field"
                     type="text"
                     name="keyword"
+                    value="{{keyword}}"
                     placeholder="이름 또는 이메일 검색"
                   >
                 </div>
@@ -69,18 +78,42 @@
               <table class="table admin-table">
                 <thead>
                   <tr>
-                    <th>유저 정보</th>
+                    <th>사용자 정보</th>
                     <th>가입일</th>
                     <th>상태</th>
                     <th class="text-end">관리</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {{#users}}
                   <tr>
-                    <td colspan="4" class="text-center text-muted py-5">
-                      유저 데이터가 연결되면 이 영역에 목록이 표시됩니다.
+                    <td>
+                      <div class="d-flex flex-column gap-1">
+                        <p class="admin-name mb-0">{{username}}</p>
+                        <span class="text-muted">{{email}}</span>
+                      </div>
+                    </td>
+                    <td>{{createdAt}}</td>
+                    <td>
+                      {{#active}}
+                      <span class="admin-status-badge status-active">{{statusText}}</span>
+                      {{/active}}
+                      {{^active}}
+                      <span class="admin-status-badge status-danger">{{statusText}}</span>
+                      {{/active}}
+                    </td>
+                    <td class="text-end">
+                      <span class="admin-pill status-neutral">{{managementLabel}}</span>
                     </td>
                   </tr>
+                  {{/users}}
+                  {{^users}}
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-5">
+                      조회된 사용자 데이터가 없습니다.
+                    </td>
+                  </tr>
+                  {{/users}}
                 </tbody>
               </table>
             </div>

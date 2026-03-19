@@ -23,9 +23,13 @@ public class AdminController {
 
     @GetMapping("/users")
     public String users(
-            @RequestParam(required = false) Boolean active,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(name = "active", required = false) Boolean active,
+            @RequestParam(name = "keyword", required = false) String keyword,
             Model model) {
+        if (keyword == null) {
+            keyword = "";
+        }
+
         applySidebarState(model, "users");
         model.addAttribute("users", adminService.getAdminUsers(active, keyword));
         model.addAttribute("totalUserCount", adminService.getTotalUserCount());
