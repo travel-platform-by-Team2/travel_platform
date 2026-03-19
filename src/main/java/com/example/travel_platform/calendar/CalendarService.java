@@ -86,7 +86,7 @@ public class CalendarService {
         List<CalendarEvent> events = calendarRepository.findEventListByUserId(sessionUserId, startDate, endDate);
 
         return events.stream()
-                .map(this::toEventDTO)
+                .map(event -> toEventDTO(event))
                 .toList();
     }
 
