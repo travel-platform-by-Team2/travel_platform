@@ -58,11 +58,11 @@
     </a>
   </div>
 
-  <div class="community-list-div-03" style="justify-content:flex-end; align-items:center; gap:12px; flex-wrap:nowrap;">
-    <form action="/boards" method="get" style="display:flex; align-items:center; gap:8px; flex:1; min-width:280px; margin:0;">
+  <div class="community-list-div-03" style="justify-content:flex-start; align-items:center; gap:12px; flex-wrap:nowrap;">
+    <form action="/boards" method="get" style="display:flex; align-items:center; gap:8px; flex:0 0 auto; width:min(100%, 420px); margin:0;">
       {{#model.category}}<input type="hidden" name="category" value="{{model.category}}">{{/model.category}}
       {{#model.sort}}<input type="hidden" name="sort" value="{{model.sort}}">{{/model.sort}}
-      <div style="flex:1; display:flex; align-items:center;">
+      <div style="flex:1 1 auto; display:flex; align-items:center;">
         <input
           type="text"
           name="keyword"
@@ -76,7 +76,7 @@
       </button>
     </form>
 
-    <div class="community-sort-wrap" style="margin:0; flex:0 0 auto;">
+    <div class="community-sort-wrap" style="margin:0 0 0 auto; flex:0 0 auto;">
     <details class="community-sort-dropdown">
       <summary class="community-sort-summary">
         <span>정렬: {{model.sortLabel}}</span>

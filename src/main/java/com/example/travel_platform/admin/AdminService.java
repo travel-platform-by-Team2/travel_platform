@@ -192,12 +192,12 @@ public class AdminService {
 
     private String toSortLabel(String sort) {
         return switch (sort) {
-            case "likes" -> "좋아요순";
-            case "downlikes" -> "좋아요 낮은순";
-            case "view" -> "조회순";
-            case "downview" -> "조회 낮은순";
-            case "date" -> "오래된순";
-            default -> "최신순";
+            case "likes" -> "좋아요순 ↑";
+            case "downlikes" -> "좋아요순 ↓";
+            case "view" -> "조회순 ↑";
+            case "downview" -> "조회순 ↓";
+            case "date" -> "날짜순 ↓";
+            default -> "날짜순 ↑";
         };
     }
 
