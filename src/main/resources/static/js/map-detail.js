@@ -311,12 +311,15 @@
     return Math.max(1, diffDays);
   }
 
-  function buildCheckoutUrl(item, imageUrl) {
+  function buildCheckoutUrl(item, imageUrl, roomName) {
     var params = new URLSearchParams();
     params.set("lodgingName", item.name || "숙소");
     params.set("address", item.roadAddress || item.address || "주소 정보 없음");
     if (imageUrl) {
       params.set("imageUrl", imageUrl);
+    }
+    if (roomName) {
+      params.set("roomName", roomName);
     }
 
     var startDateEl = document.getElementById("mapStartDate");
@@ -335,14 +338,19 @@
 
     var pricing = getPricing(item, getSelectedNights());
     var nightlyPrice = pricing.roomPrice;
-    var fee = pricing.fee;
+    
+    // 방 종류에 따른 가격 변동 (가상)
+    if (roomName && roomName.indexOf("디럭스") >= 0) nightlyPrice += 50000;
+    if (roomName && roomName.indexOf("스위트") >= 0) nightlyPrice += 150000;
+    
+    var fee = Math.round(nightlyPrice * 0.18);
     params.set("roomPrice", String(nightlyPrice));
     params.set("fee", String(fee));
 
     return "/bookings/checkout?" + params.toString();
   }
 
-  async function goToBookingCheckout(state, item) {
+  async function goToBookingCheckout(state, item, roomName) {
     var fallback = getPoiImageUrl(item);
     var imageUrl = fallback;
     try {
@@ -353,7 +361,7 @@
     } catch (error) {
       console.error(error);
     }
-    window.location.href = buildCheckoutUrl(item, imageUrl);
+    window.location.href = buildCheckoutUrl(item, imageUrl, roomName);
   }
 
   async function fetchPlaceImageFromServer(state, item) {
@@ -369,6 +377,10 @@
       }
       if (item.name) {
         params.set("name", item.name);
+      }
+      var address = item.roadAddress || item.address || "";
+      if (address) {
+        params.set("address", address);
       }
 
       var response = await fetch("/api/bookings/place-image?" + params.toString(), {
@@ -684,6 +696,96 @@
     );
   }
 
+  async function renderRoomList(state, item, container) {
+    if (!container) return;
+    if (item.type !== "hotel") {
+      container.innerHTML = "";
+      return;
+    }
+
+    // 로딩 표시
+    container.innerHTML = '<div class="map-poi-panel-div-16"><p style="font-size: 0.875rem; color: #64748b;">객실 정보를 불러오는 중...</p></div>';
+
+    var pricing = getPricing(item, 1);
+    var basePrice = pricing.roomPrice;
+    var rooms = [];
+
+    try {
+      // 서버 API 호출 (이름과 주소 전달)
+      var params = new URLSearchParams();
+      params.set("lodgingName", item.name);
+      params.set("address", item.roadAddress || item.address || "");
+      
+      var response = await fetch("/api/bookings/rooms?" + params.toString());
+      if (response.ok) {
+        var data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          rooms = data.map(function(r) {
+            return {
+              name: r.name || "객실",
+              price: basePrice + (hashText(r.name) % 100000), // 가격은 여전히 가상으로 조합 (TourAPI 미제공)
+              img: r.imageUrl || "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop",
+              desc: r.content || "상세 정보 없음"
+            };
+          });
+        }
+      }
+    } catch (error) {
+      console.error("TourAPI fetch error:", error);
+    }
+
+    // 데이터가 없으면 가상 데이터 사용 (폴백) - 숙소 이름을 기반으로 다양하게 생성
+    if (rooms.length === 0) {
+      var seed = hashText(item.name);
+      var themes = ["모던 ", "클래식 ", "우드톤 ", "미니멀 ", "럭셔리 "];
+      var theme = themes[seed % themes.length];
+      
+      var roomCount = 2 + (seed % 3); // 2~4개 객실 생성
+      for (var i = 0; i < roomCount; i++) {
+        var roomType = (i === 0) ? "스탠다드" : (i === 1) ? "디럭스" : (i === 2) ? "프리미엄" : "스위트";
+        var viewType = (seed + i) % 2 === 0 ? " 시티뷰" : " 마운틴뷰";
+        if (item.address && (item.address.indexOf("부산") >= 0 || item.address.indexOf("제주") >= 0)) {
+            viewType = (seed + i) % 2 === 0 ? " 오션뷰" : " 비치뷰";
+        }
+
+        rooms.push({
+          name: theme + roomType + viewType,
+          price: basePrice + (i * 35000) + (seed % 5 * 5000),
+          img: i === 0 ? "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop" :
+               i === 1 ? "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=250&fit=crop" :
+               "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=250&fit=crop",
+          desc: item.name + "에서 정성껏 준비한 " + theme + "테마의 " + roomType + " 객실입니다."
+        });
+      }
+    }
+
+    var html = '<div class="map-poi-panel-div-16"><h3 class="map-poi-panel-h3-01">객실 선택</h3>';
+    html += '<div class="room-list-group" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">';
+    
+    rooms.forEach(function(room) {
+      html += '<div class="room-card" style="border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; background: #fff;">' +
+              '<img src="' + room.img + '" style="width: 100%; height: 160px; object-fit: cover;" alt="' + room.name + '">' +
+              '<div style="padding: 1rem;">' +
+              '<h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">' + room.name + '</h4>' +
+              '<p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">' + (room.desc || "최대 인원 2명 · 금연") + '</p>' +
+              '<div style="display: flex; justify-content: space-between; align-items: flex-end;">' +
+              '<div><span style="font-size: 1.125rem; font-weight: 800; color: #1152d4;">' + formatWon(room.price) + '</span><span style="font-size: 0.75rem; color: #94a3b8;"> / 1박</span></div>' +
+              '<button class="fx-group-cta-primary room-book-btn" data-room-name="' + room.name + '" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto; min-width: 0; width: auto;">예약하기</button>' +
+              '</div></div></div>';
+    });
+    
+    html += '</div></div>';
+    container.innerHTML = html;
+
+    // 예약 버튼 이벤트 바인딩
+    container.querySelectorAll(".room-book-btn").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var roomName = btn.getAttribute("data-room-name");
+        goToBookingCheckout(state, item, roomName);
+      });
+    });
+  }
+
   async function fillPoiPanelDynamicSections(state, item, requestSeq) {
     var panel = document.querySelector("[data-map-poi-panel]");
     if (!panel) {
@@ -692,6 +794,10 @@
 
     updatePanelFacilities(panel, item);
     updatePanelReviewSummary(panel, item);
+    
+    // 방 리스트 렌더링
+    var roomContainer = document.getElementById("poiRoomListContainer");
+    renderRoomList(state, item, roomContainer);
 
     var imageEl = panel.querySelector(".map-poi-panel-div-03");
     try {
@@ -819,11 +925,7 @@
       node.addEventListener("click", function (event) {
         event.preventDefault();
         state.map.panTo(position);
-        if (item.type === "hotel") {
-          goToBookingCheckout(state, item);
-        } else if (item.type === "attraction") {
-          openPoiDetailPanel(state, item);
-        }
+        openPoiDetailPanel(state, item);
       });
 
       overlay.setMap(state.map);
