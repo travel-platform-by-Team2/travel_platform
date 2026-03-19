@@ -10,4 +10,9 @@ public class MypageRequest {
         private String newPassword;
         private String newPasswordConfirm;
     }
+
+    @Data
+    public static class WithdrawDTO {
+        private String currentPassword;
+    }
 }

@@ -1,7 +1,6 @@
 package com.example.travel_platform.trip;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -95,13 +94,32 @@ public class TripService {
         List<TripResponse.PlaceItemDTO> places = tripPlan.getPlaces() == null
                 ? List.of()
                 : tripPlan.getPlaces().stream()
-                        .sorted(Comparator
-                                .comparing(TripPlace::getDayOrder, Comparator.nullsLast(Integer::compareTo))
-                                .thenComparing(TripPlace::getId, Comparator.nullsLast(Integer::compareTo)))
-                        .map(TripResponse.PlaceItemDTO::from)
+                        .sorted((left, right) -> compareTripPlaces(left, right))
+                        .map(place -> TripResponse.PlaceItemDTO.from(place))
                         .toList();
 
         return TripResponse.DetailDTO.of(tripPlan, places);
+    }
+
+    private int compareTripPlaces(TripPlace left, TripPlace right) {
+        int dayOrderCompare = compareNullableInteger(left.getDayOrder(), right.getDayOrder());
+        if (dayOrderCompare != 0) {
+            return dayOrderCompare;
+        }
+        return compareNullableInteger(left.getId(), right.getId());
+    }
+
+    private int compareNullableInteger(Integer left, Integer right) {
+        if (left == null && right == null) {
+            return 0;
+        }
+        if (left == null) {
+            return 1;
+        }
+        if (right == null) {
+            return -1;
+        }
+        return Integer.compare(left, right);
     }
 
     private String normalizeCategory(String category) {

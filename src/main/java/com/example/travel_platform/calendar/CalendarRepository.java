@@ -62,4 +62,22 @@ public class CalendarRepository {
     public void delete(CalendarEvent event) {
         em.remove(event);
     }
+
+    public int deleteByUserId(Integer userId) {
+        return em.createQuery("""
+                delete from CalendarEvent e
+                where e.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
+
+    public int deleteByTripPlanUserId(Integer userId) {
+        return em.createQuery("""
+                delete from CalendarEvent e
+                where e.tripPlan.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
 }
