@@ -29,6 +29,7 @@
 
         <div class="checkout-summary-content">
           <h2 class="checkout-hotel-title">{{lodgingName}}</h2>
+          <p style="font-size: 1rem; color: #1e40af; font-weight: 600; margin-top: -0.5rem; margin-bottom: 0.5rem;">{{roomName}}</p>
           <div class="checkout-location-row">
             <span class="checkout-location-icon">location_on</span>
             <span>{{address}}</span>
@@ -92,6 +93,7 @@
 
       <form action="/bookings/complete" method="get">
         <input type="hidden" name="lodgingName" value="{{lodgingName}}">
+        <input type="hidden" name="roomName" value="{{roomName}}">
         <input type="hidden" name="region" value="{{address}}">
         <input type="hidden" name="guests" value="{{guests}}">
         <input type="hidden" name="checkIn" value="{{checkIn}}">

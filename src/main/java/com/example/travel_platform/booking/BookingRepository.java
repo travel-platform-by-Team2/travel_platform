@@ -54,24 +54,4 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query("SELECT mi.imageUrl FROM MapPlaceImage mi WHERE mi.normalizedName = :normalizedName")
     Optional<String> findImageUrlByNormalizedName(
             @Param("normalizedName") String normalizedName); // 공백 제거 및 소문자화된 장소 이름 (캐시 키)
-
-    /**
-     * 장소 이미지 정보를 저장하거나 업데이트합니다. (Native Query 유지)
-     */
-    @Modifying
-    @Transactional
-    @Query(value = """
-            INSERT INTO map_place_image_tb (normalized_name, place_name, image_url, source, created_at)
-            VALUES (:normalizedName, :placeName, :imageUrl, :source, CURRENT_TIMESTAMP)
-            ON DUPLICATE KEY UPDATE 
-                place_name = :placeName, 
-                image_url = :imageUrl, 
-                source = :source, 
-                created_at = CURRENT_TIMESTAMP
-            """, nativeQuery = true)
-    void upsertMapPlaceImage(
-            @Param("placeName") String placeName,           // 실제 장소 이름
-            @Param("normalizedName") String normalizedName, // 정규화된 장소 이름 (Unique Key)
-            @Param("imageUrl") String imageUrl,             // 수집된 이미지 URL
-            @Param("source") String source);                // 데이터 출처 (예: 'KAKAO_PLACE')
 }
