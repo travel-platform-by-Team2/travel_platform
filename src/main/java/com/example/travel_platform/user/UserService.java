@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform.board.BoardLikeRepository;
 import com.example.travel_platform.board.BoardRepository;
@@ -14,7 +15,6 @@ import com.example.travel_platform.booking.BookingRepository;
 import com.example.travel_platform.calendar.CalendarRepository;
 import com.example.travel_platform.trip.TripPlaceRepository;
 import com.example.travel_platform.trip.TripRepository;
-import com.example.travel_platform._core.handler.ex.Exception401;
 
 import lombok.RequiredArgsConstructor;
 
@@ -108,5 +108,4 @@ public class UserService {
         }
         return value;
     }
-
 }

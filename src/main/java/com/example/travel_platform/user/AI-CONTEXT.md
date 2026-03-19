@@ -10,16 +10,16 @@
 
 ## 주요 파일
 
-| 파일명              | 설명                                                   |
-| ------------------- | ------------------------------------------------------ |
-| User.java           | 사용자 엔티티다.                                       |
-| SessionUser.java    | 세션에 저장하는 사용자 전용 DTO다.                     |
-| SessionUsers.java   | 세션 사용자 조회/저장 helper다.                        |
+| 파일명 | 설명 |
+| --- | --- |
+| User.java | 사용자 엔티티다. |
+| SessionUser.java | 세션에 저장하는 사용자 전용 DTO다. |
+| SessionUsers.java | 세션 사용자 조회/저장 helper다. |
 | UserController.java | 로그인, 로그아웃, 회원가입, 메인 화면 요청을 처리한다. |
-| UserRepository.java | 사용자 저장/조회/삭제 저장소다.                         |
-| UserRequest.java    | 사용자 입력 DTO를 정의한다.                            |
-| UserResponse.java   | 사용자 응답 DTO를 정의한다.                            |
-| UserService.java    | 회원가입, 로그인, 회원 탈퇴 비즈니스 로직을 처리한다.   |
+| UserRepository.java | 사용자 저장/조회/삭제 저장소다. |
+| UserRequest.java | 사용자 입력 DTO를 정의한다. |
+| UserResponse.java | 사용자 응답 DTO를 정의한다. |
+| UserService.java | 회원가입, 로그인, 회원 탈퇴 비즈니스 로직을 처리한다. |
 
 ## 하위 디렉토리
 

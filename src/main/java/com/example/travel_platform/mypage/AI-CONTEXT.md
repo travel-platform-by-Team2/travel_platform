@@ -21,7 +21,7 @@
 
 ## AI 작업 지침
 
-- 이 패키지는 `UserRepository`, `BookingRepository`, `TripRepository`를 재사용해 프로필과 예약/여행 요약을 조회한다.
+- 이 패키지는 `UserRepository`, `UserService`, `BookingRepository`, `TripRepository`를 재사용해 프로필과 예약/여행 요약, 탈퇴 흐름을 연결한다.
 - `/mypage`는 로그인 사용자 전용 SSR 페이지이며 `_core/filter/LoginFilter`와 함께 봐야 한다.
 - 비밀번호 변경 실패는 같은 요청에서 `pages/mypage`를 다시 렌더링해 모달 에러를 보여주고, 성공은 redirect 후 토스트형 1회성 메시지로 처리한다.
 - 회원 탈퇴 실패도 같은 요청에서 `pages/mypage`를 다시 렌더링해 모달 에러를 보여주고, 성공은 세션 종료 후 `/login-form` 으로 redirect 한다.
