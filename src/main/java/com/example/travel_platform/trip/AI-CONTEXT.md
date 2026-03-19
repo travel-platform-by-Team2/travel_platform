@@ -27,12 +27,12 @@
 ## AI 작업 지침
 
 - `/trip` 목록 화면은 `TripController`가 최상위 `page` DTO 하나만 Mustache에 전달한다.
-- `/trip/detail`, `/trip/place`도 `TripController`가 서비스에서 받은 최상위 `page` DTO 하나만 Mustache에 전달한다.
+- `/trip/place`는 `TripController`가 최상위 `page` DTO 하나만 Mustache에 전달하고, `/trip/detail`은 현재 템플릿 계약에 맞춰 `plan` 모델을 전달한다.
 - `TripResponse.ListPageDTO` 안에 목록 데이터와 탭 상태(`isResult`, `isUpcoming`, `isPast`), 페이지 정보가 함께 들어가며 `ListPageDTO.of(...)`가 페이징 메타데이터 생성까지 담당한다.
 - `TripResponse.SummaryDTO`, `DetailDTO`, `DetailPageDTO`, `PlacePageDTO`, `CreateFormDTO`가 현재 템플릿 계약을 유지하는 출력 모델이다.
 - `trip-list.mustache`는 루트 `tripPlans`, `pageDTO`, 카테고리 플래그를 읽지 않고 `page` 기준으로만 렌더링한다.
 - `TripService.getPlanList(...)`는 카테고리별 조회 선택과 카드 DTO 변환에 집중하고, 페이지 메타데이터 생성은 `TripResponse.ListPageDTO.of(...)`로 넘긴 상태다.
-- `TripService.getPlanDetailPage(...)`, `TripService.getPlacePage(...)`가 SSR 상세/장소 추가 화면의 최상위 DTO를 반환한다.
+- `TripService.getPlacePage(...)`가 장소 추가 화면의 최상위 DTO를 반환하고, 상세 화면은 현재 템플릿 계약에 맞춰 `TripService.getPlanDetail(...)` 결과를 `plan`으로 전달한다.
 - `TripService.createPlan(...)`은 엔티티를 setter로 조립하지 않고 `TripPlan.create(...)`를 사용한다.
 - `TripService.addPlace(...)`도 엔티티를 setter로 조립하지 않고 `TripPlace.create(...)`를 사용한다.
 - `SummaryDTO`와 `DetailDTO`가 지역 라벨, 동행 라벨, 기본 이미지, D-day 같은 출력 포맷팅 일부를 내부에서 계산한다.

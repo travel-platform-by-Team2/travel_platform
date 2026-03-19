@@ -48,7 +48,8 @@ public class TripController {
     @GetMapping("/detail")
     public String tripDetailPage(@RequestParam(name = "id") Integer id,
             Model model) {
-        model.addAttribute("page", tripService.getPlanDetailPage(requireSessionUserId(), id));
+        TripResponse.DetailDTO detailDTO = tripService.getPlanDetail(requireSessionUserId(), id);
+        model.addAttribute("plan", detailDTO);
         return "pages/trip-detail";
     }
 
