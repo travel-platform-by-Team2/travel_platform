@@ -31,15 +31,11 @@ public class AdminController {
             @RequestParam(name = "active", required = false) Boolean active,
             @RequestParam(name = "keyword", required = false) String keyword,
             Model model) {
-        if (keyword == null) {
-            keyword = "";
-        }
-
         applySidebarState(model, "users");
         model.addAttribute("users", adminService.getAdminUsers(active, keyword));
         model.addAttribute("totalUserCount", adminService.getTotalUserCount());
         model.addAttribute("inactiveUserCount", adminService.getInactiveUserCount());
-        model.addAttribute("keyword", keyword);
+        model.addAttribute("keyword", keyword == null ? "" : keyword);
         model.addAttribute("currentActive", active);
         model.addAttribute("isAllTab", active == null);
         model.addAttribute("isActiveTab", Boolean.TRUE.equals(active));

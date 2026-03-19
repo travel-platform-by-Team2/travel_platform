@@ -25,19 +25,22 @@ public class AdminService {
     private final BoardRepository boardRepository;
 
     public List<UserResponse.AdminListDTO> getAdminUsers(Boolean active, String keyword) {
+        String searchKeyword = normalizeKeyword(keyword);
+        boolean hasKeyword = !searchKeyword.isEmpty();
         List<User> users;
-        String searchKeyword = keyword;
 
-        if (searchKeyword != null) {
-            searchKeyword = searchKeyword.trim();
-        }
-
-        if (searchKeyword != null && !searchKeyword.isEmpty()) {
-            users = adminRepository.findByUsernameContainingOrEmailContaining(searchKeyword, searchKeyword);
-        } else if (active == null) {
+        // 키워드 없음 → 전체 조회
+        if (active == null && !hasKeyword) {
             users = adminRepository.findAll();
-        } else {
+            // 키워드 있음 → 키워드 조회
+        } else if (active == null) {
+            users = adminRepository.findByUsernameContainingOrEmailContaining(searchKeyword, searchKeyword);
+            // 키워드 없음 → 상태 조회
+        } else if (!hasKeyword) {
             users = adminRepository.findByActive(active);
+            // 키워드 있음 → 상태 + 키워드 조회
+        } else {
+            users = adminRepository.findByActiveAndKeyword(active, searchKeyword);
         }
 
         return users.stream()
@@ -51,6 +54,12 @@ public class AdminService {
 
     public long getInactiveUserCount() {
         return adminRepository.countByActiveFalse();
+    }
+
+    @Transactional
+    public void toggleUserActive(Integer userId) {
+        User user = findUser(userId);
+        user.setActive(!user.isActive());
     }
 
     @Transactional
@@ -163,6 +172,18 @@ public class AdminService {
 
     private boolean isCategory(String category, String targetCategory) {
         return targetCategory.equals(category);
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return "";
+        }
+        return keyword.trim();
+    }
+
+    private User findUser(Integer userId) {
+        return adminRepository.findById(userId)
+                .orElseThrow(() -> new Exception404("사용자를 찾을 수 없습니다."));
     }
 
     private String toCategoryLabel(String category) {
