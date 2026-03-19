@@ -53,26 +53,33 @@ public class BookingApiController {
         return Resp.ok(detail);
     }
 
+    /**
+     * 프론트엔드(map-detail.js)에서 배열 형태를 직접 기대하므로, 
+     * Resp로 감싸지 않고 직접 리스트를 반환합니다.
+     */
     @GetMapping("/rooms")
-    public ResponseEntity<?> getRooms(
+    public List<BookingResponse.RoomDTO> getRooms(
             @RequestParam(name = "lodgingName") String lodgingName,
             @RequestParam(name = "address") String address) {
-        List<BookingResponse.RoomDTO> rooms = bookingService.fetchRoomsFromTourApi(this.tourApiServiceKey, lodgingName, address);
-        return Resp.ok(rooms);
+        return bookingService.fetchRoomsFromTourApi(this.tourApiServiceKey, lodgingName, address);
     }
 
+    /**
+     * 프론트엔드 호환성을 위해 DTO를 직접 반환합니다.
+     */
     @GetMapping("/place-image")
-    public ResponseEntity<?> getPlaceImage(
+    public BookingResponse.PlaceImageDTO getPlaceImage(
             @RequestParam(name = "placeUrl", required = false) String placeUrl,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "address", required = false) String address) {
-        BookingResponse.PlaceImageDTO imageDTO = bookingService.getPlaceImage(this.tourApiServiceKey, placeUrl, name, address);
-        return Resp.ok(imageDTO);
+        return bookingService.getPlaceImage(this.tourApiServiceKey, placeUrl, name, address);
     }
 
+    /**
+     * 프론트엔드(map-detail.js) 호환성을 위해 DTO를 직접 반환합니다.
+     */
     @PostMapping("/map-pois/merge")
-    public ResponseEntity<?> mergeMapPois(@RequestBody BookingRequest.MergeMapPoisDTO reqDTO) {
-        List<BookingResponse.MapPoiDTO> items = bookingService.mergeMapPois(reqDTO);
-        return Resp.ok(items);
+    public List<BookingResponse.MapPoiDTO> mergeMapPois(@RequestBody BookingRequest.MergeMapPoisDTO reqDTO) {
+        return bookingService.mergeMapPois(reqDTO);
     }
 }

@@ -96,6 +96,16 @@ public class BoardRepository {
         em.remove(board);
     }
 
+    @Transactional
+    public int deleteByUserId(Integer userId) {
+        return em.createQuery("""
+                delete from Board b
+                where b.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
+
     public Map<Integer, Long> countLikesByBoardIds(List<Integer> boardIds) {
         if (boardIds == null || boardIds.isEmpty()) {
             return Map.of();

@@ -41,4 +41,9 @@ public class UserRepository {
                 .getResultStream()
                 .findFirst();
     }
+
+    public void delete(User user) {
+        User managedUser = em.contains(user) ? user : em.merge(user);
+        em.remove(managedUser);
+    }
 }

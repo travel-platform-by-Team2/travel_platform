@@ -445,8 +445,7 @@
         return "";
       }
 
-      var resp = await response.json();
-      var data = unwrapApiResponse(resp);
+      var data = await response.json();
       var imageUrl = data && typeof data.imageUrl === "string" ? data.imageUrl : "";
       state.imageCache[cacheKey] = imageUrl;
       return imageUrl;
@@ -454,21 +453,6 @@
       state.imageCache[cacheKey] = "";
       return "";
     }
-  }
-
-  function unwrapApiResponse(resp) {
-    if (!resp) {
-      return resp;
-    }
-    if (typeof resp === "object" && resp) {
-      if ("body" in resp) {
-        return resp.body;
-      }
-      if (Array.isArray(resp.items)) {
-        return resp.items;
-      }
-    }
-    return resp;
   }
 
   function getPricing(item, nights) {
@@ -786,8 +770,7 @@
       
       var response = await fetch("/api/bookings/rooms?" + params.toString());
       if (response.ok) {
-        var resp = await response.json();
-        var data = unwrapApiResponse(resp);
+        var data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
           rooms = data.map(function(r) {
             return {
@@ -1492,8 +1475,7 @@
       if (!response.ok) {
         return kakaoItems;
       }
-      var resp = await response.json();
-      var data = unwrapApiResponse(resp);
+      var data = await response.json();
       var items = Array.isArray(data) ? data.map(normalizeMergedPoi).filter(Boolean) : [];
       return items.length ? items : kakaoItems;
     } catch (error) {
