@@ -143,7 +143,6 @@ public class BoardRepository {
 
         for (int i = 0; i < words.length; i++) {
             query.setParameter("titleWord" + i, "%" + words[i].toLowerCase() + "%");
-            query.setParameter("contentWord" + i, "%" + words[i] + "%");
         }
 
         return query.getSingleResult();
