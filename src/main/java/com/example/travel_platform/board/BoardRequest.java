@@ -5,27 +5,27 @@ import lombok.Data;
 
 public class BoardRequest {
 
-        @Data
-        public static class CreateBoardDTO {
-                @NotBlank(message = "카테고리를 선택해주세요.")
-                private String category;
+    @Data
+    public static class CreateDTO {
+        @NotBlank(message = "카테고리를 선택해주세요.")
+        private String category;
 
-                @NotBlank(message = "제목을 입력해주세요.")
-                private String title;
+        @NotBlank(message = "제목을 입력해주세요.")
+        private String title;
 
-                @NotBlank(message = "내용을 입력해주세요.")
-                private String content;
-        }
+        @NotBlank(message = "내용을 입력해주세요.")
+        private String content;
+    }
 
-        @Data
-        public static class UpdateBoardDTO {
-                @NotBlank(message = "카테고리를 선택해주세요.")
-                private String category;
+    @Data
+    public static class UpdateDTO {
+        @NotBlank(message = "카테고리를 선택해주세요.")
+        private String category;
 
-                @NotBlank(message = "제목을 입력해주세요.")
-                private String title;
+        @NotBlank(message = "제목을 입력해주세요.")
+        private String title;
 
-                @NotBlank(message = "내용을 입력해주세요.")
-                private String content;
-        }
+        @NotBlank(message = "내용을 입력해주세요.")
+        private String content;
+    }
 }

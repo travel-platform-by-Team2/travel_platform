@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.example.travel_platform._core.handler.ex.Exception401;
-import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -25,27 +24,28 @@ public class BoardController {
     private final HttpSession session;
 
     @GetMapping
-    public String boardlist(@RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
-        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, sort, page);
+    public String list(@RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            Model model) {
+        BoardResponse.ListPageDTO responseDTO = boardService.getBoardList(category, sort, page);
         model.addAttribute("model", responseDTO);
         return "pages/board-list";
     }
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("page", BoardResponse.BoardFormDTO.empty());
+        model.addAttribute("page", BoardResponse.FormDTO.empty());
         return "pages/board-create";
     }
 
     @PostMapping
-    public String create(@Valid BoardRequest.CreateBoardDTO reqDTO,
+    public String create(@Valid BoardRequest.CreateDTO reqDTO,
             BindingResult bindingResult,
             Model model) {
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("page", BoardResponse.BoardFormDTO.fromCreate(
+            model.addAttribute("page", BoardResponse.FormDTO.fromCreate(
                     reqDTO,
                     getFieldError(bindingResult, "category"),
                     getFieldError(bindingResult, "title"),
@@ -58,32 +58,32 @@ public class BoardController {
     }
 
     @GetMapping("/{boardId}")
-    public String detail(@PathVariable("boardId") Integer boardId, Model model) {
+    public String detail(@PathVariable(name = "boardId") Integer boardId, Model model) {
         Integer sessionUserId = resolveSessionUserIdOrNull();
-        BoardResponse.BoardDetailDTO detailDTO = boardService.getBoardDetail(sessionUserId, boardId);
+        BoardResponse.DetailDTO detailDTO = boardService.getBoardDetail(sessionUserId, boardId);
         model.addAttribute("board", detailDTO);
         return "pages/board-detail";
     }
 
     @GetMapping("/{boardId}/edit")
-    public String editForm(@PathVariable("boardId") Integer boardId, Model model) {
-        Integer sessionUserId = resolveSessionUserIdOrNull();
-        BoardResponse.BoardDetailDTO board = boardService.getBoardDetail(sessionUserId, boardId);
-        model.addAttribute("page", BoardResponse.BoardFormDTO.fromDetail(board));
+    public String editForm(@PathVariable(name = "boardId") Integer boardId, Model model) {
+        Integer sessionUserId = requireSessionUserId();
+        BoardResponse.FormDTO formDTO = boardService.getBoardForm(sessionUserId, boardId);
+        model.addAttribute("page", formDTO);
         return "pages/board-edit";
     }
 
     @PostMapping("/{boardId}/update")
-    public String update(@PathVariable("boardId") Integer boardId,
-            @Valid BoardRequest.UpdateBoardDTO reqDTO,
+    public String update(@PathVariable(name = "boardId") Integer boardId,
+            @Valid BoardRequest.UpdateDTO reqDTO,
             BindingResult bindingResult,
             Model model) {
 
         if (bindingResult.hasErrors()) {
-            Integer sessionUserId = resolveSessionUserIdOrNull();
-            BoardResponse.BoardDetailDTO board = boardService.getBoardDetail(sessionUserId, boardId);
-            model.addAttribute("page", BoardResponse.BoardFormDTO.fromUpdate(
-                    board,
+            Integer sessionUserId = requireSessionUserId();
+            BoardResponse.FormDTO formDTO = boardService.getBoardForm(sessionUserId, boardId);
+            model.addAttribute("page", BoardResponse.FormDTO.fromUpdate(
+                    formDTO.getId(),
                     reqDTO,
                     getFieldError(bindingResult, "category"),
                     getFieldError(bindingResult, "title"),
@@ -91,39 +91,22 @@ public class BoardController {
             return "pages/board-edit";
         }
 
-        boardService.updateBoard(requireSessionUser(), boardId, reqDTO);
+        boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{boardId}/delete")
-    public String delete(@PathVariable("boardId") Integer boardId) {
-        boardService.deleteBoard(requireSessionUser(), boardId);
+    public String delete(@PathVariable(name = "boardId") Integer boardId) {
+        boardService.deleteBoard(requireSessionUserId(), boardId);
         return "redirect:/boards";
     }
 
     private Integer requireSessionUserId() {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            throw new Exception401("로그인이 필요합니다.");
-        }
-        return sessionUser.getId();
-    }
-
-    // 유저의 아이디값이 아닌 유저비교(어드민용)
-    private User requireSessionUser() {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            throw new Exception401("로그인이 필요합니다.");
-        }
-        return sessionUser;
+        return SessionUsers.requireUserId(session);
     }
 
     private Integer resolveSessionUserIdOrNull() {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            return null;
-        }
-        return sessionUser.getId();
+        return SessionUsers.getUserIdOrNull(session);
     }
 
     private String getFieldError(BindingResult bindingResult, String field) {

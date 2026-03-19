@@ -24,18 +24,21 @@ public class TripRepository {
         return tripPlan;
     }
 
-    public TripPlace savePlace(TripPlace tripPlace) {
-        if (tripPlace.getId() == null) {
-            em.persist(tripPlace);
-        } else {
-            em.merge(tripPlace);
-        }
-        return tripPlace;
-    }
-
     public Optional<TripPlan> findPlanById(Integer planId) {
         TripPlan tripPlan = em.find(TripPlan.class, planId);
         return Optional.ofNullable(tripPlan);
+    }
+
+    public Optional<TripPlan> findPlanByIdWithPlaces(Integer planId) {
+        return em.createQuery("""
+                select distinct tp
+                from TripPlan tp
+                left join fetch tp.places
+                where tp.id = :planId
+                """, TripPlan.class)
+                .setParameter("planId", planId)
+                .getResultStream()
+                .findFirst();
     }
 
     // 전체 여행 목록 조회 (시작일을 기준으로 정렬)
