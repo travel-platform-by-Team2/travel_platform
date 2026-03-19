@@ -13,12 +13,8 @@
 | `Booking.java` | 예약 엔티티 |
 | `BookingApiController.java` | 예약 관련 REST API |
 | `BookingController.java` | 지도 상세, 체크아웃, 예약 완료 SSR 화면 라우팅 |
-| `BookingRepository.java` | 예약 저장 및 조회 리포지토리 |
+| `BookingRepository.java` | 예약, 숙소 POI 조회, 장소 이미지 캐싱 통합 리포지토리 |
 | `BookingRequest.java` | 예약 입력 DTO |
-| `BookingResponse.java` | 예약 응답 DTO |
-| `BookingService.java` | 예약 TODO 로직과 지도 POI/image 보조 가공 처리 |
-| `LodgingQueryRepository.java` | 숙소 조회 전용 리포지토리 |
-| `MapPlaceImageRepository.java` | 장소 이미지 조회/캐시 리포지토리 |
 
 ## 하위 디렉토리
 
