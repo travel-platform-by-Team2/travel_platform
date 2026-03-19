@@ -25,8 +25,10 @@ public class BoardController {
 
     @GetMapping
     public String list(@RequestParam(name = "category", required = false) String category,
-            @RequestParam(name = "page", defaultValue = "0") int page, Model model) {
-        BoardResponse.ListPageDTO responseDTO = boardService.getBoardList(category, page);
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            Model model) {
+        BoardResponse.ListPageDTO responseDTO = boardService.getBoardList(category, sort, page);
         model.addAttribute("model", responseDTO);
         return "pages/board-list";
     }

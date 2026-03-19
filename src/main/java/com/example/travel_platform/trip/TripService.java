@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class TripService {
 
     private static final int PLAN_PAGE_SIZE = 9;
-    private static final String DEFAULT_PLAN_IMAGE = "/images/placeholder-card.svg";
+    private static final String NOT_IMG = "/images/dumimg.jpg";
 
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
@@ -39,7 +39,7 @@ public class TripService {
                 reqDTO.getWhoWith(),
                 reqDTO.getStartDate(),
                 reqDTO.getEndDate(),
-                DEFAULT_PLAN_IMAGE);
+                NOT_IMG);
 
         tripRepository.savePlan(tripPlan);
         return TripResponse.CreatedDTO.of(tripPlan.getId());

@@ -25,12 +25,13 @@ public class BoardResponse {
         private String categoryLabel;
         private String categoryClass;
         private Integer viewCount;
+        private Integer likeCount;
         private Integer replyCount;
         private LocalDateTime createdAt;
         private String createdAtDisplay;
         private String summary;
 
-        public static SummaryDTO from(Board board) {
+        public static SummaryDTO from(Board board, int likeCount) {
             String plainText = Jsoup.parse(board.getContent()).text();
             String summary = plainText.substring(0, Math.min(80, plainText.length()));
             LocalDateTime createdAt = board.getCreatedAt();
@@ -43,6 +44,7 @@ public class BoardResponse {
                     .categoryLabel(toCategoryLabel(board.getCategory()))
                     .categoryClass(toCategoryClass(board.getCategory()))
                     .viewCount(board.getViewCount())
+                    .likeCount(likeCount)
                     .replyCount(board.getReplies().size())
                     .createdAt(createdAt)
                     .createdAtDisplay(formatDateTime(createdAt))
@@ -66,6 +68,12 @@ public class BoardResponse {
         private Integer prevPage;
         private Integer nextPage;
         private String category;
+        private String sort;
+        private String sortLabel;
+        private boolean isSortLikes;
+        private boolean isSortViews;
+        private boolean isSortLatest;
+        private boolean isSortDate;
         private boolean isTips;
         private boolean isPlan;
         private boolean isFood;
@@ -123,13 +131,17 @@ public class BoardResponse {
         private LocalDateTime createdAt;
         private String createdAtDisplay;
         private List<ReplyItemDTO> replies;
-
         private Boolean isOwner;
+        private Boolean isAdmin;
         private Long likeCount;
         private Boolean likedByMe;
 
-        public static DetailDTO of(Board board, List<ReplyItemDTO> replies, long likeCount, boolean likedByMe,
-                boolean isOwner) {
+        public static DetailDTO of(Board board,
+                List<ReplyItemDTO> replies,
+                long likeCount,
+                boolean likedByMe,
+                boolean isOwner,
+                boolean isAdmin) {
             LocalDateTime createdAt = board.getCreatedAt();
 
             return DetailDTO.builder()
@@ -146,6 +158,7 @@ public class BoardResponse {
                     .createdAtDisplay(formatDateTime(createdAt))
                     .replies(replies)
                     .isOwner(isOwner)
+                    .isAdmin(isAdmin)
                     .likeCount(likeCount)
                     .likedByMe(likedByMe)
                     .build();
@@ -225,13 +238,16 @@ public class BoardResponse {
         }
     }
 
-    private static String formatDateTime(LocalDateTime localDateTime) {
-        return localDateTime == null ? null : localDateTime.format(DATE_TIME_FORMATTER);
+    private static String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "";
+        }
+        return dateTime.format(DATE_TIME_FORMATTER);
     }
 
     private static String toCategoryLabel(String category) {
-        if (category == null || category.isBlank()) {
-            return "기타";
+        if (category == null) {
+            return "";
         }
 
         return switch (category) {
@@ -240,13 +256,13 @@ public class BoardResponse {
             case "food" -> "맛집/카페";
             case "review" -> "숙소 후기";
             case "qna" -> "질문/답변";
-            default -> "기타";
+            default -> category;
         };
     }
 
     private static String toCategoryClass(String category) {
-        if (category == null || category.isBlank()) {
-            return "cat-default";
+        if (category == null) {
+            return "";
         }
 
         return switch (category) {
@@ -255,7 +271,7 @@ public class BoardResponse {
             case "food" -> "cat-food";
             case "review" -> "cat-review";
             case "qna" -> "cat-qna";
-            default -> "cat-default";
+            default -> "";
         };
     }
 }

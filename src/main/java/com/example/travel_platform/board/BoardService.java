@@ -2,6 +2,7 @@ package com.example.travel_platform.board;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,26 +43,33 @@ public class BoardService {
     public void deleteBoard(Integer sessionUserId, Integer boardId) {
         Board board = findBoard(boardId);
         validateOwner(sessionUserId, board);
+        boardRepository.deleteLikesByBoard(boardId);
         boardRepository.delete(board);
     }
 
-    public BoardResponse.ListPageDTO getBoardList(String category, int page) {
+    public BoardResponse.ListPageDTO getBoardList(String category, String sort, int page) {
         int size = 10;
         int offset = page * size;
+        String normalizedSort = normalizeSort(sort);
 
         List<Board> boards;
         long totalCount;
 
         if (category != null && !category.isBlank()) {
-            boards = boardRepository.findAllPagingByCategory(category, offset, size);
+            boards = boardRepository.findAllPagingByCategory(category, normalizedSort, offset, size);
             totalCount = boardRepository.countByCategory(category);
         } else {
-            boards = boardRepository.findAllPaging(offset, size);
+            boards = boardRepository.findAllPaging(normalizedSort, offset, size);
             totalCount = boardRepository.count();
         }
 
+        Map<Integer, Long> likeCounts = boardRepository.countLikesByBoardIds(
+                boards.stream().map(Board::getId).toList());
+
         List<BoardResponse.SummaryDTO> boardDTOs = boards.stream()
-                .map(BoardResponse.SummaryDTO::from)
+                .map(board -> BoardResponse.SummaryDTO.from(
+                        board,
+                        Math.toIntExact(likeCounts.getOrDefault(board.getId(), 0L))))
                 .toList();
 
         int totalPages = (int) Math.ceil((double) totalCount / size);
@@ -84,7 +92,6 @@ public class BoardService {
         }
 
         List<BoardResponse.PageItemDTO> pageItems = new ArrayList<>();
-
         for (int i = startPage; i <= endPage; i++) {
             pageItems.add(BoardResponse.PageItemDTO.builder()
                     .page(i)
@@ -105,6 +112,12 @@ public class BoardService {
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .category(category)
+                .sort(normalizedSort)
+                .sortLabel(toSortLabel(normalizedSort))
+                .isSortLikes("likes".equals(normalizedSort))
+                .isSortViews("views".equals(normalizedSort))
+                .isSortLatest("latest".equals(normalizedSort))
+                .isSortDate("date".equals(normalizedSort))
                 .isTips("tips".equals(category))
                 .isPlan("plan".equals(category))
                 .isFood("food".equals(category))
@@ -117,7 +130,11 @@ public class BoardService {
     @Transactional
     public BoardResponse.DetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
         Board board = findBoard(boardId);
-        board.increaseViewCount(sessionUserId);
+        boolean isAdmin = sessionUserId != null && findUser(sessionUserId).isAdmin();
+
+        if (!isAdmin) {
+            board.increaseViewCount(sessionUserId);
+        }
 
         List<BoardResponse.ReplyItemDTO> replies = replyRepository.findByBoardId(boardId).stream()
                 .map(reply -> BoardResponse.ReplyItemDTO.from(reply, sessionUserId))
@@ -127,7 +144,7 @@ public class BoardService {
         long likeCount = boardLikeRepository.countByBoard_Id(boardId);
         boolean isOwner = sessionUserId != null && board.getUser().getId().equals(sessionUserId);
 
-        return BoardResponse.DetailDTO.of(board, replies, likeCount, likedByMe, isOwner);
+        return BoardResponse.DetailDTO.of(board, replies, likeCount, likedByMe, isOwner, isAdmin);
     }
 
     public BoardResponse.FormDTO getBoardForm(Integer sessionUserId, Integer boardId) {
@@ -162,8 +179,32 @@ public class BoardService {
         return BoardResponse.LikeToggleDTO.of(liked, likeCount);
     }
 
+    private String normalizeSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        return switch (sort) {
+            case "likes", "views", "latest", "date" -> sort;
+            default -> "latest";
+        };
+    }
+
+    private String toSortLabel(String sort) {
+        return switch (sort) {
+            case "likes" -> "좋아요순";
+            case "views" -> "조회순";
+            case "date" -> "날짜순";
+            default -> "최신순";
+        };
+    }
+
     private void validateOwner(Integer sessionUserId, Board board) {
-        if (!board.getUser().getId().equals(sessionUserId)) {
+        User sessionUser = findUser(sessionUserId);
+        boolean isOwner = board.getUser().getId().equals(sessionUser.getId());
+        boolean isAdmin = sessionUser.isAdmin();
+
+        if (!isOwner && !isAdmin) {
             throw new Exception403("본인 게시글만 수정/삭제할 수 있습니다.");
         }
     }
