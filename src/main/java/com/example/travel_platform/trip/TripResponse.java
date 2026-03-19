@@ -25,21 +25,19 @@ public class TripResponse {
         private boolean disabled;
         private long placeCount;
 
-        public static SummaryDTO of(TripPlan tripPlan,
-                String imgUrl,
-                String regionLabel,
-                String dDay,
-                boolean disabled,
-                long placeCount) {
+        public static SummaryDTO of(TripPlan tripPlan, LocalDate today, long placeCount) {
+            long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
+            boolean disabled = diff <= 0;
+
             return SummaryDTO.builder()
                     .id(tripPlan.getId())
                     .title(tripPlan.getTitle())
-                    .imgUrl(imgUrl)
+                    .imgUrl(resolveImageUrl(tripPlan.getImgUrl()))
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
-                    .regionLabel(regionLabel)
-                    .dDay(dDay)
+                    .regionLabel(toRegionLabel(tripPlan.getRegion()))
+                    .dDay(disabled ? "비활성화" : "D-" + diff)
                     .disabled(disabled)
                     .placeCount(placeCount)
                     .build();
@@ -177,12 +175,10 @@ public class TripResponse {
         private boolean hasPlaces;
         private List<PlaceItemDTO> places;
 
-        public static DetailDTO of(TripPlan tripPlan,
-                String regionLabel,
-                String whoWithLabel,
-                List<PlaceItemDTO> places) {
+        public static DetailDTO of(TripPlan tripPlan, List<PlaceItemDTO> places) {
             long nightCount = calculateNightCount(tripPlan.getStartDate(), tripPlan.getEndDate());
             long dayCount = nightCount + 1;
+            String regionLabel = toRegionLabel(tripPlan.getRegion());
 
             return DetailDTO.builder()
                     .id(tripPlan.getId())
@@ -191,7 +187,7 @@ public class TripResponse {
                     .region(tripPlan.getRegion())
                     .regionLabel(regionLabel)
                     .whoWith(tripPlan.getWhoWith())
-                    .whoWithLabel(whoWithLabel)
+                    .whoWithLabel(toWhoWithLabel(tripPlan.getWhoWith()))
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
@@ -257,18 +253,22 @@ public class TripResponse {
                     .build();
         }
 
-        public static CreateFormDTO from(TripRequest.CreatePlanDTO reqDTO,
+        public static CreateFormDTO from(String title,
+                String region,
+                String whoWith,
+                LocalDate startDate,
+                LocalDate endDate,
                 String titleError,
                 String regionError,
                 String whoWithError,
                 String startDateError,
                 String endDateError) {
             return CreateFormDTO.builder()
-                    .title(blank(reqDTO.getTitle()))
-                    .region(blank(reqDTO.getRegion()))
-                    .whoWith(blank(reqDTO.getWhoWith()))
-                    .startDate(reqDTO.getStartDate())
-                    .endDate(reqDTO.getEndDate())
+                    .title(blank(title))
+                    .region(blank(region))
+                    .whoWith(blank(whoWith))
+                    .startDate(startDate)
+                    .endDate(endDate)
                     .titleError(titleError)
                     .regionError(regionError)
                     .whoWithError(whoWithError)
@@ -350,5 +350,46 @@ public class TripResponse {
 
     private static String blank(String value) {
         return value == null ? "" : value;
+    }
+
+    private static String resolveImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return "/images/dumimg.jpg";
+        }
+        return imageUrl;
+    }
+
+    private static String toRegionLabel(String region) {
+        if (region == null || region.isBlank()) {
+            return "지역 정보 없음";
+        }
+
+        return switch (region) {
+            case "seoul" -> "서울";
+            case "busan" -> "부산";
+            case "daegu" -> "대구";
+            case "incheon" -> "인천";
+            case "gwangju" -> "광주";
+            case "daejeon" -> "대전";
+            case "ulsan" -> "울산";
+            case "sejong" -> "세종";
+            case "gyeonggi" -> "경기도";
+            case "gangwon" -> "강원도";
+            case "chungbuk" -> "충청북도";
+            case "chungnam" -> "충청남도";
+            case "jeonbuk" -> "전라북도";
+            case "jeonnam" -> "전라남도";
+            case "gyeongbuk" -> "경상북도";
+            case "gyeongnam" -> "경상남도";
+            case "jeju" -> "제주도";
+            default -> region;
+        };
+    }
+
+    private static String toWhoWithLabel(String whoWith) {
+        if (whoWith == null || whoWith.isBlank()) {
+            return "동행 정보 없음";
+        }
+        return whoWith;
     }
 }

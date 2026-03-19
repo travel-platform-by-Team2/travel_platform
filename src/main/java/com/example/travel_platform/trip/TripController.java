@@ -48,16 +48,14 @@ public class TripController {
     @GetMapping("/detail")
     public String tripDetailPage(@RequestParam(name = "id") Integer id,
             Model model) {
-        TripResponse.DetailDTO detailDTO = tripService.getPlanDetail(requireSessionUserId(), id);
-        model.addAttribute("page", TripResponse.DetailPageDTO.of(detailDTO));
+        model.addAttribute("page", tripService.getPlanDetailPage(requireSessionUserId(), id));
         return "pages/trip-detail";
     }
 
     @GetMapping("/place")
     public String tripAddPlacePage(@RequestParam(name = "id") Integer id,
             Model model) {
-        TripResponse.DetailDTO detailDTO = tripService.getPlanDetail(requireSessionUserId(), id);
-        model.addAttribute("page", TripResponse.PlacePageDTO.of(detailDTO, kakaoMapAppKey));
+        model.addAttribute("page", tripService.getPlacePage(requireSessionUserId(), id, kakaoMapAppKey));
         return "pages/trip-add-place";
     }
 
@@ -67,7 +65,11 @@ public class TripController {
             Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("page", TripResponse.CreateFormDTO.from(
-                    reqDTO,
+                    reqDTO.getTitle(),
+                    reqDTO.getRegion(),
+                    reqDTO.getWhoWith(),
+                    reqDTO.getStartDate(),
+                    reqDTO.getEndDate(),
                     getFieldError(bindingResult, "title"),
                     getFieldError(bindingResult, "region"),
                     getFieldError(bindingResult, "whoWith"),

@@ -1,7 +1,6 @@
 package com.example.travel_platform.trip;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 
@@ -22,10 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class TripService {
 
     private static final int PLAN_PAGE_SIZE = 9;
-    private static final String NOT_IMG = "/images/dumimg.jpg";
     private static final String DEFAULT_PLAN_IMAGE = "/images/placeholder-card.svg";
-    private static final String EMPTY_REGION_LABEL = "지역 정보 없음";
-    private static final String DISABLED_D_DAY = "비활성화";
 
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
@@ -85,6 +81,14 @@ public class TripService {
                 PLAN_PAGE_SIZE);
     }
 
+    public TripResponse.DetailPageDTO getPlanDetailPage(Integer sessionUserId, Integer planId) {
+        return TripResponse.DetailPageDTO.of(getPlanDetail(sessionUserId, planId));
+    }
+
+    public TripResponse.PlacePageDTO getPlacePage(Integer sessionUserId, Integer planId, String kakaoMapAppKey) {
+        return TripResponse.PlacePageDTO.of(getPlanDetail(sessionUserId, planId), kakaoMapAppKey);
+    }
+
     public TripResponse.DetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
         TripPlan tripPlan = findOwnedPlanWithPlaces(sessionUserId, planId);
 
@@ -97,11 +101,7 @@ public class TripService {
                         .map(TripResponse.PlaceItemDTO::from)
                         .toList();
 
-        return TripResponse.DetailDTO.of(
-                tripPlan,
-                regionLabel(tripPlan.getRegion()),
-                whoWithLabel(tripPlan.getWhoWith()),
-                places);
+        return TripResponse.DetailDTO.of(tripPlan, places);
     }
 
     private String normalizeCategory(String category) {
@@ -128,59 +128,8 @@ public class TripService {
     }
 
     private TripResponse.SummaryDTO toPlanSummaryDTO(TripPlan tripPlan, LocalDate today) {
-        long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
-        boolean disabled = diff <= 0;
-        String dDay = disabled ? DISABLED_D_DAY : "D-" + diff;
         long placeCount = tripPlaceRepository.countByTripPlanId(tripPlan.getId());
-
-        return TripResponse.SummaryDTO.of(
-                tripPlan,
-                resolveImageUrl(tripPlan.getImgUrl()),
-                regionLabel(tripPlan.getRegion()),
-                dDay,
-                disabled,
-                placeCount);
-    }
-
-    private String resolveImageUrl(String imageUrl) {
-        if (imageUrl == null || imageUrl.isBlank()) {
-            return NOT_IMG;
-        }
-        return imageUrl;
-    }
-
-    private String regionLabel(String region) {
-        if (region == null || region.isBlank()) {
-            return EMPTY_REGION_LABEL;
-        }
-
-        return switch (region) {
-            case "seoul" -> "서울";
-            case "busan" -> "부산";
-            case "daegu" -> "대구";
-            case "incheon" -> "인천";
-            case "gwangju" -> "광주";
-            case "daejeon" -> "대전";
-            case "ulsan" -> "울산";
-            case "sejong" -> "세종";
-            case "gyeonggi" -> "경기도";
-            case "gangwon" -> "강원도";
-            case "chungbuk" -> "충청북도";
-            case "chungnam" -> "충청남도";
-            case "jeonbuk" -> "전라북도";
-            case "jeonnam" -> "전라남도";
-            case "gyeongbuk" -> "경상북도";
-            case "gyeongnam" -> "경상남도";
-            case "jeju" -> "제주도";
-            default -> region;
-        };
-    }
-
-    private String whoWithLabel(String whoWith) {
-        if (whoWith == null || whoWith.isBlank()) {
-            return "동행 정보 없음";
-        }
-        return whoWith;
+        return TripResponse.SummaryDTO.of(tripPlan, today, placeCount);
     }
 
     private void validatePlanDates(LocalDate startDate, LocalDate endDate) {
