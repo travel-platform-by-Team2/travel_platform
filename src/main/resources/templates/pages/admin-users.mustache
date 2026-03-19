@@ -19,6 +19,7 @@
           <div class="admin-page-header">
             <div>
               <h1 class="admin-page-title">사용자 관리</h1>
+              <p class="admin-page-subtitle">등록된 사용자 목록을 조회하고 상태를 관리하는 관리자 화면입니다.</p>
             </div>
           </div>
 
@@ -46,22 +47,26 @@
 
           <section class="admin-panel">
             <div class="admin-toolbar">
-              <div class="admin-tab-shell" aria-label="사용자 상태 탭">
-                <a class="admin-tab-button{{#isAllTab}} is-active-tab{{/isAllTab}}" href="/admin/users">전체</a>
-                <a class="admin-tab-button{{#isActiveTab}} is-active-tab{{/isActiveTab}}" href="/admin/users?active=true">활성</a>
-                <a class="admin-tab-button{{#isInactiveTab}} is-active-tab{{/isInactiveTab}}" href="/admin/users?active=false">비활성</a>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h2 class="admin-table-title mb-0">사용자 목록</h2>
+                <span class="admin-pill status-neutral">Total {{totalUserCount}}</span>
+                <div class="admin-tab-shell" aria-label="사용자 상태 탭">
+                  <a class="admin-tab-button{{#isAllTab}} is-active-tab{{/isAllTab}}" href="{{allTabHref}}">전체</a>
+                  <a class="admin-tab-button{{#isActiveTab}} is-active-tab{{/isActiveTab}}" href="{{activeTabHref}}">활성</a>
+                  <a class="admin-tab-button{{#isInactiveTab}} is-active-tab{{/isInactiveTab}}" href="{{inactiveTabHref}}">비활성</a>
+                </div>
               </div>
 
-              <form class="admin-search-group" action="/admin/users" method="get">
-                {{#currentActive}}
-                <input type="hidden" name="active" value="true">
-                {{/currentActive}}
-                {{^isAllTab}}
-                {{^currentActive}}
-                <input type="hidden" name="active" value="false">
-                {{/currentActive}}
-                {{/isAllTab}}
-                <div class="admin-search-wrap">
+              <div class="admin-search-group">
+                <form class="admin-search-wrap" action="/admin/users" method="get">
+                  {{#currentActive}}
+                  <input type="hidden" name="active" value="true">
+                  {{/currentActive}}
+                  {{^isAllTab}}
+                  {{^currentActive}}
+                  <input type="hidden" name="active" value="false">
+                  {{/currentActive}}
+                  {{/isAllTab}}
                   <span class="material-symbols-outlined">search</span>
                   <input
                     class="form-control admin-search-field"
@@ -70,8 +75,9 @@
                     value="{{keyword}}"
                     placeholder="이름 또는 이메일 검색"
                   >
+                  <button type="submit" class="admin-search-submit">검색</button>
+                </form>
                 </div>
-              </form>
             </div>
 
             <div class="admin-table-wrap">
@@ -85,6 +91,7 @@
                   </tr>
                 </thead>
                 <tbody>
+                  {{#hasUsers}}
                   {{#users}}
                   <tr>
                     <td>
@@ -103,17 +110,29 @@
                       {{/active}}
                     </td>
                     <td class="text-end">
-                      <span class="admin-pill status-neutral">{{managementLabel}}</span>
+                      <form action="/admin/users/{{userId}}/status" method="post">
+                        {{#currentActive}}
+                        <input type="hidden" name="active" value="true">
+                        {{/currentActive}}
+                        {{^isAllTab}}
+                        {{^currentActive}}
+                        <input type="hidden" name="active" value="false">
+                        {{/currentActive}}
+                        {{/isAllTab}}
+                        <input type="hidden" name="keyword" value="{{keyword}}">
+                        <button class="admin-pill status-neutral" type="submit">{{managementLabel}}</button>
+                      </form>
                     </td>
                   </tr>
                   {{/users}}
-                  {{^users}}
+                  {{/hasUsers}}
+                  {{^hasUsers}}
                   <tr>
                     <td colspan="4" class="text-center text-muted py-5">
                       조회된 사용자 데이터가 없습니다.
                     </td>
                   </tr>
-                  {{/users}}
+                  {{/hasUsers}}
                 </tbody>
               </table>
             </div>

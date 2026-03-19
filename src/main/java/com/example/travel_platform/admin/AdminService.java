@@ -24,7 +24,8 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final BoardRepository boardRepository;
 
-    public List<UserResponse.AdminListDTO> getAdminUsers(Boolean active, String keyword) {
+    // 관리자 페이지에서 사용할 유저 목록을 조회
+    public List<UserResponse.AdminListDTO> getAdminUserList(Boolean active, String keyword) {
         String searchKeyword = normalizeKeyword(keyword);
         boolean hasKeyword = !searchKeyword.isEmpty();
         List<User> users;

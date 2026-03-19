@@ -1,4 +1,4 @@
-package com.example.travel_platform.user;
+﻿package com.example.travel_platform.user;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +16,7 @@ public class UserResponse {
         private String statusText;
         private String managementLabel;
 
-        // User 객체로 AdminListDTO 변환 메서드
+        // User 객체를 AdminListDTO로 변환하는 메서드
         public static AdminListDTO fromUser(User user) {
             AdminListDTO dto = new AdminListDTO();
             dto.setUserId(user.getId());
