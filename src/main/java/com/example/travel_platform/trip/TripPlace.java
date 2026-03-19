@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -47,4 +48,34 @@ public class TripPlace {
     @Column(name = "day_order", nullable = false)
     private Integer dayOrder;
 
+    @Builder
+    private TripPlace(TripPlan tripPlan,
+            String placeName,
+            String address,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            Integer dayOrder) {
+        this.tripPlan = tripPlan;
+        this.placeName = placeName;
+        this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.dayOrder = dayOrder;
+    }
+
+    public static TripPlace create(TripPlan tripPlan,
+            String placeName,
+            String address,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            Integer dayOrder) {
+        return TripPlace.builder()
+                .tripPlan(tripPlan)
+                .placeName(placeName)
+                .address(address)
+                .latitude(latitude)
+                .longitude(longitude)
+                .dayOrder(dayOrder)
+                .build();
+    }
 }

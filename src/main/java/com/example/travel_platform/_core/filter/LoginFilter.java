@@ -2,7 +2,8 @@ package com.example.travel_platform._core.filter;
 
 import java.io.IOException;
 
-import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.SessionUser;
+import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -23,7 +24,7 @@ public class LoginFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
 
         HttpSession session = req.getSession();
-        User sessionUser = (User) session.getAttribute("sessionUser");
+        SessionUser sessionUser = SessionUsers.getOrNull(session);
 
         // 예외: GET /boards/{id}는 로그인 없이도 조회
         String uri = req.getRequestURI();

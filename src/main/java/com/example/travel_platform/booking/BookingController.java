@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.travel_platform.user.SessionUser;
+import com.example.travel_platform.user.SessionUsers;
 import com.example.travel_platform.user.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -19,9 +21,9 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/bookings")
 public class BookingController {
 
-    // 숙소 이미지 URL이 넘어오지 않았을 때 예약 완료 페이지에서 빈 화면이 뜨는 것을
-    // 방지하기 위한 기본 Placeholder 이미지 (DEFAULT_COMPLETE_IMAGE_URL)
-    private static final String DEFAULT_COMPLETE_IMAGE_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+    private static final String DEFAULT_COMPLETE_IMAGE_URL =
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+
     private final String kakaoMapAppKey;
     private final BookingService bookingService;
     private final HttpSession session;
@@ -43,14 +45,14 @@ public class BookingController {
 
     @GetMapping("/checkout")
     public String checkoutPage(
-            @RequestParam(value = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
-            @RequestParam(value = "address", required = false, defaultValue = "주소 정보 없음") String address,
-            @RequestParam(value = "imageUrl", required = false) String imageUrl,
-            @RequestParam(value = "checkIn", required = false, defaultValue = "") String checkIn,
-            @RequestParam(value = "checkOut", required = false, defaultValue = "") String checkOut,
-            @RequestParam(value = "guests", required = false, defaultValue = "성인 2명") String guests,
-            @RequestParam(value = "roomPrice", required = false, defaultValue = "350000") Integer roomPrice,
-            @RequestParam(value = "fee", required = false, defaultValue = "105000") Integer fee,
+            @RequestParam(name = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
+            @RequestParam(name = "address", required = false, defaultValue = "주소 정보 없음") String address,
+            @RequestParam(name = "imageUrl", required = false) String imageUrl,
+            @RequestParam(name = "checkIn", required = false, defaultValue = "") String checkIn,
+            @RequestParam(name = "checkOut", required = false, defaultValue = "") String checkOut,
+            @RequestParam(name = "guests", required = false, defaultValue = "성인 2명") String guests,
+            @RequestParam(name = "roomPrice", required = false, defaultValue = "350000") Integer roomPrice,
+            @RequestParam(name = "fee", required = false, defaultValue = "105000") Integer fee,
             Model model) {
 
         int safeRoomPrice = roomPrice == null || roomPrice < 0 ? 350000 : roomPrice;
@@ -74,14 +76,18 @@ public class BookingController {
         model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
         model.addAttribute("totalPriceRaw", totalPrice);
 
-        User sessionUser = resolveSessionUser();
+        SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             User user = bookingService.getUserById(sessionUser.getId());
-            if (user == null)
-                user = sessionUser;
-            model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
-            model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
-            model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
+            if (user != null) {
+                model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
+                model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
+                model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
+            } else {
+                model.addAttribute("bookerName", sessionUser.getUsername() == null ? "" : sessionUser.getUsername());
+                model.addAttribute("bookerEmail", sessionUser.getEmail() == null ? "" : sessionUser.getEmail());
+                model.addAttribute("bookerPhone", sessionUser.getTel() == null ? "" : sessionUser.getTel());
+            }
         } else {
             model.addAttribute("bookerName", "");
             model.addAttribute("bookerEmail", "");
@@ -92,29 +98,38 @@ public class BookingController {
 
     @GetMapping("/complete")
     public String completePage(
-            @RequestParam(value = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
-            @RequestParam(value = "region", required = false, defaultValue = "") String region,
-            @RequestParam(value = "guests", required = false, defaultValue = "성인 2명") String guests,
-            @RequestParam(value = "checkIn", required = false, defaultValue = "") String checkIn,
-            @RequestParam(value = "checkOut", required = false, defaultValue = "") String checkOut,
-            @RequestParam(value = "totalPriceText", required = false, defaultValue = "") String totalPriceText,
-            @RequestParam(value = "totalPriceRaw", required = false) Integer totalPriceRaw,
-            @RequestParam(value = "imageUrl", required = false) String imageUrl,
+            @RequestParam(name = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
+            @RequestParam(name = "region", required = false, defaultValue = "") String region,
+            @RequestParam(name = "guests", required = false, defaultValue = "성인 2명") String guests,
+            @RequestParam(name = "checkIn", required = false, defaultValue = "") String checkIn,
+            @RequestParam(name = "checkOut", required = false, defaultValue = "") String checkOut,
+            @RequestParam(name = "totalPriceText", required = false, defaultValue = "") String totalPriceText,
+            @RequestParam(name = "totalPriceRaw", required = false) Integer totalPriceRaw,
+            @RequestParam(name = "imageUrl", required = false) String imageUrl,
             Model model) {
 
-        User sessionUser = resolveSessionUser();
+        String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
+        String regionKey = normalizeRegionKey(safeRegion);
+
+        SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             bookingService.processBookingCompletion(
-                    sessionUser.getId(), lodgingName, checkIn, checkOut, guests, totalPriceRaw, imageUrl);
+                    sessionUser.getId(),
+                    lodgingName,
+                    regionKey,
+                    checkIn,
+                    checkOut,
+                    guests,
+                    totalPriceRaw,
+                    imageUrl);
         }
 
-        String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
         String safeTotalPriceText = (totalPriceText == null || totalPriceText.isBlank()) ? "0원" : totalPriceText;
 
         model.addAttribute("bookingNumber", buildBookingNumber());
         model.addAttribute("lodgingName", lodgingName);
         model.addAttribute("region", safeRegion);
-        model.addAttribute("regionKey", normalizeRegionKey(safeRegion));
+        model.addAttribute("regionKey", regionKey);
         model.addAttribute("guests", guests);
         model.addAttribute("checkIn", checkIn);
         model.addAttribute("checkOut", checkOut);
@@ -161,10 +176,11 @@ public class BookingController {
 
         String lower = text.toLowerCase();
         if (lower.equals("seoul") || lower.equals("busan") || lower.equals("daegu") || lower.equals("incheon")
-                || lower.equals("gwangju") || lower.equals("daejeon") || lower.equals("ulsan") || lower.equals("sejong")
-                || lower.equals("gyeonggi") || lower.equals("gangwon") || lower.equals("chungbuk")
-                || lower.equals("chungnam") || lower.equals("jeonbuk") || lower.equals("jeonnam")
-                || lower.equals("gyeongbuk") || lower.equals("gyeongnam") || lower.equals("jeju")) {
+                || lower.equals("gwangju") || lower.equals("daejeon") || lower.equals("ulsan")
+                || lower.equals("sejong") || lower.equals("gyeonggi") || lower.equals("gangwon")
+                || lower.equals("chungbuk") || lower.equals("chungnam") || lower.equals("jeonbuk")
+                || lower.equals("jeonnam") || lower.equals("gyeongbuk") || lower.equals("gyeongnam")
+                || lower.equals("jeju")) {
             return lower;
         }
 
@@ -222,11 +238,7 @@ public class BookingController {
         return "busan";
     }
 
-    private User resolveSessionUser() {
-        Object sessionUser = session.getAttribute("sessionUser");
-        if (sessionUser instanceof User user) {
-            return user;
-        }
-        return null;
+    private SessionUser resolveSessionUser() {
+        return SessionUsers.getOrNull(session);
     }
 }

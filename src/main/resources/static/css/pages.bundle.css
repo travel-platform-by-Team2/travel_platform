@@ -134,6 +134,40 @@
   margin-bottom: 30px;
 }
 
+#board-like-btn.is-liked {
+  border-color: #ec4899;
+  color: #ec4899;
+}
+
+#board-like-btn.is-liked #board-like-icon {
+  color: #ec4899;
+  font-variation-settings: "FILL" 1;
+}
+
+.board-copy-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  color: #4b5563;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.board-copy-link-btn:hover {
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.board-copy-link-btn .icon-ms-sm {
+  font-size: 1rem;
+}
+
 .community-list-span-01,
 .community-detail-span-02 {
   border: 1px solid #e2e8f0;
@@ -295,6 +329,93 @@
 .community-filter-btn.cat-qna.is-active {
   background-color: #7e22ce;
   border-color: #7e22ce;
+}
+
+.community-sort-wrap {
+  display: flex;
+  margin-top: 1rem;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.community-sort-dropdown {
+  position: relative;
+}
+
+.community-sort-dropdown summary {
+  list-style: none;
+}
+
+.community-sort-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.community-sort-summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.community-sort-summary:hover {
+  border-color: #cbd5e1;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.community-sort-dropdown[open] .community-sort-summary {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.community-sort-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 8.5rem;
+  padding: 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  z-index: 20;
+}
+
+.community-sort-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  text-align: left;
+}
+
+.community-sort-option:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.community-sort-option.is-active {
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .pagination-wrap {

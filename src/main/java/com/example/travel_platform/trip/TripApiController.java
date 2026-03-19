@@ -1,5 +1,6 @@
 package com.example.travel_platform.trip;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,6 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.travel_platform._core.util.Resp;
+import com.example.travel_platform.user.SessionUsers;
+
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -16,20 +22,29 @@ import lombok.RequiredArgsConstructor;
 public class TripApiController {
 
     private final TripService tripService;
+    private final HttpSession session;
 
     @PostMapping
-    public void createPlan(@RequestBody TripRequest.CreatePlanDTO reqDTO) {
-        tripService.createPlan(1, reqDTO);
+    public ResponseEntity<Resp<TripResponse.CreatedDTO>> createPlan(
+            @Valid @RequestBody TripRequest.CreatePlanDTO reqDTO) {
+        return Resp.ok(tripService.createPlan(requireSessionUserId(), reqDTO));
     }
 
     @GetMapping
-    public Object getPlanList(@RequestParam(defaultValue = "result") String category,
-            @RequestParam(defaultValue = "0") int page) {
-        return tripService.getPlanList(1, category, page);
+    public ResponseEntity<Resp<TripResponse.ListPageDTO>> getPlanList(
+            @RequestParam(name = "category", defaultValue = "result") String category,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+        return Resp.ok(tripService.getPlanList(requireSessionUserId(), category, page));
     }
 
     @PostMapping("/{planId}/places")
-    public void addPlace(@PathVariable Integer planId, @RequestBody TripRequest.AddPlaceDTO reqDTO) {
-        tripService.addPlace(1, planId, reqDTO);
+    public ResponseEntity<Resp<TripResponse.PlaceAddedDTO>> addPlace(
+            @PathVariable(name = "planId") Integer planId,
+            @Valid @RequestBody TripRequest.AddPlaceDTO reqDTO) {
+        return Resp.ok(tripService.addPlace(requireSessionUserId(), planId, reqDTO));
+    }
+
+    private Integer requireSessionUserId() {
+        return SessionUsers.requireUserId(session);
     }
 }

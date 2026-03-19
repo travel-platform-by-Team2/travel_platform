@@ -1,16 +1,17 @@
 package com.example.travel_platform.trip;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception403;
+import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
-import com.example.travel_platform.trip.TripPlan;
-import com.example.travel_platform.trip.TripRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,199 +20,158 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TripService {
 
+    private static final int PLAN_PAGE_SIZE = 9;
+    private static final String NOT_IMG = "/images/dumimg.jpg";
+
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
-    private final TripPlaceRepository tripPlaceRepository; // 추가!
-    private static final String NotImg = "/images/dumimg.jpg";
+    private final TripPlaceRepository tripPlaceRepository;
 
     @Transactional
-    public void createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
-        // 1. 세션 유저 정보 조회 (유저가 존재하는지 확인)
-        User user = userRepository.findById(sessionUserId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    public TripResponse.CreatedDTO createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
+        validatePlanDates(reqDTO.getStartDate(), reqDTO.getEndDate());
+        User user = findUser(sessionUserId);
 
-        // 2. DTO 데이터를 엔티티(TripPlan)로 변환
-        TripPlan tripPlan = new TripPlan();
-        tripPlan.setUser(user); // 작성자 설정
-        tripPlan.setTitle(reqDTO.getTitle()); // 여행 제목
-        tripPlan.setRegion(reqDTO.getRegion()); // 여행 지역
-        tripPlan.setWhoWith(reqDTO.getWhoWith()); // 누구와 함께
-        tripPlan.setStartDate(reqDTO.getStartDate()); // 시작일
-        tripPlan.setEndDate(reqDTO.getEndDate()); // 종료일
+        TripPlan tripPlan = TripPlan.create(
+                user,
+                reqDTO.getTitle(),
+                reqDTO.getRegion(),
+                reqDTO.getWhoWith(),
+                reqDTO.getStartDate(),
+                reqDTO.getEndDate(),
+                NOT_IMG);
 
-        // 기본 이미지 설정 (엔티티에 nullable=false 설정이 되어 있으므로 필수)
-        // src/main/resources/static/images/placeholder-card.svg 경로가 있다고 가정하거나 상수 활용
-        tripPlan.setImgUrl("/images/placeholder-card.svg");
-
-        // 3. DB에 저장
         tripRepository.savePlan(tripPlan);
+        return TripResponse.CreatedDTO.of(tripPlan.getId());
     }
 
     @Transactional
-    public void addPlace(Integer sessionUserId, Integer planId, TripRequest.AddPlaceDTO reqDTO) {
-        // 1. 여행 계획 조회
-        TripPlan tripPlan = tripRepository.findPlanById(planId).orElseThrow();
+    public TripResponse.PlaceAddedDTO addPlace(Integer sessionUserId, Integer planId, TripRequest.AddPlaceDTO reqDTO) {
+        validateDayOrder(reqDTO.getDayOrder());
+        TripPlan tripPlan = findOwnedPlan(sessionUserId, planId);
 
-        // 2. 장소 엔티티 생성
-        TripPlace tripPlace = new TripPlace();
-        tripPlace.setTripPlan(tripPlan); // 어느 계획의 장소인지 연결
-        tripPlace.setPlaceName(reqDTO.getPlaceName());
-        tripPlace.setAddress(reqDTO.getAddress());
-        // ... 나머지 세팅 ...
-        // 3. JpaRepository의 save()로 저장!
+        TripPlace tripPlace = TripPlace.create(
+                tripPlan,
+                reqDTO.getPlaceName(),
+                reqDTO.getAddress(),
+                reqDTO.getLatitude(),
+                reqDTO.getLongitude(),
+                reqDTO.getDayOrder());
+
         tripPlaceRepository.save(tripPlace);
+        long placeCount = tripPlaceRepository.countByTripPlanId(planId);
+        return TripResponse.PlaceAddedDTO.of(tripPlace, placeCount);
     }
 
-    public TripResponse.PlanListPageDTO getPlanList(Integer userId, String category, int page) {
-        int size = 9; // 슬롯 갯수
-        int offset = page * size;
-        int blockSize = 10; // 1~10까지 페이징 사이즈
+    public TripResponse.ListPageDTO getPlanList(Integer userId, String category, int page) {
+        int currentPage = Math.max(page, 0);
         LocalDate today = LocalDate.now();
+        String normalizedCategory = normalizeCategory(category);
 
-        List<TripPlan> tripPlans;
-        Long totalCount;
+        PlanPageQueryResult planPageQueryResult = findPlanPage(userId, normalizedCategory, today, currentPage);
+        List<TripResponse.SummaryDTO> plans = planPageQueryResult.tripPlans().stream()
+                .map(tripPlan -> toPlanSummaryDTO(tripPlan, today))
+                .toList();
 
-        if ("upcoming".equals(category)) {
-            tripPlans = tripRepository.findUpcomingPlanListByUserId(userId, today, offset, size);
-            totalCount = tripRepository.countUpcomingPlanByUserId(userId, today);
-        } else if ("past".equals(category)) {
-            tripPlans = tripRepository.findPastPlanListByUserId(userId, today, offset, size);
-            totalCount = tripRepository.countPastPlanByUserId(userId, today);
-        } else {
-            tripPlans = tripRepository.findPlanListByUserId(userId, offset, size);
-            totalCount = tripRepository.countPlanByUserId(userId);
-        }
-
-        List<TripResponse.PlanSummaryDTO> result = new ArrayList<>();
-
-        for (TripPlan tripPlan : tripPlans) {
-            String region = RegionLabel(tripPlan.getRegion());
-
-            if (region == null || region.isBlank()) {
-                region = "지역 정보 없음";
-            }
-
-            String imageUrl = tripPlan.getImgUrl();
-            if (imageUrl == null || imageUrl.isBlank()) {
-                imageUrl = NotImg;
-            }
-
-            long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
-
-            String dDay = "비활성화";
-            boolean disabled = true;
-
-            if (diff > 0) {
-                dDay = "D-" + diff;
-                disabled = false;
-            }
-
-            TripResponse.PlanSummaryDTO dto = TripResponse.PlanSummaryDTO.builder()
-                    .id(tripPlan.getId())
-                    .title(tripPlan.getTitle())
-                    .imgUrl(imageUrl)
-                    .startDate(tripPlan.getStartDate())
-                    .endDate(tripPlan.getEndDate())
-                    .placeName(region)
-                    .dDay(dDay)
-                    .disabled(disabled)
-                    .build();
-
-            result.add(dto);
-        }
-
-        int totalPage = (int) Math.ceil((double) totalCount / size);
-
-        int startPage = (page / blockSize) * blockSize;
-        int endPage = startPage + blockSize - 1;
-
-        if (endPage >= totalPage) {
-            endPage = totalPage - 1;
-        }
-
-        List<TripResponse.PageNumberDTO> pageNumbers = new ArrayList<>();
-        for (int i = startPage; i <= endPage; i++) {
-            pageNumbers.add(new TripResponse.PageNumberDTO(i, i + 1, i == page));
-        }
-
-        boolean hasPrev = startPage > 0;
-        boolean hasNext = endPage < totalPage - 1;
-
-        int prevPage = startPage - 1;
-        int nextPage = endPage + 1;
-
-        return TripResponse.PlanListPageDTO.builder()
-                .plans(result)
-                .currentPage(page)
-                .displayPage(page + 1)
-                .size(size)
-                .totalCount(totalCount)
-                .totalPage(totalPage)
-                .hasPrev(hasPrev)
-                .hasNext(hasNext)
-                .prevPage(prevPage)
-                .nextPage(nextPage)
-                .pageNumbers(pageNumbers)
-                .startPage(startPage)
-                .endPage(endPage)
-                .category(category)
-                .build();
+        return TripResponse.ListPageDTO.of(
+                plans,
+                currentPage,
+                planPageQueryResult.totalCount(),
+                normalizedCategory,
+                PLAN_PAGE_SIZE);
     }
 
-    // 지역 영어 db 한글로 출력
-    private String RegionLabel(String region) {
-        if (region == null || region.isBlank()) {
-            return "지역 정보 없음";
-        }
+    public TripResponse.DetailPageDTO getPlanDetailPage(Integer sessionUserId, Integer planId) {
+        return TripResponse.DetailPageDTO.of(getPlanDetail(sessionUserId, planId));
+    }
 
-        return switch (region) {
-            case "seoul" -> "서울";
-            case "busan" -> "부산";
-            case "daegu" -> "대구";
-            case "incheon" -> "인천";
-            case "gwangju" -> "광주";
-            case "daejeon" -> "대전";
-            case "ulsan" -> "울산";
-            case "sejong" -> "세종";
-            case "gyeonggi" -> "경기도";
-            case "gangwon" -> "강원도";
-            case "chungbuk" -> "충청북도";
-            case "chungnam" -> "충청남도";
-            case "jeonbuk" -> "전라북도";
-            case "jeonnam" -> "전라남도";
-            case "gyeongbuk" -> "경상북도";
-            case "gyeongnam" -> "경상남도";
-            case "jeju" -> "제주도";
-            default -> region;
+    public TripResponse.PlacePageDTO getPlacePage(Integer sessionUserId, Integer planId, String kakaoMapAppKey) {
+        return TripResponse.PlacePageDTO.of(getPlanDetail(sessionUserId, planId), kakaoMapAppKey);
+    }
+
+    public TripResponse.DetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
+        TripPlan tripPlan = findOwnedPlanWithPlaces(sessionUserId, planId);
+
+        List<TripResponse.PlaceItemDTO> places = tripPlan.getPlaces() == null
+                ? List.of()
+                : tripPlan.getPlaces().stream()
+                        .sorted(Comparator
+                                .comparing(TripPlace::getDayOrder, Comparator.nullsLast(Integer::compareTo))
+                                .thenComparing(TripPlace::getId, Comparator.nullsLast(Integer::compareTo)))
+                        .map(TripResponse.PlaceItemDTO::from)
+                        .toList();
+
+        return TripResponse.DetailDTO.of(tripPlan, places);
+    }
+
+    private String normalizeCategory(String category) {
+        if ("upcoming".equals(category) || "past".equals(category)) {
+            return category;
+        }
+        return "result";
+    }
+
+    private PlanPageQueryResult findPlanPage(Integer userId, String normalizedCategory, LocalDate today, int page) {
+        int offset = page * PLAN_PAGE_SIZE;
+
+        return switch (normalizedCategory) {
+            case "upcoming" -> new PlanPageQueryResult(
+                    tripRepository.findUpcomingPlanListByUserId(userId, today, offset, PLAN_PAGE_SIZE),
+                    tripRepository.countUpcomingPlanByUserId(userId, today));
+            case "past" -> new PlanPageQueryResult(
+                    tripRepository.findPastPlanListByUserId(userId, today, offset, PLAN_PAGE_SIZE),
+                    tripRepository.countPastPlanByUserId(userId, today));
+            default -> new PlanPageQueryResult(
+                    tripRepository.findPlanListByUserId(userId, offset, PLAN_PAGE_SIZE),
+                    tripRepository.countPlanByUserId(userId));
         };
     }
 
-    public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
+    private TripResponse.SummaryDTO toPlanSummaryDTO(TripPlan tripPlan, LocalDate today) {
+        long placeCount = tripPlaceRepository.countByTripPlanId(tripPlan.getId());
+        return TripResponse.SummaryDTO.of(tripPlan, today, placeCount);
+    }
+
+    private void validatePlanDates(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            return;
+        }
+        if (endDate.isBefore(startDate)) {
+            throw new Exception400("여행 종료일은 시작일보다 빠를 수 없습니다.");
+        }
+    }
+
+    private void validateDayOrder(Integer dayOrder) {
+        if (dayOrder == null || dayOrder < 1) {
+            throw new Exception400("여행 일차 정보가 올바르지 않습니다.");
+        }
+    }
+
+    private User findUser(Integer sessionUserId) {
+        return userRepository.findById(sessionUserId)
+                .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
+    }
+
+    private TripPlan findOwnedPlan(Integer sessionUserId, Integer planId) {
         TripPlan tripPlan = tripRepository.findPlanById(planId)
-                .orElseThrow(
-                        () -> new com.example.travel_platform._core.handler.ex.Exception404("해당 여행 계획을 찾을 수 없습니다."));
+                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
+        validateOwner(sessionUserId, tripPlan);
+        return tripPlan;
+    }
 
-        if (!tripPlan.getUser().getId().equals(sessionUserId)) {
-            throw new com.example.travel_platform._core.handler.ex.Exception403("권한이 없습니다.");
+    private TripPlan findOwnedPlanWithPlaces(Integer sessionUserId, Integer planId) {
+        TripPlan tripPlan = tripRepository.findPlanByIdWithPlaces(planId)
+                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
+        validateOwner(sessionUserId, tripPlan);
+        return tripPlan;
+    }
+
+    private void validateOwner(Integer sessionUserId, TripPlan tripPlan) {
+        if (!tripPlan.isOwnedBy(sessionUserId)) {
+            throw new Exception403("권한이 없습니다.");
         }
+    }
 
-        List<TripResponse.PlaceDTO> places = new ArrayList<>();
-        if (tripPlan.getPlaces() != null) {
-            places = tripPlan.getPlaces().stream().map(place -> TripResponse.PlaceDTO.builder()
-                    .id(place.getId())
-                    .placeName(place.getPlaceName())
-                    .address(place.getAddress())
-                    .dayOrder(place.getDayOrder())
-                    .build()).toList();
-        }
-
-        return TripResponse.PlanDetailDTO.builder()
-                .id(tripPlan.getId())
-                .title(tripPlan.getTitle())
-                .region(RegionLabel(tripPlan.getRegion()))
-                .startDate(tripPlan.getStartDate())
-                .endDate(tripPlan.getEndDate())
-                .places(places)
-                .build();
+    private record PlanPageQueryResult(List<TripPlan> tripPlans, long totalCount) {
     }
 }

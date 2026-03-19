@@ -6,8 +6,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception401;
+import com.example.travel_platform._core.handler.ex.Exception403;
+import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardRepository;
+import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,27 +20,83 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AdminService {
+
+    private final AdminRepository adminRepository;
     private final BoardRepository boardRepository;
+
+    public List<UserResponse.AdminListDTO> getAdminUsers(Boolean active, String keyword) {
+        List<User> users;
+        String searchKeyword = keyword;
+
+        if (searchKeyword != null) {
+            searchKeyword = searchKeyword.trim();
+        }
+
+        if (searchKeyword != null && !searchKeyword.isEmpty()) {
+            users = adminRepository.findByUsernameContainingOrEmailContaining(searchKeyword, searchKeyword);
+        } else if (active == null) {
+            users = adminRepository.findAll();
+        } else {
+            users = adminRepository.findByActive(active);
+        }
+
+        return users.stream()
+                .map(user -> UserResponse.AdminListDTO.fromUser(user))
+                .toList();
+    }
+
+    public long getTotalUserCount() {
+        return adminRepository.count();
+    }
+
+    public long getInactiveUserCount() {
+        return adminRepository.countByActiveFalse();
+    }
+
+    @Transactional
+    public void deleteBoard(User sessionUser, Integer boardId) {
+        if (sessionUser == null) {
+            throw new Exception401("로그인이 필요합니다.");
+        }
+
+        if (!sessionUser.isAdmin()) {
+            throw new Exception403("관리자만 삭제할 수 있습니다.");
+        }
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new Exception404("게시글을 찾을수가 없습니다"));
+
+        boardRepository.deleteLikesByBoard(boardId);
+        boardRepository.delete(board);
+    }
 
     public AdminResponse.AdminBoardListDTO getBoardList(String category, String keyword, int page) {
         int size = 10;
         int offset = page * size;
+
+        String allCategory = (category == null || category.isBlank()) ? "all" : category;
 
         List<Board> boards;
         long categoryCount;
 
         long allCount = boardRepository.count();
 
-        boolean hasCategory = category != null && !category.isBlank();
+        boolean isAllCategory = "all".equals(allCategory);
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
 
         if (hasKeyword) {
             String[] words = keyword.trim().split("\\s+");
-            boards = boardRepository.search(category, words, offset, size);
-            categoryCount = boardRepository.countSearch(category, words);
-        } else if (hasCategory) {
-            boards = boardRepository.findAllPagingByCategory(category, offset, size);
-            categoryCount = boardRepository.countByCategory(category);
+
+            if (isAllCategory) {
+                boards = boardRepository.search(null, words, offset, size);
+                categoryCount = boardRepository.countSearch(null, words);
+            } else {
+                boards = boardRepository.search(allCategory, words, offset, size);
+                categoryCount = boardRepository.countSearch(allCategory, words);
+            }
+        } else if (!isAllCategory) {
+            boards = boardRepository.findAllPagingByCategory(allCategory, offset, size);
+            categoryCount = boardRepository.countByCategory(allCategory);
         } else {
             boards = boardRepository.findAllPaging(offset, size);
             categoryCount = boardRepository.count();
@@ -60,6 +121,7 @@ public class AdminService {
             pageItems.add(AdminResponse.PageItemDTO.builder()
                     .page(i)
                     .displayNumber(i + 1)
+                    .keyword(keyword)
                     .current(i == page)
                     .build());
         }
@@ -79,7 +141,7 @@ public class AdminService {
         Integer prevPage = page == 0 ? null : page - 1;
         Integer nextPage = boardDTOs.size() < size ? null : page + 1;
 
-        return AdminResponse.AdminBoardListDTO.builder()
+        AdminResponse.AdminBoardListDTO adminListDTO = AdminResponse.AdminBoardListDTO.builder()
                 .boards(boardDTOs)
                 .pageItems(pageItems)
                 .currentPage(page)
@@ -87,15 +149,16 @@ public class AdminService {
                 .allCount(allCount)
                 .prevPage(prevPage)
                 .nextPage(nextPage)
-                .category(category)
                 .keyword(keyword)
-                .selectCategory(category)
+                .allCategory(allCategory)
                 .isTips(isCategory(category, "tips"))
                 .isPlan(isCategory(category, "plan"))
                 .isFood(isCategory(category, "food"))
                 .isReview(isCategory(category, "review"))
                 .isQna(isCategory(category, "qna"))
                 .build();
+
+        return adminListDTO;
     }
 
     private boolean isCategory(String category, String targetCategory) {
@@ -117,7 +180,6 @@ public class AdminService {
         };
     }
 
-    // css용
     private String toCategoryClass(String category) {
         if (category == null || category.isBlank()) {
             return "cat-plan";
@@ -132,5 +194,4 @@ public class AdminService {
             default -> "cat-plan";
         };
     }
-
 }

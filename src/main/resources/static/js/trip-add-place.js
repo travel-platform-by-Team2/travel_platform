@@ -1,20 +1,28 @@
 (function () {
   "use strict";
 
-  // State management
+  var pageRoot = document.getElementById("tripPlacePage");
+  if (!pageRoot) {
+    return;
+  }
+
   var state = {
     map: null,
     places: null,
     overlays: [],
     items: [],
+    selectedPlaces: [],
     currentRegionKey: null,
-    currentCategory: "", // empty means '추천' (both AD5 and AT4)
+    currentCategory: "",
     currentKeyword: "",
     idleTimer: null,
-    loading: false
+    loading: false,
+    saving: false,
+    saveUrl: pageRoot.dataset.saveUrl || "",
+    detailUrl: pageRoot.dataset.detailUrl || "/trip",
+    existingCount: parseInt(pageRoot.dataset.existingCount || "0", 10) || 0
   };
 
-  // 1-night base pricing estimation fallback
   function getFakePricing(item) {
     var num = parseInt(item.id, 10);
     if (isNaN(num)) num = Math.floor(Math.random() * 1000);
@@ -72,27 +80,27 @@
       categoryName: p.category_name,
       type: type,
       placeUrl: p.place_url || "",
-      imgUrl: p.image_url || null, // Will be hydrated
+      imgUrl: p.image_url || null,
       rating: (4.0 + Math.random()).toFixed(1),
-      reviewCount: Math.floor(Math.random() * 5000)
+      reviewCount: Math.floor(Math.random() * 5000),
+      priceHint: getFakePricing(p)
     };
   }
 
-  // Check if a place is within the initial selected region's text
   function isInSelectedRegion(item) {
     if (!state.currentRegionKey || !window.TRAVEL_PLATFORM || !window.TRAVEL_PLATFORM.REGION_KEYWORDS) {
-      return true; // No restriction if region not detected
+      return true;
     }
+
     var keywords = window.TRAVEL_PLATFORM.REGION_KEYWORDS[state.currentRegionKey];
     if (!keywords || !keywords.length) return true;
 
     var haystack = String(item.address).toLowerCase();
-    return keywords.some(function (k) {
-      return haystack.indexOf(String(k).toLowerCase()) >= 0;
+    return keywords.some(function (keyword) {
+      return haystack.indexOf(String(keyword).toLowerCase()) >= 0;
     });
   }
 
-  // Map searches
   function searchCategoryInView(categoryCode) {
     return new Promise(function (resolve) {
       state.places.categorySearch(
@@ -102,7 +110,7 @@
             resolve([]);
             return;
           }
-          resolve(data.map(function (p) { return normalizePlace(p, categoryCode); }));
+          resolve(data.map(function (item) { return normalizePlace(item, categoryCode); }));
         },
         { useMapBounds: true, size: 15 }
       );
@@ -118,7 +126,7 @@
             resolve([]);
             return;
           }
-          resolve(data.map(function (p) { return normalizePlace(p, p.category_group_code); }));
+          resolve(data.map(function (item) { return normalizePlace(item, item.category_group_code); }));
         },
         { useMapBounds: true, size: 15 }
       );
@@ -134,6 +142,23 @@
     });
   }
 
+  function isSelected(itemId) {
+    return state.selectedPlaces.some(function (item) {
+      return String(item.id) === String(itemId);
+    });
+  }
+
+  function toSelectedItem(item) {
+    return {
+      id: item.id,
+      name: item.name,
+      address: item.address,
+      lat: item.lat,
+      lng: item.lng,
+      imgUrl: item.imgUrl || createFallbackImageDataUri(item)
+    };
+  }
+
   async function fetchAndRenderPois() {
     if (state.loading) return;
     state.loading = true;
@@ -142,25 +167,22 @@
       var results = [];
       if (state.currentKeyword) {
         results = await searchKeywordInView(state.currentKeyword);
+      } else if (!state.currentCategory) {
+        var attractions = await searchCategoryInView("AT4");
+        var lodgings = await searchCategoryInView("AD5");
+        results = dedupeById([].concat(attractions, lodgings));
       } else {
-        if (!state.currentCategory) {
-          var r1 = await searchCategoryInView("AT4"); 
-          var r2 = await searchCategoryInView("AD5"); 
-          results = dedupeById([].concat(r1, r2));
-        } else {
-          results = await searchCategoryInView(state.currentCategory);
-        }
+        results = await searchCategoryInView(state.currentCategory);
       }
 
       state.items = results.filter(isInSelectedRegion);
 
-      // Hydrate images
-      await Promise.all(state.items.map(async function(item) {
+      await Promise.all(state.items.map(async function (item) {
         if (!item.imgUrl && item.placeUrl) {
-           var serverImg = await fetchPlaceImageFromServer(item);
-           item.imgUrl = serverImg || createFallbackImageDataUri(item);
+          var serverImage = await fetchPlaceImageFromServer(item);
+          item.imgUrl = serverImage || createFallbackImageDataUri(item);
         } else if (!item.imgUrl) {
-           item.imgUrl = createFallbackImageDataUri(item);
+          item.imgUrl = createFallbackImageDataUri(item);
         }
       }));
 
@@ -186,39 +208,194 @@
     if (!container) return;
 
     if (!state.items || state.items.length === 0) {
-      container.innerHTML = '<div class="panel-muted-center-sm" style="padding:2rem; text-align:center;">해당 지역에 검색 결과가 없습니다.</div>';
+      container.innerHTML = '<div class="empty-state">해당 지역에 검색 결과가 없습니다.</div>';
       return;
     }
 
-    var html = state.items.map(function(item) {
+    container.innerHTML = state.items.map(function (item) {
       var typeLabel = item.type === "hotel" ? "숙소" : "명소";
-      return `
-        <div class="place-option-card" id="place-card-${item.id}">
-          <div class="place-option-thumb">
-            <img alt="Place" class="media-cover-zoom110" src="${escapeHtml(item.imgUrl)}"/>
-          </div>
-          <div class="place-option-content">
-            <div>
-              <div class="row-between-start">
-                <h3 class="text-main-base-strong">${escapeHtml(item.name)}</h3>
-                <span class="tag-surface-xs">${escapeHtml(typeLabel)}</span>
-              </div>
-              <p class="text-sub-xs-truncate-mt1">${escapeHtml(item.address)}</p>
-              <div class="inline-row-gap1-mt1">
-                <span class="icon-ms-14-yellow-fill">star</span>
-                <span class="trip-plan-add-place-span-02">${item.rating}</span>
-                <span class="trip-plan-add-place-span-03">(${item.reviewCount.toLocaleString()})</span>
-              </div>
-            </div>
-          </div>
-          <button class="btn-round-add" data-action="add-place" data-id="${item.id}">
-            <span class="icon-ms-xl">add</span>
-          </button>
-        </div>
-      `;
+      var selected = isSelected(item.id);
+      return '' +
+        '<div class="place-option-card" id="place-card-' + item.id + '">' +
+        '  <div class="place-option-thumb">' +
+        '    <img alt="Place" class="media-cover-zoom110" src="' + escapeHtml(item.imgUrl) + '"/>' +
+        '  </div>' +
+        '  <div class="place-option-content">' +
+        '    <div>' +
+        '      <div class="row-between-start">' +
+        '        <h3 class="text-main-base-strong">' + escapeHtml(item.name) + '</h3>' +
+        '        <span class="tag-surface-xs">' + escapeHtml(typeLabel) + '</span>' +
+        '      </div>' +
+        '      <p class="text-sub-xs-truncate-mt1">' + escapeHtml(item.address) + '</p>' +
+        '      <div class="inline-row-gap1-mt1">' +
+        '        <span class="icon-ms-14-yellow-fill">star</span>' +
+        '        <span class="trip-plan-add-place-span-02">' + item.rating + '</span>' +
+        '        <span class="trip-plan-add-place-span-03">(' + item.reviewCount.toLocaleString() + ')</span>' +
+        '      </div>' +
+        '    </div>' +
+        '  </div>' +
+        '  <button class="btn-round-add" data-action="add-place" data-id="' + item.id + '"' +
+        (selected ? ' disabled' : '') + '>' +
+        '    <span class="icon-ms-xl">' + (selected ? 'check' : 'add') + '</span>' +
+        '  </button>' +
+        '</div>';
+    }).join("");
+  }
+
+  function renderSelectedPlaces() {
+    var container = document.getElementById("selectedPlaceList");
+    var countElement = document.getElementById("selectedPlaceCount");
+    var clearButton = document.getElementById("clearSelectedPlaces");
+    var saveButton = document.getElementById("saveSelectedPlaces");
+
+    if (countElement) {
+      countElement.textContent = state.selectedPlaces.length;
+    }
+
+    if (clearButton) {
+      clearButton.disabled = state.selectedPlaces.length === 0;
+    }
+
+    if (saveButton) {
+      saveButton.disabled = state.selectedPlaces.length === 0 || state.saving;
+    }
+
+    if (!container) return;
+
+    if (!state.selectedPlaces.length) {
+      container.innerHTML = '<div class="empty-state">아직 담은 장소가 없습니다.</div>';
+      renderList();
+      return;
+    }
+
+    container.innerHTML = state.selectedPlaces.map(function (item, index) {
+      return '' +
+        '<div class="fx-group-thumb14">' +
+        '  <div class="trip-plan-add-place-div-10">' +
+        '    <img alt="Selected" class="trip-plan-add-place-img-01" src="' + escapeHtml(item.imgUrl) + '"/>' +
+        '    <div class="trip-plan-add-place-div-11">' + (state.existingCount + index + 1) + '</div>' +
+        '  </div>' +
+        '  <button class="trip-plan-add-place-button-05" data-action="remove-place" data-id="' + item.id + '" type="button">' +
+        '    <span class="icon-ms-10">close</span>' +
+        '  </button>' +
+        '  <p class="trip-plan-add-place-p-01">' + escapeHtml(item.name) + '</p>' +
+        '</div>';
     }).join("");
 
-    container.innerHTML = html;
+    renderList();
+  }
+
+  function addSelectedPlace(itemId) {
+    if (isSelected(itemId)) {
+      return;
+    }
+
+    var item = state.items.find(function (value) {
+      return String(value.id) === String(itemId);
+    });
+
+    if (!item) {
+      return;
+    }
+
+    state.selectedPlaces.push(toSelectedItem(item));
+    renderSelectedPlaces();
+  }
+
+  function removeSelectedPlace(itemId) {
+    state.selectedPlaces = state.selectedPlaces.filter(function (item) {
+      return String(item.id) !== String(itemId);
+    });
+    renderSelectedPlaces();
+  }
+
+  function clearSelectedPlaces() {
+    state.selectedPlaces = [];
+    renderSelectedPlaces();
+  }
+
+  async function extractErrorMessage(response) {
+    try {
+      var data = await response.json();
+      if (data && typeof data.message === "string" && data.message) {
+        return data.message;
+      }
+      if (data && typeof data.msg === "string" && data.msg) {
+        return data.msg;
+      }
+      if (data && data.body && typeof data.body.message === "string" && data.body.message) {
+        return data.body.message;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    if (response.status === 401) {
+      return "로그인이 필요합니다.";
+    }
+
+    return "장소 저장 중 오류가 발생했습니다.";
+  }
+
+  async function saveSelectedPlaces() {
+    if (state.saving || !state.selectedPlaces.length || !state.saveUrl) {
+      return;
+    }
+
+    var saveButton = document.getElementById("saveSelectedPlaces");
+    var originalButtonText = saveButton ? saveButton.innerHTML : "";
+    var baseCount = state.existingCount;
+    state.saving = true;
+
+    if (saveButton) {
+      saveButton.disabled = true;
+      saveButton.innerHTML = '<span class="icon-ms-18">progress_activity</span> 저장 중';
+    }
+
+    try {
+      for (var index = 0; index < state.selectedPlaces.length; index++) {
+        var item = state.selectedPlaces[index];
+        var response = await fetch(state.saveUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: JSON.stringify({
+            placeName: item.name,
+            address: item.address,
+            latitude: item.lat,
+            longitude: item.lng,
+            dayOrder: baseCount + index + 1
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(await extractErrorMessage(response));
+        }
+
+        var data = await response.json();
+        if (data && data.body && typeof data.body.placeCount === "number") {
+          state.existingCount = data.body.placeCount;
+        }
+      }
+
+      if (state.existingCount < baseCount + state.selectedPlaces.length) {
+        state.existingCount = baseCount + state.selectedPlaces.length;
+      }
+
+      state.selectedPlaces = [];
+      renderSelectedPlaces();
+      location.href = state.detailUrl;
+    } catch (error) {
+      alert(error && error.message ? error.message : "장소 저장 중 오류가 발생했습니다.");
+    } finally {
+      state.saving = false;
+      if (saveButton) {
+        saveButton.disabled = state.selectedPlaces.length === 0;
+        saveButton.innerHTML = originalButtonText;
+      }
+    }
   }
 
   function clearOverlays() {
@@ -231,36 +408,31 @@
   function renderOverlays() {
     clearOverlays();
 
-    state.items.forEach(function (item, index) {
+    state.items.forEach(function (item) {
       var position = new kakao.maps.LatLng(item.lat, item.lng);
       var el = document.createElement("div");
-      
+
       el.style.cssText = "transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer;";
-      
-      // Use standard material symbols mapping but with nicer colors
+
       var icon = item.type === "hotel" ? "bed" : "attractions";
-      var bgColor = item.type === "hotel" ? "#1e40af" : "#c2410c"; // deep blue or deep orange
-      
-      el.innerHTML = `
-        <div class="fx-map-pin-custom" style="position:relative; background: ${bgColor}; border: 2px solid #ffffff; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 2;">
-          <span class="material-symbols-outlined" style="color: white; font-size: 20px;">${icon}</span>
-          <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${bgColor};"></div>
-          
-          <!-- Tooltip on hover -->
-          <div class="pin-tooltip" style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); background: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-size: 12px; font-weight: bold; white-space: nowrap; color: #1e293b; opacity: 0; transition: opacity 0.2s; pointer-events: none;">
-            ${escapeHtml(item.name)}
-          </div>
-        </div>
-      `;
+      var bgColor = item.type === "hotel" ? "#1e40af" : "#c2410c";
+
+      el.innerHTML = '' +
+        '<div class="fx-map-pin-custom" style="position:relative; background:' + bgColor + '; border:2px solid #ffffff; border-radius:50%; width:40px; height:40px; box-shadow:0 4px 8px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; z-index:2;">' +
+        '  <span class="material-symbols-outlined" style="color:white; font-size:20px;">' + icon + '</span>' +
+        '  <div style="position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid ' + bgColor + ';"></div>' +
+        '  <div class="pin-tooltip" style="position:absolute; bottom:50px; left:50%; transform:translateX(-50%); background:white; padding:4px 8px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.2); font-size:12px; font-weight:bold; white-space:nowrap; color:#1e293b; opacity:0; transition:opacity 0.2s; pointer-events:none;">' + escapeHtml(item.name) + '</div>' +
+        '</div>';
 
       var tooltip = el.querySelector(".pin-tooltip");
 
-      el.addEventListener("mouseenter", function() {
+      el.addEventListener("mouseenter", function () {
         el.style.transform = "translateY(-10px) scale(1.1)";
         el.style.zIndex = "10";
         if (tooltip) tooltip.style.opacity = "1";
       });
-      el.addEventListener("mouseleave", function() {
+
+      el.addEventListener("mouseleave", function () {
         el.style.transform = "translateY(0) scale(1)";
         el.style.zIndex = "2";
         if (tooltip) tooltip.style.opacity = "0";
@@ -269,7 +441,7 @@
       var overlay = new kakao.maps.CustomOverlay({
         position: position,
         content: el,
-        yAnchor: 1.0, 
+        yAnchor: 1.0,
         zIndex: 2
       });
 
@@ -282,56 +454,90 @@
           card.scrollIntoView({ behavior: "smooth", block: "center" });
           card.style.transition = "background-color 0.3s";
           card.style.backgroundColor = "var(--surface-color-hover, #f3f4f6)";
-          setTimeout(function() { card.style.backgroundColor = ""; }, 1500);
+          setTimeout(function () { card.style.backgroundColor = ""; }, 1500);
         }
         state.map.panTo(position);
       });
     });
   }
 
-  // Setup Event Listeners
   function bindEvents() {
-    // 1. Search Input
     var searchInput = document.getElementById("placeSearchInput");
     if (searchInput) {
-      searchInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
+      searchInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
           state.currentKeyword = this.value.trim();
-          // Reset category visually
-          document.querySelectorAll("#categoryTabs button").forEach(function(b) {
-            b.className = "tab-link-muted";
+          document.querySelectorAll("#categoryTabs button").forEach(function (button) {
+            button.className = "tab-link-muted";
           });
           fetchAndRenderPois();
         }
       });
     }
 
-    // 2. Category Tabs
     var tabContainer = document.getElementById("categoryTabs");
     if (tabContainer) {
-      tabContainer.addEventListener("click", function(e) {
-        if (e.target.tagName === "BUTTON") {
-          var btns = tabContainer.querySelectorAll("button");
-          btns.forEach(function(b) { b.className = "tab-link-muted"; });
-          e.target.className = "trip-plan-add-place-button-03 active";
-          
-          state.currentCategory = e.target.getAttribute("data-category") || "";
-          state.currentKeyword = "";
-          if (searchInput) searchInput.value = "";
-          
-          fetchAndRenderPois();
+      tabContainer.addEventListener("click", function (event) {
+        if (event.target.tagName !== "BUTTON") {
+          return;
         }
+
+        tabContainer.querySelectorAll("button").forEach(function (button) {
+          button.className = "tab-link-muted";
+        });
+        event.target.className = "trip-plan-add-place-button-03 active";
+        state.currentCategory = event.target.getAttribute("data-category") || "";
+        state.currentKeyword = "";
+        if (searchInput) searchInput.value = "";
+        fetchAndRenderPois();
       });
     }
 
-    // 3. Map Sync
+    var listContainer = document.getElementById("placeListContainer");
+    if (listContainer) {
+      listContainer.addEventListener("click", function (event) {
+        var button = event.target.closest("[data-action='add-place']");
+        if (!button) {
+          return;
+        }
+        addSelectedPlace(button.getAttribute("data-id"));
+      });
+    }
+
+    var selectedPlaceList = document.getElementById("selectedPlaceList");
+    if (selectedPlaceList) {
+      selectedPlaceList.addEventListener("click", function (event) {
+        var button = event.target.closest("[data-action='remove-place']");
+        if (!button) {
+          return;
+        }
+        removeSelectedPlace(button.getAttribute("data-id"));
+      });
+    }
+
+    var clearButton = document.getElementById("clearSelectedPlaces");
+    if (clearButton) {
+      clearButton.addEventListener("click", clearSelectedPlaces);
+    }
+
+    var saveButton = document.getElementById("saveSelectedPlaces");
+    if (saveButton) {
+      saveButton.addEventListener("click", saveSelectedPlaces);
+    }
+
+    var cancelButton = document.getElementById("cancelPlaceSelection");
+    if (cancelButton) {
+      cancelButton.addEventListener("click", function () {
+        location.href = state.detailUrl;
+      });
+    }
+
     kakao.maps.event.addListener(state.map, "idle", function () {
       if (state.idleTimer) clearTimeout(state.idleTimer);
       state.idleTimer = setTimeout(fetchAndRenderPois, 300);
     });
 
-    // 4. Zoom & Location Controls
     var btnZoomIn = document.getElementById("btnZoomIn");
     var btnZoomOut = document.getElementById("btnZoomOut");
     if (btnZoomIn) {
@@ -344,19 +550,18 @@
     var btnMyLocation = document.getElementById("btnMyLocation");
     if (btnMyLocation) {
       btnMyLocation.onclick = function () {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function (position) {
-            var lat = position.coords.latitude;
-            var lng = position.coords.longitude;
-            state.map.panTo(new kakao.maps.LatLng(lat, lng));
-            // Trigger fetch implicitly via 'idle'
-          });
+        if (!navigator.geolocation) {
+          return;
         }
+        navigator.geolocation.getCurrentPosition(function (position) {
+          var lat = position.coords.latitude;
+          var lng = position.coords.longitude;
+          state.map.panTo(new kakao.maps.LatLng(lat, lng));
+        });
       };
     }
   }
 
-  // Initialization
   function initMap() {
     var mapContainer = document.getElementById("tripMap");
     if (!mapContainer) return;
@@ -371,7 +576,6 @@
       });
       state.places = new kakao.maps.services.Places(state.map);
 
-      // Try to find region from title
       var titleEl = document.querySelector(".trip-plan-add-place-h2-01");
       if (titleEl && window.TRAVEL_PLATFORM) {
         var titleText = titleEl.textContent;
@@ -380,13 +584,13 @@
 
         for (var regionKey in regionKeywords) {
           var keywords = regionKeywords[regionKey];
-          var match = keywords.some(function (k) {
-            return titleText.indexOf(k) >= 0;
+          var match = keywords.some(function (keyword) {
+            return titleText.indexOf(keyword) >= 0;
           });
 
           if (match && regionViews[regionKey]) {
             var view = regionViews[regionKey];
-            state.currentRegionKey = regionKey; // Store to enforce boundary limit
+            state.currentRegionKey = regionKey;
             state.map.setCenter(new kakao.maps.LatLng(view.lat, view.lng));
             state.map.setLevel(view.level);
             break;
@@ -395,9 +599,12 @@
       }
 
       bindEvents();
-      fetchAndRenderPois(); // Initial Load
+      renderSelectedPlaces();
+      fetchAndRenderPois();
     });
   }
+
+  renderSelectedPlaces();
 
   if (typeof kakao !== "undefined" && kakao.maps) {
     initMap();
@@ -408,7 +615,9 @@
         clearInterval(interval);
         initMap();
       }
-      if (++tries > 50) clearInterval(interval);
+      if (++tries > 50) {
+        clearInterval(interval);
+      }
     }, 100);
   }
 })();
