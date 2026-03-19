@@ -2,6 +2,7 @@
   "use strict";
 
   var CALENDAR_MEMO_MAX_LENGTH = 500;
+  var MAX_VISIBLE_DAY_CHIPS = 3;
 
   // 사용자가 선택한 날짜 
   var selectedDate = "";
@@ -236,7 +237,7 @@
     function clearGridChips() {
       var grid = document.querySelector("[data-calendar-grid]");
       if (!grid) return;
-      var chips = grid.querySelectorAll("[data-calendar-chip]");
+      var chips = grid.querySelectorAll("[data-calendar-chip], [data-calendar-chip-overflow]");
       chips.forEach(function (chip) {
         chip.remove();
       });
@@ -248,6 +249,8 @@
       if (!grid) return;
       clearGridChips();
       if (!events || !events.length) return;
+      var chipCountByDate = {};
+      var overflowByDate = {};
 
       events.forEach(function (event) {
         if (!event.startAt) return;
@@ -266,6 +269,13 @@
 
           // 해당 날짜 있으면 칩 추가
           if (dayNode) {
+            var currentChipCount = chipCountByDate[dateKey] || 0;
+            if (currentChipCount >= MAX_VISIBLE_DAY_CHIPS) {
+              overflowByDate[dateKey] = true;
+              dateCursor.setDate(dateCursor.getDate() + 1);
+              continue;
+            }
+
             var chip = document.createElement("div");
             chip.setAttribute("data-calendar-chip", "true");
             // 하루짜리 일정, 여러 날 일정 분기기
@@ -285,10 +295,22 @@
             }
             // 만든 칩을 해당 날짜 칸에 붙임임
             dayNode.appendChild(chip);
+            chipCountByDate[dateKey] = currentChipCount + 1;
           }
           // 다음 칸에도 일정 표시 이어 그리기 위한 코드
           dateCursor.setDate(dateCursor.getDate() + 1);
         }
+      });
+
+      Object.keys(overflowByDate).forEach(function (dateKey) {
+        var dayNode = findDayCardByDate(dateKey);
+        if (!dayNode) return;
+
+        var overflowChip = document.createElement("div");
+        overflowChip.setAttribute("data-calendar-chip-overflow", "true");
+        overflowChip.className = "event-chip";
+        overflowChip.textContent = "...";
+        dayNode.appendChild(overflowChip);
       });
     }
 
