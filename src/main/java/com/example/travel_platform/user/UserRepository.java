@@ -41,4 +41,13 @@ public class UserRepository {
                 .getResultStream()
                 .findFirst();
     }
+
+    public Optional<User> findByEmailAndProvider(String email, String provider) {
+        return em.createQuery("select u from User u where u.email = :email and u.provider = :provider", User.class)
+                .setParameter("email", email)
+                .setParameter("provider", provider)
+                .setMaxResults(1)
+                .getResultStream()
+                .findFirst();
+    }
 }

@@ -49,4 +49,23 @@ public class UserService {
         return SessionUser.from(findUser);
     }
 
+    @Transactional
+    public SessionUser snsLogin(String email, String username, String provider, String providerId) {
+        // 1. 기존 유저 확인 (이메일 + 공급자)
+        User user = userRepository.findByEmailAndProvider(email, provider)
+                .orElseGet(() -> {
+                    // 2. 신규 SNS 유저면 자동 회원가입 (username 중복 방지를 위해 뒤에 4자리 추가)
+                    String suffix = providerId.length() > 4 ? providerId.substring(0, 4) : providerId;
+                    User newUser = User.createSNS(
+                            username + "_" + suffix,
+                            email,
+                            provider,
+                            providerId);
+                    return userRepository.save(newUser);
+                });
+
+        // 3. 현재 프로젝트 방식에 맞춰 SessionUser 반환
+        return SessionUser.from(user);
+    }
+
 }
