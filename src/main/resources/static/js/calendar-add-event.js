@@ -2,7 +2,7 @@
   "use strict";
 
   var CALENDAR_MEMO_MAX_LENGTH = 500;
-  var MAX_VISIBLE_DAY_CHIPS = 3;
+  var MAX_VISIBLE_DAY_CHIPS = 2;
 
   // 사용자가 선택한 날짜 
   var selectedDate = "";
