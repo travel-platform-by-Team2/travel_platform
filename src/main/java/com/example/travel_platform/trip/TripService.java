@@ -21,7 +21,8 @@ public class TripService {
 
     private static final int PLAN_PAGE_SIZE = 9;
     private static final String NOT_IMG = "/images/dumimg.jpg";
-    private static final String DEFAULT_PLAN_IMAGE = "/images/placeholder-card.svg";
+    // private static final String DEFAULT_PLAN_IMAGE =
+    // "/images/placeholder-card.svg";
     private static final String EMPTY_REGION_LABEL = "지역 정보 없음";
     private static final String DISABLED_D_DAY = "비활성화";
 
@@ -41,7 +42,7 @@ public class TripService {
                 reqDTO.getWhoWith(),
                 reqDTO.getStartDate(),
                 reqDTO.getEndDate(),
-                DEFAULT_PLAN_IMAGE);
+                NOT_IMG);
 
         tripRepository.savePlan(tripPlan);
     }

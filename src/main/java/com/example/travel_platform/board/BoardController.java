@@ -26,8 +26,9 @@ public class BoardController {
 
     @GetMapping
     public String boardlist(@RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
-        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, page);
+        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, sort, page);
         model.addAttribute("model", responseDTO);
         return "pages/board-list";
     }
@@ -90,13 +91,13 @@ public class BoardController {
             return "pages/board-edit";
         }
 
-        boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
+        boardService.updateBoard(requireSessionUser(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{boardId}/delete")
     public String delete(@PathVariable("boardId") Integer boardId) {
-        boardService.deleteBoard(requireSessionUserId(), boardId);
+        boardService.deleteBoard(requireSessionUser(), boardId);
         return "redirect:/boards";
     }
 
@@ -106,6 +107,15 @@ public class BoardController {
             throw new Exception401("로그인이 필요합니다.");
         }
         return sessionUser.getId();
+    }
+
+    // 유저의 아이디값이 아닌 유저비교(어드민용)
+    private User requireSessionUser() {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            throw new Exception401("로그인이 필요합니다.");
+        }
+        return sessionUser;
     }
 
     private Integer resolveSessionUserIdOrNull() {
