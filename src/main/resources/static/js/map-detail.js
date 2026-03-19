@@ -128,6 +128,52 @@
       return;
     }
 
+    function scheduleMapRelayoutKeepCenter(state) {
+      if (!state || !state.map) {
+        return;
+      }
+      if (state.relayoutTimer) {
+        window.clearTimeout(state.relayoutTimer);
+      }
+      state.relayoutTimer = window.setTimeout(function () {
+        relayoutKeepCenter(state);
+        if (state.syncByViewport) {
+          fetchAndRenderVisiblePois(state);
+        }
+      }, 150);
+    }
+
+    function relayoutKeepCenter(state) {
+      if (!state || !state.map) {
+        return;
+      }
+      var center = state.map.getCenter ? state.map.getCenter() : null;
+      window.requestAnimationFrame(function () {
+        state.map.relayout();
+        window.requestAnimationFrame(function () {
+          if (center) {
+            state.map.setCenter(center);
+          }
+        });
+      });
+    }
+
+    function scheduleRefreshByMapMovement(state) {
+      if (!state) {
+        return;
+      }
+      if (state.moveRefreshTimer) {
+        window.clearTimeout(state.moveRefreshTimer);
+      }
+      state.moveRefreshTimer = window.setTimeout(function () {
+        if (!state.hasSearched) {
+          return;
+        }
+        renderOverlays(state);
+        renderList(state);
+      }, 200);
+    }
+
     function showMapError(message) {
       mapElement.style.display = "flex";
       mapElement.style.alignItems = "center";
@@ -150,35 +196,41 @@
           });
 
           var regionSelect = document.getElementById("mapRegion");
-          var state = {
-            map: map,
-            places: new kakao.maps.services.Places(map),
-            overlays: [],
-            items: [],
-            hasSearched: false,
-            syncByViewport: false,
-            idleTimer: null,
-            loading: false,
-            currentRegionKey: regionSelect ? regionSelect.value : "busan",
-            panelRequestSeq: 0,
-            imageCache: {},
-            nearbyById: {},
-            focusOverlay: null
-          };
-          CURRENT_MAP_STATE = state;
+           var state = {
+             map: map,
+             places: new kakao.maps.services.Places(map),
+              overlays: [],
+              items: [],
+              hasSearched: false,
+              syncByViewport: false,
+              idleTimer: null,
+              relayoutTimer: null,
+              moveRefreshTimer: null,
+              loading: false,
+              currentRegionKey: regionSelect ? regionSelect.value : "busan",
+              panelRequestSeq: 0,
+              imageCache: {},
+              nearbyById: {},
+              focusOverlay: null
+           };
+           CURRENT_MAP_STATE = state;
 
-          initializeResultPanel(state);
-          bindViewportSync(state);
-          bindTopSearchBar(state);
-          initPoiCardMapLink(state);
-          initNearbyPoiLink(state);
+           initializeResultPanel(state);
+           bindViewportSync(state);
+           bindTopSearchBar(state);
+           initPoiCardMapLink(state);
+           initNearbyPoiLink(state);
 
-          window.addEventListener("resize", function () {
-            map.relayout();
-            if (state.syncByViewport) {
-              fetchAndRenderVisiblePois(state);
-            }
-          });
+           window.addEventListener("resize", function () {
+             scheduleMapRelayoutKeepCenter(state);
+           });
+
+           kakao.maps.event.addListener(map, "dragend", function () {
+             scheduleRefreshByMapMovement(state);
+           });
+           kakao.maps.event.addListener(map, "zoom_changed", function () {
+             scheduleRefreshByMapMovement(state);
+           });
         });
       } catch (error) {
         console.error(error);
@@ -914,6 +966,57 @@
     state.overlays = [];
   }
 
+  function getHotelClusterGridKm(mapLevel) {
+    if (mapLevel <= 5) return 0;
+    if (mapLevel === 6) return 0.7;
+    if (mapLevel === 7) return 1.2;
+    if (mapLevel === 8) return 2.0;
+    if (mapLevel === 9) return 3.5;
+    if (mapLevel === 10) return 6.0;
+    return 8.0;
+  }
+
+  function createHotelClusterNode(count) {
+    var node = document.createElement("div");
+    node.className = "stay-marker";
+
+    var safeCount = Math.max(2, parseInt(count, 10) || 2);
+    // 숙소 수가 많을수록 클러스터 아이콘이 커지도록(과도한 확대 방지: 상한 적용)
+    // 2개~100개 구간을 대략 0~1로 정규화 후, 완만하게 증가(sqrt)시키는 방식
+    var normalized = Math.min(1, (safeCount - 2) / 98);
+    var diameterRem = 2.15 + 1.25 * Math.sqrt(normalized); // 2.15rem ~ 3.40rem
+
+    var pin = document.createElement("div");
+    pin.className = "stay-marker__pin";
+    // 이전 스타일(옅은 하늘색 동그라미)에 맞춰 클러스터만 별도 색상 적용
+    pin.style.background = "#e0f2fe";
+    pin.style.border = "2px solid #bae6fd";
+    pin.style.color = "#075985";
+    pin.style.boxShadow = "0 8px 18px rgba(2, 132, 199, 0.22)";
+    pin.style.width = diameterRem + "rem";
+    pin.style.height = diameterRem + "rem";
+
+    var label = document.createElement("div");
+    label.className = "stay-marker__label";
+    label.textContent = String(safeCount);
+    label.style.background = "rgba(255,255,255,0.9)";
+    label.style.color = "#075985";
+    label.style.border = "1px solid rgba(186, 230, 253, 0.9)";
+    label.style.fontSize = (12 + Math.round(4 * Math.sqrt(normalized))) + "px";
+
+    node.appendChild(pin);
+    node.appendChild(label);
+
+    node.addEventListener("mouseenter", function () {
+      node.classList.add("is-hover");
+    });
+    node.addEventListener("mouseleave", function () {
+      node.classList.remove("is-hover");
+    });
+
+    return node;
+  }
+
   function renderOverlays(state) {
     clearOverlays(state);
 
@@ -929,14 +1032,120 @@
       return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
     });
 
-    filteredItems.forEach(function (item) {
+    var mapLevel = state.map && state.map.getLevel ? state.map.getLevel() : 0;
+    var gridKm = getHotelClusterGridKm(mapLevel);
+
+    var hotelItems = filteredItems.filter(function (item) {
+      return item.type === "hotel";
+    });
+    var otherItems = filteredItems.filter(function (item) {
+      return item.type !== "hotel";
+    });
+
+    if (gridKm > 0 && hotelItems.length > 1) {
+      var center = state.map.getCenter();
+      var centerLat = center.getLat();
+      var latStep = gridKm / 110.574; // km -> degrees lat
+      var lngStep = gridKm / (111.320 * Math.max(0.2, Math.cos((centerLat * Math.PI) / 180))); // km -> degrees lng
+
+      var bucket = {};
+      hotelItems.forEach(function (item) {
+        var latKey = Math.floor(item.lat / latStep);
+        var lngKey = Math.floor(item.lng / lngStep);
+        var key = latKey + ":" + lngKey;
+        if (!bucket[key]) {
+          bucket[key] = [];
+        }
+        bucket[key].push(item);
+      });
+
+      Object.keys(bucket).forEach(function (key) {
+        var items = bucket[key];
+        if (!items || !items.length) {
+          return;
+        }
+
+        if (items.length === 1) {
+          var item = items[0];
+          var position = new kakao.maps.LatLng(item.lat, item.lng);
+          var node = createPoiMarkerNode(item);
+          var overlay = new kakao.maps.CustomOverlay({
+            position: position,
+            content: node,
+            yAnchor: 1.05,
+            zIndex: 3
+          });
+
+          node.addEventListener("click", function (event) {
+            event.preventDefault();
+            state.map.panTo(position);
+            openPoiDetailPanel(state, item);
+          });
+
+          overlay.setMap(state.map);
+          state.overlays.push(overlay);
+          return;
+        }
+
+        var sumLat = 0;
+        var sumLng = 0;
+        items.forEach(function (item) {
+          sumLat += item.lat;
+          sumLng += item.lng;
+        });
+
+        var clusterLat = sumLat / items.length;
+        var clusterLng = sumLng / items.length;
+        var clusterPosition = new kakao.maps.LatLng(clusterLat, clusterLng);
+        var clusterNode = createHotelClusterNode(items.length);
+        var clusterOverlay = new kakao.maps.CustomOverlay({
+          position: clusterPosition,
+          content: clusterNode,
+          yAnchor: 1.05,
+          zIndex: 4
+        });
+
+        clusterNode.addEventListener("click", function (event) {
+          event.preventDefault();
+          var currentLevel = state.map.getLevel();
+          var nextLevel = Math.max(1, currentLevel - 2);
+          state.map.setLevel(nextLevel);
+          state.map.panTo(clusterPosition);
+        });
+
+        clusterOverlay.setMap(state.map);
+        state.overlays.push(clusterOverlay);
+      });
+    } else {
+      hotelItems.forEach(function (item) {
+        var position = new kakao.maps.LatLng(item.lat, item.lng);
+        var node = createPoiMarkerNode(item);
+        var overlay = new kakao.maps.CustomOverlay({
+          position: position,
+          content: node,
+          yAnchor: 1.05,
+          zIndex: 3
+        });
+
+        node.addEventListener("click", function (event) {
+          event.preventDefault();
+          state.map.panTo(position);
+          openPoiDetailPanel(state, item);
+        });
+
+        overlay.setMap(state.map);
+        state.overlays.push(overlay);
+      });
+    }
+
+    otherItems.forEach(function (item) {
       var position = new kakao.maps.LatLng(item.lat, item.lng);
       var node = createPoiMarkerNode(item);
       var overlay = new kakao.maps.CustomOverlay({
         position: position,
         content: node,
         yAnchor: 1.05,
-        zIndex: item.type === "hotel" ? 3 : 2
+        zIndex: 2
       });
 
       node.addEventListener("click", function (event) {
@@ -948,6 +1157,8 @@
       overlay.setMap(state.map);
       state.overlays.push(overlay);
     });
+
+    return;
   }
 
   function updateResultCount(count) {
@@ -1024,6 +1235,28 @@
       var pricing = getPricing(item, 1); // Get 1-night price for filtering
       return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
     });
+
+    if (state.map && listItems.length > 1) {
+      var center = state.map.getCenter();
+      if (center) {
+        var centerLat = center.getLat();
+        var centerLng = center.getLng();
+        var nearestIndex = 0;
+        var nearestDistance = Infinity;
+        for (var i = 0; i < listItems.length; i += 1) {
+          var item = listItems[i];
+          var d = distanceKm(centerLat, centerLng, item.lat, item.lng);
+          if (d < nearestDistance) {
+            nearestDistance = d;
+            nearestIndex = i;
+          }
+        }
+        if (nearestIndex > 0) {
+          var nearest = listItems.splice(nearestIndex, 1)[0];
+          listItems.unshift(nearest);
+        }
+      }
+    }
 
     if (!listItems.length) {
       container.innerHTML = '<div class="panel-muted-center-sm">현재 설정된 가격 범위 내 숙소가 없습니다.</div>';
@@ -1555,6 +1788,18 @@
     toggleButton.addEventListener("click", function (event) {
       event.preventDefault();
       setResultPanelExpanded(panel.hidden);
+      if (CURRENT_MAP_STATE) {
+        // 패널 열림/닫힘으로 지도 컨테이너 크기가 바뀌므로 중심 유지 relayout 수행
+        window.setTimeout(function () {
+          if (CURRENT_MAP_STATE && CURRENT_MAP_STATE.map) {
+            var center = CURRENT_MAP_STATE.map.getCenter();
+            CURRENT_MAP_STATE.map.relayout();
+            if (center) {
+              CURRENT_MAP_STATE.map.setCenter(center);
+            }
+          }
+        }, 0);
+      }
     });
   }
 
@@ -1571,6 +1816,15 @@
     function setOpen(open) {
       panel.hidden = !open;
       toggleButton.setAttribute("aria-expanded", String(open));
+      if (CURRENT_MAP_STATE && CURRENT_MAP_STATE.map) {
+        window.setTimeout(function () {
+          var center = CURRENT_MAP_STATE.map.getCenter();
+          CURRENT_MAP_STATE.map.relayout();
+          if (center) {
+            CURRENT_MAP_STATE.map.setCenter(center);
+          }
+        }, 0);
+      }
     }
 
     setOpen(false);
