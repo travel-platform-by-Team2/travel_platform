@@ -32,17 +32,19 @@ public class AdminService {
         }
 
         Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new Exception404("게시글을 찾을수가 없습니다"));
+                .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
         boardRepository.deleteLikesByBoard(boardId);
         boardRepository.delete(board);
     }
 
-    public AdminResponse.AdminBoardListDTO getBoardList(String category, String keyword, int page) {
+    public AdminResponse.AdminBoardListDTO getBoardList(String category, String keyword, String sort, int page) {
         int size = 10;
         int offset = page * size;
 
         String allCategory = (category == null || category.isBlank()) ? "all" : category;
+        String sortList = normalizeSort(sort);
+        keyword = normalizeKeyword(keyword);
 
         List<Board> boards;
         long categoryCount;
@@ -50,23 +52,23 @@ public class AdminService {
         long allCount = boardRepository.count();
 
         boolean isAllCategory = "all".equals(allCategory);
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasKeyword = !keyword.isBlank();
 
         if (hasKeyword) {
-            String[] words = keyword.trim().split("\\s+");
+            String[] words = keyword.split("\\s+");
 
             if (isAllCategory) {
-                boards = boardRepository.search(null, words, offset, size);
+                boards = boardRepository.search(null, words, sortList, offset, size);
                 categoryCount = boardRepository.countSearch(null, words);
             } else {
-                boards = boardRepository.search(allCategory, words, offset, size);
+                boards = boardRepository.search(allCategory, words, sortList, offset, size);
                 categoryCount = boardRepository.countSearch(allCategory, words);
             }
         } else if (!isAllCategory) {
-            boards = boardRepository.findAllPagingByCategory(allCategory, offset, size);
+            boards = boardRepository.findAllPagingByCategory(allCategory, sortList, offset, size);
             categoryCount = boardRepository.countByCategory(allCategory);
         } else {
-            boards = boardRepository.findAllPaging(offset, size);
+            boards = boardRepository.findAllPaging(sortList, offset, size);
             categoryCount = boardRepository.count();
         }
 
@@ -90,6 +92,8 @@ public class AdminService {
                     .page(i)
                     .displayNumber(i + 1)
                     .keyword(keyword)
+                    .sort(sortList)
+                    .selectCategory(allCategory)
                     .current(i == page)
                     .build());
         }
@@ -107,26 +111,62 @@ public class AdminService {
                 .toList();
 
         Integer prevPage = page == 0 ? null : page - 1;
-        Integer nextPage = boardDTOs.size() < size ? null : page + 1;
+        Integer nextPage = page >= totalPages - 1 ? null : page + 1;
 
-        AdminResponse.AdminBoardListDTO adminListDTO = AdminResponse.AdminBoardListDTO.builder()
+        return AdminResponse.AdminBoardListDTO.builder()
                 .boards(boardDTOs)
                 .pageItems(pageItems)
                 .currentPage(page)
+                .totalPages(totalPages)
                 .totalCount(categoryCount)
                 .allCount(allCount)
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .keyword(keyword)
+                .sort(sortList)
+                .sortLabel(toSortLabel(sortList))
                 .allCategory(allCategory)
+                .isSortLikes("likes".equals(sortList))
+                .isSortDownlikes("downlikes".equals(sortList))
+                .isSortViews("view".equals(sortList))
+                .isSortDownviews("downview".equals(sortList))
+                .isSortLatest("latest".equals(sortList))
+                .isSortDate("date".equals(sortList))
                 .isTips(isCategory(category, "tips"))
                 .isPlan(isCategory(category, "plan"))
                 .isFood(isCategory(category, "food"))
                 .isReview(isCategory(category, "review"))
                 .isQna(isCategory(category, "qna"))
                 .build();
+    }
 
-        return adminListDTO;
+    private String normalizeSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        return switch (sort) {
+            case "likes", "downlikes", "view", "downview", "latest", "date" -> sort;
+            default -> "latest";
+        };
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return "";
+        }
+        return keyword.trim();
+    }
+
+    private String toSortLabel(String sort) {
+        return switch (sort) {
+            case "likes" -> "좋아요순";
+            case "downlikes" -> "좋아요 낮은순";
+            case "view" -> "조회순";
+            case "downview" -> "조회 낮은순";
+            case "date" -> "오래된순";
+            default -> "최신순";
+        };
     }
 
     private boolean isCategory(String category, String targetCategory) {
@@ -148,7 +188,6 @@ public class AdminService {
         };
     }
 
-    // css용
     private String toCategoryClass(String category) {
         if (category == null || category.isBlank()) {
             return "cat-plan";
@@ -163,5 +202,4 @@ public class AdminService {
             default -> "cat-plan";
         };
     }
-
 }

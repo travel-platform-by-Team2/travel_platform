@@ -41,6 +41,7 @@ public class BoardResponse {
         private Integer prevPage;
         private Integer nextPage;
         private String category;
+        private String keyword;
         private String sort;
         private String sortLabel;
         private boolean isSortLikes;

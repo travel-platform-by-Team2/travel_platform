@@ -35,7 +35,15 @@ public class AdminResponse {
         private String category;
 
         private String keyword;
+        private String sort;
+        private String sortLabel;
         private String allCategory;
+        private boolean isSortLikes;
+        private boolean isSortDownlikes;
+        private boolean isSortViews;
+        private boolean isSortDownviews;
+        private boolean isSortLatest;
+        private boolean isSortDate;
         private boolean isTips;
         private boolean isPlan;
         private boolean isFood;
@@ -50,5 +58,7 @@ public class AdminResponse {
         private int displayNumber;
         private boolean current;
         private String keyword;
+        private String sort;
+        private String selectCategory;
     }
 }

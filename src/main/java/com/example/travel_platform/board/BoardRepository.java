@@ -183,7 +183,7 @@ public class BoardRepository {
                 .executeUpdate();
     }
 
-    public List<Board> search(String category, String[] words, int offset, int size) {
+    public List<Board> search(String category, String[] words, String sort, int offset, int size) {
         StringBuilder jpql = new StringBuilder();
         jpql.append("select b from Board b where 1=1 ");
 
@@ -199,7 +199,7 @@ public class BoardRepository {
             jpql.append(") ");
         }
 
-        jpql.append("order by b.id desc");
+        jpql.append("order by ").append(toOrderBy(sort));
 
         TypedQuery<Board> query = em.createQuery(jpql.toString(), Board.class);
 
@@ -215,6 +215,10 @@ public class BoardRepository {
         return query.setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList();
+    }
+
+    public List<Board> search(String category, String[] words, int offset, int size) {
+        return search(category, words, "latest", offset, size);
     }
 
     public long countSearch(String category, String[] words) {

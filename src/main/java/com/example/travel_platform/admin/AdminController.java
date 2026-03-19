@@ -35,10 +35,11 @@ public class AdminController {
     @GetMapping("/boards")
     public String boards(@RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "page", defaultValue = "0") int page,
             Model model) {
 
-        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardList(category, keyword, page);
+        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardList(category, keyword, sort, page);
         model.addAttribute("model", responseDTO);
         applySidebarState(model, "boards");
         return "pages/admin-boards";

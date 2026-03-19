@@ -39,48 +39,69 @@
           <section class="admin-panel">
             <div class="admin-toolbar">
               <div class="admin-tab-shell" aria-label="게시글 카테고리 필터">
-                <a href="/admin/boards?category=all"
+                <a href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
                    class="admin-tab-button cat-all {{^model.allCategory}}is-active-tab{{/model.allCategory}}">
                   전체
                 </a>
 
-                <a href="/admin/boards?category=tips"
+                <a href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
                    class="admin-tab-button cat-tips {{#model.isTips}}is-active-tab{{/model.isTips}}">
                   여행 팁
                 </a>
 
-                <a href="/admin/boards?category=plan"
+                <a href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
                    class="admin-tab-button cat-plan {{#model.isPlan}}is-active-tab{{/model.isPlan}}">
                   여행 계획
                 </a>
 
-                <a href="/admin/boards?category=food"
+                <a href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
                    class="admin-tab-button cat-food {{#model.isFood}}is-active-tab{{/model.isFood}}">
                   맛집/카페
                 </a>
 
-                <a href="/admin/boards?category=review"
+                <a href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
                    class="admin-tab-button cat-review {{#model.isReview}}is-active-tab{{/model.isReview}}">
                   숙소 후기
                 </a>
 
-                <a href="/admin/boards?category=qna"
+                <a href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
                    class="admin-tab-button cat-qna {{#model.isQna}}is-active-tab{{/model.isQna}}">
                   질문/답변
                 </a>
               </div>
 
-              <div class="admin-search-group">
-                <form action="/admin/boards" method="get" class="admin-search-wrap">
+              <div class="admin-search-group" style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap; margin-left:auto;">
+                <details style="position:relative; flex:0 0 auto;">
+                  <summary style="list-style:none; cursor:pointer; min-width:108px; height:40px; padding:0 14px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; white-space:nowrap;">
+                    정렬: {{model.sortLabel}}
+                  </summary>
+                  <div class="community-sort-menu" style="position:absolute; top:44px; right:0; z-index:20; min-width:170px;">
+                    <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
+                       href="/admin/boards?sort=latest{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">최신순</a>
+                    <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
+                       href="/admin/boards?sort=date{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">오래된순</a>
+                    <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
+                       href="/admin/boards?sort=view{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순</a>
+                    <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
+                       href="/admin/boards?sort=downview{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회 낮은순</a>
+                    <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
+                       href="/admin/boards?sort=likes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순</a>
+                    <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
+                       href="/admin/boards?sort=downlikes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 낮은순</a>
+                  </div>
+                </details>
+
+                <form action="/admin/boards" method="get" class="admin-search-wrap" style="width:auto; min-width:auto; flex:0 0 auto; gap:8px;">
                   <span class="material-symbols-outlined">search</span>
                   <input type="hidden" name="category" value="{{model.allCategory}}">
+                  <input type="hidden" name="sort" value="{{model.sort}}">
                   <input
-                    class="form-control admin-search-field"
-                     type="text"
-                     name="keyword"
-                     value="{{model.keyword}}"
-                     placeholder="게시글 검색..">
-                  <button type="submit" class="admin-search-submit">검색</button>
+                    type="text"
+                    name="keyword"
+                    value="{{model.keyword}}"
+                    placeholder="게시글 검색..."
+                    style="width:220px; height:40px; padding:0 16px 0 40px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; outline:none; box-sizing:border-box;">
+                  <button type="submit" class="admin-search-submit" style="height:40px; padding:0 14px; border-radius:14px;">검색</button>
                 </form>
               </div>
             </div>
@@ -130,7 +151,7 @@
               <div class="admin-pagination">
                 {{#model.prevPage}}
                 <a class="admin-page-button"
-                   href="/admin/boards?page={{model.prevPage}}{{#model.selectCategory}}&category={{model.selectCategory}}{{/model.selectCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
+                   href="/admin/boards?page={{model.prevPage}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
                   <span class="material-symbols-outlined">chevron_left</span>
                 </a>
                 {{/model.prevPage}}
@@ -144,7 +165,7 @@
 
                   {{^current}}
                   <a class="admin-page-button"
-                     href="/admin/boards?page={{page}}{{#selectCategory}}&category={{selectCategory}}{{/selectCategory}}{{#keyword}}&keyword={{keyword}}{{/keyword}}">
+                     href="/admin/boards?page={{page}}{{#selectCategory}}&category={{selectCategory}}{{/selectCategory}}{{#sort}}&sort={{sort}}{{/sort}}{{#keyword}}&keyword={{keyword}}{{/keyword}}">
                     {{displayNumber}}
                   </a>
                   {{/current}}
@@ -152,7 +173,7 @@
 
                 {{#model.nextPage}}
                 <a class="admin-page-button"
-                   href="/admin/boards?page={{model.nextPage}}{{#model.selectCategory}}&category={{model.selectCategory}}{{/model.selectCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
+                   href="/admin/boards?page={{model.nextPage}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
                   <span class="material-symbols-outlined">chevron_right</span>
                 </a>
                 {{/model.nextPage}}

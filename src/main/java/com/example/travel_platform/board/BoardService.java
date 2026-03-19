@@ -62,15 +62,26 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
-    public BoardResponse.BoardListPageDTO getBoardList(String category, String sort, int page) {
+    public BoardResponse.BoardListPageDTO getBoardList(String category, String keyword, String sort, int page) {
         int size = 10;
         int offset = page * size;
         String sortList = normalizeSort(sort);
+        keyword = normalizeKeyword(keyword);
+        boolean hasKeyword = !keyword.isBlank();
 
         List<Board> boards;
         long totalCount;
 
-        if (category != null && !category.isBlank()) {
+        if (hasKeyword) {
+            String[] words = keyword.split("\\s+");
+            if (category != null && !category.isBlank()) {
+                boards = boardRepository.search(category, words, sortList, offset, size);
+                totalCount = boardRepository.countSearch(category, words);
+            } else {
+                boards = boardRepository.search(null, words, sortList, offset, size);
+                totalCount = boardRepository.countSearch(null, words);
+            }
+        } else if (category != null && !category.isBlank()) {
             boards = boardRepository.findAllPagingByCategory(category, sortList, offset, size);
             totalCount = boardRepository.countByCategory(category);
         } else {
@@ -143,6 +154,7 @@ public class BoardService {
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .category(category)
+                .keyword(keyword)
                 .sort(sortList)
                 .sortLabel(toSortLabel(sortList))
                 .isSortLikes("likes".equals(sortList))
@@ -169,6 +181,13 @@ public class BoardService {
             case "likes", "downlikes", "view", "downview", "latest", "date" -> sort;
             default -> "latest";
         };
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return "";
+        }
+        return keyword.trim();
     }
 
     private String toSortLabel(String sort) {
