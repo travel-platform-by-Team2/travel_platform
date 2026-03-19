@@ -22,9 +22,9 @@ public class MypageController {
     private final HttpSession session;
 
     @GetMapping
-    public String mypage(Model model) {
+    public String showMainPage(Model model) {
         Integer sessionUserId = requireSessionUserId();
-        model.addAttribute("page", mypageService.getMainPage(sessionUserId));
+        renderMainPage(model, sessionUserId, null, false);
         return "pages/mypage";
     }
 
@@ -38,9 +38,7 @@ public class MypageController {
         try {
             mypageService.changePassword(sessionUserId, reqDTO);
         } catch (Exception400 e) {
-            model.addAttribute("page", mypageService.getMainPage(sessionUserId));
-            model.addAttribute("passwordError", e.getMessage());
-            model.addAttribute("passwordModalOpen", true);
+            renderMainPage(model, sessionUserId, e.getMessage(), true);
             return "pages/mypage";
         }
 
@@ -49,11 +47,17 @@ public class MypageController {
     }
 
     @GetMapping("/booking")
-    public String bookingDetail() {
+    public String showBookingDetailPage() {
         return "pages/booking-detail";
     }
 
     private Integer requireSessionUserId() {
         return SessionUsers.requireUserId(session);
+    }
+
+    private void renderMainPage(Model model, Integer sessionUserId, String passwordError, boolean passwordModalOpen) {
+        model.addAttribute("page", mypageService.getMainPage(sessionUserId));
+        model.addAttribute("passwordError", passwordError);
+        model.addAttribute("passwordModalOpen", passwordModalOpen);
     }
 }
