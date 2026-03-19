@@ -79,7 +79,8 @@ public class BookingService {
     public List<Map<String, Object>> fetchRoomsFromTourApi(String serviceKey, String lodgingName, String address) {
         try {
             String contentId = searchTourApiContentId(serviceKey, lodgingName, address);
-            if (contentId == null) return List.of();
+            if (contentId == null)
+                return List.of();
 
             return fetchTourApiRoomDetails(serviceKey, contentId);
         } catch (Exception e) {
@@ -89,7 +90,8 @@ public class BookingService {
 
     @SuppressWarnings("unchecked")
     private String searchTourApiContentId(String serviceKey, String name, String address) {
-        if (serviceKey == null || serviceKey.isBlank()) return null;
+        if (serviceKey == null || serviceKey.isBlank())
+            return null;
         try {
             String encodedKeyword = URLEncoder.encode(name, StandardCharsets.UTF_8);
             String urlStr = "https://apis.data.go.kr/B551011/KorService2/searchKeyword2"
@@ -99,17 +101,22 @@ public class BookingService {
                     + "&contentTypeId=32";
 
             String json = executeGet(urlStr);
-            if (json == null) return null;
+            if (json == null)
+                return null;
 
             Map<String, Object> response = objectMapper.readValue(json, Map.class);
             Map<String, Object> res = (Map<String, Object>) response.get("response");
-            if (res == null) return null;
+            if (res == null)
+                return null;
             Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null) return null;
+            if (body == null || body.get("items") == null)
+                return null;
 
             Object itemsObj = body.get("items");
-            if (itemsObj instanceof String && ((String) itemsObj).isBlank()) return null;
-            if (!(itemsObj instanceof Map)) return null;
+            if (itemsObj instanceof String && ((String) itemsObj).isBlank())
+                return null;
+            if (!(itemsObj instanceof Map))
+                return null;
 
             Map<String, Object> itemsMap = (Map<String, Object>) itemsObj;
             Object itemData = itemsMap.get("item");
@@ -138,11 +145,12 @@ public class BookingService {
     }
 
     private String simplifyName(String name) {
-        if (name == null) return "";
+        if (name == null)
+            return "";
         return name.replaceAll("\\s+", "")
-                   .replaceAll("(호텔|리조트|펜션|모텔|게스트하우스|스테이|민박|여관|해수욕장|공원)", "")
-                   .replaceAll("[^a-zA-Z0-9가-힣]", "")
-                   .toLowerCase();
+                .replaceAll("(호텔|리조트|펜션|모텔|게스트하우스|스테이|민박|여관|해수욕장|공원)", "")
+                .replaceAll("[^a-zA-Z0-9가-힣]", "")
+                .toLowerCase();
     }
 
     @SuppressWarnings("unchecked")
@@ -156,12 +164,14 @@ public class BookingService {
                     + "&contentTypeId=32";
 
             String json = executeGet(urlStr);
-            if (json == null) return roomList;
+            if (json == null)
+                return roomList;
 
             Map<String, Object> response = objectMapper.readValue(json, Map.class);
             Map<String, Object> res = (Map<String, Object>) response.get("response");
             Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null || body.get("items").equals("")) return roomList;
+            if (body == null || body.get("items") == null || body.get("items").equals(""))
+                return roomList;
 
             Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
             Object itemData = itemsObj.get("item");
@@ -175,7 +185,8 @@ public class BookingService {
 
             for (Map<String, Object> item : itemList) {
                 String roomTitle = (String) item.get("roomtitle");
-                if (roomTitle == null || roomTitle.isBlank()) continue;
+                if (roomTitle == null || roomTitle.isBlank())
+                    continue;
 
                 Map<String, Object> room = new LinkedHashMap<>();
                 room.put("name", roomTitle);
@@ -203,7 +214,8 @@ public class BookingService {
             String imageUrl) {
 
         User user = userRepository.findById(sessionUserId).orElse(null);
-        if (user == null) return;
+        if (user == null)
+            return;
 
         LocalDate checkInDate = resolveDate(checkIn, LocalDate.now());
         LocalDate checkOutDate = resolveDate(checkOut, LocalDate.now().plusDays(1));
@@ -239,14 +251,20 @@ public class BookingService {
     }
 
     @Transactional
-    public void createBooking(Integer sessionUserId, BookingRequest.CreateBookingDTO reqDTO) { }
+    public void createBooking(Integer sessionUserId, BookingRequest.CreateBookingDTO reqDTO) {
+    }
 
     @Transactional
-    public void cancelBooking(Integer sessionUserId, Integer bookingId) { }
+    public void cancelBooking(Integer sessionUserId, Integer bookingId) {
+    }
 
-    public List<BookingResponse.BookingSummaryDTO> getBookingList(Integer sessionUserId) { return List.of(); }
+    public List<BookingResponse.BookingSummaryDTO> getBookingList(Integer sessionUserId) {
+        return List.of();
+    }
 
-    public BookingResponse.BookingDetailDTO getBookingDetail(Integer sessionUserId, Integer bookingId) { return null; }
+    public BookingResponse.BookingDetailDTO getBookingDetail(Integer sessionUserId, Integer bookingId) {
+        return null;
+    }
 
     @Transactional
     public Map<String, Object> getPlaceImage(String serviceKey, String placeUrl, String name, String address) {
@@ -284,7 +302,8 @@ public class BookingService {
 
     @SuppressWarnings("unchecked")
     private String fetchImageFromTourApi(String serviceKey, String name, String address) {
-        if (serviceKey == null || serviceKey.isBlank() || name == null || name.isBlank()) return null;
+        if (serviceKey == null || serviceKey.isBlank() || name == null || name.isBlank())
+            return null;
         try {
             String encodedKeyword = URLEncoder.encode(name, StandardCharsets.UTF_8);
             String urlStr = "https://apis.data.go.kr/B551011/KorService2/searchKeyword2"
@@ -293,7 +312,8 @@ public class BookingService {
                     + "&keyword=" + encodedKeyword;
 
             String json = executeGet(urlStr);
-            if (json == null) return null;
+            if (json == null)
+                return null;
 
             Map<String, Object> response = objectMapper.readValue(json, Map.class);
             Map<String, Object> res = (Map<String, Object>) response.get("response");
@@ -315,7 +335,8 @@ public class BookingService {
                 }
                 for (Map<String, Object> item : itemList) {
                     String firstImage = (String) item.get("firstimage");
-                    if (firstImage != null && !firstImage.isBlank()) return firstImage;
+                    if (firstImage != null && !firstImage.isBlank())
+                        return firstImage;
                 }
             }
         } catch (Exception e) {
@@ -325,36 +346,48 @@ public class BookingService {
     }
 
     public List<BookingRequest.MapPoiDTO> mergeMapPois(BookingRequest.MergeMapPoisDTO reqDTO) {
-        List<BookingRequest.MapPoiDTO> kakaoPois = reqDTO == null || reqDTO.getKakaoPois() == null ? List.of() : reqDTO.getKakaoPois();
+        List<BookingRequest.MapPoiDTO> kakaoPois = reqDTO == null || reqDTO.getKakaoPois() == null ? List.of()
+                : reqDTO.getKakaoPois();
         String regionKey = reqDTO == null ? "" : blankToDefault(reqDTO.getRegionKey(), "");
         double[] bounds = resolveBounds(reqDTO == null ? null : reqDTO.getBounds());
 
-        List<BookingRequest.MapPoiDTO> dbPois = bookingRepository.findActiveLodgingsInBounds(regionKey, bounds[0], bounds[1], bounds[2], bounds[3]);
+        // 1. 리포지토리에서 바로 DTO 목록을 받아옵니다.
+        List<BookingRequest.MapPoiDTO> dbPois = bookingRepository.findActiveLodgingsInBounds(
+                regionKey, bounds[0], bounds[1], bounds[2], bounds[3]);
 
+        // 2. 통합(Merge) 로직 진행
         LinkedHashMap<String, BookingRequest.MapPoiDTO> merged = new LinkedHashMap<>();
         for (BookingRequest.MapPoiDTO item : kakaoPois) {
             BookingRequest.MapPoiDTO normalized = normalizePoi(item, "KAKAO");
-            if (normalized != null) merged.put(buildPoiKey(normalized), normalized);
+            if (normalized != null)
+                merged.put(buildPoiKey(normalized), normalized);
         }
         for (BookingRequest.MapPoiDTO item : dbPois) {
             BookingRequest.MapPoiDTO normalized = normalizePoi(item, "DB");
             if (normalized != null) {
                 String key = buildPoiKey(normalized);
                 BookingRequest.MapPoiDTO existing = merged.get(key);
-                if (existing == null || "KAKAO".equals(existing.getSource())) merged.put(key, normalized);
+                if (existing == null || "KAKAO".equals(existing.getSource()))
+                    merged.put(key, normalized);
             }
         }
         return new ArrayList<>(merged.values());
     }
 
     private LocalDate resolveDate(String dateText, LocalDate defaultDate) {
-        try { return (dateText == null || dateText.isBlank()) ? defaultDate : LocalDate.parse(dateText); }
-        catch (Exception e) { return defaultDate; }
+        try {
+            return (dateText == null || dateText.isBlank()) ? defaultDate : LocalDate.parse(dateText);
+        } catch (Exception e) {
+            return defaultDate;
+        }
     }
 
     private int parseGuestCount(String guests) {
-        try { return Integer.parseInt(guests.replaceAll("[^0-9]", "")); }
-        catch (Exception e) { return BookVar.DEFAULT_PERSON_COUNT; }
+        try {
+            return Integer.parseInt(guests.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            return BookVar.DEFAULT_PERSON_COUNT;
+        }
     }
 
     private double[] resolveBounds(BookingRequest.MapBoundsDTO bounds) {
@@ -372,12 +405,17 @@ public class BookingService {
         return new double[] { minLat, maxLat, minLng, maxLng };
     }
 
-    private boolean isValidCoordinate(Double value) { return value != null && Double.isFinite(value); }
+    private boolean isValidCoordinate(Double value) {
+        return value != null && Double.isFinite(value);
+    }
 
-    private String blankToDefault(String value, String defaultValue) { return (value == null || value.isBlank()) ? defaultValue : value; }
+    private String blankToDefault(String value, String defaultValue) {
+        return (value == null || value.isBlank()) ? defaultValue : value;
+    }
 
     private BookingRequest.MapPoiDTO normalizePoi(BookingRequest.MapPoiDTO item, String defaultSource) {
-        if (item == null || !isValidCoordinate(item.getLat()) || !isValidCoordinate(item.getLng())) return null;
+        if (item == null || !isValidCoordinate(item.getLat()) || !isValidCoordinate(item.getLng()))
+            return null;
         BookingRequest.MapPoiDTO poi = new BookingRequest.MapPoiDTO();
         poi.setExternalPlaceId(blankToDefault(item.getExternalPlaceId(), ""));
         poi.setName(blankToDefault(item.getName(), "숙소"));
@@ -390,14 +428,16 @@ public class BookingService {
         poi.setLat(item.getLat());
         poi.setLng(item.getLng());
         String type = blankToDefault(item.getType(), "");
-        if (type.isBlank()) type = "AD5".equalsIgnoreCase(poi.getCategoryGroupCode()) ? "hotel" : "attraction";
+        if (type.isBlank())
+            type = "AD5".equalsIgnoreCase(poi.getCategoryGroupCode()) ? "hotel" : "attraction";
         poi.setType(type);
         poi.setSource(blankToDefault(item.getSource(), defaultSource));
         return poi;
     }
 
     private String buildPoiKey(BookingRequest.MapPoiDTO item) {
-        if (item.getExternalPlaceId() != null && !item.getExternalPlaceId().isBlank()) return "id:" + item.getExternalPlaceId();
+        if (item.getExternalPlaceId() != null && !item.getExternalPlaceId().isBlank())
+            return "id:" + item.getExternalPlaceId();
         String normalized = (item.getName() == null) ? "" : item.getName().replaceAll("\\s+", "").toLowerCase();
         String lat = String.format("%.4f", item.getLat());
         String lng = String.format("%.4f", item.getLng());
@@ -405,19 +445,25 @@ public class BookingService {
     }
 
     private String resolveImageFromKakaoPlace(String placeUrl) {
-        if (placeUrl == null || placeUrl.isBlank() || !isAllowedKakaoUrl(placeUrl)) return null;
+        if (placeUrl == null || placeUrl.isBlank() || !isAllowedKakaoUrl(placeUrl))
+            return null;
         try {
             Document doc = Jsoup.connect(placeUrl).userAgent("Mozilla/5.0").timeout(4000).get();
             String image = doc.select("meta[property=og:image]").attr("content");
-            if (image.isBlank()) image = doc.select("meta[name=twitter:image]").attr("content");
+            if (image.isBlank())
+                image = doc.select("meta[name=twitter:image]").attr("content");
             return image.isBlank() ? null : image;
-        } catch (Exception e) { return null; }
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private boolean isAllowedKakaoUrl(String rawUrl) {
         try {
             String host = java.net.URI.create(rawUrl).getHost();
             return host != null && (host.endsWith("map.kakao.com") || host.endsWith("place.map.kakao.com"));
-        } catch (Exception e) { return false; }
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

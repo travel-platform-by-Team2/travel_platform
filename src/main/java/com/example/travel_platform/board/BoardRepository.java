@@ -1,6 +1,8 @@
 package com.example.travel_platform.board;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -37,15 +39,21 @@ public class BoardRepository {
     }
 
     // 페이징 조회
-    public List<Board> findAllPaging(int offset, int size) {
-        return em.createQuery("""
+    public List<Board> findAllPaging(String sort, int offset, int size) {
+        String jpql = """
                 select b
                 from Board b
-                order by b.id desc
-                """, Board.class)
+                order by
+                """ + " " + toOrderBy(sort);
+
+        return em.createQuery(jpql, Board.class)
                 .setFirstResult(offset) // 몇 개 건너뛸지
                 .setMaxResults(size) // 몇 개 가져올지
                 .getResultList();
+    }
+
+    public List<Board> findAllPaging(int offset, int size) {
+        return findAllPaging("latest", offset, size);
     }
 
     // 전체 개수 조회
@@ -58,17 +66,23 @@ public class BoardRepository {
     }
 
     // 카테고리
-    public List<Board> findAllPagingByCategory(String category, int offset, int size) {
-        return em.createQuery("""
+    public List<Board> findAllPagingByCategory(String category, String sort, int offset, int size) {
+        String jpql = """
                 select b
                 from Board b
                 where b.category = :category
-                order by b.id desc
-                """, Board.class)
+                order by
+                """ + " " + toOrderBy(sort);
+
+        return em.createQuery(jpql, Board.class)
                 .setParameter("category", category)
                 .setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList();
+    }
+
+    public List<Board> findAllPagingByCategory(String category, int offset, int size) {
+        return findAllPagingByCategory(category, "latest", offset, size);
     }
 
     // 카테고리 전체 페이지
@@ -112,6 +126,29 @@ public class BoardRepository {
         return result.longValue();
     }
 
+    public Map<Integer, Long> countLikesByBoardIds(List<Integer> boardIds) {
+        if (boardIds == null || boardIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Object[]> rows = em.createQuery("""
+                select bl.board.id, count(bl)
+                from BoardLike bl
+                where bl.board.id in :boardIds
+                group by bl.board.id
+                """, Object[].class)
+                .setParameter("boardIds", boardIds)
+                .getResultList();
+
+        Map<Integer, Long> likeCounts = new HashMap<>();
+        for (Object[] row : rows) {
+            Integer boardId = (Integer) row[0];
+            Long likeCount = (Long) row[1];
+            likeCounts.put(boardId, likeCount);
+        }
+        return likeCounts;
+    }
+
     @Transactional
     public int insertLike(Integer boardId, Integer userId) {
         return em.createNativeQuery("""
@@ -132,6 +169,17 @@ public class BoardRepository {
                 """)
                 .setParameter("boardId", boardId)
                 .setParameter("userId", userId)
+                .executeUpdate();
+    }
+
+    // 좋아요 달린 게시글 삭제 기능 : 좋아요 db 날림
+    @Transactional
+    public int deleteLikesByBoard(Integer boardId) {
+        return em.createNativeQuery("""
+                delete from board_like_tb
+                where board_id = :boardId
+                """)
+                .setParameter("boardId", boardId)
                 .executeUpdate();
     }
 
@@ -197,6 +245,15 @@ public class BoardRepository {
         }
 
         return query.getSingleResult();
+    }
+
+    private String toOrderBy(String sort) {
+        return switch (sort) {
+            case "likes" -> "(select count(bl) from BoardLike bl where bl.board = b) desc, b.createdAt desc, b.id desc";
+            case "views" -> "b.viewCount desc, b.createdAt desc, b.id desc";
+            case "date" -> "b.createdAt asc, b.id asc";
+            default -> "b.createdAt desc, b.id desc";
+        };
     }
 
 }

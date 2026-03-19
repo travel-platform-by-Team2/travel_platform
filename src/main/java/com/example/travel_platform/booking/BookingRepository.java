@@ -17,41 +17,41 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
-    /**
-     * 특정 지도 경계 영역 내의 활성화된 숙소 목록을 조회하여 DTO로 즉시 반환합니다.
-     */
-    @Query("""
-            SELECT new com.example.travel_platform.booking.BookingRequest$MapPoiDTO(
-                l.externalPlaceId, 
-                l.name, 
-                l.phone, 
-                l.address, 
-                l.roadAddress, 
-                l.placeUrl, 
-                l.categoryName, 
-                l.categoryGroupCode, 
-                l.lat, 
-                l.lng, 
-                'hotel', 
-                'DB'
-            )
-            FROM Lodging l
-            WHERE l.isActive = true
-            AND (:regionKey = '' OR l.regionKey = :regionKey)
-            AND l.lat BETWEEN :minLat AND :maxLat
-            AND l.lng BETWEEN :minLng AND :maxLng
-            """)
-    List<BookingRequest.MapPoiDTO> findActiveLodgingsInBounds(
-            @Param("regionKey") String regionKey, // 지역 키 (예: 'seoul', 'busan', 'jeju' 등)
-            @Param("minLat") double minLat,       // 지도 화면 내 최소 위도 (남쪽 경계)
-            @Param("maxLat") double maxLat,       // 지도 화면 내 최대 위도 (북쪽 경계)
-            @Param("minLng") double minLng,       // 지도 화면 내 최소 경도 (서쪽 경계)
-            @Param("maxLng") double maxLng);      // 지도 화면 내 최대 경도 (동쪽 경계)
+        /**
+         * 특정 지도 경계 영역 내의 활성화된 숙소 목록을 조회하여 DTO로 즉시 반환합니다.
+         */
+        @Query("""
+                        SELECT new com.example.travel_platform.booking.BookingRequest$MapPoiDTO(
+                            l.externalPlaceId,
+                            l.name,
+                            l.phone,
+                            l.address,
+                            l.roadAddress,
+                            l.placeUrl,
+                            l.categoryName,
+                            l.categoryGroupCode,
+                            l.lat,
+                            l.lng,
+                            'hotel',
+                            'DB'
+                        )
+                        FROM Lodging l
+                        WHERE l.isActive = true
+                        AND (:regionKey = '' OR l.regionKey = :regionKey)
+                        AND l.lat BETWEEN :minLat AND :maxLat
+                        AND l.lng BETWEEN :minLng AND :maxLng
+                        """)
+        List<BookingRequest.MapPoiDTO> findActiveLodgingsInBounds(
+                        @Param("regionKey") String regionKey, // 지역 키 (예: 'seoul', 'busan', 'jeju' 등)
+                        @Param("minLat") double minLat, // 지도 화면 내 최소 위도 (남쪽 경계)
+                        @Param("maxLat") double maxLat, // 지도 화면 내 최대 위도 (북쪽 경계)
+                        @Param("minLng") double minLng, // 지도 화면 내 최소 경도 (서쪽 경계)
+                        @Param("maxLng") double maxLng); // 지도 화면 내 최대 경도 (동쪽 경계)
 
-    /**
-     * 정규화된 이름으로 캐싱된 장소 이미지 URL을 조회합니다.
-     */
-    @Query("SELECT mi.imageUrl FROM MapPlaceImage mi WHERE mi.normalizedName = :normalizedName")
-    Optional<String> findImageUrlByNormalizedName(
-            @Param("normalizedName") String normalizedName); // 공백 제거 및 소문자화된 장소 이름 (캐시 키)
+        /**
+         * 정규화된 이름으로 캐싱된 장소 이미지 URL을 조회합니다.
+         */
+        @Query("SELECT mi.imageUrl FROM MapPlaceImage mi WHERE mi.normalizedName = :normalizedName")
+        Optional<String> findImageUrlByNormalizedName(
+                        @Param("normalizedName") String normalizedName); // 공백 제거 및 소문자화된 장소 이름 (캐시 키)
 }
