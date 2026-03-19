@@ -2,11 +2,15 @@ package com.example.travel_platform.trip;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.example.travel_platform._core.handler.ex.Exception403;
+import com.example.travel_platform._core.handler.ex.Exception404;
+import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,116 +19,152 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TripService {
 
+    private static final int PLAN_PAGE_SIZE = 9;
+    private static final String NOT_IMG = "/images/dumimg.jpg";
+    // private static final String DEFAULT_PLAN_IMAGE =
+    // "/images/placeholder-card.svg";
+    private static final String EMPTY_REGION_LABEL = "지역 정보 없음";
+    private static final String DISABLED_D_DAY = "비활성화";
+
     private final TripRepository tripRepository;
+    private final UserRepository userRepository;
+    private final TripPlaceRepository tripPlaceRepository;
 
     @Transactional
     public void createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
-        // TODO: sessionUserId 소유권 검증
-        // TODO: reqDTO 유효성 검증
-        // TODO: TripPlan 엔티티 변환 후 저장
+        User user = userRepository.findById(sessionUserId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        TripPlan tripPlan = TripPlan.create(
+                user,
+                reqDTO.getTitle(),
+                reqDTO.getRegion(),
+                reqDTO.getWhoWith(),
+                reqDTO.getStartDate(),
+                reqDTO.getEndDate(),
+                NOT_IMG);
+
+        tripRepository.savePlan(tripPlan);
     }
 
     @Transactional
     public void addPlace(Integer sessionUserId, Integer planId, TripRequest.AddPlaceDTO reqDTO) {
-        // TODO: planId 소유권 검증
-        // TODO: reqDTO 유효성 검증
-        // TODO: TripPlace 엔티티 변환 후 저장
+        TripPlan tripPlan = tripRepository.findPlanById(planId).orElseThrow();
+
+        TripPlace tripPlace = TripPlace.create(
+                tripPlan,
+                reqDTO.getPlaceName(),
+                reqDTO.getAddress(),
+                reqDTO.getLatitude(),
+                reqDTO.getLongitude(),
+                reqDTO.getDayOrder());
+
+        tripPlaceRepository.save(tripPlace);
     }
 
     public TripResponse.PlanListPageDTO getPlanList(Integer userId, String category, int page) {
-        int size = 9; // 슬롯 갯수
-        int offset = page * size;
-        int blockSize = 10; // 1~10까지 페이징 사이즈
+        int currentPage = Math.max(page, 0);
         LocalDate today = LocalDate.now();
+        String normalizedCategory = normalizeCategory(category);
 
-        List<TripPlan> tripPlans;
-        Long totalCount;
+        PlanPageQueryResult planPageQueryResult = findPlanPage(userId, normalizedCategory, today, currentPage);
+        List<TripResponse.PlanSummaryDTO> plans = planPageQueryResult.tripPlans().stream()
+                .map(tripPlan -> toPlanSummaryDTO(tripPlan, today))
+                .toList();
 
-        if ("upcoming".equals(category)) {
-            tripPlans = tripRepository.findUpcomingPlanListByUserId(userId, today, offset, size);
-            totalCount = tripRepository.countUpcomingPlanByUserId(userId, today);
-        } else if ("past".equals(category)) {
-            tripPlans = tripRepository.findPastPlanListByUserId(userId, today, offset, size);
-            totalCount = tripRepository.countPastPlanByUserId(userId, today);
-        } else {
-            tripPlans = tripRepository.findPlanListByUserId(userId, offset, size);
-            totalCount = tripRepository.countPlanByUserId(userId);
-        }
-
-        List<TripResponse.PlanSummaryDTO> result = new ArrayList<>();
-
-        for (TripPlan tripPlan : tripPlans) {
-            String placeName = "장소 확인 안됨";
-
-            if (tripPlan.getRegion() != null && !tripPlan.getRegion().isBlank()) {
-                placeName = tripPlan.getRegion();
-            }
-
-            long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
-
-            String dDay = "비활성화";
-            boolean disabled = true;
-
-            if (diff > 0) {
-                dDay = "D-" + diff;
-                disabled = false;
-            }
-
-            TripResponse.PlanSummaryDTO dto = TripResponse.PlanSummaryDTO.builder()
-                    .id(tripPlan.getId())
-                    .title(tripPlan.getTitle())
-                    .imgUrl(tripPlan.getImgUrl())
-                    .startDate(tripPlan.getStartDate())
-                    .endDate(tripPlan.getEndDate())
-                    .placeName(placeName)
-                    .dDay(dDay)
-                    .disabled(disabled)
-                    .build();
-
-            result.add(dto);
-        }
-
-        int totalPage = (int) Math.ceil((double) totalCount / size);
-
-        int startPage = (page / blockSize) * blockSize;
-        int endPage = startPage + blockSize - 1;
-
-        if (endPage >= totalPage) {
-            endPage = totalPage - 1;
-        }
-
-        List<TripResponse.PageNumberDTO> pageNumbers = new ArrayList<>();
-        for (int i = startPage; i <= endPage; i++) {
-            pageNumbers.add(new TripResponse.PageNumberDTO(i, i + 1, i == page));
-        }
-
-        boolean hasPrev = startPage > 0;
-        boolean hasNext = endPage < totalPage - 1;
-
-        int prevPage = startPage - 1;
-        int nextPage = endPage + 1;
-
-        return TripResponse.PlanListPageDTO.builder()
-                .plans(result)
-                .currentPage(page)
-                .displayPage(page + 1)
-                .size(size)
-                .totalCount(totalCount)
-                .totalPage(totalPage)
-                .hasPrev(hasPrev)
-                .hasNext(hasNext)
-                .prevPage(prevPage)
-                .nextPage(nextPage)
-                .pageNumbers(pageNumbers)
-                .startPage(startPage)
-                .endPage(endPage)
-                .category(category)
-                .build();
+        return TripResponse.PlanListPageDTO.of(
+                plans,
+                currentPage,
+                planPageQueryResult.totalCount(),
+                normalizedCategory,
+                PLAN_PAGE_SIZE);
     }
 
     public TripResponse.PlanDetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
-        // TODO: 단건 조회 + 소유권 검증
-        // TODO: PlanDetailDTO 매핑
-        return null;
+        TripPlan tripPlan = tripRepository.findPlanById(planId)
+                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
+
+        if (!tripPlan.getUser().getId().equals(sessionUserId)) {
+            throw new Exception403("권한이 없습니다.");
+        }
+
+        List<TripResponse.PlaceDTO> places = tripPlan.getPlaces() == null
+                ? List.of()
+                : tripPlan.getPlaces().stream().map(TripResponse.PlaceDTO::new).toList();
+
+        return new TripResponse.PlanDetailDTO(tripPlan, regionLabel(tripPlan.getRegion()), places);
+    }
+
+    private String normalizeCategory(String category) {
+        if ("upcoming".equals(category) || "past".equals(category)) {
+            return category;
+        }
+        return "result";
+    }
+
+    private PlanPageQueryResult findPlanPage(Integer userId, String normalizedCategory, LocalDate today, int page) {
+        int offset = page * PLAN_PAGE_SIZE;
+
+        return switch (normalizedCategory) {
+            case "upcoming" -> new PlanPageQueryResult(
+                    tripRepository.findUpcomingPlanListByUserId(userId, today, offset, PLAN_PAGE_SIZE),
+                    tripRepository.countUpcomingPlanByUserId(userId, today));
+            case "past" -> new PlanPageQueryResult(
+                    tripRepository.findPastPlanListByUserId(userId, today, offset, PLAN_PAGE_SIZE),
+                    tripRepository.countPastPlanByUserId(userId, today));
+            default -> new PlanPageQueryResult(
+                    tripRepository.findPlanListByUserId(userId, offset, PLAN_PAGE_SIZE),
+                    tripRepository.countPlanByUserId(userId));
+        };
+    }
+
+    private TripResponse.PlanSummaryDTO toPlanSummaryDTO(TripPlan tripPlan, LocalDate today) {
+        long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
+        boolean disabled = diff <= 0;
+        String dDay = disabled ? DISABLED_D_DAY : "D-" + diff;
+
+        return new TripResponse.PlanSummaryDTO(
+                tripPlan,
+                resolveImageUrl(tripPlan.getImgUrl()),
+                regionLabel(tripPlan.getRegion()),
+                dDay,
+                disabled);
+    }
+
+    private String resolveImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return NOT_IMG;
+        }
+        return imageUrl;
+    }
+
+    private String regionLabel(String region) {
+        if (region == null || region.isBlank()) {
+            return EMPTY_REGION_LABEL;
+        }
+
+        return switch (region) {
+            case "seoul" -> "서울";
+            case "busan" -> "부산";
+            case "daegu" -> "대구";
+            case "incheon" -> "인천";
+            case "gwangju" -> "광주";
+            case "daejeon" -> "대전";
+            case "ulsan" -> "울산";
+            case "sejong" -> "세종";
+            case "gyeonggi" -> "경기도";
+            case "gangwon" -> "강원도";
+            case "chungbuk" -> "충청북도";
+            case "chungnam" -> "충청남도";
+            case "jeonbuk" -> "전라북도";
+            case "jeonnam" -> "전라남도";
+            case "gyeongbuk" -> "경상북도";
+            case "gyeongnam" -> "경상남도";
+            case "jeju" -> "제주도";
+            default -> region;
+        };
+    }
+
+    private record PlanPageQueryResult(List<TripPlan> tripPlans, long totalCount) {
     }
 }

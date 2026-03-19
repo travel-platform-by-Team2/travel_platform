@@ -3,6 +3,7 @@ package com.example.travel_platform.board;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ public class BoardService {
     }
 
     @Transactional
-    public void updateBoard(Integer sessionUserId, Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
+    public void updateBoard(User sessionUserId, Integer boardId, BoardRequest.UpdateBoardDTO reqDTO) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
@@ -53,35 +54,40 @@ public class BoardService {
     }
 
     @Transactional
-    public void deleteBoard(Integer sessionUserId, Integer boardId) {
+    public void deleteBoard(User sessionUserId, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
         validateOwner(sessionUserId, board);
-        boardRepository.delete(board);
+        boardRepository.deleteLikesByBoard(boardId); // 좋아요 먼저 삭제
+        boardRepository.delete(board); // 글삭제
     }
 
-    public BoardResponse.BoardListPageDTO getBoardList(String category, int page) {
-        int size = 3;
+    public BoardResponse.BoardListPageDTO getBoardList(String category, String sort, int page) {
+        int size = 10;
         int offset = page * size;
+        String normalizedSort = normalizeSort(sort);
 
         List<Board> boards;
         long totalCount;
 
         if (category != null && !category.isBlank()) {
-            boards = boardRepository.findAllPagingByCategory(category, offset, size);
+            boards = boardRepository.findAllPagingByCategory(category, normalizedSort, offset, size);
             totalCount = boardRepository.countByCategory(category);
         } else {
-            boards = boardRepository.findAllPaging(offset, size);
+            boards = boardRepository.findAllPaging(normalizedSort, offset, size);
             totalCount = boardRepository.count();
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        Map<Integer, Long> likeCounts = boardRepository.countLikesByBoardIds(
+                boards.stream().map(Board::getId).toList());
 
         List<BoardResponse.BoardSummaryDTO> boardDTOs = boards.stream()
                 .map(board -> {
                     String plainText = Jsoup.parse(board.getContent()).text();
                     String summary = plainText.substring(0, Math.min(80, plainText.length()));
+                    long likeCount = likeCounts.getOrDefault(board.getId(), 0L);
 
                     return BoardResponse.BoardSummaryDTO.builder()
                             .id(board.getId())
@@ -92,6 +98,7 @@ public class BoardService {
                             .categoryClass(toCategoryClass(board.getCategory()))
                             .username(board.getUser().getUsername())
                             .viewCount(board.getViewCount())
+                            .likeCount(Math.toIntExact(likeCount))
                             .replyCount(board.getReplies().size())
                             .createdAtDisplay(board.getCreatedAt().format(formatter))
                             .build();
@@ -141,15 +148,45 @@ public class BoardService {
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .category(category)
+                .sort(normalizedSort)
+                .sortLabel(toSortLabel(normalizedSort))
+                .isSortLikes("likes".equals(normalizedSort))
+                .isSortViews("views".equals(normalizedSort))
+                .isSortLatest("latest".equals(normalizedSort))
+                .isSortDate("date".equals(normalizedSort))
+                .isTips("tips".equals(category))
+                .isPlan("plan".equals(category))
+                .isFood("food".equals(category))
+                .isReview("review".equals(category))
+                .isQna("qna".equals(category))
                 .pageItems(pageItems)
                 .build();
+    }
+
+    private String normalizeSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        return switch (sort) {
+            case "likes", "views", "latest", "date" -> sort;
+            default -> "latest";
+        };
+    }
+
+    private String toSortLabel(String sort) {
+        return switch (sort) {
+            case "likes" -> "좋아요순";
+            case "views" -> "조회순";
+            case "date" -> "날짜순";
+            default -> "최신순";
+        };
     }
 
     @Transactional
     public BoardResponse.BoardDetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
-        board.increaseViewCount(sessionUserId);
 
         List<BoardResponse.ReplyDTO> replies = board.getReplies().stream()
                 .map(reply -> toReplyDTO(sessionUserId, reply))
@@ -163,10 +200,20 @@ public class BoardService {
             likedByMe = boardRepository.existsLike(boardId, sessionUserId);
         }
         long likeCount = boardRepository.countLike(boardId);
+        board.setLikeCount(Math.toIntExact(likeCount));
 
         boolean isOwner = false;
+        boolean isAdmin = false;
+
         if (sessionUserId != null) {
             isOwner = board.getUser().getId().equals(sessionUserId);
+            User sessionUser = userRepository.findById(sessionUserId)
+                    .orElseThrow(() -> new Exception404("사용자를 찾을 수가 없습니다."));
+            isAdmin = sessionUser.isAdmin();
+        }
+
+        if (!isAdmin) {
+            board.increaseViewCount(sessionUserId);
         }
 
         return BoardResponse.BoardDetailDTO.builder()
@@ -182,6 +229,7 @@ public class BoardService {
                 .createdAtDisplay(board.getCreatedAt().format(formatter))
                 .replies(replies)
                 .isOwner(isOwner)
+                .isAdmin(isAdmin)
                 .likeCount(likeCount)
                 .likedByMe(likedByMe)
                 .build();
@@ -259,6 +307,7 @@ public class BoardService {
         }
 
         long likeCount = boardRepository.countLike(boardId);
+        board.setLikeCount(Math.toIntExact(likeCount));
 
         return BoardResponse.ToggleLikeDTO.builder()
                 .liked(liked)
@@ -266,8 +315,11 @@ public class BoardService {
                 .build();
     }
 
-    private void validateOwner(Integer sessionUserId, Board board) {
-        if (!board.getUser().getId().equals(sessionUserId)) {
+    private void validateOwner(User sessionUser, Board board) {
+        boolean isOwner = board.getUser().getId().equals(sessionUser.getId());
+        boolean isAdmin = sessionUser.isAdmin();
+
+        if (!isOwner && !isAdmin) {
             throw new Exception403("본인 게시글만 수정/삭제할 수 있습니다.");
         }
     }

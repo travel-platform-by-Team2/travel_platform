@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -9,10 +9,7 @@
 <body class="page-body-main-shell">
   {{>partials/header}}
 
-<!-- Top Navigation -->
-<!-- Main Content -->
 <main class="page-main-wrap-md">
-<!-- Page Header -->
 <div class="trip-plan-list-div-01">
 <div>
 <h2 class="trip-plan-list-h2-01">내 여행 계획</h2>
@@ -23,7 +20,8 @@
 <span>새 여행 만들기</span>
 </button>
 </div>
-<!-- Filter Tabs (Optional Enhancement for UX) -->
+
+{{#page}}
 <div class="tab-strip-scroll">
   <a href="/trip?category=result&page=0"
      class="{{#isResult}}trip-plan-list-button-02{{/isResult}}{{^isResult}}chip-surface{{/isResult}}">
@@ -40,24 +38,17 @@
     다녀온 여행
   </a>
 </div>
-<!-- Trip Cards Grid -->
+
 <div class="trip-plan-list-div-02">
-<!-- Card 1 -->
-{{#tripPlans}}
+{{#plans}}
 <div class="trip-card">
 <div class="trip-card-media">
-<div class="trip-card-media-bg" onclick="location.href='/trip/detail'" role="link" tabindex="0" data-alt="Beautiful view of Busan coastline during sunset" 
-style="background-image: url('{{imgUrl}}');"></div>
-{{^disabled}}
+<div class="trip-card-media-bg" onclick="location.href='/trip/detail?id={{id}}'" role="link" tabindex="0" data-alt="Beautiful view of Busan coastline during sunset"
+style="background-image: url('{{imgUrl}}');"></div>{{^disabled}}
 <div class="trip-plan-list-div-03">
   {{dDay}}
 </div>
 {{/disabled}}
-<!-- 하트부분 
-<button class="trip-card-like-btn">
-<span class="icon-ms-20">favorite</span>
-</button>
--->
 </div>
 <div class="trip-card-body">
 <div class="trip-card-header">
@@ -76,31 +67,29 @@ style="background-image: url('{{imgUrl}}');"></div>
 <span class="icon-ms-20-primary">bookmark</span>
 <span>장소 12개</span>
 </div>
-<button class="trip-card-link" type="button" onclick="location.href='/trip/detail'">
+<button class="trip-card-link" type="button" onclick="location.href='/trip/detail?id={{id}}'">
                             상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
 </button>
 </div>
 </div>
 </div>
-<!-- 등록된거 없을떄 -->
-{{^tripPlans}}
+{{/plans}}
+
+{{^plans}}
 <div class="empty-state">
   등록된 여행 계획이 없습니다.
 </div>
-{{/tripPlans}}
-{{/tripPlans}}
-<!-- Empty State / Add New Placeholder (Optional filler) -->
+{{/plans}}
 </div>
-<!-- Pagination -->
-<div class="trip-plan-list-div-06">
 
-  {{#pageDTO.hasPrev}}
-  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{pageDTO.prevPage}}">
+<div class="trip-plan-list-div-06">
+  {{#hasPrev}}
+  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{prevPage}}">
     <span class="icon-ms-lg">chevron_left</span>
   </a>
-  {{/pageDTO.hasPrev}}
+  {{/hasPrev}}
 
-  {{#pageDTO.pageNumbers}}
+  {{#pageNumbers}}
     {{#current}}
     <button class="trip-plan-list-button-03 active" type="button">
       {{displayPage}}
@@ -112,17 +101,16 @@ style="background-image: url('{{imgUrl}}');"></div>
       {{displayPage}}
     </a>
     {{/current}}
-  {{/pageDTO.pageNumbers}}
+  {{/pageNumbers}}
 
-  {{#pageDTO.hasNext}}
-  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{pageDTO.nextPage}}">
+  {{#hasNext}}
+  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{nextPage}}">
     <span class="icon-ms-lg">chevron_right</span>
   </a>
-  {{/pageDTO.hasNext}}
-
+  {{/hasNext}}
 </div>
+{{/page}}
 </main>
-<!-- Footer -->
 
   {{>partials/chatbot}}
   {{>partials/footer}}

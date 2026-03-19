@@ -18,13 +18,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * 한 사용자의 여행 계획 자체를 표현하는 엔티티.
- * 여행 제목, 기간 등 계획의 기본 정보를 담당한다.
- */
 @Data
 @NoArgsConstructor
 @Entity
@@ -41,6 +38,9 @@ public class TripPlan {
 
     @Column(nullable = false, length = 100)
     private String title;
+
+    @Column(name = "who_with")
+    private String whoWith;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
@@ -60,4 +60,39 @@ public class TripPlan {
 
     @Column(name = "region", nullable = false, length = 30)
     private String region;
+
+    @Builder
+    private TripPlan(User user,
+            String title,
+            String region,
+            String whoWith,
+            LocalDate startDate,
+            LocalDate endDate,
+            String imgUrl) {
+        this.user = user;
+        this.title = title;
+        this.region = region;
+        this.whoWith = whoWith;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.imgUrl = imgUrl;
+    }
+
+    public static TripPlan create(User user,
+            String title,
+            String region,
+            String whoWith,
+            LocalDate startDate,
+            LocalDate endDate,
+            String imgUrl) {
+        return TripPlan.builder()
+                .user(user)
+                .title(title)
+                .region(region)
+                .whoWith(whoWith)
+                .startDate(startDate)
+                .endDate(endDate)
+                .imgUrl(imgUrl)
+                .build();
+    }
 }

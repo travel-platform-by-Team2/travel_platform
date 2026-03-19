@@ -1,7 +1,5 @@
 package com.example.travel_platform.board;
 
-import java.util.List;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -10,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform.user.User;
@@ -29,24 +26,16 @@ public class BoardController {
 
     @GetMapping
     public String boardlist(@RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
-        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, page);
+        BoardResponse.BoardListPageDTO responseDTO = boardService.getBoardList(category, sort, page);
         model.addAttribute("model", responseDTO);
-        model.addAttribute("selectedCategory", category);
-
-        model.addAttribute("isTips", "tips".equals(category));
-        model.addAttribute("isPlan", "plan".equals(category));
-        model.addAttribute("isFood", "food".equals(category));
-        model.addAttribute("isReview", "review".equals(category));
-        model.addAttribute("isQna", "qna".equals(category));
         return "pages/board-list";
     }
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("title", "");
-        model.addAttribute("content", "");
-        model.addAttribute("category", "");
+        model.addAttribute("page", BoardResponse.BoardFormDTO.empty());
         return "pages/board-create";
     }
 
@@ -56,25 +45,11 @@ public class BoardController {
             Model model) {
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("title", reqDTO.getTitle()); // 빈칸 입력시 오류발생
-            model.addAttribute("content", reqDTO.getContent());
-            model.addAttribute("category", reqDTO.getCategory());
-
-            if (bindingResult.hasFieldErrors("category")) {
-                model.addAttribute("categoryerror",
-                        bindingResult.getFieldError("category").getDefaultMessage());
-            }
-
-            if (bindingResult.hasFieldErrors("title")) {
-                model.addAttribute("titleError",
-                        bindingResult.getFieldError("title").getDefaultMessage());
-            }
-
-            if (bindingResult.hasFieldErrors("content")) {
-                model.addAttribute("contentError",
-                        bindingResult.getFieldError("content").getDefaultMessage());
-            }
-
+            model.addAttribute("page", BoardResponse.BoardFormDTO.fromCreate(
+                    reqDTO,
+                    getFieldError(bindingResult, "category"),
+                    getFieldError(bindingResult, "title"),
+                    getFieldError(bindingResult, "content")));
             return "pages/board-create";
         }
 
@@ -84,13 +59,7 @@ public class BoardController {
 
     @GetMapping("/{boardId}")
     public String detail(@PathVariable("boardId") Integer boardId, Model model) {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-
-        Integer sessionUserId = null;
-        if (sessionUser != null) {
-            sessionUserId = sessionUser.getId();
-        }
-
+        Integer sessionUserId = resolveSessionUserIdOrNull();
         BoardResponse.BoardDetailDTO detailDTO = boardService.getBoardDetail(sessionUserId, boardId);
         model.addAttribute("board", detailDTO);
         return "pages/board-detail";
@@ -98,13 +67,9 @@ public class BoardController {
 
     @GetMapping("/{boardId}/edit")
     public String editForm(@PathVariable("boardId") Integer boardId, Model model) {
-        User sessionUser = (User) session.getAttribute("sessionUser");
-
-        Integer sessionUserId = null;
-        if (sessionUser != null) {
-            sessionUserId = sessionUser.getId();
-        }
-        model.addAttribute("board", boardService.getBoardDetail(sessionUserId, boardId));
+        Integer sessionUserId = resolveSessionUserIdOrNull();
+        BoardResponse.BoardDetailDTO board = boardService.getBoardDetail(sessionUserId, boardId);
+        model.addAttribute("page", BoardResponse.BoardFormDTO.fromDetail(board));
         return "pages/board-edit";
     }
 
@@ -115,52 +80,25 @@ public class BoardController {
             Model model) {
 
         if (bindingResult.hasErrors()) {
-            User sessionUser = (User) session.getAttribute("sessionUser");
-
-            Integer sessionUserId = null;
-            if (sessionUser != null) {
-                sessionUserId = sessionUser.getId();
-            }
-
+            Integer sessionUserId = resolveSessionUserIdOrNull();
             BoardResponse.BoardDetailDTO board = boardService.getBoardDetail(sessionUserId, boardId);
-
-            // 사용자가 방금 입력한 값으로 다시 덮어쓰기
-            board.setTitle(reqDTO.getTitle());
-            board.setContent(reqDTO.getContent());
-            board.setCategory(reqDTO.getCategory());
-
-            if (bindingResult.hasFieldErrors("category")) {
-                board.setCategoryError(bindingResult.getFieldError("category").getDefaultMessage());
-            }
-
-            if (bindingResult.hasFieldErrors("title")) {
-                board.setTitleError(bindingResult.getFieldError("title").getDefaultMessage());
-            }
-
-            if (bindingResult.hasFieldErrors("content")) {
-                board.setContentError(bindingResult.getFieldError("content").getDefaultMessage());
-            }
-
-            model.addAttribute("board", board);
+            model.addAttribute("page", BoardResponse.BoardFormDTO.fromUpdate(
+                    board,
+                    reqDTO,
+                    getFieldError(bindingResult, "category"),
+                    getFieldError(bindingResult, "title"),
+                    getFieldError(bindingResult, "content")));
             return "pages/board-edit";
         }
 
-        boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
+        boardService.updateBoard(requireSessionUser(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{boardId}/delete")
     public String delete(@PathVariable("boardId") Integer boardId) {
-
-        boardService.deleteBoard(requireSessionUserId(), boardId);
+        boardService.deleteBoard(requireSessionUser(), boardId);
         return "redirect:/boards";
-    }
-
-    @PostMapping("/{boardId}/likes/toggle")
-    @ResponseBody // 리턴값에 http응답 본문을 그대로 보낸다 (AJAX)
-    public BoardResponse.ToggleLikeDTO toggleLikeDTO(@PathVariable("boardId") Integer boardId) {
-        Integer sessionUserId = requireSessionUserId();
-        return boardService.toggleBoardLike(sessionUserId, boardId);
     }
 
     private Integer requireSessionUserId() {
@@ -171,4 +109,27 @@ public class BoardController {
         return sessionUser.getId();
     }
 
+    // 유저의 아이디값이 아닌 유저비교(어드민용)
+    private User requireSessionUser() {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            throw new Exception401("로그인이 필요합니다.");
+        }
+        return sessionUser;
+    }
+
+    private Integer resolveSessionUserIdOrNull() {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return null;
+        }
+        return sessionUser.getId();
+    }
+
+    private String getFieldError(BindingResult bindingResult, String field) {
+        if (!bindingResult.hasFieldErrors(field)) {
+            return null;
+        }
+        return bindingResult.getFieldError(field).getDefaultMessage();
+    }
 }
