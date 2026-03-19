@@ -6,8 +6,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception401;
+import com.example.travel_platform._core.handler.ex.Exception403;
+import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardRepository;
+import com.example.travel_platform.user.User;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,6 +20,23 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminService {
     private final BoardRepository boardRepository;
+
+    @Transactional
+    public void deleteBoard(User sessionUser, Integer boardId) {
+        if (sessionUser == null) {
+            throw new Exception401("로그인이 필요합니다.");
+        }
+
+        if (!sessionUser.isAdmin()) {
+            throw new Exception403("관리자만 삭제할 수 있습니다.");
+        }
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new Exception404("게시글을 찾을수가 없습니다"));
+
+        boardRepository.deleteLikesByBoard(boardId);
+        boardRepository.delete(board);
+    }
 
     public AdminResponse.AdminBoardListDTO getBoardList(String category, String keyword, int page) {
         int size = 10;

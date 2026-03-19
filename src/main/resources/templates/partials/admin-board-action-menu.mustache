@@ -13,8 +13,10 @@
     <span class="material-symbols-outlined">visibility</span>
     <span>보기</span>
   </a>
-  <a class="admin-action-link is-danger" href="#">
+  <form action="/admin/boards/{{id}}/delete" method="post">
+  <button class="admin-action-link is-danger" type="submit">
     <span class="material-symbols-outlined">delete</span>
     <span>삭제</span>
-  </a>
+  </button>
+</form>
 </div>
