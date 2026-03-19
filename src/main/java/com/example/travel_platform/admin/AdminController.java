@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
     private final AdminService adminService;
 
+    // prTest
     @GetMapping("")
     public String dashboard(Model model) {
         applySidebarState(model, "dashboard");
