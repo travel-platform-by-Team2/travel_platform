@@ -393,7 +393,8 @@
         return "";
       }
 
-      var data = await response.json();
+      var resp = await response.json();
+      var data = unwrapApiResponse(resp);
       var imageUrl = data && typeof data.imageUrl === "string" ? data.imageUrl : "";
       state.imageCache[cacheKey] = imageUrl;
       return imageUrl;
@@ -401,6 +402,21 @@
       state.imageCache[cacheKey] = "";
       return "";
     }
+  }
+
+  function unwrapApiResponse(resp) {
+    if (!resp) {
+      return resp;
+    }
+    if (typeof resp === "object" && resp) {
+      if ("body" in resp) {
+        return resp.body;
+      }
+      if (Array.isArray(resp.items)) {
+        return resp.items;
+      }
+    }
+    return resp;
   }
 
   function getPricing(item, nights) {
@@ -718,12 +734,13 @@
       
       var response = await fetch("/api/bookings/rooms?" + params.toString());
       if (response.ok) {
-        var data = await response.json();
+        var resp = await response.json();
+        var data = unwrapApiResponse(resp);
         if (Array.isArray(data) && data.length > 0) {
           rooms = data.map(function(r) {
             return {
               name: r.name || "객실",
-              price: basePrice + (hashText(r.name) % 100000), // 가격은 여전히 가상으로 조합 (TourAPI 미제공)
+              price: basePrice + (hashText(r.name) % 100000),
               img: r.imageUrl || "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop",
               desc: r.content || "상세 정보 없음"
             };
@@ -1018,8 +1035,8 @@
       .map(function (item) {
         var badge = item.type === "hotel" ? "숙소" : "관광지";
         var subtitle = item.roadAddress || item.address || "주소 정보 없음";
-        var pricing = getPricing(item, getSelectedNights());
-        var totalPriceText = item.type === "hotel" ? formatWon(pricing.total) : "정보 없음";
+        var pricingMin = getPricing(item, 1);
+        var minPriceText = item.type === "hotel" ? formatWon(pricingMin.roomPrice) + "~" : "정보 없음";
         var imageUrl = getPoiImageUrl(item);
         return (
           '<div class="poi-card" data-map-card data-name="' +
@@ -1059,10 +1076,10 @@
           badge +
           '</span></div>' +
           '<div class="row-between-price">' +
-          '<div class="text-neutral-xs-subtle">총 결제 금액</div>' +
+          '<div class="text-neutral-xs-subtle">최소가격</div>' +
           '<div class="text-right-align"><p class="price-strong">' +
-          totalPriceText +
-          "</p></div>" +
+          minPriceText +
+          '</p><span class="text-neutral-xs-subtle">/ 1박</span></div>' +
           "</div>" +
           '</div>' +
           '</div>'
@@ -1242,8 +1259,9 @@
       if (!response.ok) {
         return kakaoItems;
       }
-      var data = await response.json();
-      var items = data && Array.isArray(data.items) ? data.items.map(normalizeMergedPoi).filter(Boolean) : [];
+      var resp = await response.json();
+      var data = unwrapApiResponse(resp);
+      var items = Array.isArray(data) ? data.map(normalizeMergedPoi).filter(Boolean) : [];
       return items.length ? items : kakaoItems;
     } catch (error) {
       console.error(error);
