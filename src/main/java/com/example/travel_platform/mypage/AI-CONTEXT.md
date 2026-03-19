@@ -8,12 +8,12 @@
 
 ## 주요 파일
 
-| 파일명 | 설명 |
-| --- | --- |
+| 파일명                | 설명                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
 | MypageController.java | `/mypage`, `/mypage/password`, `/mypage/withdraw`, `/mypage/bookings/{bookingId}` 요청을 처리한다. |
-| MypageRequest.java | 비밀번호 변경, 회원 탈퇴 입력 DTO를 정의한다. |
-| MypageResponse.java | 마이페이지 화면 DTO, 카드 변환 로직, 예약 상세 placeholder DTO를 정의한다. |
-| MypageService.java | 프로필 조회, 다가오는 예약/여행 계획 카드 조합, 비밀번호 변경을 처리한다. |
+| MypageRequest.java    | 비밀번호 변경, 회원 탈퇴 입력 DTO를 정의한다.                                                      |
+| MypageResponse.java   | 마이페이지 화면 DTO, 카드 변환 로직, 예약 상세 placeholder DTO를 정의한다.                         |
+| MypageService.java    | 프로필 조회, 다가오는 예약/여행 계획 카드 조합, 비밀번호 변경을 처리한다.                          |
 
 ## 하위 디렉토리
 

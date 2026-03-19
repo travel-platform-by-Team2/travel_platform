@@ -10,17 +10,17 @@
 
 ## 주요 파일
 
-| 파일명 | 설명 |
-| --- | --- |
-| User.java | 사용자 엔티티다. |
-| SessionUser.java | 세션에 저장하는 사용자 전용 DTO다. |
-| SessionUsers.java | 세션 사용자 조회/저장 helper다. |
+| 파일명                  | 설명                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| User.java               | 사용자 엔티티다.                                                                        |
+| SessionUser.java        | 세션에 저장하는 사용자 전용 DTO다.                                                      |
+| SessionUsers.java       | 세션 사용자 조회/저장 helper다.                                                         |
 | UserSessionChecker.java | 세션 사용자 기준으로 최신 DB 상태를 확인해 비활성 차단 여부를 판단하는 전용 컴포넌트다. |
-| UserController.java | 로그인, 로그아웃, 회원가입, 메인 화면 요청을 처리한다. |
-| UserRepository.java | 사용자 저장/조회/삭제 저장소다. |
-| UserRequest.java | 사용자 입력 DTO를 정의한다. |
-| UserResponse.java | 사용자 응답 DTO를 정의한다. |
-| UserService.java | 회원가입, 로그인, 회원 탈퇴 비즈니스 로직을 처리한다. |
+| UserController.java     | 로그인, 로그아웃, 회원가입, 메인 화면 요청을 처리한다.                                  |
+| UserRepository.java     | 사용자 저장/조회/삭제 저장소다.                                                         |
+| UserRequest.java        | 사용자 입력 DTO를 정의한다.                                                             |
+| UserResponse.java       | 사용자 응답 DTO를 정의한다.                                                             |
+| UserService.java        | 회원가입, 로그인, 회원 탈퇴 비즈니스 로직을 처리한다.                                   |
 
 ## 하위 디렉토리
 
@@ -34,7 +34,10 @@
 - 일반 사용자 비활성 차단은 `UserService.login(...)`과 `UserSessionChecker` + `_core/interceptor` 조합으로 처리한다. 로그인 시도는 `현재 로그인할 수 없는 계정입니다.`로 막고, 로그인 중 비활성 감지는 `계정 상태가 변경되어 다시 로그인해 주세요.` 문구로 강제 로그아웃한다.
 - 로그인/회원가입 폼 필드 이름은 DTO와 템플릿이 맞물려 있으므로 이름 변경을 한쪽만 하지 않는다.
 - `UserController`는 `/`, `/login-form`, `/join-form`, `/login`, `/join`, `/logout`를 담당하므로 인증 진입 경로를 바꿀 때 redirect 흐름도 같이 확인한다.
-- `SessionUser` 계약은 `mypage`, `_core/interceptor`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
+  <<<<<<< HEAD
+- # `SessionUser` 계약은 `mypage`, `_core/interceptor`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
+- `SessionUser` 계약은 `mypage`, `_core/filter`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
+  > > > > > > > dev
 - 회원 탈퇴는 `active` 변경이 아니라 실제 `user_tb` 삭제이며, 관리자 계정은 서비스 레벨에서 탈퇴를 막는다.
 - 탈퇴 로직은 FK 제약 때문에 `board_like`, `reply`, `board`, `calendar_event`, `booking`, `trip_place`, `trip_plan`, `user` 순의 정리 흐름을 함께 봐야 한다.
 - `UserService.withdrawAccount(...)`는 현재 비밀번호 확인 후 관련 저장소를 호출해 연관 데이터를 지운 다음 `UserRepository.delete(...)`를 수행한다.
