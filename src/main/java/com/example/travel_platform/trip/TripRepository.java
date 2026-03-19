@@ -123,4 +123,13 @@ public class TripRepository {
                 .setParameter("today", today)
                 .getSingleResult();
     }
+
+    public int deleteByUserId(Integer userId) {
+        return em.createQuery("""
+                delete from TripPlan tp
+                where tp.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
 }
