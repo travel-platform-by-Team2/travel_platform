@@ -192,45 +192,77 @@
 
           var map = new kakao.maps.Map(mapElement, {
             center: new kakao.maps.LatLng(35.1795543, 129.0756416),
-            level: 4
+            level: 4,
+            scrollwheel: false // Disable default cursor-based zoom
           });
 
           var regionSelect = document.getElementById("mapRegion");
-           var state = {
-             map: map,
-             places: new kakao.maps.services.Places(map),
-              overlays: [],
-              items: [],
-              hasSearched: false,
-              syncByViewport: false,
-              idleTimer: null,
-              relayoutTimer: null,
-              moveRefreshTimer: null,
-              loading: false,
-              currentRegionKey: regionSelect ? regionSelect.value : "busan",
-              panelRequestSeq: 0,
-              imageCache: {},
-              nearbyById: {},
-              focusOverlay: null
-           };
-           CURRENT_MAP_STATE = state;
+          var state = {
+            map: map,
+            places: new kakao.maps.services.Places(map),
+            overlays: [],
+            items: [],
+            hasSearched: false,
+            syncByViewport: false,
+            idleTimer: null,
+            relayoutTimer: null,
+            moveRefreshTimer: null,
+            loading: false,
+            currentRegionKey: regionSelect ? regionSelect.value : "busan",
+            panelRequestSeq: 0,
+            imageCache: {},
+            nearbyById: {},
+            focusOverlay: null,
+            lastCenter: map.getCenter() // This is our 'Source of Truth' center
+          };
+          CURRENT_MAP_STATE = state;
 
-           initializeResultPanel(state);
-           bindViewportSync(state);
-           bindTopSearchBar(state);
-           initPoiCardMapLink(state);
-           initNearbyPoiLink(state);
+          // 1. Custom wheel zoom: Always towards the 'Source of Truth' center
+          mapElement.addEventListener("wheel", function (e) {
+            e.preventDefault();
+            if (!state.map || !state.lastCenter) return;
+            
+            var level = state.map.getLevel();
+            var nextLevel = e.deltaY > 0 ? level + 1 : level - 1;
+            
+            if (nextLevel >= 1 && nextLevel <= 14) {
+                // Use lastCenter as anchor to prevent axis drift
+                state.map.setLevel(nextLevel, { anchor: state.lastCenter, animate: true });
+                scheduleRefreshByMapMovement(state);
+            }
+          }, { passive: false });
 
-           window.addEventListener("resize", function () {
-             scheduleMapRelayoutKeepCenter(state);
-           });
+          // 2. ResizeObserver: Compensation for container size changes
+          if (window.ResizeObserver) {
+            var ro = new ResizeObserver(function() {
+              if (state.map && state.lastCenter) {
+                // Use RAF to ensure DOM layout is settled
+                window.requestAnimationFrame(function() {
+                  state.map.relayout();
+                  state.map.setCenter(state.lastCenter);
+                });
+              }
+            });
+            ro.observe(mapElement);
+          }
 
-           kakao.maps.event.addListener(map, "dragend", function () {
-             scheduleRefreshByMapMovement(state);
-           });
-           kakao.maps.event.addListener(map, "zoom_changed", function () {
-             scheduleRefreshByMapMovement(state);
-           });
+          initializeResultPanel(state);
+          bindViewportSync(state);
+          bindTopSearchBar(state);
+          initPoiCardMapLink(state);
+          initNearbyPoiLink(state);
+
+          // 3. Update 'Source of Truth' ONLY on user interaction
+          kakao.maps.event.addListener(map, "dragend", function () {
+            state.lastCenter = map.getCenter(); 
+            scheduleRefreshByMapMovement(state);
+          });
+          kakao.maps.event.addListener(map, "zoom_changed", function () {
+            state.lastCenter = map.getCenter();
+            scheduleRefreshByMapMovement(state);
+          });
+          // Note: We deliberately EXCLUDE 'idle' or 'relayout' from updating lastCenter
+          // to prevent shifted coordinates during transitions from becoming the new truth.
         });
       } catch (error) {
         console.error(error);
@@ -949,7 +981,7 @@
     state.overlays = [];
   }
 
-  function getHotelClusterGridKm(mapLevel) {
+  function getClusterGridKm(mapLevel) {
     if (mapLevel <= 5) return 0;
     if (mapLevel === 6) return 0.7;
     if (mapLevel === 7) return 1.2;
@@ -959,42 +991,53 @@
     return 8.0;
   }
 
-  function createHotelClusterNode(count) {
+  function createClusterNode(count, type) {
     var node = document.createElement("div");
-    node.className = "stay-marker";
+    node.className = "stay-marker stay-marker--" + type;
 
     var safeCount = Math.max(2, parseInt(count, 10) || 2);
-    // 숙소 수가 많을수록 클러스터 아이콘이 커지도록(과도한 확대 방지: 상한 적용)
-    // 2개~100개 구간을 대략 0~1로 정규화 후, 완만하게 증가(sqrt)시키는 방식
+    // 2개~100개 구간을 0~1로 정규화 후, 완만하게 증가(sqrt)
     var normalized = Math.min(1, (safeCount - 2) / 98);
-    var diameterRem = 2.15 + 1.25 * Math.sqrt(normalized); // 2.15rem ~ 3.40rem
+    var diameterRem = 2.35 + 1.45 * Math.sqrt(normalized); // 2.35rem ~ 3.8rem
 
     var pin = document.createElement("div");
     pin.className = "stay-marker__pin";
-    // 이전 스타일(옅은 하늘색 동그라미)에 맞춰 클러스터만 별도 색상 적용
-    pin.style.background = "#e0f2fe";
-    pin.style.border = "2px solid #bae6fd";
-    pin.style.color = "#075985";
-    pin.style.boxShadow = "0 8px 18px rgba(2, 132, 199, 0.22)";
+    
+    // 중앙 정렬 및 공통 스타일
+    pin.style.display = "flex";
+    pin.style.alignItems = "center";
+    pin.style.justifyContent = "center";
     pin.style.width = diameterRem + "rem";
     pin.style.height = diameterRem + "rem";
+    pin.style.borderRadius = "50%";
+    pin.style.fontSize = (15 + Math.round(5 * Math.sqrt(normalized))) + "px";
+    pin.style.fontWeight = "800";
+    pin.style.boxShadow = "0 8px 24px rgba(15, 23, 42, 0.22)";
+    pin.style.backdropFilter = "blur(4px)";
+    pin.style.transition = "all 200ms ease";
+    pin.textContent = String(safeCount);
 
-    var label = document.createElement("div");
-    label.className = "stay-marker__label";
-    label.textContent = String(safeCount);
-    label.style.background = "rgba(255,255,255,0.9)";
-    label.style.color = "#075985";
-    label.style.border = "1px solid rgba(186, 230, 253, 0.9)";
-    label.style.fontSize = (12 + Math.round(4 * Math.sqrt(normalized))) + "px";
+    if (type === "hotel") {
+      // 더욱 투명한 연한 하늘색 영역 느낌
+      pin.style.background = "rgba(56, 189, 248, 0.45)";
+      pin.style.border = "none";
+      pin.style.color = "#0369a1";
+    } else {
+      // 더욱 투명한 연한 주황색 영역 느낌 (어트렉션용)
+      pin.style.background = "rgba(251, 146, 60, 0.45)";
+      pin.style.border = "none";
+      pin.style.color = "#c2410c";
+    }
 
     node.appendChild(pin);
-    node.appendChild(label);
 
     node.addEventListener("mouseenter", function () {
       node.classList.add("is-hover");
+      pin.style.transform = "scale(1.08)";
     });
     node.addEventListener("mouseleave", function () {
       node.classList.remove("is-hover");
+      pin.style.transform = "scale(1.0)";
     });
 
     return node;
@@ -1009,139 +1052,99 @@
     var maxPrice = parseInt(params.get("priceMax")) || Infinity;
 
     var filteredItems = state.items.filter(function (item) {
-      if (item.type !== "hotel") return true; // 관광지는 그대로 표시 (원할 경우 관광지도 필터 가능)
-      
+      if (item.type !== "hotel") return true;
       var pricing = getPricing(item, 1);
       return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
     });
 
     var mapLevel = state.map && state.map.getLevel ? state.map.getLevel() : 0;
-    var gridKm = getHotelClusterGridKm(mapLevel);
+    var gridKm = getClusterGridKm(mapLevel);
 
-    var hotelItems = filteredItems.filter(function (item) {
-      return item.type === "hotel";
-    });
-    var otherItems = filteredItems.filter(function (item) {
-      return item.type !== "hotel";
-    });
+    var types = ["hotel", "attraction"];
+    
+    types.forEach(function(type) {
+        var itemsByType = filteredItems.filter(function (item) {
+          return item.type === type;
+        });
 
-    if (gridKm > 0 && hotelItems.length > 1) {
-      var center = state.map.getCenter();
-      var centerLat = center.getLat();
-      var latStep = gridKm / 110.574; // km -> degrees lat
-      var lngStep = gridKm / (111.320 * Math.max(0.2, Math.cos((centerLat * Math.PI) / 180))); // km -> degrees lng
+        if (gridKm > 0 && itemsByType.length > 1) {
+          var center = state.map.getCenter();
+          var centerLat = center.getLat();
+          var latStep = gridKm / 110.574;
+          var lngStep = gridKm / (111.320 * Math.max(0.2, Math.cos((centerLat * Math.PI) / 180)));
 
-      var bucket = {};
-      hotelItems.forEach(function (item) {
-        var latKey = Math.floor(item.lat / latStep);
-        var lngKey = Math.floor(item.lng / lngStep);
-        var key = latKey + ":" + lngKey;
-        if (!bucket[key]) {
-          bucket[key] = [];
-        }
-        bucket[key].push(item);
-      });
-
-      Object.keys(bucket).forEach(function (key) {
-        var items = bucket[key];
-        if (!items || !items.length) {
-          return;
-        }
-
-        if (items.length === 1) {
-          var item = items[0];
-          var position = new kakao.maps.LatLng(item.lat, item.lng);
-          var node = createPoiMarkerNode(item);
-          var overlay = new kakao.maps.CustomOverlay({
-            position: position,
-            content: node,
-            yAnchor: 1.05,
-            zIndex: 3
+          var bucket = {};
+          itemsByType.forEach(function (item) {
+            var latKey = Math.floor(item.lat / latStep);
+            var lngKey = Math.floor(item.lng / lngStep);
+            var key = latKey + ":" + lngKey;
+            if (!bucket[key]) bucket[key] = [];
+            bucket[key].push(item);
           });
 
-          node.addEventListener("click", function (event) {
-            event.preventDefault();
-            state.map.panTo(position);
-            openPoiDetailPanel(state, item);
+          Object.keys(bucket).forEach(function (key) {
+            var items = bucket[key];
+            if (!items || !items.length) return;
+
+            if (items.length === 1) {
+              renderSingleMarker(state, items[0]);
+              return;
+            }
+
+            var sumLat = 0; var sumLng = 0;
+            items.forEach(function (item) {
+              sumLat += item.lat;
+              sumLng += item.lng;
+            });
+
+            var clusterLat = sumLat / items.length;
+            var clusterLng = sumLng / items.length;
+            var clusterPosition = new kakao.maps.LatLng(clusterLat, clusterLng);
+            var clusterNode = createClusterNode(items.length, type);
+            var clusterOverlay = new kakao.maps.CustomOverlay({
+              position: clusterPosition,
+              content: clusterNode,
+              yAnchor: 0.5, // Center align for the circular cluster
+              zIndex: type === "hotel" ? 4 : 3
+            });
+
+            clusterNode.addEventListener("click", function (event) {
+              event.preventDefault();
+              var currentLevel = state.map.getLevel();
+              var nextLevel = Math.max(1, currentLevel - 2);
+              state.map.setLevel(nextLevel);
+              state.map.panTo(clusterPosition);
+            });
+
+            clusterOverlay.setMap(state.map);
+            state.overlays.push(clusterOverlay);
           });
-
-          overlay.setMap(state.map);
-          state.overlays.push(overlay);
-          return;
+        } else {
+          itemsByType.forEach(function (item) {
+            renderSingleMarker(state, item);
+          });
         }
+    });
+  }
 
-        var sumLat = 0;
-        var sumLng = 0;
-        items.forEach(function (item) {
-          sumLat += item.lat;
-          sumLng += item.lng;
-        });
-
-        var clusterLat = sumLat / items.length;
-        var clusterLng = sumLng / items.length;
-        var clusterPosition = new kakao.maps.LatLng(clusterLat, clusterLng);
-        var clusterNode = createHotelClusterNode(items.length);
-        var clusterOverlay = new kakao.maps.CustomOverlay({
-          position: clusterPosition,
-          content: clusterNode,
-          yAnchor: 1.05,
-          zIndex: 4
-        });
-
-        clusterNode.addEventListener("click", function (event) {
-          event.preventDefault();
-          var currentLevel = state.map.getLevel();
-          var nextLevel = Math.max(1, currentLevel - 2);
-          state.map.setLevel(nextLevel);
-          state.map.panTo(clusterPosition);
-        });
-
-        clusterOverlay.setMap(state.map);
-        state.overlays.push(clusterOverlay);
-      });
-    } else {
-      hotelItems.forEach(function (item) {
-        var position = new kakao.maps.LatLng(item.lat, item.lng);
-        var node = createPoiMarkerNode(item);
-        var overlay = new kakao.maps.CustomOverlay({
-          position: position,
-          content: node,
-          yAnchor: 1.05,
-          zIndex: 3
-        });
-
-        node.addEventListener("click", function (event) {
-          event.preventDefault();
-          state.map.panTo(position);
-          openPoiDetailPanel(state, item);
-        });
-
-        overlay.setMap(state.map);
-        state.overlays.push(overlay);
-      });
-    }
-
-    otherItems.forEach(function (item) {
-      var position = new kakao.maps.LatLng(item.lat, item.lng);
-      var node = createPoiMarkerNode(item);
-      var overlay = new kakao.maps.CustomOverlay({
-        position: position,
-        content: node,
-        yAnchor: 1.05,
-        zIndex: 2
-      });
-
-      node.addEventListener("click", function (event) {
-        event.preventDefault();
-        state.map.panTo(position);
-        openPoiDetailPanel(state, item);
-      });
-
-      overlay.setMap(state.map);
-      state.overlays.push(overlay);
+  function renderSingleMarker(state, item) {
+    var position = new kakao.maps.LatLng(item.lat, item.lng);
+    var node = createPoiMarkerNode(item);
+    var overlay = new kakao.maps.CustomOverlay({
+      position: position,
+      content: node,
+      yAnchor: 1.05,
+      zIndex: item.type === "hotel" ? 3 : 2
     });
 
-    return;
+    node.addEventListener("click", function (event) {
+      event.preventDefault();
+      state.map.panTo(position);
+      openPoiDetailPanel(state, item);
+    });
+
+    overlay.setMap(state.map);
+    state.overlays.push(overlay);
   }
 
   function updateResultCount(count) {
@@ -1770,18 +1773,7 @@
     toggleButton.addEventListener("click", function (event) {
       event.preventDefault();
       setResultPanelExpanded(panel.hidden);
-      if (CURRENT_MAP_STATE) {
-        // 패널 열림/닫힘으로 지도 컨테이너 크기가 바뀌므로 중심 유지 relayout 수행
-        window.setTimeout(function () {
-          if (CURRENT_MAP_STATE && CURRENT_MAP_STATE.map) {
-            var center = CURRENT_MAP_STATE.map.getCenter();
-            CURRENT_MAP_STATE.map.relayout();
-            if (center) {
-              CURRENT_MAP_STATE.map.setCenter(center);
-            }
-          }
-        }, 0);
-      }
+      // Removed manual relayout: ResizeObserver will handle this using state.lastCenter
     });
   }
 
@@ -1798,15 +1790,7 @@
     function setOpen(open) {
       panel.hidden = !open;
       toggleButton.setAttribute("aria-expanded", String(open));
-      if (CURRENT_MAP_STATE && CURRENT_MAP_STATE.map) {
-        window.setTimeout(function () {
-          var center = CURRENT_MAP_STATE.map.getCenter();
-          CURRENT_MAP_STATE.map.relayout();
-          if (center) {
-            CURRENT_MAP_STATE.map.setCenter(center);
-          }
-        }, 0);
-      }
+      // Removed manual relayout: ResizeObserver will handle this using state.lastCenter
     }
 
     setOpen(false);
