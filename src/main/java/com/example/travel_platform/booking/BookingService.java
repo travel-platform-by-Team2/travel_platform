@@ -282,10 +282,12 @@ public class BookingService {
             Integer sessionUserId,
             String lodgingName,
             String regionKey,
+            String location,
             String checkIn,
             String checkOut,
             String guests,
-            Integer totalPriceRaw,
+            Integer pricePerNight,
+            Integer taxAndServiceFee,
             String imageUrl) {
 
         User user = userRepository.findById(sessionUserId).orElse(null);
@@ -319,7 +321,9 @@ public class BookingService {
         booking.setCheckIn(checkInDate);
         booking.setCheckOut(checkOutDate);
         booking.setGuestCount(parseGuestCount(guests));
-        booking.setTotalPrice(totalPriceRaw == null ? 0 : totalPriceRaw);
+        booking.setPricePerNight(pricePerNight == null ? 0 : pricePerNight);
+        booking.setTaxAndServiceFee(taxAndServiceFee == null ? 0 : taxAndServiceFee);
+        booking.setLocation(blankToDefault(location, "부산"));
         booking.setImageUrl(imageUrl);
 
         bookingRepository.save(booking);
@@ -327,6 +331,25 @@ public class BookingService {
 
     @Transactional
     public void createBooking(Integer sessionUserId, BookingRequest.CreateBookingDTO reqDTO) {
+        User user = userRepository.findById(sessionUserId).orElse(null);
+        if (user == null) return;
+
+        TripPlan plan = tripRepository.findPlanById(reqDTO.getTripPlanId()).orElse(null);
+        if (plan == null) return;
+
+        Booking booking = new Booking();
+        booking.setUser(user);
+        booking.setTripPlan(plan);
+        booking.setLodgingName(reqDTO.getLodgingName());
+        booking.setCheckIn(reqDTO.getCheckIn());
+        booking.setCheckOut(reqDTO.getCheckOut());
+        booking.setGuestCount(reqDTO.getGuestCount());
+        booking.setPricePerNight(reqDTO.getPricePerNight());
+        booking.setTaxAndServiceFee(reqDTO.getTaxAndServiceFee());
+        booking.setLocation(reqDTO.getLocation());
+        booking.setImageUrl(reqDTO.getImageUrl());
+
+        bookingRepository.save(booking);
     }
 
     @Transactional

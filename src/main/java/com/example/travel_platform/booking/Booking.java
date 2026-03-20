@@ -50,8 +50,14 @@ public class Booking {
     @Column(name = "guest_count", nullable = false)
     private Integer guestCount;
 
-    @Column(name = "total_price", nullable = false)
-    private Integer totalPrice;
+    @Column(name = "price_per_night", nullable = false)
+    private Integer pricePerNight;
+
+    @Column(name = "tax_and_service_fee", nullable = false)
+    private Integer taxAndServiceFee;
+
+    @Column(name = "location", nullable = false, length = 50)
+    private String location;
 
     @Column(name = "image_url")
     private String imageUrl;
