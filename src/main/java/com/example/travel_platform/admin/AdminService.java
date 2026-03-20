@@ -28,12 +28,12 @@ public class AdminService {
     private static final int RECENT_BOARD_DAYS = 7;
     private static final int BOARD_PAGE_SIZE = 10;
     private static final int BOARD_PAGE_BLOCK_SIZE = 5;
-    private static final DateTimeFormatter DASHBOARD_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    private static final DateTimeFormatter DASHBOARD_DATE_TIME_FORMATTER = DateTimeFormatter
+            .ofPattern("yyyy.MM.dd HH:mm");
 
     private final AdminRepository adminRepository;
     private final BoardRepository boardRepository;
 
-    // dashboard page
     public AdminResponse.DashboardPageDTO getDashboardPage() {
         long totalUserCount = adminRepository.count();
         long inactiveUserCount = adminRepository.countByActiveFalse();
@@ -51,7 +51,9 @@ public class AdminService {
                 recentBoardCount,
                 totalBoardViewCount);
 
-        List<AdminResponse.StatusChartItemDTO> userStatusItems = createUserStatusItems(totalUserCount, activeUserCount,
+        List<AdminResponse.StatusChartItemDTO> userStatusItems = createUserStatusItems(
+                totalUserCount,
+                activeUserCount,
                 inactiveUserCount);
         List<AdminResponse.CategoryChartItemDTO> boardCategoryItems = createBoardCategoryItems(totalBoardCount);
         List<AdminResponse.RecentUserDTO> recentUsers = loadRecentUsers();
@@ -71,7 +73,6 @@ public class AdminService {
                 recentBoards);
     }
 
-    // users page
     public AdminResponse.UserListPageDTO getUsersPage(Boolean active, String keyword) {
         String normalizedKeyword = normalizeKeyword(keyword);
         List<User> users = findUsers(active, normalizedKeyword);
@@ -95,68 +96,85 @@ public class AdminService {
         }
 
         if (!sessionUser.isAdmin()) {
-            throw new Exception403("관리자만 삭제할 수 있습니다.");
+            throw new Exception403("관리자만 제어할 수 있습니다.");
         }
 
         Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new Exception404("게시글을 찾을수가 없습니다"));
+                .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
 
         boardRepository.deleteLikesByBoard(boardId);
         boardRepository.delete(board);
     }
 
-    // boards page
-    public AdminResponse.AdminBoardListDTO getBoardsPage(String category, String keyword, int page) {
+    public AdminResponse.AdminBoardListDTO getBoardsPage(String category, String keyword, String sort, int page) {
         int offset = page * BOARD_PAGE_SIZE;
+        String normalizedKeyword = normalizeKeyword(keyword);
+        String normalizedSort = normalizeSort(sort);
         String allCategory = (category == null || category.isBlank()) ? "all" : category;
+
         List<Board> boards;
         long categoryCount;
         long allCount = boardRepository.count();
         boolean isAllCategory = "all".equals(allCategory);
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasKeyword = !normalizedKeyword.isBlank();
 
         if (hasKeyword) {
-            String[] words = keyword.trim().split("\\s+");
+            String[] words = normalizedKeyword.split("\\s+");
 
             if (isAllCategory) {
-                boards = boardRepository.search(null, words, offset, BOARD_PAGE_SIZE);
+                boards = boardRepository.search(null, words, normalizedSort, offset, BOARD_PAGE_SIZE);
                 categoryCount = boardRepository.countSearch(null, words);
             } else {
-                boards = boardRepository.search(allCategory, words, offset, BOARD_PAGE_SIZE);
+                boards = boardRepository.search(allCategory, words, normalizedSort, offset, BOARD_PAGE_SIZE);
                 categoryCount = boardRepository.countSearch(allCategory, words);
             }
         } else if (!isAllCategory) {
-            boards = boardRepository.findAllPagingByCategory(allCategory, offset, BOARD_PAGE_SIZE);
+            boards = boardRepository.findAllPagingByCategory(allCategory, normalizedSort, offset, BOARD_PAGE_SIZE);
             categoryCount = boardRepository.countByCategory(allCategory);
         } else {
-            boards = boardRepository.findAllPaging(offset, BOARD_PAGE_SIZE);
+            boards = boardRepository.findAllPaging(normalizedSort, offset, BOARD_PAGE_SIZE);
             categoryCount = boardRepository.count();
         }
 
         int totalPages = getTotalPages(categoryCount);
-        List<AdminResponse.PageItemDTO> pageItems = createBoardPageItems(page, totalPages, keyword);
-        List<AdminResponse.AdminBoardDTO> boardDTOs = createBoardDTOs(boards);
-        Integer prevPage = page == 0 ? null : page - 1;
-        Integer nextPage = boardDTOs.size() < BOARD_PAGE_SIZE ? null : page + 1;
-
-        return AdminResponse.AdminBoardListDTO.of(
-                boardDTOs,
-                pageItems,
+        List<AdminResponse.PageItemDTO> pageItems = createBoardPageItems(
                 page,
                 totalPages,
-                categoryCount,
-                allCount,
-                prevPage,
-                nextPage,
-                category,
-                keyword,
-                allCategory,
-                isAllCategory ? null : allCategory,
-                isCategory(category, "tips"),
-                isCategory(category, "plan"),
-                isCategory(category, "food"),
-                isCategory(category, "review"),
-                isCategory(category, "qna"));
+                normalizedKeyword,
+                normalizedSort,
+                allCategory);
+        List<AdminResponse.AdminBoardDTO> boardDTOs = createBoardDTOs(boards);
+        Integer prevPage = page == 0 ? null : page - 1;
+        Integer nextPage = page >= totalPages - 1 ? null : page + 1;
+
+        AdminResponse.AdminBoardListDTO dto = new AdminResponse.AdminBoardListDTO();
+        dto.setBoards(boardDTOs);
+        dto.setPageItems(pageItems);
+        dto.setCurrentPage(page);
+        dto.setTotalPages(totalPages);
+        dto.setTotalCount(categoryCount);
+        dto.setAllCount(allCount);
+        dto.setPrevPage(prevPage);
+        dto.setNextPage(nextPage);
+        dto.setCategory(category);
+        dto.setKeyword(normalizedKeyword);
+        dto.setSort(normalizedSort);
+        dto.setSortLabel(toSortLabel(normalizedSort));
+        dto.setAllCategory(allCategory);
+        dto.setAllCategoryTab(isAllCategory);
+        dto.setSortLikes("likes".equals(normalizedSort));
+        dto.setSortDownlikes("downlikes".equals(normalizedSort));
+        dto.setSortViews("view".equals(normalizedSort));
+        dto.setSortDownviews("downview".equals(normalizedSort));
+        dto.setSortLatest("latest".equals(normalizedSort));
+        dto.setSortDate("date".equals(normalizedSort));
+        dto.setSelectCategory(isAllCategory ? null : allCategory);
+        dto.setTips(isCategory(category, "tips"));
+        dto.setPlan(isCategory(category, "plan"));
+        dto.setFood(isCategory(category, "food"));
+        dto.setReview(isCategory(category, "review"));
+        dto.setQna(isCategory(category, "qna"));
+        return dto;
     }
 
     private List<User> findUsers(Boolean active, String keyword) {
@@ -194,7 +212,12 @@ public class AdminService {
         return userDTOs;
     }
 
-    private List<AdminResponse.PageItemDTO> createBoardPageItems(int page, int totalPages, String keyword) {
+    private List<AdminResponse.PageItemDTO> createBoardPageItems(
+            int page,
+            int totalPages,
+            String keyword,
+            String sort,
+            String allCategory) {
         int startPage = (page / BOARD_PAGE_BLOCK_SIZE) * BOARD_PAGE_BLOCK_SIZE;
         int endPage = startPage + BOARD_PAGE_BLOCK_SIZE - 1;
 
@@ -205,7 +228,7 @@ public class AdminService {
         List<AdminResponse.PageItemDTO> pageItems = new ArrayList<>();
 
         for (int i = startPage; i <= endPage; i++) {
-            pageItems.add(AdminResponse.PageItemDTO.of(i, i + 1, i == page, keyword));
+            pageItems.add(AdminResponse.PageItemDTO.of(i, i + 1, i == page, keyword, sort, allCategory));
         }
 
         return pageItems;
@@ -244,6 +267,28 @@ public class AdminService {
         }
 
         return keyword.trim();
+    }
+
+    private String normalizeSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        return switch (sort) {
+            case "likes", "downlikes", "view", "downview", "latest", "date" -> sort;
+            default -> "latest";
+        };
+    }
+
+    private String toSortLabel(String sort) {
+        return switch (sort) {
+            case "likes" -> "좋아요순 ↑";
+            case "downlikes" -> "좋아요순 ↓";
+            case "view" -> "조회수 ↑";
+            case "downview" -> "조회수 ↓";
+            case "date" -> "날짜순 ↓";
+            default -> "날짜순 ↑";
+        };
     }
 
     private boolean isCategory(String category, String targetCategory) {
@@ -417,6 +462,7 @@ public class AdminService {
         if (total <= 0) {
             return 0;
         }
+
         return (int) Math.round((double) count * 100 / total);
     }
 
@@ -429,6 +475,7 @@ public class AdminService {
         if (value == null) {
             return "-";
         }
+
         return value.format(DASHBOARD_DATE_TIME_FORMATTER);
     }
 }

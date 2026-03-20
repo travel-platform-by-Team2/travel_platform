@@ -280,7 +280,16 @@ public class AdminResponse {
         private Integer nextPage;
         private String category;
         private String keyword;
+        private String sort;
+        private String sortLabel;
         private String allCategory;
+        private boolean allCategoryTab;
+        private boolean isSortLikes;
+        private boolean isSortDownlikes;
+        private boolean isSortViews;
+        private boolean isSortDownviews;
+        private boolean isSortLatest;
+        private boolean isSortDate;
         private String selectCategory;
         private boolean isTips;
         private boolean isPlan;
@@ -299,7 +308,16 @@ public class AdminResponse {
                 Integer nextPage,
                 String category,
                 String keyword,
+                String sort,
+                String sortLabel,
                 String allCategory,
+                boolean allCategoryTab,
+                boolean isSortLikes,
+                boolean isSortDownlikes,
+                boolean isSortViews,
+                boolean isSortDownviews,
+                boolean isSortLatest,
+                boolean isSortDate,
                 String selectCategory,
                 boolean isTips,
                 boolean isPlan,
@@ -317,7 +335,16 @@ public class AdminResponse {
             dto.setNextPage(nextPage);
             dto.setCategory(category);
             dto.setKeyword(keyword);
+            dto.setSort(sort);
+            dto.setSortLabel(sortLabel);
             dto.setAllCategory(allCategory);
+            dto.setAllCategoryTab(allCategoryTab);
+            dto.setSortLikes(isSortLikes);
+            dto.setSortDownlikes(isSortDownlikes);
+            dto.setSortViews(isSortViews);
+            dto.setSortDownviews(isSortDownviews);
+            dto.setSortLatest(isSortLatest);
+            dto.setSortDate(isSortDate);
             dto.setSelectCategory(selectCategory);
             dto.setTips(isTips);
             dto.setPlan(isPlan);
@@ -334,13 +361,18 @@ public class AdminResponse {
         private int displayNumber;
         private boolean current;
         private String keyword;
+        private String sort;
+        private String selectCategory;
 
-        public static PageItemDTO of(int page, int displayNumber, boolean current, String keyword) {
+        public static PageItemDTO of(int page, int displayNumber, boolean current, String keyword, String sort,
+                String selectCategory) {
             PageItemDTO dto = new PageItemDTO();
             dto.setPage(page);
             dto.setDisplayNumber(displayNumber);
             dto.setCurrent(current);
             dto.setKeyword(keyword);
+            dto.setSort(sort);
+            dto.setSelectCategory(selectCategory);
             return dto;
         }
     }
