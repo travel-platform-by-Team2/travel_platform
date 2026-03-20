@@ -15,6 +15,7 @@ import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardRepository;
+import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.User;
 
 import lombok.RequiredArgsConstructor;
@@ -90,7 +91,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteBoard(User sessionUser, Integer boardId) {
+    public void deleteBoard(SessionUser sessionUser, Integer boardId) {
         if (sessionUser == null) {
             throw new Exception401("로그인이 필요합니다.");
         }
@@ -289,8 +290,8 @@ public class AdminService {
 
     private String toSortDirectionLabel(String sort) {
         return switch (sort) {
-            case "downlikes", "downview", "date" -> "ASC";
-            default -> "DESC";
+            case "downlikes", "downview", "date" -> "오름차순";
+            default -> "내림차순";
         };
     }
 
