@@ -65,15 +65,17 @@ public class UserService {
     }
 
     @Transactional
-
     public SessionUser snsLogin(String email, String username, String provider, String providerId) {
         // 1. 기존 유저 확인 (이메일 + 공급자)
         User user = userRepository.findByEmailAndProvider(email, provider)
                 .orElseGet(() -> {
-                    // 2. 신규 SNS 유저면 자동 회원가입 (username 중복 방지를 위해 뒤에 4자리 추가)
-                    String suffix = providerId.length() > 4 ? providerId.substring(0, 4) : providerId;
+                    // 2. 신규 SNS 유저면 자동 회원가입
+                    // username이 "카카오"라면, "카카오12" 처럼 짧고 한글/숫자 조합으로 생성 (제약 조건 준수용)
+                    String suffix = providerId.length() > 2 ? providerId.substring(0, 2) : providerId;
+                    String safeUsername = username + suffix; // "카카오12" 형태
+
                     User newUser = User.createSNS(
-                            username + "_" + suffix,
+                            safeUsername,
                             email,
                             provider,
                             providerId);

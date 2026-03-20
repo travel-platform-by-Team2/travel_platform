@@ -72,10 +72,23 @@
 </button>
 </form>
 
-<div class="fx-group-col-gap2" style="margin-top: 1rem;">
-    <a href="/auth/kakao/callback?code=fake_code" class="login-button-01" style="background-color: #FEE500; color: #191919; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none;">
+<div class="fx-group-col-gap2" style="margin-top: 1px; display: flex; flex-direction: column; gap: 1px;">
+    <!-- 네이버 로그인 (Green) -->
+    <a href="/auth/naver/callback?code=fake_code" class="login-button-01" style="background-color: #03C75A; color: #FFFFFF; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; height: 50px; border-radius: 8px;">
+        <span style="font-weight: bold; font-size: 1.1rem; margin-right: 8px;">N</span>
+        <span style="font-weight: bold;">네이버 로그인</span>
+    </a>
+
+    <!-- 카카오 로그인 (Yellow) -->
+    <a href="/auth/kakao/callback?code=fake_code" class="login-button-01" style="background-color: #FEE500; color: #191919; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; height: 50px; border-radius: 8px;">
         <span class="icon-ms-sm" style="margin-right: 8px;">chat</span>
         <span style="font-weight: bold;">카카오 로그인</span>
+    </a>
+
+    <!-- 구글 로그인 (White with Border) -->
+    <a href="/auth/google/callback?code=fake_code" class="login-button-01" style="background-color: #FFFFFF; color: #757575; text-decoration: none; display: flex; align-items: center; justify-content: center; border: 1px solid #DADCE0; height: 50px; border-radius: 8px;">
+        <span style="font-weight: bold; font-size: 1.1rem; margin-right: 8px; color: #4285F4;">G</span>
+        <span style="font-weight: bold; color: #191919;">구글 로그인</span>
     </a>
 </div>
 

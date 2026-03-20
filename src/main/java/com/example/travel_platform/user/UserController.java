@@ -5,6 +5,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -38,17 +39,26 @@ public class UserController {
 
     // SNS 로그인 콜백 (카카오/네이버/구글 공통)
     @GetMapping("/auth/{provider}/callback")
-    public String snsCallback(@PathVariable String provider, String code) {
-        // 실제 구현 시 OAuthService를 통해 토큰 및 유저 정보를 가져와야 함
-        // 여기서는 흐름 확인을 위한 가상 데이터를 사용
-        String email = "test_" + provider + "@example.com";
-        String nickname = provider + "_User";
-        String providerId = "unique_id_12345";
+    public String snsCallback(@PathVariable("provider") String provider, @RequestParam("code") String code) {
+        try {
+            // 실제 구현 시 OAuthService를 통해 토큰 및 유저 정보를 가져와야 함
+            // 여기서는 흐름 확인을 위한 가상 데이터를 사용
+            String email = "test_" + provider + "@example.com";
+            
+            // 제공자별 한글 이름 설정
+            String nickname = provider.equals("kakao") ? "카카오" : 
+                             provider.equals("naver") ? "네이버" : "구글";
+            
+            String providerId = "12345"; 
 
-        SessionUser sessionUser = userService.snsLogin(email, nickname, provider, providerId);
-        SessionUsers.save(session, sessionUser);
+            SessionUser sessionUser = userService.snsLogin(email, nickname, provider, providerId);
+            SessionUsers.save(session, sessionUser);
 
-        return "redirect:/";
+            return "redirect:/";
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     // 회원가입 성공_가입 후 로그인 폼으로 이동 : 지윤

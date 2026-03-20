@@ -40,6 +40,11 @@ create table user_tb (
   username varchar(255) not null unique,
   password varchar(100) not null,
   email varchar(255),
+  tel varchar(20),
+  role varchar(20) default 'USER',
+  provider varchar(50),
+  provider_id varchar(255),
+  active tinyint(1) not null default 1,
   created_at datetime not null default current_timestamp
 );
 
