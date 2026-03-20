@@ -10,14 +10,14 @@
 <body class="page-body page-body-sans">
   {{>partials/header}}
 
-  {{#passwordSuccessMessage}}
+  {{#page.passwordSuccessMessage}}
   <div class="mypage-feedback-toast-shell" aria-live="polite" aria-atomic="true">
     <div class="mypage-feedback-toast" data-feedback-toast role="status">
       <span class="material-symbols-outlined">check_circle</span>
-      <span>{{passwordSuccessMessage}}</span>
+      <span>{{page.passwordSuccessMessage}}</span>
     </div>
   </div>
-  {{/passwordSuccessMessage}}
+  {{/page.passwordSuccessMessage}}
 
   <main class="account-page mypage-screen">
     <div class="mypage-screen__inner">
@@ -52,12 +52,12 @@
         </div>
         {{/page.hasBookings}}
 
-        {{^page.bookings}}
+        {{^page.hasBookings}}
         <div class="mypage-empty-state">
           <span class="material-symbols-outlined">event_busy</span>
           <p>예정된 예약이 없습니다.</p>
         </div>
-        {{/page.bookings}}
+        {{/page.hasBookings}}
       </section>
 
       <section class="mypage-section">
@@ -88,12 +88,12 @@
         </div>
         {{/page.hasTripPlans}}
 
-        {{^page.tripPlans}}
+        {{^page.hasTripPlans}}
         <div class="mypage-empty-state">
           <span class="material-symbols-outlined">travel_explore</span>
           <p>다가오는 여행 계획이 없습니다.</p>
         </div>
-        {{/page.tripPlans}}
+        {{/page.hasTripPlans}}
       </section>
 
       <section class="mypage-section mypage-section--account">
@@ -141,9 +141,9 @@
     </div>
 
     <div
-      class="mypage-password-overlay {{^passwordModalOpen}}is-hidden{{/passwordModalOpen}}"
+      class="mypage-password-overlay {{^page.passwordModalOpen}}is-hidden{{/page.passwordModalOpen}}"
       data-password-modal-overlay
-      aria-hidden="{{^passwordModalOpen}}true{{/passwordModalOpen}}{{#passwordModalOpen}}false{{/passwordModalOpen}}"
+      aria-hidden="{{^page.passwordModalOpen}}true{{/page.passwordModalOpen}}{{#page.passwordModalOpen}}false{{/page.passwordModalOpen}}"
     >
       <div
         class="mypage-password-modal"
@@ -160,9 +160,9 @@
         </div>
 
         <form class="mypage-password-form" action="/mypage/password" method="post">
-          {{#passwordError}}
-          <p class="mypage-password-form__error">{{passwordError}}</p>
-          {{/passwordError}}
+          {{#page.passwordError}}
+          <p class="mypage-password-form__error">{{page.passwordError}}</p>
+          {{/page.passwordError}}
 
           <label class="mypage-password-field">
             <span>현재 비밀번호</span>
@@ -189,9 +189,9 @@
     </div>
 
     <div
-      class="mypage-password-overlay {{^withdrawModalOpen}}is-hidden{{/withdrawModalOpen}}"
+      class="mypage-password-overlay {{^page.withdrawModalOpen}}is-hidden{{/page.withdrawModalOpen}}"
       data-withdraw-modal-overlay
-      aria-hidden="{{^withdrawModalOpen}}true{{/withdrawModalOpen}}{{#withdrawModalOpen}}false{{/withdrawModalOpen}}"
+      aria-hidden="{{^page.withdrawModalOpen}}true{{/page.withdrawModalOpen}}{{#page.withdrawModalOpen}}false{{/page.withdrawModalOpen}}"
     >
       <div
         class="mypage-password-modal"
@@ -208,9 +208,9 @@
         </div>
 
         <form class="mypage-password-form" action="/mypage/withdraw" method="post">
-          {{#withdrawError}}
-          <p class="mypage-password-form__error">{{withdrawError}}</p>
-          {{/withdrawError}}
+          {{#page.withdrawError}}
+          <p class="mypage-password-form__error">{{page.withdrawError}}</p>
+          {{/page.withdrawError}}
 
           <p class="mypage-password-form__help">
             <span class="material-symbols-outlined">warning</span>

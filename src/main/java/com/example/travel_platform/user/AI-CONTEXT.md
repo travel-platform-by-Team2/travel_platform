@@ -33,11 +33,11 @@
 - `User.role`은 `_core/interceptor/AdminInterceptor`의 관리자 판별과 공용 헤더의 관리자 대시보드 버튼 노출 조건에 사용되므로, 권한 체계를 바꾸면 `/admin`, `/admin/*` 접근 규칙과 헤더 UI를 함께 조정해야 한다.
 - 일반 사용자 비활성 차단은 `UserService.login(...)`과 `UserSessionChecker` + `_core/interceptor` 조합으로 처리한다. 로그인 시도는 `현재 로그인할 수 없는 계정입니다.`로 막고, 로그인 중 비활성 감지는 `계정 상태가 변경되어 다시 로그인해 주세요.` 문구로 강제 로그아웃한다.
 - 로그인/회원가입 폼 필드 이름은 DTO와 템플릿이 맞물려 있으므로 이름 변경을 한쪽만 하지 않는다.
-- `UserController`는 `/`, `/login-form`, `/join-form`, `/login`, `/join`, `/logout`를 담당하므로 인증 진입 경로를 바꿀 때 redirect 흐름도 같이 확인한다.
-  <<<<<<< HEAD
-- # `SessionUser` 계약은 `mypage`, `_core/interceptor`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
-- `SessionUser` 계약은 `mypage`, `_core/filter`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
-  > > > > > > > dev
+- `UserController`는 `/`, `/login-form`, `/join-form`, `/login`, `/join`, `/logout`, `/auth/{provider}/callback`를 담당하므로 인증 진입 경로를 바꿀 때 세션 저장과 redirect 흐름을 같이 확인한다.
+- `main-index.mustache`는 `/js/main-index.js`를 직접 로드하고, `main-index`, `login`, `signup` 같은 챗봇 포함 페이지는 `{{>partials/chatbot-assets}}`로 챗봇 CSS를 가져온다.
+- `SessionUser` 계약은 `mypage`, `_core/interceptor`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
+- `UserController`는 세션 저장을 직접 처리하되, 세션 키 접근은 `SessionUsers` helper를 통해서만 수행하는 구조를 유지한다.
+- `UserService`는 회원가입, 로그인, SNS dummy 로그인, 회원 탈퇴 흐름을 담당하고, 세션 저장 자체는 맡지 않는다.
 - 회원 탈퇴는 `active` 변경이 아니라 실제 `user_tb` 삭제이며, 관리자 계정은 서비스 레벨에서 탈퇴를 막는다.
 - 탈퇴 로직은 FK 제약 때문에 `board_like`, `reply`, `board`, `calendar_event`, `booking`, `trip_place`, `trip_plan`, `user` 순의 정리 흐름을 함께 봐야 한다.
 - `UserService.withdrawAccount(...)`는 현재 비밀번호 확인 후 관련 저장소를 호출해 연관 데이터를 지운 다음 `UserRepository.delete(...)`를 수행한다.
@@ -45,6 +45,7 @@
 ## 테스트
 
 - 로그인, 로그아웃, 회원가입과 세션 유지 흐름을 확인한다.
+- `UserTemplateContractTest`로 `main-index`, `login`, `signup`의 title, form, 기본 화면 계약을 확인한다.
 - 비활성 일반 사용자는 로그인할 수 없고, 로그인 중 비활성 처리되면 다음 요청에서 세션이 종료되는지 확인한다.
 - 로그인 후 세션에 `SessionUser` DTO가 저장되고 헤더가 정상 노출되는지 확인한다.
 - `/login-form` 접근, `/join` 검증 실패 시 `pages/signup` 재렌더링, `/logout` 후 세션 제거를 함께 점검한다.

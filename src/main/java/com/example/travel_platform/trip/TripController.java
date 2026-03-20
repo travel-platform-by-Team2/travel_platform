@@ -18,6 +18,16 @@ import jakarta.validation.Valid;
 @Controller
 public class TripController {
 
+    private static final String MODEL_PAGE = "page";
+    private static final String MODEL_PLAN = "plan";
+
+    private static final String VIEW_LIST = "pages/trip-list";
+    private static final String VIEW_CREATE = "pages/trip-create";
+    private static final String VIEW_DETAIL = "pages/trip-detail";
+    private static final String VIEW_PLACE = "pages/trip-add-place";
+
+    private static final String REDIRECT_PREFIX = "redirect:";
+
     private final TripService tripService;
     private final HttpSession session;
     private final String kakaoMapAppKey;
@@ -34,30 +44,27 @@ public class TripController {
     public String tripListPage(@RequestParam(name = "category", defaultValue = "result") String category,
             @RequestParam(name = "page", defaultValue = "0") int page,
             Model model) {
-        TripResponse.ListPageDTO pageDTO = tripService.getPlanList(requireSessionUserId(), category, page);
-        model.addAttribute("page", pageDTO);
-        return "pages/trip-list";
+        TripResponse.ListPageDTO pageDTO = tripService.getPlanList(requiredSessionUserId(), category, page);
+        return renderPage(model, pageDTO, VIEW_LIST);
     }
 
     @GetMapping("/create")
     public String tripCreatePage(Model model) {
-        model.addAttribute("page", TripResponse.CreateFormDTO.empty());
-        return "pages/trip-create";
+        return renderCreateForm(model, TripResponse.CreateFormDTO.empty());
     }
 
     @GetMapping("/detail")
     public String tripDetailPage(@RequestParam(name = "id") Integer id,
             Model model) {
-        TripResponse.DetailDTO detailDTO = tripService.getPlanDetail(requireSessionUserId(), id);
-        model.addAttribute("plan", detailDTO);
-        return "pages/trip-detail";
+        TripResponse.DetailDTO detailDTO = tripService.getPlanDetail(requiredSessionUserId(), id);
+        return renderDetail(model, detailDTO);
     }
 
     @GetMapping("/place")
     public String tripAddPlacePage(@RequestParam(name = "id") Integer id,
             Model model) {
-        model.addAttribute("page", tripService.getPlacePage(requireSessionUserId(), id, kakaoMapAppKey));
-        return "pages/trip-add-place";
+        TripResponse.PlacePageDTO pageDTO = tripService.getPlacePage(requiredSessionUserId(), id, kakaoMapAppKey);
+        return renderPage(model, pageDTO, VIEW_PLACE);
     }
 
     @PostMapping("/create")
@@ -65,25 +72,46 @@ public class TripController {
             BindingResult bindingResult,
             Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("page", TripResponse.CreateFormDTO.from(
-                    reqDTO.getTitle(),
-                    reqDTO.getRegion(),
-                    reqDTO.getWhoWith(),
-                    reqDTO.getStartDate(),
-                    reqDTO.getEndDate(),
-                    getFieldError(bindingResult, "title"),
-                    getFieldError(bindingResult, "region"),
-                    getFieldError(bindingResult, "whoWith"),
-                    getFieldError(bindingResult, "startDate"),
-                    getFieldError(bindingResult, "endDate")));
-            return "pages/trip-create";
+            return renderCreateForm(model, createFormPage(reqDTO, bindingResult));
         }
 
-        TripResponse.CreatedDTO createdDTO = tripService.createPlan(requireSessionUserId(), reqDTO);
-        return "redirect:" + createdDTO.getRedirectUrl();
+        TripResponse.CreatedDTO createdDTO = tripService.createPlan(requiredSessionUserId(), reqDTO);
+        return redirect(createdDTO.getRedirectUrl());
     }
 
-    private Integer requireSessionUserId() {
+    private String renderPage(Model model, Object pageDTO, String view) {
+        model.addAttribute(MODEL_PAGE, pageDTO);
+        return view;
+    }
+
+    private String renderCreateForm(Model model, TripResponse.CreateFormDTO formDTO) {
+        return renderPage(model, formDTO, VIEW_CREATE);
+    }
+
+    private String renderDetail(Model model, TripResponse.DetailDTO detailDTO) {
+        model.addAttribute(MODEL_PLAN, detailDTO);
+        return VIEW_DETAIL;
+    }
+
+    private TripResponse.CreateFormDTO createFormPage(TripRequest.CreatePlanDTO reqDTO, BindingResult bindingResult) {
+        return TripResponse.CreateFormDTO.from(
+                reqDTO.getTitle(),
+                reqDTO.getRegion(),
+                reqDTO.getWhoWith(),
+                reqDTO.getStartDate(),
+                reqDTO.getEndDate(),
+                getFieldError(bindingResult, "title"),
+                getFieldError(bindingResult, "region"),
+                getFieldError(bindingResult, "whoWith"),
+                getFieldError(bindingResult, "startDate"),
+                getFieldError(bindingResult, "endDate"));
+    }
+
+    private String redirect(String path) {
+        return REDIRECT_PREFIX + path;
+    }
+
+    private Integer requiredSessionUserId() {
         return SessionUsers.requireUserId(session);
     }
 

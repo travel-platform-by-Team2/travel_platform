@@ -18,14 +18,21 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminController {
+
+    private static final String DASHBOARD_MENU = "dashboard";
+    private static final String USERS_MENU = "users";
+    private static final String BOARDS_MENU = "boards";
+    private static final String DASHBOARD_VIEW = "pages/admin-dashboard";
+    private static final String USERS_VIEW = "pages/admin-users";
+    private static final String BOARDS_VIEW = "pages/admin-boards";
+    private static final String BOARDS_REDIRECT = "redirect:/admin/boards";
+
     private final AdminService adminService;
     private final HttpSession session;
 
     @GetMapping("")
     public String dashboard(Model model) {
-        applySidebarState(model, "dashboard");
-        model.addAttribute("page", adminService.getDashboardPage());
-        return "pages/admin-dashboard";
+        return renderDashboardPage(model, adminService.getDashboardPage());
     }
 
     @GetMapping("/users")
@@ -33,52 +40,37 @@ public class AdminController {
             @RequestParam(name = "active", required = false) Boolean active,
             @RequestParam(name = "keyword", required = false) String keyword,
             Model model) {
-        AdminResponse.UserListPageDTO page = adminService.getUsersPage(active, keyword);
-
-        applySidebarState(model, "users");
-        applyUsersPageModel(model, page);
-        return "pages/admin-users";
+        return renderUsersPage(model, adminService.getUsersPage(active, keyword));
     }
 
     @GetMapping("/boards")
-    public String boards(@RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
-            @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "page", defaultValue = "0") int page,
+    public String boards(@RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "page", defaultValue = "0") int page,
             Model model) {
-
-        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardsPage(category, keyword, sort, page);
-        model.addAttribute("model", responseDTO);
-        applySidebarState(model, "boards");
-        return "pages/admin-boards";
+        return renderBoardsPage(model, adminService.getBoardsPage(category, keyword, sort, page));
     }
 
     @PostMapping("/boards/{boardId}/delete")
-    public String deleteBoard(@PathVariable("boardId") Integer boardId) {
-        SessionUser sessionUser = SessionUsers.getOrNull(session);
+    public String deleteBoard(@PathVariable(name = "boardId") Integer boardId) {
+        SessionUser sessionUser = SessionUsers.require(session);
         adminService.deleteBoard(sessionUser, boardId);
-        return "redirect:/admin/boards";
+        return BOARDS_REDIRECT;
     }
 
-    private void applySidebarState(Model model, String currentMenu) {
-        model.addAttribute("dashboardActiveClass", isCurrentMenu(currentMenu, "dashboard"));
-        model.addAttribute("usersActiveClass", isCurrentMenu(currentMenu, "users"));
-        model.addAttribute("lodgingsActiveClass", isCurrentMenu(currentMenu, "lodgings"));
-        model.addAttribute("boardsActiveClass", isCurrentMenu(currentMenu, "boards"));
+    private String renderDashboardPage(Model model, AdminResponse.DashboardPageDTO page) {
+        model.addAttribute("page", page.withCurrentMenu(DASHBOARD_MENU));
+        return DASHBOARD_VIEW;
     }
 
-    private void applyUsersPageModel(Model model, AdminResponse.UserListPageDTO page) {
-        model.addAttribute("users", page.getUsers());
-        model.addAttribute("totalUserCount", page.getTotalUserCount());
-        model.addAttribute("inactiveUserCount", page.getInactiveUserCount());
-        model.addAttribute("keyword", page.getKeyword());
-        model.addAttribute("currentActive", page.getCurrentActive());
-        model.addAttribute("isAllTab", page.isAllTab());
-        model.addAttribute("isActiveTab", page.isActiveTab());
-        model.addAttribute("isInactiveTab", page.isInactiveTab());
+    private String renderUsersPage(Model model, AdminResponse.UserListPageDTO page) {
+        model.addAttribute("page", page.withCurrentMenu(USERS_MENU));
+        return USERS_VIEW;
     }
 
-    private String isCurrentMenu(String currentMenu, String targetMenu) {
-        return targetMenu.equals(currentMenu) ? " is-active" : "";
+    private String renderBoardsPage(Model model, AdminResponse.AdminBoardListDTO page) {
+        model.addAttribute("page", page.withCurrentMenu(BOARDS_MENU));
+        return BOARDS_VIEW;
     }
 }

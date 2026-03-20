@@ -1,6 +1,7 @@
 package com.example.travel_platform.booking;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class BookingRepositoryUpsertTest {
 
     @Test
-    void h2_merge_into_works() throws Exception {
+    void merge() throws Exception {
         String jdbcUrl = "jdbc:h2:mem:merge_test;DB_CLOSE_DELAY=-1";
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, "sa", "")) {
@@ -59,7 +60,7 @@ class BookingRepositoryUpsertTest {
                         FROM map_place_image_tb
                         GROUP BY place_name, image_url, source
                         """)) {
-                    assertEquals(true, resultSet.next());
+                    assertTrue(resultSet.next());
                     assertEquals(1, resultSet.getInt("cnt"));
                     assertEquals("place2", resultSet.getString("place_name"));
                     assertEquals("https://img/2", resultSet.getString("image_url"));
@@ -70,7 +71,7 @@ class BookingRepositoryUpsertTest {
     }
 
     @Test
-    void h2MySqlMode_onDuplicateKeyUpdate_works() throws Exception {
+    void dupKey() throws Exception {
         String jdbcUrl = "jdbc:h2:mem:upsert_test;MODE=MySQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1";
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, "sa", "")) {
@@ -126,7 +127,7 @@ class BookingRepositoryUpsertTest {
                         FROM map_place_image_tb
                         GROUP BY place_name, image_url, source
                         """)) {
-                    assertEquals(true, resultSet.next());
+                    assertTrue(resultSet.next());
                     assertEquals(1, resultSet.getInt("cnt"));
                     assertEquals("place2", resultSet.getString("place_name"));
                     assertEquals("https://img/2", resultSet.getString("image_url"));

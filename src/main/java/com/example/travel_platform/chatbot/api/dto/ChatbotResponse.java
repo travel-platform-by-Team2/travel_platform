@@ -20,6 +20,14 @@ public class ChatbotResponse {
         private String answer;
         /** 처리 메타 정보 */
         private MetaDTO meta;
+
+        public static AskDTO of(String processingType, String answer, MetaDTO meta) {
+            return AskDTO.builder()
+                    .processingType(processingType)
+                    .answer(answer)
+                    .meta(meta)
+                    .build();
+        }
     }
 
     /**
@@ -37,5 +45,20 @@ public class ChatbotResponse {
         private String generatedSql;
         /** 조회 결과 row 수(선택) */
         private Integer rowCount;
+
+        public static MetaDTO direct() {
+            return MetaDTO.builder()
+                    .needsDb(false)
+                    .build();
+        }
+
+        public static MetaDTO db(String querySummary, String generatedSql, Integer rowCount) {
+            return MetaDTO.builder()
+                    .needsDb(true)
+                    .querySummary(querySummary)
+                    .generatedSql(generatedSql)
+                    .rowCount(rowCount)
+                    .build();
+        }
     }
 }

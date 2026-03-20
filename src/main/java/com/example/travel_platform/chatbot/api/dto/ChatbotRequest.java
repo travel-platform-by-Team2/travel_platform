@@ -21,6 +21,13 @@ public class ChatbotRequest {
         /** 질문 해석 정확도를 높이기 위한 화면 컨텍스트(선택) */
         @Valid
         private ContextDTO context;
+
+        public static AskDTO of(String message, ContextDTO context) {
+            AskDTO dto = new AskDTO();
+            dto.setMessage(message);
+            dto.setContext(context);
+            return dto;
+        }
     }
 
     /**
@@ -32,5 +39,12 @@ public class ChatbotRequest {
         private String page;
         /** 특정 여행 계획 상세 화면에서 사용하는 식별자 */
         private Integer tripPlanId;
+
+        public static ContextDTO of(String page, Integer tripPlanId) {
+            ContextDTO dto = new ContextDTO();
+            dto.setPage(page);
+            dto.setTripPlanId(tripPlanId);
+            return dto;
+        }
     }
 }

@@ -66,10 +66,9 @@ public class ChatbotQueryService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        String safeSql = ensureSafeSql(sql);
-        String safeQuerySummary = toTextOrDefault(querySummary, DEFAULT_QUERY_SUMMARY);
-        List<Map<String, Object>> rows = executeQuery(safeSql);
-        return new QueryResult(safeSql, safeQuerySummary, rows);
+        SafeQuery safeQuery = buildSafeQuery(sql, querySummary);
+        List<Map<String, Object>> rows = executeQuery(safeQuery.sql());
+        return new QueryResult(safeQuery.sql(), safeQuery.querySummary(), rows);
     }
 
     private List<Map<String, Object>> executeQuery(String sql) {
@@ -82,6 +81,16 @@ public class ChatbotQueryService {
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     e);
         }
+    }
+
+    private SafeQuery buildSafeQuery(String sql, String querySummary) {
+        return new SafeQuery(
+                ensureSafeSql(sql),
+                sanitizeQuerySummary(querySummary));
+    }
+
+    private String sanitizeQuerySummary(String querySummary) {
+        return toTextOrDefault(querySummary, DEFAULT_QUERY_SUMMARY);
     }
 
     private String ensureSafeSql(String rawSql) {
@@ -97,7 +106,7 @@ public class ChatbotQueryService {
             throw unsafeSql("SQL 주석은 허용되지 않습니다.");
         }
 
-        validateBlockedKeyword(sql);
+        validateBlockedKeywords(sql);
         validateAllowedTables(sql);
         return enforceLimit(sql);
     }
@@ -109,7 +118,7 @@ public class ChatbotQueryService {
         return sql.trim().replaceAll("\\s+", " ");
     }
 
-    private void validateBlockedKeyword(String sql) {
+    private void validateBlockedKeywords(String sql) {
         String lowerSql = sql.toLowerCase(Locale.ROOT);
         for (String keyword : BLOCKED_KEYWORDS) {
             if (containsWord(lowerSql, keyword)) {
@@ -140,11 +149,14 @@ public class ChatbotQueryService {
             throw unsafeSql("허용된 테이블 참조가 없는 SQL입니다.");
         }
 
-        boolean hasDisallowedTable = referencedTables.stream()
-                .anyMatch(table -> !ALLOWED_TABLES.contains(table));
-        if (hasDisallowedTable) {
+        if (hasDisallowedTable(referencedTables)) {
             throw unsafeSql("허용되지 않은 테이블 참조가 포함되어 있습니다.");
         }
+    }
+
+    private boolean hasDisallowedTable(Set<String> referencedTables) {
+        return referencedTables.stream()
+                .anyMatch(table -> !ALLOWED_TABLES.contains(table));
     }
 
     private String normalizeTableName(String rawTable) {
@@ -194,5 +206,8 @@ public class ChatbotQueryService {
     }
 
     public record QueryResult(String sql, String querySummary, List<Map<String, Object>> rows) {
+    }
+
+    private record SafeQuery(String sql, String querySummary) {
     }
 }

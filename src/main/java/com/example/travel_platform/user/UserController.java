@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 @Controller
 public class UserController {
 
+    private static final String REDIRECT_HOME = "redirect:/";
+    private static final String REDIRECT_LOGIN_FORM = "redirect:/login-form";
+
     private final UserService userService;
     private final HttpSession session;
 
@@ -22,43 +25,31 @@ public class UserController {
         return "pages/main-index";
     }
 
-    // 로그아웃 시 리다이렉션 경로를 / (메인 페이지)로 변경 완료(지윤)
     @GetMapping("/logout")
     public String logout() {
-        session.invalidate();
-        return "redirect:/";
+        clearSession();
+        return REDIRECT_HOME;
     }
 
-    // 로그인 성공 : 메인 페이지(/)로 리다이렉트 : 지윤
     @PostMapping("/login")
     public String login(UserRequest.LoginDTO reqDTO) {
-        SessionUsers.save(session, userService.login(reqDTO));
-        return "redirect:/";
+        signIn(userService.login(reqDTO));
+        return REDIRECT_HOME;
     }
 
-    // SNS 로그인 콜백 (카카오/네이버/구글 공통)
     @GetMapping("/auth/{provider}/callback")
     public String snsCallback(@PathVariable String provider, String code) {
-        // 실제 구현 시 OAuthService를 통해 토큰 및 유저 정보를 가져와야 함
-        // 여기서는 흐름 확인을 위한 가상 데이터를 사용
-        String email = "test_" + provider + "@example.com";
-        String nickname = provider + "_User";
-        String providerId = "unique_id_12345";
-
-        SessionUser sessionUser = userService.snsLogin(email, nickname, provider, providerId);
-        SessionUsers.save(session, sessionUser);
-
-        return "redirect:/";
+        signIn(createDemoSnsSessionUser(provider));
+        return REDIRECT_HOME;
     }
 
-    // 회원가입 성공_가입 후 로그인 폼으로 이동 : 지윤
     @PostMapping("/join")
     public String join(@Valid UserRequest.JoinDTO reqDTO, Errors errors) {
         if (errors.hasErrors()) {
             return "pages/signup";
         }
         userService.join(reqDTO);
-        return "redirect:/login-form";
+        return REDIRECT_LOGIN_FORM;
     }
 
     @GetMapping("/login-form")
@@ -71,4 +62,18 @@ public class UserController {
         return "pages/signup";
     }
 
+    private void signIn(SessionUser sessionUser) {
+        SessionUsers.save(session, sessionUser);
+    }
+
+    private void clearSession() {
+        session.invalidate();
+    }
+
+    private SessionUser createDemoSnsSessionUser(String provider) {
+        String email = "test_" + provider + "@example.com";
+        String username = provider + "_User";
+        String providerId = "unique_id_12345";
+        return userService.snsLogin(email, username, provider, providerId);
+    }
 }

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Community Post Detail</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 
 <body class="page-body">
@@ -23,7 +24,7 @@
       </a>
     </div>
 
-    {{#board}}
+    {{#page}}
 
     <div class="community-detail-div-01">
 
@@ -35,7 +36,7 @@
               {{categoryLabel}}
             </span>
 
-            {{#isOwner}}
+            {{#canManage}}
             <div class="calendar-add-event-div-06">
               <a class="community-detail-button-02" href="/boards/{{id}}/edit">수정</a>
 
@@ -45,21 +46,7 @@
                 </button>
               </form>
             </div>
-            {{/isOwner}}
-
-{{^isOwner}}
-  {{#isAdmin}}
-  <div class="calendar-add-event-div-06">
-    <a class="community-detail-button-02" href="/boards/{{id}}/edit">수정</a>
-
-    <form action="/boards/{{id}}/delete" method="post">
-      <button class="community-detail-button-03" type="submit">
-        삭제
-      </button>
-    </form>
-  </div>
-  {{/isAdmin}}
-{{/isOwner}}
+            {{/canManage}}
           </div>
 
           <div>
@@ -219,7 +206,7 @@
       </a>
     </div>
 
-    {{/board}}
+    {{/page}}
 
   </main>
 

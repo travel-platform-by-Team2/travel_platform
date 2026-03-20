@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.util.Resp;
-import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.http.HttpSession;
@@ -39,7 +37,7 @@ public class CalendarApiController {
     }
 
     @PutMapping("/update/{eventId}")
-    public ResponseEntity<?> updateEvent(@PathVariable("eventId") Integer eventId,
+    public ResponseEntity<?> updateEvent(@PathVariable(name = "eventId") Integer eventId,
             @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
         Integer userId = resolveUserId();
         CalendarResponse.EventDTO responseDTO = calendarService.updateEvent(userId, eventId, reqDTO);
@@ -47,37 +45,43 @@ public class CalendarApiController {
     }
 
     @PostMapping("/delete/{eventId}")
-    public ResponseEntity<?> deleteEvent(@PathVariable("eventId") Integer eventId) {
+    public ResponseEntity<?> deleteEvent(@PathVariable(name = "eventId") Integer eventId) {
         Map<String, Integer> responseDTO = calendarService.deleteEvent(eventId);
         return Resp.ok(responseDTO);
     }
 
     @GetMapping
-    public ResponseEntity<?> getCalendar(@RequestParam(value = "startDate", required = false) LocalDate startDate,
-            @RequestParam(value = "endDate", required = false) LocalDate endDate,
-            @RequestParam(value = "year", required = false) Integer year,
-            @RequestParam(value = "month", required = false) Integer month,
-            @RequestParam(value = "date", required = false) LocalDate date) {
-
+    public ResponseEntity<?> getCalendar(
+            @RequestParam(name = "startDate", required = false) LocalDate startDate,
+            @RequestParam(name = "endDate", required = false) LocalDate endDate,
+            @RequestParam(name = "year", required = false) Integer year,
+            @RequestParam(name = "month", required = false) Integer month,
+            @RequestParam(name = "date", required = false) LocalDate date) {
         Integer sessionUserId = resolveUserId();
-
-        if (date != null) {
-            CalendarResponse.DayNodeDTO dayNode = calendarService.getDayNode(sessionUserId, date);
-            return Resp.ok(dayNode);
-        }
-        if (year != null && month != null) {
-            List<CalendarResponse.DayNodeDTO> dayNodes = calendarService.getDayNodeList(sessionUserId, year, month);
-            return Resp.ok(dayNodes);
-        }
-        List<CalendarResponse.EventDTO> events = calendarService.getEventList(sessionUserId, startDate, endDate);
-        return Resp.ok(events);
+        return getCalendarResponse(sessionUserId, startDate, endDate, year, month, date);
     }
 
     private Integer resolveUserId() {
-        SessionUser sessionUser = SessionUsers.getOrNull(session);
-        if (sessionUser != null) {
-            return sessionUser.getId();
+        return SessionUsers.requireUserId(session);
+    }
+
+    private ResponseEntity<?> getCalendarResponse(
+            Integer sessionUserId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Integer year,
+            Integer month,
+            LocalDate date) {
+        if (date != null) {
+            return Resp.ok(calendarService.getDayNode(sessionUserId, date));
         }
-        throw new Exception400("로그인이 필요합니다.");
+        if (hasMonthQuery(year, month)) {
+            return Resp.ok(calendarService.getDayNodeList(sessionUserId, year, month));
+        }
+        return Resp.ok(calendarService.getEventList(sessionUserId, startDate, endDate));
+    }
+
+    private boolean hasMonthQuery(Integer year, Integer month) {
+        return year != null && month != null;
     }
 }

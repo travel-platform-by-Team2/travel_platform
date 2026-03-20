@@ -25,14 +25,17 @@
 ## AI 작업 지침
 
 - SSR redirect 흐름은 `ReplyController`, JSON 응답은 `ReplyApiController`에서 분리해 유지한다.
+- `ReplyController`는 `board-detail.mustache`의 댓글 작성/삭제 form과 직접 연결되어 있으므로 제거 대상이 아니다.
 - 고정된 API 응답 스키마는 `ReplyResponse` DTO와 `Resp.ok(...)`를 사용한다.
 - 댓글 API 경로는 `/api/boards/{boardId}/replies`, `/api/boards/{boardId}/replies/{replyId}`를 사용한다.
 - 게시글 상세 Mustache와 연결된 필드 이름(`id`, `boardId`, `replyId`, `content`, `createdAtDisplay`, `username`, `isOwner`)은 프론트와 함께 맞춘다.
+- 댓글 수정/삭제 권한은 게시판 owner/admin 정책과 다르게 댓글 작성자 본인만 허용한다.
 
 ## 테스트
 
-- 댓글 작성/삭제 SSR redirect 흐름이 유지되는지 확인한다.
-- 댓글 API 생성/수정 응답이 프론트가 기대하는 필드 이름과 형식을 유지하는지 확인한다.
+- `ReplyControllerTest`로 댓글 작성/삭제 SSR redirect 흐름을 확인한다.
+- `ReplyApiControllerTest`로 댓글 생성/수정 JSON 응답과 로그인 필요 예외를 확인한다.
+- `ReplyServiceTest`로 생성, 수정, 삭제, `boardId-replyId` 매칭, owner-only 권한을 확인한다.
 
 ## 의존
 

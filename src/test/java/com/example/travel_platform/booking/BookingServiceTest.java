@@ -1,36 +1,215 @@
 package com.example.travel_platform.booking;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
-public class BookingServiceTest {
+import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.trip.TripRepository;
+import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserRepository;
 
-    private final String serviceKey = "A6g65ZteBO8qpJ5z4rQkSPkVltHPXfnLNCa5Q7dlz6B1zFAi7UGM251/sAcsYRAef/AeWI6Yy7SYLQZDyAkBmg==";
+class BookingServiceTest {
 
     @Test
-    public void fetchRoomsFromTourApi_test() {
-        BookingService bookingService = new BookingService(null, null, null);
-        String lodgingName = "테스트 숙소";
-        String address = "부산";
+    void donePlan() {
+        BookingRepository bookingRepository = mock(BookingRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TripRepository tripRepository = mock(TripRepository.class);
+        BookingService service = new BookingService(bookingRepository, userRepository, tripRepository);
 
-        List<BookingResponse.RoomDTO> rooms = bookingService.fetchRoomsFromTourApi(serviceKey, lodgingName, address);
+        User user = user(3);
+        TripPlan plan = TripPlan.create(
+                user,
+                "부산 여행",
+                "busan",
+                null,
+                LocalDate.of(2026, 4, 10),
+                LocalDate.of(2026, 4, 12),
+                "");
 
-        System.out.println("=======================");
-        System.out.println("rooms count = " + (rooms == null ? 0 : rooms.size()));
-        if (rooms != null) {
-            for (BookingResponse.RoomDTO room : rooms) {
-                System.out.println("room name = " + room.getName());
-                System.out.println("imageUrl = " + room.getImageUrl());
-                System.out.println("content = " + room.getContent());
-                System.out.println("-----------------------");
-            }
-        }
+        when(userRepository.findById(3)).thenReturn(Optional.of(user));
+        when(tripRepository.findPlanListByUserId(3, 0, 1)).thenReturn(List.of(plan));
+
+        service.processBookingCompletion(3, BookingRequest.CompleteBookingDTO.builder()
+                .lodgingName("시그니엘 부산")
+                .roomName("디럭스 룸")
+                .regionKey("busan")
+                .location("부산")
+                .checkIn("2026-04-10")
+                .checkOut("2026-04-12")
+                .guests("성인 2명")
+                .pricePerNight(450000)
+                .taxAndServiceFee(200000)
+                .imageUrl("https://image.test/hotel.jpg")
+                .build());
+
+        ArgumentCaptor<Booking> captor = ArgumentCaptor.forClass(Booking.class);
+        verify(bookingRepository).save(captor.capture());
+        verify(tripRepository, never()).savePlan(any(TripPlan.class));
+
+        Booking booking = captor.getValue();
+        assertSame(user, booking.getUser());
+        assertSame(plan, booking.getTripPlan());
+        assertEquals("시그니엘 부산 (디럭스 룸)", booking.getLodgingName());
+        assertEquals(LocalDate.of(2026, 4, 10), booking.getCheckIn());
+        assertEquals(LocalDate.of(2026, 4, 12), booking.getCheckOut());
+        assertEquals(2, booking.getGuestCount());
+        assertEquals(450000, booking.getPricePerNight());
+        assertEquals(200000, booking.getTaxAndServiceFee());
+        assertEquals("부산", booking.getLocation());
     }
 
     @Test
-    public void fetchImageFromTourApi_test() {
-        System.out.println("skipped (repository wiring needed)");
+    void doneNew() {
+        BookingRepository bookingRepository = mock(BookingRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TripRepository tripRepository = mock(TripRepository.class);
+        BookingService service = new BookingService(bookingRepository, userRepository, tripRepository);
+
+        User user = user(5);
+        TripPlan savedPlan = TripPlan.create(
+                user,
+                "나의 여행 계획",
+                "seoul",
+                null,
+                LocalDate.of(2026, 6, 1),
+                LocalDate.of(2026, 6, 3),
+                "https://image.test/complete.jpg");
+
+        when(userRepository.findById(5)).thenReturn(Optional.of(user));
+        when(tripRepository.findPlanListByUserId(5, 0, 1)).thenReturn(List.of());
+        when(tripRepository.savePlan(any(TripPlan.class))).thenReturn(savedPlan);
+
+        service.processBookingCompletion(5, BookingRequest.CompleteBookingDTO.builder()
+                .lodgingName("롯데 호텔")
+                .roomName("프리미어 룸")
+                .regionKey("seoul")
+                .location("서울")
+                .checkIn("2026-06-01")
+                .checkOut("2026-06-03")
+                .guests("성인 3명")
+                .pricePerNight(500000)
+                .taxAndServiceFee(250000)
+                .imageUrl("https://image.test/complete.jpg")
+                .build());
+
+        ArgumentCaptor<TripPlan> planCaptor = ArgumentCaptor.forClass(TripPlan.class);
+        ArgumentCaptor<Booking> bookingCaptor = ArgumentCaptor.forClass(Booking.class);
+        verify(tripRepository).savePlan(planCaptor.capture());
+        verify(bookingRepository).save(bookingCaptor.capture());
+
+        TripPlan createdPlan = planCaptor.getValue();
+        assertEquals("나의 여행 계획", createdPlan.getTitle());
+        assertEquals("seoul", createdPlan.getRegion());
+        assertEquals(LocalDate.of(2026, 6, 1), createdPlan.getStartDate());
+        assertEquals(LocalDate.of(2026, 6, 3), createdPlan.getEndDate());
+
+        Booking booking = bookingCaptor.getValue();
+        assertSame(savedPlan, booking.getTripPlan());
+        assertEquals("서울", booking.getLocation());
+        assertEquals(3, booking.getGuestCount());
+    }
+
+    @Test
+    void create() {
+        BookingRepository bookingRepository = mock(BookingRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TripRepository tripRepository = mock(TripRepository.class);
+        BookingService service = new BookingService(bookingRepository, userRepository, tripRepository);
+
+        User user = user(8);
+        TripPlan plan = TripPlan.create(
+                user,
+                "제주 여행",
+                "jeju",
+                null,
+                LocalDate.of(2026, 7, 10),
+                LocalDate.of(2026, 7, 12),
+                "");
+        BookingRequest.CreateBookingDTO reqDTO = new BookingRequest.CreateBookingDTO();
+        reqDTO.setTripPlanId(11);
+        reqDTO.setLodgingName("제주 스테이");
+        reqDTO.setCheckIn(LocalDate.of(2026, 7, 10));
+        reqDTO.setCheckOut(LocalDate.of(2026, 7, 12));
+        reqDTO.setGuestCount(2);
+        reqDTO.setPricePerNight(300000);
+        reqDTO.setTaxAndServiceFee(90000);
+        reqDTO.setLocation("제주");
+        reqDTO.setImageUrl("https://image.test/jeju.jpg");
+
+        when(userRepository.findById(8)).thenReturn(Optional.of(user));
+        when(tripRepository.findPlanById(11)).thenReturn(Optional.of(plan));
+
+        service.createBooking(8, reqDTO);
+
+        ArgumentCaptor<Booking> captor = ArgumentCaptor.forClass(Booking.class);
+        verify(bookingRepository).save(captor.capture());
+
+        Booking booking = captor.getValue();
+        assertSame(user, booking.getUser());
+        assertSame(plan, booking.getTripPlan());
+        assertEquals("제주 스테이", booking.getLodgingName());
+        assertEquals(2, booking.getGuestCount());
+        assertEquals("제주", booking.getLocation());
+    }
+
+    @Test
+    void img() {
+        BookingResponse.PlaceImageDTO dto = BookingResponse.PlaceImageDTO.of(null, null);
+
+        assertEquals("", dto.getImageUrl());
+        assertEquals("", dto.getName());
+    }
+
+    @Test
+    void cancelPh() {
+        BookingRepository bookingRepository = mock(BookingRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TripRepository tripRepository = mock(TripRepository.class);
+        BookingService service = new BookingService(bookingRepository, userRepository, tripRepository);
+
+        service.cancelBooking(1, 99);
+
+        verifyNoInteractions(bookingRepository, userRepository, tripRepository);
+    }
+
+    @Test
+    void listPh() {
+        BookingRepository bookingRepository = mock(BookingRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TripRepository tripRepository = mock(TripRepository.class);
+        BookingService service = new BookingService(bookingRepository, userRepository, tripRepository);
+
+        assertEquals(List.of(), service.getBookingList(1));
+    }
+
+    @Test
+    void detailPh() {
+        BookingRepository bookingRepository = mock(BookingRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        TripRepository tripRepository = mock(TripRepository.class);
+        BookingService service = new BookingService(bookingRepository, userRepository, tripRepository);
+
+        assertNull(service.getBookingDetail(1, 44));
+    }
+
+    private User user(Integer id) {
+        User user = User.create("ssar", "1234", "ssar@nate.com", "010-1111-2222", "USER");
+        user.setId(id);
+        return user;
     }
 }
-

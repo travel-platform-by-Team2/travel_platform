@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.user.User;
@@ -28,55 +29,32 @@ public class TripService {
 
     @Transactional
     public TripResponse.CreatedDTO createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
-        validatePlanDates(reqDTO.getStartDate(), reqDTO.getEndDate());
-        User user = findUser(sessionUserId);
-
-        TripPlan tripPlan = TripPlan.create(
-                user,
-                reqDTO.getTitle(),
-                reqDTO.getRegion(),
-                reqDTO.getWhoWith(),
-                reqDTO.getStartDate(),
-                reqDTO.getEndDate(),
-                NOT_IMG);
-
-        tripRepository.savePlan(tripPlan);
-        return TripResponse.CreatedDTO.of(tripPlan.getId());
+        Integer actorUserId = requireSessionUserId(sessionUserId);
+        validateCreatePlan(reqDTO);
+        User user = findUser(actorUserId);
+        TripPlan tripPlan = createTripPlan(user, reqDTO);
+        return saveCreatedPlan(tripPlan);
     }
 
     @Transactional
     public TripResponse.PlaceAddedDTO addPlace(Integer sessionUserId, Integer planId, TripRequest.AddPlaceDTO reqDTO) {
         validateDayOrder(reqDTO.getDayOrder());
         TripPlan tripPlan = findOwnedPlan(sessionUserId, planId);
-
-        TripPlace tripPlace = TripPlace.create(
-                tripPlan,
-                reqDTO.getPlaceName(),
-                reqDTO.getAddress(),
-                reqDTO.getLatitude(),
-                reqDTO.getLongitude(),
-                reqDTO.getDayOrder());
-
-        tripPlaceRepository.save(tripPlace);
-        long placeCount = tripPlaceRepository.countByTripPlanId(planId);
-        return TripResponse.PlaceAddedDTO.of(tripPlace, placeCount);
+        TripPlace tripPlace = createTripPlace(tripPlan, reqDTO);
+        return saveAddedPlace(planId, tripPlace);
     }
 
     public TripResponse.ListPageDTO getPlanList(Integer userId, String category, int page) {
-        int currentPage = Math.max(page, 0);
-        LocalDate today = LocalDate.now();
-        String normalizedCategory = normalizeCategory(category);
-
-        PlanPageQueryResult planPageQueryResult = findPlanPage(userId, normalizedCategory, today, currentPage);
-        List<TripResponse.SummaryDTO> plans = planPageQueryResult.tripPlans().stream()
-                .map(tripPlan -> toPlanSummaryDTO(tripPlan, today))
-                .toList();
+        Integer actorUserId = requireSessionUserId(userId);
+        PlanListQuery query = createPlanListQuery(actorUserId, category, page);
+        PlanPageQueryResult planPageQueryResult = findPlanPage(query);
+        List<TripResponse.SummaryDTO> plans = toPlanSummaryDTOs(planPageQueryResult.tripPlans(), query.today());
 
         return TripResponse.ListPageDTO.of(
                 plans,
-                currentPage,
+                query.currentPage(),
                 planPageQueryResult.totalCount(),
-                normalizedCategory,
+                query.category(),
                 PLAN_PAGE_SIZE);
     }
 
@@ -85,19 +63,13 @@ public class TripService {
     }
 
     public TripResponse.PlacePageDTO getPlacePage(Integer sessionUserId, Integer planId, String kakaoMapAppKey) {
-        return TripResponse.PlacePageDTO.of(getPlanDetail(sessionUserId, planId), kakaoMapAppKey);
+        TripResponse.DetailDTO detailDTO = getPlanDetail(sessionUserId, planId);
+        return TripResponse.PlacePageDTO.of(detailDTO, kakaoMapAppKey);
     }
 
     public TripResponse.DetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
         TripPlan tripPlan = findOwnedPlanWithPlaces(sessionUserId, planId);
-
-        List<TripResponse.PlaceItemDTO> places = tripPlan.getPlaces() == null
-                ? List.of()
-                : tripPlan.getPlaces().stream()
-                        .sorted((left, right) -> compareTripPlaces(left, right))
-                        .map(place -> TripResponse.PlaceItemDTO.from(place))
-                        .toList();
-
+        List<TripResponse.PlaceItemDTO> places = toPlaceItems(tripPlan);
         return TripResponse.DetailDTO.of(tripPlan, places);
     }
 
@@ -122,11 +94,62 @@ public class TripService {
         return Integer.compare(left, right);
     }
 
+    private void validateCreatePlan(TripRequest.CreatePlanDTO reqDTO) {
+        validatePlanDates(reqDTO.getStartDate(), reqDTO.getEndDate());
+    }
+
+    private Integer requireSessionUserId(Integer sessionUserId) {
+        if (sessionUserId == null) {
+            throw new Exception401("로그인이 필요합니다");
+        }
+        return sessionUserId;
+    }
+
+    private TripPlan createTripPlan(User user, TripRequest.CreatePlanDTO reqDTO) {
+        return TripPlan.create(
+                user,
+                reqDTO.getTitle(),
+                reqDTO.getRegion(),
+                reqDTO.getWhoWith(),
+                reqDTO.getStartDate(),
+                reqDTO.getEndDate(),
+                NOT_IMG);
+    }
+
+    private TripPlace createTripPlace(TripPlan tripPlan, TripRequest.AddPlaceDTO reqDTO) {
+        return TripPlace.create(
+                tripPlan,
+                reqDTO.getPlaceName(),
+                reqDTO.getAddress(),
+                reqDTO.getLatitude(),
+                reqDTO.getLongitude(),
+                reqDTO.getDayOrder());
+    }
+
+    private TripResponse.CreatedDTO saveCreatedPlan(TripPlan tripPlan) {
+        tripRepository.savePlan(tripPlan);
+        return TripResponse.CreatedDTO.of(tripPlan);
+    }
+
+    private TripResponse.PlaceAddedDTO saveAddedPlace(Integer planId, TripPlace tripPlace) {
+        tripPlaceRepository.save(tripPlace);
+        long placeCount = tripPlaceRepository.countByTripPlanId(planId);
+        return TripResponse.PlaceAddedDTO.of(tripPlace, placeCount);
+    }
+
+    private PlanListQuery createPlanListQuery(Integer userId, String category, int page) {
+        return new PlanListQuery(userId, normalizeCategory(category), Math.max(page, 0), LocalDate.now());
+    }
+
     private String normalizeCategory(String category) {
         if ("upcoming".equals(category) || "past".equals(category)) {
             return category;
         }
         return "result";
+    }
+
+    private PlanPageQueryResult findPlanPage(PlanListQuery query) {
+        return findPlanPage(query.userId(), query.category(), query.today(), query.currentPage());
     }
 
     private PlanPageQueryResult findPlanPage(Integer userId, String normalizedCategory, LocalDate today, int page) {
@@ -145,6 +168,23 @@ public class TripService {
         };
     }
 
+    private List<TripResponse.SummaryDTO> toPlanSummaryDTOs(List<TripPlan> tripPlans, LocalDate today) {
+        return tripPlans.stream()
+                .map(tripPlan -> toPlanSummaryDTO(tripPlan, today))
+                .toList();
+    }
+
+    private List<TripResponse.PlaceItemDTO> toPlaceItems(TripPlan tripPlan) {
+        if (tripPlan.getPlaces() == null) {
+            return List.of();
+        }
+
+        return tripPlan.getPlaces().stream()
+                .sorted((left, right) -> compareTripPlaces(left, right))
+                .map(place -> TripResponse.PlaceItemDTO.from(place))
+                .toList();
+    }
+
     private TripResponse.SummaryDTO toPlanSummaryDTO(TripPlan tripPlan, LocalDate today) {
         long placeCount = tripPlaceRepository.countByTripPlanId(tripPlan.getId());
         return TripResponse.SummaryDTO.of(tripPlan, today, placeCount);
@@ -155,39 +195,44 @@ public class TripService {
             return;
         }
         if (endDate.isBefore(startDate)) {
-            throw new Exception400("여행 종료일은 시작일보다 빠를 수 없습니다.");
+            throw new Exception400("?ы뻾 醫낅즺?쇱? ?쒖옉?쇰낫??鍮좊? ???놁뒿?덈떎.");
         }
     }
 
     private void validateDayOrder(Integer dayOrder) {
         if (dayOrder == null || dayOrder < 1) {
-            throw new Exception400("여행 일차 정보가 올바르지 않습니다.");
+            throw new Exception400("?ы뻾 ?쇱감 ?뺣낫媛 ?щ컮瑜댁? ?딆뒿?덈떎.");
         }
     }
 
     private User findUser(Integer sessionUserId) {
         return userRepository.findById(sessionUserId)
-                .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new Exception404("?ъ슜???뺣낫瑜?李얠쓣 ???놁뒿?덈떎."));
     }
 
     private TripPlan findOwnedPlan(Integer sessionUserId, Integer planId) {
+        Integer actorUserId = requireSessionUserId(sessionUserId);
         TripPlan tripPlan = tripRepository.findPlanById(planId)
-                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
-        validateOwner(sessionUserId, tripPlan);
+                .orElseThrow(() -> new Exception404("?대떦 ?ы뻾 怨꾪쉷??李얠쓣 ???놁뒿?덈떎."));
+        validateOwner(actorUserId, tripPlan);
         return tripPlan;
     }
 
     private TripPlan findOwnedPlanWithPlaces(Integer sessionUserId, Integer planId) {
+        Integer actorUserId = requireSessionUserId(sessionUserId);
         TripPlan tripPlan = tripRepository.findPlanByIdWithPlaces(planId)
-                .orElseThrow(() -> new Exception404("해당 여행 계획을 찾을 수 없습니다."));
-        validateOwner(sessionUserId, tripPlan);
+                .orElseThrow(() -> new Exception404("?대떦 ?ы뻾 怨꾪쉷??李얠쓣 ???놁뒿?덈떎."));
+        validateOwner(actorUserId, tripPlan);
         return tripPlan;
     }
 
     private void validateOwner(Integer sessionUserId, TripPlan tripPlan) {
         if (!tripPlan.isOwnedBy(sessionUserId)) {
-            throw new Exception403("권한이 없습니다.");
+            throw new Exception403("沅뚰븳???놁뒿?덈떎.");
         }
+    }
+
+    private record PlanListQuery(Integer userId, String category, int currentPage, LocalDate today) {
     }
 
     private record PlanPageQueryResult(List<TripPlan> tripPlans, long totalCount) {

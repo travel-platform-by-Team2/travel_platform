@@ -15,7 +15,7 @@ class AdminServiceDashboardTest {
     private AdminService adminService;
 
     @Test
-    void getDashboardPage_loadsMetricsChartsAndRecentLists() {
+    void dash() {
         AdminResponse.DashboardPageDTO page = adminService.getDashboardPage();
 
         assertEquals(3L, page.getTotalUserCount());
@@ -45,7 +45,7 @@ class AdminServiceDashboardTest {
     }
 
     @Test
-    void getUsersPage_loadsUserListAndTabState() {
+    void users() {
         AdminResponse.UserListPageDTO page = adminService.getUsersPage(null, null);
 
         assertEquals(3L, page.getTotalUserCount());
@@ -59,7 +59,7 @@ class AdminServiceDashboardTest {
     }
 
     @Test
-    void getBoardsPage_setsSelectedCategoryForPagingLinks() {
+    void boardsCat() {
         AdminResponse.AdminBoardListDTO page = adminService.getBoardsPage("tips", "", null, 0);
 
         assertEquals("tips", page.getAllCategory());
@@ -70,7 +70,7 @@ class AdminServiceDashboardTest {
     }
 
     @Test
-    void getBoardsPage_marksAllCategoryTabWhenCategoryIsMissing() {
+    void boardsAll() {
         AdminResponse.AdminBoardListDTO page = adminService.getBoardsPage(null, "", null, 0);
 
         assertEquals("all", page.getAllCategory());

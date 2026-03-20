@@ -10,26 +10,41 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
 
+    private static final String[] ADMIN_ONLY_PATHS = {
+            "/admin",
+            "/admin/**"
+    };
+
+    private static final String[] LOGIN_REQUIRED_PATHS = {
+            "/boards/*",
+            "/boards/*/edit",
+            "/boards/*/update",
+            "/boards/*/delete",
+            "/boards/*/replies",
+            "/boards/*/replies/*/delete",
+            "/api/boards/*/likes/toggle",
+            "/api/boards/*/replies",
+            "/api/boards/*/replies/*",
+            "/calendar",
+            "/api/calendar",
+            "/api/calendar/**",
+            "/trip",
+            "/trip/**",
+            "/api/trips",
+            "/api/trips/**",
+            "/mypage",
+            "/mypage/**"
+    };
+
     private final LoginInterceptor loginInterceptor;
     private final AdminInterceptor adminInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(adminInterceptor)
-                .addPathPatterns("/admin", "/admin/*");
+                .addPathPatterns(ADMIN_ONLY_PATHS);
 
         registry.addInterceptor(loginInterceptor)
-                .addPathPatterns(
-                        "/boards/*",
-                        "/calendar",
-                        "/calendar/*",
-                        "/api/calendar",
-                        "/api/calendar/*",
-                        "/trip",
-                        "/trip/*",
-                        "/api/trips",
-                        "/api/trips/*",
-                        "/mypage",
-                        "/mypage/*");
+                .addPathPatterns(LOGIN_REQUIRED_PATHS);
     }
 }

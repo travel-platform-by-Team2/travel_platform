@@ -73,7 +73,14 @@ public class BookingService {
     /**
      * TourAPI 4.0을 사용하여 숙소의 객실 정보 및 추가 이미지를 가져옴.
      */
-    public List<BookingResponse.RoomDTO> fetchRoomsFromTourApi(String serviceKey, String lodgingName, String address) {
+    public List<BookingResponse.RoomDTO> getRoomList(String serviceKey, BookingRequest.RoomQueryDTO reqDTO) {
+        if (reqDTO == null) {
+            return List.of();
+        }
+        return fetchRoomsFromTourApi(serviceKey, reqDTO.getLodgingName(), reqDTO.getAddress());
+    }
+
+    private List<BookingResponse.RoomDTO> fetchRoomsFromTourApi(String serviceKey, String lodgingName, String address) {
         try {
             String contentId = searchTourApiContentId(serviceKey, lodgingName, address);
             if (contentId == null)
@@ -87,12 +94,13 @@ public class BookingService {
 
             // 3. 만약 객실 정보가 아예 없다면, 추가 이미지를 활용해 가상의 객실이라도 생성 (데이터 보완)
             if (rooms.isEmpty() && !extraImages.isEmpty()) {
-                BookingResponse.RoomDTO virtualRoom = BookingResponse.RoomDTO.builder()
-                        .name("기본 객실")
-                        .content("상세 정보는 숙소에 문의해 주세요.")
-                        .imageUrl(extraImages.get(0))
-                        .allImages(extraImages)
-                        .build();
+                BookingResponse.RoomDTO virtualRoom = BookingResponse.RoomDTO.of(
+                        "기본 객실",
+                        "상세 정보는 숙소에 문의해 주세요.",
+                        "",
+                        "",
+                        extraImages.get(0),
+                        extraImages);
                 return List.of(virtualRoom);
             }
 
@@ -253,13 +261,13 @@ public class BookingService {
                 String roomMaxCount = getAnyField(item, "roommaxcount", "roomMaxCount", "maxCount");
                 String roomImg = getAnyField(item, "roomimg1", "roomImg1", "roomimg", "imageUrl");
 
-                roomList.add(BookingResponse.RoomDTO.builder()
-                        .name(roomTitle)
-                        .content(valueToString(roomIntro))
-                        .baseCount(valueToString(roomBaseCount))
-                        .maxCount(valueToString(roomMaxCount))
-                        .imageUrl(valueToString(roomImg))
-                        .build());
+                roomList.add(BookingResponse.RoomDTO.of(
+                        roomTitle,
+                        valueToString(roomIntro),
+                        valueToString(roomBaseCount),
+                        valueToString(roomMaxCount),
+                        valueToString(roomImg),
+                        List.of()));
             }
         } catch (Exception e) {
             System.err.println("[TourAPI] 객실 상세 조회 실패: " + e.getMessage());
@@ -280,116 +288,61 @@ public class BookingService {
     @Transactional
     public void processBookingCompletion(
             Integer sessionUserId,
-            String lodgingName,
-            String regionKey,
-            String location,
-            String checkIn,
-            String checkOut,
-            String guests,
-            Integer pricePerNight,
-            Integer taxAndServiceFee,
-            String imageUrl) {
-
-        User user = userRepository.findById(sessionUserId).orElse(null);
-        if (user == null)
+            BookingRequest.CompleteBookingDTO reqDTO) {
+        User user = findUserOrNull(sessionUserId);
+        if (user == null || reqDTO == null) {
             return;
-
-        LocalDate checkInDate = resolveDate(checkIn, LocalDate.now());
-        LocalDate checkOutDate = resolveDate(checkOut, LocalDate.now().plusDays(1));
-
-        Booking booking = new Booking();
-        booking.setUser(user);
-
-        var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
-        TripPlan plan;
-        if (!plans.isEmpty()) {
-            plan = plans.get(0);
-        } else {
-            plan = TripPlan.create(
-                    user,
-                    "나의 여행 계획",
-                    blankToDefault(regionKey, "busan"),
-                    null,
-                    checkInDate,
-                    checkOutDate,
-                    blankToDefault(imageUrl, ""));
-            plan = tripRepository.savePlan(plan);
         }
 
-        booking.setTripPlan(plan);
-        booking.setLodgingName(lodgingName);
-        booking.setCheckIn(checkInDate);
-        booking.setCheckOut(checkOutDate);
-        booking.setGuestCount(parseGuestCount(guests));
-        booking.setPricePerNight(pricePerNight == null ? 0 : pricePerNight);
-        booking.setTaxAndServiceFee(taxAndServiceFee == null ? 0 : taxAndServiceFee);
-        booking.setLocation(blankToDefault(location, "부산"));
-        booking.setImageUrl(imageUrl);
-
+        BookingCompletionDraft draft = createCompletionDraft(reqDTO);
+        TripPlan plan = resolveCompletionPlan(user, draft);
+        Booking booking = buildCompletionBooking(user, plan, draft);
         bookingRepository.save(booking);
     }
 
     @Transactional
     public void createBooking(Integer sessionUserId, BookingRequest.CreateBookingDTO reqDTO) {
-        User user = userRepository.findById(sessionUserId).orElse(null);
-        if (user == null) return;
+        User user = findUserOrNull(sessionUserId);
+        if (user == null || reqDTO == null) {
+            return;
+        }
 
-        TripPlan plan = tripRepository.findPlanById(reqDTO.getTripPlanId()).orElse(null);
-        if (plan == null) return;
+        TripPlan plan = findTripPlanOrNull(reqDTO.getTripPlanId());
+        if (plan == null) {
+            return;
+        }
 
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setTripPlan(plan);
-        booking.setLodgingName(reqDTO.getLodgingName());
-        booking.setCheckIn(reqDTO.getCheckIn());
-        booking.setCheckOut(reqDTO.getCheckOut());
-        booking.setGuestCount(reqDTO.getGuestCount());
-        booking.setPricePerNight(reqDTO.getPricePerNight());
-        booking.setTaxAndServiceFee(reqDTO.getTaxAndServiceFee());
-        booking.setLocation(reqDTO.getLocation());
-        booking.setImageUrl(reqDTO.getImageUrl());
-
-        bookingRepository.save(booking);
+        bookingRepository.save(buildCreatedBooking(user, plan, reqDTO));
     }
 
     @Transactional
     public void cancelBooking(Integer sessionUserId, Integer bookingId) {
+        keepPlaceholderCancel(sessionUserId, bookingId);
     }
 
     public List<BookingResponse.BookingSummaryDTO> getBookingList(Integer sessionUserId) {
-        return List.of();
+        return buildPlaceholderBookingList(sessionUserId);
     }
 
     public BookingResponse.BookingDetailDTO getBookingDetail(Integer sessionUserId, Integer bookingId) {
-        return null;
+        return buildPlaceholderBookingDetail(sessionUserId, bookingId);
     }
 
     @Transactional
-    public BookingResponse.PlaceImageDTO getPlaceImage(String serviceKey, String placeUrl, String name, String address) {
-        String normalizedName = (name == null) ? "" : name.replaceAll("\\s+", "").toLowerCase();
-        String imageUrl = bookingRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
-
-        if (imageUrl == null || imageUrl.isBlank()) {
-            imageUrl = fetchImageFromTourApi(serviceKey, name, address);
-
-            if (imageUrl == null || imageUrl.isBlank()) {
-                imageUrl = resolveImageFromKakaoPlace(placeUrl);
-            }
-
-            if (imageUrl != null && !imageUrl.isBlank() && !normalizedName.isBlank()) {
-                String finalImageUrl = imageUrl;
-                bookingRepository.upsertMapPlaceImage(
-                        normalizedName,
-                        (name != null ? name : normalizedName),
-                        finalImageUrl,
-                        "TOUR_API_OR_KAKAO");
-            }
+    public BookingResponse.PlaceImageDTO getPlaceImage(String serviceKey, BookingRequest.PlaceImageQueryDTO reqDTO) {
+        if (reqDTO == null) {
+            return BookingResponse.PlaceImageDTO.of("", "");
         }
 
-        return BookingResponse.PlaceImageDTO.builder()
-                .imageUrl(imageUrl == null ? "" : imageUrl)
-                .name(name == null ? "" : name)
-                .build();
+        String normalizedName = normalizePlaceName(reqDTO.getName());
+        String imageUrl = findCachedPlaceImage(normalizedName);
+
+        if (imageUrl == null || imageUrl.isBlank()) {
+            imageUrl = resolvePlaceImage(serviceKey, reqDTO);
+            cachePlaceImage(normalizedName, reqDTO.getName(), imageUrl);
+        }
+
+        return BookingResponse.PlaceImageDTO.of(imageUrl, reqDTO.getName());
     }
 
     @SuppressWarnings("unchecked")
@@ -492,6 +445,141 @@ public class BookingService {
         }
     }
 
+    private User findUserOrNull(Integer userId) {
+        if (userId == null) {
+            return null;
+        }
+        return userRepository.findById(userId).orElse(null);
+    }
+
+    private TripPlan findTripPlanOrNull(Integer tripPlanId) {
+        if (tripPlanId == null) {
+            return null;
+        }
+        return tripRepository.findPlanById(tripPlanId).orElse(null);
+    }
+
+    private BookingCompletionDraft createCompletionDraft(BookingRequest.CompleteBookingDTO reqDTO) {
+        LocalDate checkInDate = resolveDate(reqDTO.getCheckIn(), LocalDate.now());
+        LocalDate checkOutDate = resolveDate(reqDTO.getCheckOut(), LocalDate.now().plusDays(1));
+
+        return new BookingCompletionDraft(
+                buildCompletionLodgingName(reqDTO),
+                blankToDefault(reqDTO.getRegionKey(), "busan"),
+                blankToDefault(reqDTO.getLocation(), "부산"),
+                checkInDate,
+                checkOutDate,
+                parseGuestCount(reqDTO.getGuests()),
+                reqDTO.getPricePerNight() == null ? 0 : reqDTO.getPricePerNight(),
+                reqDTO.getTaxAndServiceFee() == null ? 0 : reqDTO.getTaxAndServiceFee(),
+                blankToDefault(reqDTO.getImageUrl(), ""));
+    }
+
+    private String buildCompletionLodgingName(BookingRequest.CompleteBookingDTO reqDTO) {
+        String lodgingName = blankToDefault(reqDTO.getLodgingName(), "숙소");
+        String roomName = blankToDefault(reqDTO.getRoomName(), "기본 객실");
+        return lodgingName + " (" + roomName + ")";
+    }
+
+    private TripPlan resolveCompletionPlan(User user, BookingCompletionDraft draft) {
+        List<TripPlan> plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
+        if (!plans.isEmpty()) {
+            return plans.get(0);
+        }
+        return tripRepository.savePlan(createCompletionPlan(user, draft));
+    }
+
+    private TripPlan createCompletionPlan(User user, BookingCompletionDraft draft) {
+        return TripPlan.create(
+                user,
+                "나의 여행 계획",
+                draft.regionKey(),
+                null,
+                draft.checkInDate(),
+                draft.checkOutDate(),
+                draft.imageUrl());
+    }
+
+    private Booking buildCompletionBooking(User user, TripPlan plan, BookingCompletionDraft draft) {
+        Booking booking = new Booking();
+        booking.setUser(user);
+        booking.setTripPlan(plan);
+        booking.setLodgingName(draft.lodgingName());
+        booking.setCheckIn(draft.checkInDate());
+        booking.setCheckOut(draft.checkOutDate());
+        booking.setGuestCount(draft.guestCount());
+        booking.setPricePerNight(draft.pricePerNight());
+        booking.setTaxAndServiceFee(draft.taxAndServiceFee());
+        booking.setLocation(draft.location());
+        booking.setImageUrl(draft.imageUrl());
+        return booking;
+    }
+
+    private Booking buildCreatedBooking(User user, TripPlan plan, BookingRequest.CreateBookingDTO reqDTO) {
+        Booking booking = new Booking();
+        booking.setUser(user);
+        booking.setTripPlan(plan);
+        booking.setLodgingName(reqDTO.getLodgingName());
+        booking.setCheckIn(reqDTO.getCheckIn());
+        booking.setCheckOut(reqDTO.getCheckOut());
+        booking.setGuestCount(reqDTO.getGuestCount());
+        booking.setPricePerNight(reqDTO.getPricePerNight());
+        booking.setTaxAndServiceFee(reqDTO.getTaxAndServiceFee());
+        booking.setLocation(reqDTO.getLocation());
+        booking.setImageUrl(reqDTO.getImageUrl());
+        return booking;
+    }
+
+    private void keepPlaceholderCancel(Integer sessionUserId, Integer bookingId) {
+        if (sessionUserId == null || bookingId == null) {
+            return;
+        }
+    }
+
+    private List<BookingResponse.BookingSummaryDTO> buildPlaceholderBookingList(Integer sessionUserId) {
+        if (sessionUserId == null) {
+            return List.of();
+        }
+        return List.of();
+    }
+
+    private BookingResponse.BookingDetailDTO buildPlaceholderBookingDetail(Integer sessionUserId, Integer bookingId) {
+        if (sessionUserId == null || bookingId == null) {
+            return null;
+        }
+        return null;
+    }
+
+    private String normalizePlaceName(String name) {
+        return (name == null) ? "" : name.replaceAll("\\s+", "").toLowerCase();
+    }
+
+    private String findCachedPlaceImage(String normalizedName) {
+        if (normalizedName.isBlank()) {
+            return null;
+        }
+        return bookingRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
+    }
+
+    private String resolvePlaceImage(String serviceKey, BookingRequest.PlaceImageQueryDTO reqDTO) {
+        String imageUrl = fetchImageFromTourApi(serviceKey, reqDTO.getName(), reqDTO.getAddress());
+        if (imageUrl == null || imageUrl.isBlank()) {
+            imageUrl = resolveImageFromKakaoPlace(reqDTO.getPlaceUrl());
+        }
+        return imageUrl;
+    }
+
+    private void cachePlaceImage(String normalizedName, String name, String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank() || normalizedName.isBlank()) {
+            return;
+        }
+        bookingRepository.upsertMapPlaceImage(
+                normalizedName,
+                blankToDefault(name, normalizedName),
+                imageUrl,
+                "TOUR_API_OR_KAKAO");
+    }
+
     private int parseGuestCount(String guests) {
         try {
             return Integer.parseInt(guests.replaceAll("[^0-9]", ""));
@@ -579,5 +667,17 @@ public class BookingService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private record BookingCompletionDraft(
+            String lodgingName,
+            String regionKey,
+            String location,
+            LocalDate checkInDate,
+            LocalDate checkOutDate,
+            int guestCount,
+            int pricePerNight,
+            int taxAndServiceFee,
+            String imageUrl) {
     }
 }

@@ -82,6 +82,48 @@ public class BoardResponse {
         private boolean isFood;
         private boolean isReview;
         private boolean isQna;
+
+        public static ListPageDTO of(List<SummaryDTO> boards,
+                List<PageItemDTO> pageItems,
+                int currentPage,
+                int size,
+                long totalCount,
+                int totalPages,
+                String category,
+                String keyword,
+                String sort) {
+            boolean first = currentPage == 0;
+            boolean last = currentPage >= totalPages - 1;
+
+            return ListPageDTO.builder()
+                    .boards(boards)
+                    .pageItems(pageItems)
+                    .currentPage(currentPage)
+                    .pageNumber(currentPage + 1)
+                    .size(size)
+                    .totalCount(totalCount)
+                    .totalPages(totalPages)
+                    .first(first)
+                    .last(last)
+                    .prevPage(first ? null : currentPage - 1)
+                    .nextPage(last ? null : currentPage + 1)
+                    .category(category)
+                    .keyword(keyword)
+                    .sort(sort)
+                    .sortLabel(toSortLabel(sort))
+                    .isSortLikes(isSort(sort, "likes"))
+                    .isSortDownlikes(isSort(sort, "downlikes"))
+                    .isSortViews(isSort(sort, "view"))
+                    .isSortDownviews(isSort(sort, "downview"))
+                    .isSortLatest(isSort(sort, "latest"))
+                    .isSortDate(isSort(sort, "date"))
+                    .isTips(isCategory(category, "tips"))
+                    .isPlan(isCategory(category, "plan"))
+                    .isFood(isCategory(category, "food"))
+                    .isReview(isCategory(category, "review"))
+                    .isQna(isCategory(category, "qna"))
+                    .build();
+        }
     }
 
     @Data
@@ -90,6 +132,14 @@ public class BoardResponse {
         private int page;
         private int displayNumber;
         private boolean current;
+
+        public static PageItemDTO of(int page, boolean current) {
+            return PageItemDTO.builder()
+                    .page(page)
+                    .displayNumber(page + 1)
+                    .current(current)
+                    .build();
+        }
     }
 
     @Data
@@ -136,6 +186,7 @@ public class BoardResponse {
         private List<ReplyItemDTO> replies;
         private Boolean isOwner;
         private Boolean isAdmin;
+        private Boolean canManage;
         private Long likeCount;
         private Boolean likedByMe;
 
@@ -162,6 +213,7 @@ public class BoardResponse {
                     .replies(replies)
                     .isOwner(isOwner)
                     .isAdmin(isAdmin)
+                    .canManage(isOwner || isAdmin)
                     .likeCount(likeCount)
                     .likedByMe(likedByMe)
                     .build();
@@ -180,34 +232,32 @@ public class BoardResponse {
         private String contentError;
 
         public static FormDTO empty() {
-            return FormDTO.builder()
-                    .category("")
-                    .title("")
-                    .content("")
-                    .build();
+            return fromValues(null, "", "", "", null, null, null);
         }
 
         public static FormDTO fromCreate(BoardRequest.CreateDTO reqDTO,
                 String categoryError,
                 String titleError,
                 String contentError) {
-            return FormDTO.builder()
-                    .category(reqDTO.getCategory())
-                    .title(reqDTO.getTitle())
-                    .content(reqDTO.getContent())
-                    .categoryError(categoryError)
-                    .titleError(titleError)
-                    .contentError(contentError)
-                    .build();
+            return fromValues(
+                    null,
+                    reqDTO.getCategory(),
+                    reqDTO.getTitle(),
+                    reqDTO.getContent(),
+                    categoryError,
+                    titleError,
+                    contentError);
         }
 
         public static FormDTO fromBoard(Board board) {
-            return FormDTO.builder()
-                    .id(board.getId())
-                    .category(board.getCategory())
-                    .title(board.getTitle())
-                    .content(board.getContent())
-                    .build();
+            return fromValues(
+                    board.getId(),
+                    board.getCategory(),
+                    board.getTitle(),
+                    board.getContent(),
+                    null,
+                    null,
+                    null);
         }
 
         public static FormDTO fromUpdate(Integer boardId,
@@ -215,11 +265,28 @@ public class BoardResponse {
                 String categoryError,
                 String titleError,
                 String contentError) {
+            return fromValues(
+                    boardId,
+                    reqDTO.getCategory(),
+                    reqDTO.getTitle(),
+                    reqDTO.getContent(),
+                    categoryError,
+                    titleError,
+                    contentError);
+        }
+
+        private static FormDTO fromValues(Integer id,
+                String category,
+                String title,
+                String content,
+                String categoryError,
+                String titleError,
+                String contentError) {
             return FormDTO.builder()
-                    .id(boardId)
-                    .category(reqDTO.getCategory())
-                    .title(reqDTO.getTitle())
-                    .content(reqDTO.getContent())
+                    .id(id)
+                    .category(category)
+                    .title(title)
+                    .content(content)
                     .categoryError(categoryError)
                     .titleError(titleError)
                     .contentError(contentError)
@@ -276,5 +343,24 @@ public class BoardResponse {
             case "qna" -> "cat-qna";
             default -> "";
         };
+    }
+
+    private static String toSortLabel(String sort) {
+        return switch (sort) {
+            case "likes" -> "좋아요순 ↑";
+            case "downlikes" -> "좋아요순 ↓";
+            case "view" -> "조회순 ↑";
+            case "downview" -> "조회순 ↓";
+            case "date" -> "날짜순 ↓";
+            default -> "날짜순 ↑";
+        };
+    }
+
+    private static boolean isSort(String actualSort, String expectedSort) {
+        return expectedSort.equals(actualSort);
+    }
+
+    private static boolean isCategory(String actualCategory, String expectedCategory) {
+        return expectedCategory.equals(actualCategory);
     }
 }

@@ -12,7 +12,7 @@
 {{#page}}
 <div id="tripPlacePage"
      data-plan-id="{{detail.id}}"
-     data-existing-count="{{detail.placeCount}}"
+     data-existing-count="{{existingCount}}"
      data-save-url="{{saveUrl}}"
      data-detail-url="{{detailUrl}}">
   <div class="trip-plan-add-place-div-01">
@@ -75,7 +75,7 @@
       <div class="community-list-div-02">
         <div class="row-between-center-mb2">
           <h4 class="trip-plan-add-place-h4-01">현재 저장된 장소</h4>
-          <span class="text-primary">{{detail.placeCount}}개</span>
+          <span class="text-primary">{{existingCount}}개</span>
         </div>
         {{#detail.places}}
         <div class="timeline-card">

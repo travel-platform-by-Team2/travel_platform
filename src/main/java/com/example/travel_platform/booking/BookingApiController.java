@@ -19,6 +19,8 @@ import com.example.travel_platform._core.util.Resp;
 @RequestMapping("/api/bookings")
 public class BookingApiController {
 
+    private static final Integer PLACEHOLDER_USER_ID = 1;
+
     private final BookingService bookingService;
     private final String tourApiServiceKey;
 
@@ -31,25 +33,25 @@ public class BookingApiController {
 
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody BookingRequest.CreateBookingDTO reqDTO) {
-        bookingService.createBooking(1, reqDTO);
+        bookingService.createBooking(resolvePlaceholderUserId(), reqDTO);
         return Resp.ok(null);
     }
 
     @DeleteMapping("/{bookingId}")
     public ResponseEntity<?> cancelBooking(@PathVariable(name = "bookingId") Integer bookingId) {
-        bookingService.cancelBooking(1, bookingId);
+        bookingService.cancelBooking(resolvePlaceholderUserId(), bookingId);
         return Resp.ok(null);
     }
 
     @GetMapping
     public ResponseEntity<?> getBookingList() {
-        List<BookingResponse.BookingSummaryDTO> bookingList = bookingService.getBookingList(1);
+        List<BookingResponse.BookingSummaryDTO> bookingList = bookingService.getBookingList(resolvePlaceholderUserId());
         return Resp.ok(bookingList);
     }
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<?> getBookingDetail(@PathVariable(name = "bookingId") Integer bookingId) {
-        BookingResponse.BookingDetailDTO detail = bookingService.getBookingDetail(1, bookingId);
+        BookingResponse.BookingDetailDTO detail = bookingService.getBookingDetail(resolvePlaceholderUserId(), bookingId);
         return Resp.ok(detail);
     }
 
@@ -61,7 +63,12 @@ public class BookingApiController {
     public List<BookingResponse.RoomDTO> getRooms(
             @RequestParam(name = "lodgingName") String lodgingName,
             @RequestParam(name = "address") String address) {
-        return bookingService.fetchRoomsFromTourApi(this.tourApiServiceKey, lodgingName, address);
+        return bookingService.getRoomList(
+                this.tourApiServiceKey,
+                BookingRequest.RoomQueryDTO.builder()
+                        .lodgingName(lodgingName)
+                        .address(address)
+                        .build());
     }
 
     /**
@@ -72,7 +79,13 @@ public class BookingApiController {
             @RequestParam(name = "placeUrl", required = false) String placeUrl,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "address", required = false) String address) {
-        return bookingService.getPlaceImage(this.tourApiServiceKey, placeUrl, name, address);
+        return bookingService.getPlaceImage(
+                this.tourApiServiceKey,
+                BookingRequest.PlaceImageQueryDTO.builder()
+                        .placeUrl(placeUrl)
+                        .name(name)
+                        .address(address)
+                        .build());
     }
 
     /**
@@ -81,5 +94,9 @@ public class BookingApiController {
     @PostMapping("/map-pois/merge")
     public List<BookingResponse.MapPoiDTO> mergeMapPois(@RequestBody BookingRequest.MergeMapPoisDTO reqDTO) {
         return bookingService.mergeMapPois(reqDTO);
+    }
+
+    private Integer resolvePlaceholderUserId() {
+        return PLACEHOLDER_USER_ID;
     }
 }

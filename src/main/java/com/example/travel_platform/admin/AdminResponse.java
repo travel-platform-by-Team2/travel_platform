@@ -8,6 +8,13 @@ import lombok.Data;
 
 public class AdminResponse {
 
+    private static String activeClass(String currentMenu, String targetMenu) {
+        if (targetMenu.equals(currentMenu)) {
+            return " is-active";
+        }
+        return "";
+    }
+
     @Data
     public static class UserListPageDTO {
         private List<AdminUserDTO> users;
@@ -18,6 +25,9 @@ public class AdminResponse {
         private boolean allTab;
         private boolean activeTab;
         private boolean inactiveTab;
+        private String dashboardActiveClass;
+        private String usersActiveClass;
+        private String boardsActiveClass;
 
         public static UserListPageDTO of(
                 List<AdminUserDTO> users,
@@ -39,6 +49,13 @@ public class AdminResponse {
             dto.setInactiveTab(inactiveTab);
             return dto;
         }
+
+        public UserListPageDTO withCurrentMenu(String currentMenu) {
+            this.dashboardActiveClass = activeClass(currentMenu, "dashboard");
+            this.usersActiveClass = activeClass(currentMenu, "users");
+            this.boardsActiveClass = activeClass(currentMenu, "boards");
+            return this;
+        }
     }
 
     @Data
@@ -56,6 +73,9 @@ public class AdminResponse {
         private List<RecentBoardDTO> recentBoards;
         private boolean hasRecentUsers;
         private boolean hasRecentBoards;
+        private String dashboardActiveClass;
+        private String usersActiveClass;
+        private String boardsActiveClass;
 
         public static DashboardPageDTO of(
                 long totalUserCount,
@@ -84,6 +104,13 @@ public class AdminResponse {
             dto.setHasRecentUsers(!recentUsers.isEmpty());
             dto.setHasRecentBoards(!recentBoards.isEmpty());
             return dto;
+        }
+
+        public DashboardPageDTO withCurrentMenu(String currentMenu) {
+            this.dashboardActiveClass = activeClass(currentMenu, "dashboard");
+            this.usersActiveClass = activeClass(currentMenu, "users");
+            this.boardsActiveClass = activeClass(currentMenu, "boards");
+            return this;
         }
     }
 
@@ -242,7 +269,7 @@ public class AdminResponse {
         private Integer id;
         private String title;
         private String userName;
-        private LocalDate startDate;
+        private LocalDate createdDate;
         private Integer viewCount;
 
         private String category;
@@ -260,7 +287,7 @@ public class AdminResponse {
             dto.setId(id);
             dto.setTitle(title);
             dto.setUserName(userName);
-            dto.setStartDate(startDate);
+            dto.setCreatedDate(startDate);
             dto.setViewCount(viewCount);
             dto.setCategory(category);
             dto.setCategoryClass(categoryClass);
@@ -295,6 +322,9 @@ public class AdminResponse {
         private boolean isFood;
         private boolean isReview;
         private boolean isQna;
+        private String dashboardActiveClass;
+        private String usersActiveClass;
+        private String boardsActiveClass;
 
         public static AdminBoardListDTO of(
                 List<AdminBoardDTO> boards,
@@ -349,6 +379,13 @@ public class AdminResponse {
             dto.setReview(isReview);
             dto.setQna(isQna);
             return dto;
+        }
+
+        public AdminBoardListDTO withCurrentMenu(String currentMenu) {
+            this.dashboardActiveClass = activeClass(currentMenu, "dashboard");
+            this.usersActiveClass = activeClass(currentMenu, "users");
+            this.boardsActiveClass = activeClass(currentMenu, "boards");
+            return this;
         }
     }
 

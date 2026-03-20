@@ -15,7 +15,7 @@ class MypageServiceTest {
     private MypageService mypageService;
 
     @Test
-    void getMainPage_loadsUpcomingBookingAndTripLinks() {
+    void main() {
         MypageResponse.PageDTO page = mypageService.getMainPage(1);
 
         assertEquals("ssar", page.getUser().getUsername());
@@ -35,7 +35,7 @@ class MypageServiceTest {
     }
 
     @Test
-    void getMainPage_returnsEmptySectionsForUserWithoutUpcomingData() {
+    void empty() {
         MypageResponse.PageDTO page = mypageService.getMainPage(3);
 
         assertEquals("admin", page.getUser().getUsername());

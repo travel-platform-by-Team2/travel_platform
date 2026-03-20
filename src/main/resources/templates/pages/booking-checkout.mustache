@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>예약 확인 및 결제</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="page-body">
   {{>partials/header}}
@@ -13,6 +14,7 @@
   <div class="layout-container"></div>
 </div>
 
+{{#page}}
 <main class="page-main-wrap">
   <div class="mb-8">
     <h1 class="checkout-page-title">예약 확인 및 결제</h1>
@@ -171,6 +173,7 @@
     </div>
   </div>
 </main>
+{{/page}}
 
   {{>partials/chatbot}}
   {{>partials/footer}}

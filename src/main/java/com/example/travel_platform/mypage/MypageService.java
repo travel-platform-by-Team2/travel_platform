@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform.booking.Booking;
 import com.example.travel_platform.booking.BookingRepository;
+import com.example.travel_platform.trip.TripPlan;
 import com.example.travel_platform.trip.TripRepository;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
@@ -29,32 +31,20 @@ public class MypageService {
     private final TripRepository tripRepository;
 
     public MypageResponse.PageDTO getMainPage(Integer sessionUserId) {
-        MypageResponse.ProfileDTO user = loadProfile(sessionUserId);
+        User user = findUser(sessionUserId);
         List<MypageResponse.BookingCardDTO> bookings = loadUpcomingBookings(sessionUserId);
         List<MypageResponse.PlanCardDTO> tripPlans = loadUpcomingTripPlans(sessionUserId);
-
-        return MypageResponse.PageDTO.of(user, bookings, tripPlans);
+        return createMainPage(user, bookings, tripPlans);
     }
 
     private List<MypageResponse.BookingCardDTO> loadUpcomingBookings(Integer sessionUserId) {
-        LocalDate today = LocalDate.now();
-
-        return bookingRepository.findByUser_IdAndCheckInGreaterThanEqualOrderByCheckInAscIdAsc(
-                        sessionUserId,
-                        today,
-                        PageRequest.of(0, UPCOMING_BOOKING_LIMIT))
-                .stream()
+        return findUpcomingBookings(sessionUserId).stream()
                 .map(booking -> MypageResponse.BookingCardDTO.from(booking))
                 .collect(Collectors.toList());
     }
 
     private List<MypageResponse.PlanCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
-        LocalDate today = LocalDate.now();
-        LocalDate inclusiveToday = today.minusDays(1);
-
-        // TripRepository 조회 조건이 startDate > 기준일이므로 오늘 출발 계획도 포함되게 하루를 보정한다.
-        return tripRepository.findUpcomingPlanListByUserId(sessionUserId, inclusiveToday, 0, UPCOMING_TRIP_PLAN_LIMIT)
-                .stream()
+        return findUpcomingTripPlans(sessionUserId).stream()
                 .map(tripPlan -> MypageResponse.PlanCardDTO.from(tripPlan))
                 .collect(Collectors.toList());
     }
@@ -67,19 +57,43 @@ public class MypageService {
         String newPassword = normalize(reqDTO.getNewPassword());
         String newPasswordConfirm = normalize(reqDTO.getNewPasswordConfirm());
 
-        if (!normalize(user.getPassword()).equals(currentPassword)) {
-            throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
-        }
-
-        if (!newPassword.equals(newPasswordConfirm)) {
-            throw new Exception400("새 비밀번호와 확인값이 일치하지 않습니다.");
-        }
+        validateCurrentPassword(user, currentPassword);
+        validateNewPasswordConfirm(newPassword, newPasswordConfirm);
 
         user.changePassword(newPassword);
     }
 
-    private MypageResponse.ProfileDTO loadProfile(Integer sessionUserId) {
-        return MypageResponse.ProfileDTO.from(findUser(sessionUserId));
+    private MypageResponse.PageDTO createMainPage(
+            User user,
+            List<MypageResponse.BookingCardDTO> bookings,
+            List<MypageResponse.PlanCardDTO> tripPlans) {
+        return MypageResponse.PageDTO.of(MypageResponse.ProfileDTO.from(user), bookings, tripPlans);
+    }
+
+    private List<Booking> findUpcomingBookings(Integer sessionUserId) {
+        return bookingRepository.findByUser_IdAndCheckInGreaterThanEqualOrderByCheckInAscIdAsc(
+                sessionUserId,
+                LocalDate.now(),
+                PageRequest.of(0, UPCOMING_BOOKING_LIMIT));
+    }
+
+    private List<TripPlan> findUpcomingTripPlans(Integer sessionUserId) {
+        LocalDate inclusiveToday = LocalDate.now().minusDays(1);
+
+        // TripRepository 조회 조건이 startDate > 기준일이므로 오늘 출발 계획도 포함되게 하루를 보정한다.
+        return tripRepository.findUpcomingPlanListByUserId(sessionUserId, inclusiveToday, 0, UPCOMING_TRIP_PLAN_LIMIT);
+    }
+
+    private void validateCurrentPassword(User user, String currentPassword) {
+        if (!normalize(user.getPassword()).equals(currentPassword)) {
+            throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    private void validateNewPasswordConfirm(String newPassword, String newPasswordConfirm) {
+        if (!newPassword.equals(newPasswordConfirm)) {
+            throw new Exception400("새 비밀번호와 확인값이 일치하지 않습니다.");
+        }
     }
 
     private User findUser(Integer sessionUserId) {

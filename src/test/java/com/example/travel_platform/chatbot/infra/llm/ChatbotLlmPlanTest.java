@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class ChatbotLlmPlanTest {
 
     @Test
-    void recordFields_areExposedAsDefined() {
+    void plan() {
         ChatbotLlmPlan plan = new ChatbotLlmPlan(
                 true,
                 "USER_BOOKING_LIST",

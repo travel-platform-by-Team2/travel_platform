@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,36 @@ public class BookingRequest {
         private Integer taxAndServiceFee;
         private String location;
         private String imageUrl;
+    }
+
+    @Data
+    @Builder
+    public static class CompleteBookingDTO {
+        private String lodgingName;
+        private String roomName;
+        private String regionKey;
+        private String location;
+        private String checkIn;
+        private String checkOut;
+        private String guests;
+        private Integer pricePerNight;
+        private Integer taxAndServiceFee;
+        private String imageUrl;
+    }
+
+    @Data
+    @Builder
+    public static class RoomQueryDTO {
+        private String lodgingName;
+        private String address;
+    }
+
+    @Data
+    @Builder
+    public static class PlaceImageQueryDTO {
+        private String placeUrl;
+        private String name;
+        private String address;
     }
 
     @Data

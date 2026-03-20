@@ -30,7 +30,7 @@ import com.example.travel_platform.chatbot.infra.llm.ChatbotSearchAttempt;
 class ChatbotOrchestratorTest {
 
     @Test
-    void ask_directQuestion_returnsDirectLlmWithoutDbQuery() {
+    void direct() {
         ChatbotPlanService chatbotPlanService = mock(ChatbotPlanService.class);
         ChatbotQueryService chatbotQueryService = mock(ChatbotQueryService.class);
         ChatbotAnswerService chatbotAnswerService = mock(ChatbotAnswerService.class);
@@ -42,8 +42,7 @@ class ChatbotOrchestratorTest {
         when(chatbotPlanService.createPlan(eq("hello"), any())).thenReturn(plan);
         when(chatbotAnswerService.resolveDirectAnswer(plan)).thenReturn("llm answer");
 
-        ChatbotRequest.AskDTO request = new ChatbotRequest.AskDTO();
-        request.setMessage("hello");
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.of("hello", null);
 
         ChatbotResponse.AskDTO response = chatbotOrchestrator.ask(request);
 
@@ -57,7 +56,7 @@ class ChatbotOrchestratorTest {
     }
 
     @Test
-    void ask_bookingQuestion_returnsAnswerAfterSingleDbEvaluation() {
+    void dbOnce() {
         ChatbotPlanService chatbotPlanService = mock(ChatbotPlanService.class);
         ChatbotQueryService chatbotQueryService = mock(ChatbotQueryService.class);
         ChatbotAnswerService chatbotAnswerService = mock(ChatbotAnswerService.class);
@@ -98,8 +97,7 @@ class ChatbotOrchestratorTest {
                 eq(false)))
                 .thenReturn("db answer");
 
-        ChatbotRequest.AskDTO request = new ChatbotRequest.AskDTO();
-        request.setMessage("booking list");
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.of("booking list", null);
 
         ChatbotResponse.AskDTO response = chatbotOrchestrator.ask(request);
 
@@ -115,7 +113,7 @@ class ChatbotOrchestratorTest {
     }
 
     @Test
-    void ask_dbQuestion_retriesUntilLlmStopsWithAccumulatedHistory() {
+    void dbRetry() {
         ChatbotPlanService chatbotPlanService = mock(ChatbotPlanService.class);
         ChatbotQueryService chatbotQueryService = mock(ChatbotQueryService.class);
         ChatbotAnswerService chatbotAnswerService = mock(ChatbotAnswerService.class);
@@ -184,8 +182,7 @@ class ChatbotOrchestratorTest {
                 eq(false)))
                 .thenReturn("있어요. '제주 여행 코스 추천' 게시글이 있습니다.");
 
-        ChatbotRequest.AskDTO request = new ChatbotRequest.AskDTO();
-        request.setMessage(question);
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.of(question, null);
 
         ChatbotResponse.AskDTO response = chatbotOrchestrator.ask(request);
 
@@ -203,7 +200,7 @@ class ChatbotOrchestratorTest {
     }
 
     @Test
-    void ask_dbQuestion_whenHardCapReached_returnsExhaustedAnswer() {
+    void dbCap() {
         ChatbotPlanService chatbotPlanService = mock(ChatbotPlanService.class);
         ChatbotQueryService chatbotQueryService = mock(ChatbotQueryService.class);
         ChatbotAnswerService chatbotAnswerService = mock(ChatbotAnswerService.class);
@@ -266,8 +263,7 @@ class ChatbotOrchestratorTest {
                 eq(true)))
                 .thenReturn("현재 확인한 일정 데이터만으로는 제주도 일정의 시작일을 확정하기 어렵습니다.");
 
-        ChatbotRequest.AskDTO request = new ChatbotRequest.AskDTO();
-        request.setMessage("제주도 일정의 시작일이 언제였지?");
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.of("제주도 일정의 시작일이 언제였지?", null);
 
         ChatbotResponse.AskDTO response = chatbotOrchestrator.ask(request);
 
@@ -293,7 +289,7 @@ class ChatbotOrchestratorTest {
     }
 
     @Test
-    void ask_queryFailure_throwsChatbotException() {
+    void qErr() {
         ChatbotPlanService chatbotPlanService = mock(ChatbotPlanService.class);
         ChatbotQueryService chatbotQueryService = mock(ChatbotQueryService.class);
         ChatbotAnswerService chatbotAnswerService = mock(ChatbotAnswerService.class);
@@ -307,8 +303,7 @@ class ChatbotOrchestratorTest {
         when(chatbotQueryService.execute(sql, "Fetch booking list"))
                 .thenThrow(new ApiException("CHATBOT_INTERNAL_ERROR", "db error", HttpStatus.INTERNAL_SERVER_ERROR));
 
-        ChatbotRequest.AskDTO request = new ChatbotRequest.AskDTO();
-        request.setMessage("booking status");
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.of("booking status", null);
 
         ApiException exception = assertThrows(ApiException.class, () -> chatbotOrchestrator.ask(request));
         assertEquals("CHATBOT_INTERNAL_ERROR", exception.getCode());
@@ -316,7 +311,7 @@ class ChatbotOrchestratorTest {
     }
 
     @Test
-    void ask_planFailure_throwsChatbotException() {
+    void planErr() {
         ChatbotPlanService chatbotPlanService = mock(ChatbotPlanService.class);
         ChatbotQueryService chatbotQueryService = mock(ChatbotQueryService.class);
         ChatbotAnswerService chatbotAnswerService = mock(ChatbotAnswerService.class);
@@ -327,8 +322,7 @@ class ChatbotOrchestratorTest {
         when(chatbotPlanService.createPlan(eq("hello"), any()))
                 .thenThrow(new ApiException("CHATBOT_INTERNAL_ERROR", "llm error", HttpStatus.INTERNAL_SERVER_ERROR));
 
-        ChatbotRequest.AskDTO request = new ChatbotRequest.AskDTO();
-        request.setMessage("hello");
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.of("hello", null);
 
         ApiException exception = assertThrows(ApiException.class, () -> chatbotOrchestrator.ask(request));
         assertEquals("CHATBOT_INTERNAL_ERROR", exception.getCode());
@@ -337,7 +331,7 @@ class ChatbotOrchestratorTest {
     }
 
     @Test
-    void ask_dbPlanWithoutSql_throwsChatbotException() {
+    void noSql() {
         ChatbotPlanService chatbotPlanService = mock(ChatbotPlanService.class);
         ChatbotQueryService chatbotQueryService = mock(ChatbotQueryService.class);
         ChatbotAnswerService chatbotAnswerService = mock(ChatbotAnswerService.class);
@@ -348,8 +342,7 @@ class ChatbotOrchestratorTest {
         ChatbotLlmPlan plan = new ChatbotLlmPlan(true, "USER_BOOKING_LIST", "Fetch booking list", "", "");
         when(chatbotPlanService.createPlan(eq("booking status"), any())).thenReturn(plan);
 
-        ChatbotRequest.AskDTO request = new ChatbotRequest.AskDTO();
-        request.setMessage("booking status");
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.of("booking status", null);
 
         ApiException exception = assertThrows(ApiException.class, () -> chatbotOrchestrator.ask(request));
         assertEquals("CHATBOT_INTERNAL_ERROR", exception.getCode());

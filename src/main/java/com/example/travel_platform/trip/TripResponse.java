@@ -220,6 +220,7 @@ public class TripResponse {
         private String kakaoMapAppKey;
         private String detailUrl;
         private String saveUrl;
+        private long existingCount;
 
         public static PlacePageDTO of(DetailDTO detail, String kakaoMapAppKey) {
             return PlacePageDTO.builder()
@@ -227,6 +228,7 @@ public class TripResponse {
                     .kakaoMapAppKey(kakaoMapAppKey == null ? "" : kakaoMapAppKey)
                     .detailUrl("/trip/detail?id=" + detail.getId())
                     .saveUrl("/api/trips/" + detail.getId() + "/places")
+                    .existingCount(detail.getPlaceCount())
                     .build();
         }
     }
@@ -284,6 +286,10 @@ public class TripResponse {
         private Integer id;
         private String redirectUrl;
 
+        public static CreatedDTO of(TripPlan tripPlan) {
+            return of(tripPlan.getId());
+        }
+
         public static CreatedDTO of(Integer id) {
             return CreatedDTO.builder()
                     .id(id)
@@ -301,15 +307,18 @@ public class TripResponse {
         private String address;
         private Integer dayOrder;
         private long placeCount;
+        private String detailUrl;
 
         public static PlaceAddedDTO of(TripPlace tripPlace, long placeCount) {
+            Integer planId = tripPlace.getTripPlan().getId();
             return PlaceAddedDTO.builder()
                     .id(tripPlace.getId())
-                    .planId(tripPlace.getTripPlan().getId())
+                    .planId(planId)
                     .placeName(tripPlace.getPlaceName())
                     .address(tripPlace.getAddress())
                     .dayOrder(tripPlace.getDayOrder())
                     .placeCount(placeCount)
+                    .detailUrl("/trip/detail?id=" + planId)
                     .build();
         }
     }

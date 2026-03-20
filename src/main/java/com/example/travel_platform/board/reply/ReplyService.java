@@ -23,33 +23,43 @@ public class ReplyService {
 
     @Transactional
     public ReplyResponse.CreatedDTO createReply(Integer sessionUserId, Integer boardId, ReplyRequest.CreateDTO reqDTO) {
-        User sessionUser = findUser(sessionUserId);
+        ReplyActor actor = requireActor(sessionUserId);
         Board board = findBoard(boardId);
-        Reply reply = Reply.create(board, sessionUser, reqDTO.getContent());
-        Reply savedReply = replyRepository.save(reply);
+        Reply savedReply = saveReply(board, actor, reqDTO);
         return ReplyResponse.CreatedDTO.from(savedReply);
     }
 
     @Transactional
     public ReplyResponse.UpdatedDTO updateReply(Integer sessionUserId, Integer boardId, Integer replyId,
             ReplyRequest.UpdateDTO reqDTO) {
-        Reply reply = findReply(replyId);
-        validateBoardMatch(boardId, reply);
-        validateOwner(sessionUserId, reply);
+        Reply reply = findReplyInBoard(boardId, replyId);
+        ReplyActor actor = requireActor(sessionUserId);
+        validateReplyEditor(actor, reply);
         reply.updateContent(reqDTO.getContent());
         return ReplyResponse.UpdatedDTO.from(reply);
     }
 
     @Transactional
     public void deleteReply(Integer sessionUserId, Integer boardId, Integer replyId) {
-        Reply reply = findReply(replyId);
-        validateBoardMatch(boardId, reply);
-        validateOwner(sessionUserId, reply);
+        Reply reply = findReplyInBoard(boardId, replyId);
+        ReplyActor actor = requireActor(sessionUserId);
+        validateReplyEditor(actor, reply);
         replyRepository.delete(reply);
     }
 
-    private void validateOwner(Integer sessionUserId, Reply reply) {
-        if (!reply.getUser().getId().equals(sessionUserId)) {
+    private Reply saveReply(Board board, ReplyActor actor, ReplyRequest.CreateDTO reqDTO) {
+        Reply reply = Reply.create(board, actor.requireUser(), reqDTO.getContent());
+        return replyRepository.save(reply);
+    }
+
+    private Reply findReplyInBoard(Integer boardId, Integer replyId) {
+        Reply reply = findReply(replyId);
+        validateBoardMatch(boardId, reply);
+        return reply;
+    }
+
+    private void validateReplyEditor(ReplyActor actor, Reply reply) {
+        if (!actor.canManage(reply)) {
             throw new Exception403("본인 댓글만 수정/삭제할 수 있습니다.");
         }
     }
@@ -65,6 +75,10 @@ public class ReplyService {
                 .orElseThrow(() -> new Exception404("사용자 정보를 찾을 수 없습니다."));
     }
 
+    private ReplyActor requireActor(Integer sessionUserId) {
+        return ReplyActor.of(findUser(sessionUserId));
+    }
+
     private Board findBoard(Integer boardId) {
         return boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
@@ -73,5 +87,26 @@ public class ReplyService {
     private Reply findReply(Integer replyId) {
         return replyRepository.findById(replyId)
                 .orElseThrow(() -> new Exception404("댓글을 찾을 수 없습니다."));
+    }
+
+    private static final class ReplyActor {
+
+        private final User user;
+
+        private ReplyActor(User user) {
+            this.user = user;
+        }
+
+        private static ReplyActor of(User user) {
+            return new ReplyActor(user);
+        }
+
+        private boolean canManage(Reply reply) {
+            return reply.getUser().getId().equals(user.getId());
+        }
+
+        private User requireUser() {
+            return user;
+        }
     }
 }

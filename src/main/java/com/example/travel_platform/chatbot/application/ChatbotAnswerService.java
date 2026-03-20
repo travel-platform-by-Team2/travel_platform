@@ -22,7 +22,7 @@ public class ChatbotAnswerService {
     private final ChatbotLlmClient chatbotLlmClient;
 
     public String resolveDirectAnswer(ChatbotLlmPlan llmPlan) {
-        return toTextOrDefault(llmPlan.answer(), DEFAULT_DIRECT_ANSWER);
+        return resolveAnswerText(llmPlan.answer(), DEFAULT_DIRECT_ANSWER);
     }
 
     public String createDbAnswer(
@@ -33,7 +33,7 @@ public class ChatbotAnswerService {
         try {
             return chatbotLlmClient.createDbAnswer(
                     message,
-                    toIntentOrDefault(queryIntent),
+                    resolveQueryIntent(queryIntent),
                     searchAttempts,
                     exhausted);
         } catch (ApiException e) {
@@ -47,14 +47,14 @@ public class ChatbotAnswerService {
         }
     }
 
-    private String toIntentOrDefault(String queryIntent) {
+    private String resolveQueryIntent(String queryIntent) {
         if (queryIntent == null || queryIntent.isBlank()) {
             return INTENT_GENERAL_CHAT;
         }
         return queryIntent;
     }
 
-    private String toTextOrDefault(String value, String defaultValue) {
+    private String resolveAnswerText(String value, String defaultValue) {
         if (value == null || value.isBlank()) {
             return defaultValue;
         }

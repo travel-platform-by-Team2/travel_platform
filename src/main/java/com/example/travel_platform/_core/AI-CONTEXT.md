@@ -23,10 +23,12 @@
 - 이 계층에는 도메인별 비즈니스 규칙을 넣지 않는다.
 - 인터셉터나 예외 처리 변경은 게시판, 캘린더, 관리자 라우트, 챗봇 전체에 영향을 줄 수 있음을 전제로 수정한다.
 - 인증 정책을 바꿀 때는 `sessionUser` 세션 키와 `User.role` 기반 관리자 판별이 같이 맞는지 확인한다.
+- 공통 템플릿/정적 자산 계약 검증은 `src/test/java/com/example/travel_platform/_core/template` 하위 테스트에서 관리하므로, partial 구조를 바꿀 때 관련 테스트도 같이 맞춘다.
 
 ## 테스트
 
 - 관련 변경 후 `./gradlew.bat test`로 전체 영향 범위를 확인한다.
+- 공통 partial 구조 변경 시 `StaticScriptContractTest`, `StaticStyleContractTest`를 함께 확인한다.
 
 ## 의존성
 

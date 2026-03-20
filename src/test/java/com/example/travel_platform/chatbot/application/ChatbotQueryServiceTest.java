@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 class ChatbotQueryServiceTest {
 
     @Test
-    void execute_appendsDefaultLimit_whenMissingLimit() {
+    void limit() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ChatbotQueryService service = new ChatbotQueryService(jdbcTemplate);
         ChatbotLlmPlan plan = new ChatbotLlmPlan(
@@ -41,7 +41,7 @@ class ChatbotQueryServiceTest {
     }
 
     @Test
-    void execute_clampsLimit_whenTooLarge() {
+    void clamp() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ChatbotQueryService service = new ChatbotQueryService(jdbcTemplate);
         ChatbotLlmPlan plan = new ChatbotLlmPlan(
@@ -60,7 +60,7 @@ class ChatbotQueryServiceTest {
     }
 
     @Test
-    void execute_rejectsNonSelectSql() {
+    void selectOnly() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ChatbotQueryService service = new ChatbotQueryService(jdbcTemplate);
         ChatbotLlmPlan plan = new ChatbotLlmPlan(
@@ -77,7 +77,7 @@ class ChatbotQueryServiceTest {
     }
 
     @Test
-    void execute_rejectsMultipleStatements() {
+    void multi() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ChatbotQueryService service = new ChatbotQueryService(jdbcTemplate);
         ChatbotLlmPlan plan = new ChatbotLlmPlan(
@@ -94,7 +94,7 @@ class ChatbotQueryServiceTest {
     }
 
     @Test
-    void execute_rejectsDisallowedTable() {
+    void table() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ChatbotQueryService service = new ChatbotQueryService(jdbcTemplate);
         ChatbotLlmPlan plan = new ChatbotLlmPlan(
@@ -111,7 +111,7 @@ class ChatbotQueryServiceTest {
     }
 
     @Test
-    void execute_allowsJoinOnAllowedTables() {
+    void join() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ChatbotQueryService service = new ChatbotQueryService(jdbcTemplate);
         ChatbotLlmPlan plan = new ChatbotLlmPlan(
@@ -127,5 +127,23 @@ class ChatbotQueryServiceTest {
 
         assertEquals(expectedSql, result.sql());
         verify(jdbcTemplate).queryForList(expectedSql);
+    }
+
+    @Test
+    void summary() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        ChatbotQueryService service = new ChatbotQueryService(jdbcTemplate);
+        ChatbotLlmPlan plan = new ChatbotLlmPlan(
+                true,
+                "BOARD_LIST",
+                "",
+                "select id from board_tb limit 3",
+                "");
+        when(jdbcTemplate.queryForList("select id from board_tb limit 3")).thenReturn(List.of());
+
+        ChatbotQueryService.QueryResult result = service.execute(plan);
+
+        assertEquals("LLM 생성 SQL 조회", result.querySummary());
+        verify(jdbcTemplate).queryForList("select id from board_tb limit 3");
     }
 }

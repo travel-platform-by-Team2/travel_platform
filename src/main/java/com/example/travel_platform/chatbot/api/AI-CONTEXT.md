@@ -20,10 +20,12 @@
 
 - 요청/응답 스키마를 바꾸면 DTO와 테스트를 함께 갱신한다.
 - API 경로 변경 시 프런트엔드 챗봇 호출부도 같이 확인한다.
+- `ChatbotController`는 현재 `/api/chatbot/messages` 단건 질문 입구만 담당하고, orchestrator 위임만 수행한다.
+- `ChatbotRequest`, `ChatbotResponse`에는 `of(...)`, `direct()`, `db(...)` factory가 있으므로 테스트와 상위 계층에서 같은 DTO 기준을 사용한다.
 
 ## 테스트
 
-- `/api/chatbot/messages` 요청과 응답 형태를 검증한다.
+- `/api/chatbot/messages` 요청과 응답 형태, validation 실패, JSON 파싱 실패, service 예외 응답을 검증한다.
 
 ## 의존성
 

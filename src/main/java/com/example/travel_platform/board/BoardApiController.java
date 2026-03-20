@@ -23,11 +23,11 @@ public class BoardApiController {
     @PostMapping("/{boardId}/likes/toggle")
     public ResponseEntity<Resp<BoardResponse.LikeToggleDTO>> toggleLike(
             @PathVariable(name = "boardId") Integer boardId) {
-        Integer sessionUserId = requireSessionUserId();
+        Integer sessionUserId = requiredSessionUserId();
         return Resp.ok(boardService.toggleBoardLike(sessionUserId, boardId));
     }
 
-    private Integer requireSessionUserId() {
+    private Integer requiredSessionUserId() {
         return SessionUsers.requireUserId(session);
     }
 }

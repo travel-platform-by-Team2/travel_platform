@@ -24,13 +24,13 @@
                                         </span>
 <span class="trip-plan-detail-span-02">
 <span class="icon-ms-14-mr1">location_on</span>
-                                            {{#plan}}{{plan.region}}{{/plan}}{{^plan}}제주특별자치도{{/plan}}
+                                            {{#plan}}{{plan.regionLabel}}{{/plan}}{{^plan}}제주특별자치도{{/plan}}
                                         </span>
 </div>
 </div>
 <div class="trip-plan-detail-div-06">
 <span class="icon-ms-18">calendar_month</span>
-<p>2023.10.15 - 2023.10.18 (3박 4일)</p>
+<p>{{#plan}}{{plan.travelPeriodLabel}}{{/plan}}{{^plan}}2023.10.15 - 2023.10.18 (3박 4일){{/plan}}</p>
 </div>
 </div>
 <button class="trip-plan-detail-button-01">
@@ -51,7 +51,7 @@
 <div class="trip-plan-detail-div-09">
 <span class="icon-ms-base">group</span>
 </div>
-<span class="trip-plan-detail-span-03">친구와</span>
+<span class="trip-plan-detail-span-03">{{#plan}}{{plan.whoWithLabel}}{{/plan}}{{^plan}}친구와{{/plan}}</span>
 </div>
 <div class="forecast-day">
 <div class="icon-circle-lg">

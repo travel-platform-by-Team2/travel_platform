@@ -20,6 +20,15 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/boards")
 public class BoardController {
 
+    private static final String MODEL_PAGE = "page";
+
+    private static final String VIEW_LIST = "pages/board-list";
+    private static final String VIEW_CREATE = "pages/board-create";
+    private static final String VIEW_DETAIL = "pages/board-detail";
+    private static final String VIEW_EDIT = "pages/board-edit";
+
+    private static final String REDIRECT_LIST = "redirect:/boards";
+
     private final BoardService boardService;
     private final HttpSession session;
 
@@ -29,14 +38,12 @@ public class BoardController {
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
         BoardResponse.ListPageDTO responseDTO = boardService.getBoardList(category, keyword, sort, page);
-        model.addAttribute("model", responseDTO);
-        return "pages/board-list";
+        return renderList(model, responseDTO);
     }
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("page", BoardResponse.FormDTO.empty());
-        return "pages/board-create";
+        return renderCreateForm(model, BoardResponse.FormDTO.empty());
     }
 
     @PostMapping
@@ -45,32 +52,25 @@ public class BoardController {
             Model model) {
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("page", BoardResponse.FormDTO.fromCreate(
-                    reqDTO,
-                    getFieldError(bindingResult, "category"),
-                    getFieldError(bindingResult, "title"),
-                    getFieldError(bindingResult, "content")));
-            return "pages/board-create";
+            return renderCreateForm(model, createFormPage(reqDTO, bindingResult));
         }
 
-        boardService.createBoard(requireSessionUserId(), reqDTO);
-        return "redirect:/boards";
+        boardService.createBoard(requiredSessionUserId(), reqDTO);
+        return REDIRECT_LIST;
     }
 
     @GetMapping("/{boardId}")
     public String detail(@PathVariable(name = "boardId") Integer boardId, Model model) {
-        Integer sessionUserId = resolveSessionUserIdOrNull();
+        Integer sessionUserId = optionalSessionUserId();
         BoardResponse.DetailDTO detailDTO = boardService.getBoardDetail(sessionUserId, boardId);
-        model.addAttribute("board", detailDTO);
-        return "pages/board-detail";
+        return renderDetail(model, detailDTO);
     }
 
     @GetMapping("/{boardId}/edit")
     public String editForm(@PathVariable(name = "boardId") Integer boardId, Model model) {
-        Integer sessionUserId = requireSessionUserId();
+        Integer sessionUserId = requiredSessionUserId();
         BoardResponse.FormDTO formDTO = boardService.getBoardForm(sessionUserId, boardId);
-        model.addAttribute("page", formDTO);
-        return "pages/board-edit";
+        return renderEditForm(model, formDTO);
     }
 
     @PostMapping("/{boardId}/update")
@@ -80,32 +80,64 @@ public class BoardController {
             Model model) {
 
         if (bindingResult.hasErrors()) {
-            Integer sessionUserId = requireSessionUserId();
-            BoardResponse.FormDTO formDTO = boardService.getBoardForm(sessionUserId, boardId);
-            model.addAttribute("page", BoardResponse.FormDTO.fromUpdate(
-                    formDTO.getId(),
-                    reqDTO,
-                    getFieldError(bindingResult, "category"),
-                    getFieldError(bindingResult, "title"),
-                    getFieldError(bindingResult, "content")));
-            return "pages/board-edit";
+            return renderEditForm(model, updateFormPage(boardId, reqDTO, bindingResult));
         }
 
-        boardService.updateBoard(requireSessionUserId(), boardId, reqDTO);
+        boardService.updateBoard(requiredSessionUserId(), boardId, reqDTO);
         return "redirect:/boards/" + boardId;
     }
 
     @PostMapping("/{boardId}/delete")
     public String delete(@PathVariable(name = "boardId") Integer boardId) {
-        boardService.deleteBoard(requireSessionUserId(), boardId);
-        return "redirect:/boards";
+        boardService.deleteBoard(requiredSessionUserId(), boardId);
+        return REDIRECT_LIST;
     }
 
-    private Integer requireSessionUserId() {
+    private String renderList(Model model, BoardResponse.ListPageDTO responseDTO) {
+        model.addAttribute(MODEL_PAGE, responseDTO);
+        return VIEW_LIST;
+    }
+
+    private String renderCreateForm(Model model, BoardResponse.FormDTO formDTO) {
+        model.addAttribute(MODEL_PAGE, formDTO);
+        return VIEW_CREATE;
+    }
+
+    private String renderDetail(Model model, BoardResponse.DetailDTO detailDTO) {
+        model.addAttribute(MODEL_PAGE, detailDTO);
+        return VIEW_DETAIL;
+    }
+
+    private String renderEditForm(Model model, BoardResponse.FormDTO formDTO) {
+        model.addAttribute(MODEL_PAGE, formDTO);
+        return VIEW_EDIT;
+    }
+
+    private BoardResponse.FormDTO createFormPage(BoardRequest.CreateDTO reqDTO, BindingResult bindingResult) {
+        return BoardResponse.FormDTO.fromCreate(
+                reqDTO,
+                getFieldError(bindingResult, "category"),
+                getFieldError(bindingResult, "title"),
+                getFieldError(bindingResult, "content"));
+    }
+
+    private BoardResponse.FormDTO updateFormPage(Integer boardId,
+            BoardRequest.UpdateDTO reqDTO,
+            BindingResult bindingResult) {
+        BoardResponse.FormDTO formDTO = boardService.getBoardForm(requiredSessionUserId(), boardId);
+        return BoardResponse.FormDTO.fromUpdate(
+                formDTO.getId(),
+                reqDTO,
+                getFieldError(bindingResult, "category"),
+                getFieldError(bindingResult, "title"),
+                getFieldError(bindingResult, "content"));
+    }
+
+    private Integer requiredSessionUserId() {
         return SessionUsers.requireUserId(session);
     }
 
-    private Integer resolveSessionUserIdOrNull() {
+    private Integer optionalSessionUserId() {
         return SessionUsers.getUserIdOrNull(session);
     }
 
