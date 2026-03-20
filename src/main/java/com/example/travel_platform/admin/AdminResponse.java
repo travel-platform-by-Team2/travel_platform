@@ -18,6 +18,12 @@ public class AdminResponse {
         private boolean allTab;
         private boolean activeTab;
         private boolean inactiveTab;
+        private String sortBy;
+        private String orderBy;
+        private boolean sortByPostCount;
+        private boolean sortByCreatedAt;
+        private boolean orderByAsc;
+        private boolean orderByDesc;
 
         public static UserListPageDTO of(
                 List<AdminUserDTO> users,
@@ -27,7 +33,9 @@ public class AdminResponse {
                 Boolean currentActive,
                 boolean allTab,
                 boolean activeTab,
-                boolean inactiveTab) {
+                boolean inactiveTab,
+                String sortBy,
+                String orderBy) {
             UserListPageDTO dto = new UserListPageDTO();
             dto.setUsers(users);
             dto.setTotalUserCount(totalUserCount);
@@ -37,6 +45,12 @@ public class AdminResponse {
             dto.setAllTab(allTab);
             dto.setActiveTab(activeTab);
             dto.setInactiveTab(inactiveTab);
+            dto.setSortBy(sortBy);
+            dto.setOrderBy(orderBy);
+            dto.setSortByPostCount("postCount".equals(sortBy));
+            dto.setSortByCreatedAt("createdAt".equals(sortBy));
+            dto.setOrderByAsc("asc".equals(orderBy));
+            dto.setOrderByDesc("desc".equals(orderBy));
             return dto;
         }
     }
@@ -214,6 +228,7 @@ public class AdminResponse {
         private String email;
         private LocalDateTime createdAt;
         private boolean active;
+        private int boardCount;
         private String statusText;
         private String managementLabel;
 
@@ -223,6 +238,7 @@ public class AdminResponse {
                 String email,
                 LocalDateTime createdAt,
                 boolean active,
+                int boardCount,
                 String statusText,
                 String managementLabel) {
             AdminUserDTO dto = new AdminUserDTO();
@@ -231,6 +247,7 @@ public class AdminResponse {
             dto.setEmail(email);
             dto.setCreatedAt(createdAt);
             dto.setActive(active);
+            dto.setBoardCount(boardCount);
             dto.setStatusText(statusText);
             dto.setManagementLabel(managementLabel);
             return dto;
@@ -244,7 +261,6 @@ public class AdminResponse {
         private String userName;
         private LocalDate startDate;
         private Integer viewCount;
-
         private String category;
         private String categoryClass;
 
@@ -281,15 +297,14 @@ public class AdminResponse {
         private String category;
         private String keyword;
         private String sort;
-        private String sortLabel;
+        private String sortFieldLabel;
+        private String sortDirectionLabel;
+        private String toggleDirectionSort;
+        private String dateField;
+        private String viewField;
+        private String likesField;
         private String allCategory;
         private boolean allCategoryTab;
-        private boolean isSortLikes;
-        private boolean isSortDownlikes;
-        private boolean isSortViews;
-        private boolean isSortDownviews;
-        private boolean isSortLatest;
-        private boolean isSortDate;
         private String selectCategory;
         private boolean isTips;
         private boolean isPlan;
@@ -309,15 +324,14 @@ public class AdminResponse {
                 String category,
                 String keyword,
                 String sort,
-                String sortLabel,
+                String sortFieldLabel,
+                String sortDirectionLabel,
+                String toggleDirectionSort,
+                String dateField,
+                String viewField,
+                String likesField,
                 String allCategory,
                 boolean allCategoryTab,
-                boolean isSortLikes,
-                boolean isSortDownlikes,
-                boolean isSortViews,
-                boolean isSortDownviews,
-                boolean isSortLatest,
-                boolean isSortDate,
                 String selectCategory,
                 boolean isTips,
                 boolean isPlan,
@@ -336,15 +350,14 @@ public class AdminResponse {
             dto.setCategory(category);
             dto.setKeyword(keyword);
             dto.setSort(sort);
-            dto.setSortLabel(sortLabel);
+            dto.setSortFieldLabel(sortFieldLabel);
+            dto.setSortDirectionLabel(sortDirectionLabel);
+            dto.setToggleDirectionSort(toggleDirectionSort);
+            dto.setDateField(dateField);
+            dto.setViewField(viewField);
+            dto.setLikesField(likesField);
             dto.setAllCategory(allCategory);
             dto.setAllCategoryTab(allCategoryTab);
-            dto.setSortLikes(isSortLikes);
-            dto.setSortDownlikes(isSortDownlikes);
-            dto.setSortViews(isSortViews);
-            dto.setSortDownviews(isSortDownviews);
-            dto.setSortLatest(isSortLatest);
-            dto.setSortDate(isSortDate);
             dto.setSelectCategory(selectCategory);
             dto.setTips(isTips);
             dto.setPlan(isPlan);
@@ -364,7 +377,12 @@ public class AdminResponse {
         private String sort;
         private String selectCategory;
 
-        public static PageItemDTO of(int page, int displayNumber, boolean current, String keyword, String sort,
+        public static PageItemDTO of(
+                int page,
+                int displayNumber,
+                boolean current,
+                String keyword,
+                String sort,
                 String selectCategory) {
             PageItemDTO dto = new PageItemDTO();
             dto.setPage(page);
