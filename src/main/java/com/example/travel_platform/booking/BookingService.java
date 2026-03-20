@@ -300,9 +300,6 @@ public class BookingService {
         LocalDate checkInDate = resolveDate(checkIn, LocalDate.now());
         LocalDate checkOutDate = resolveDate(checkOut, LocalDate.now().plusDays(1));
 
-        Booking booking = new Booking();
-        booking.setUser(user);
-
         var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
         TripPlan plan;
         if (!plans.isEmpty()) {
@@ -311,7 +308,7 @@ public class BookingService {
             plan = TripPlan.create(
                     user,
                     "나의 여행 계획",
-                    blankToDefault(regionKey, "busan"),
+                    blankToDefault(regionKey, BookVar.DEFAULT_REGION_KEY),
                     null,
                     checkInDate,
                     checkOutDate,
@@ -319,15 +316,17 @@ public class BookingService {
             plan = tripRepository.savePlan(plan);
         }
 
-        booking.setTripPlan(plan);
-        booking.setLodgingName(lodgingName);
-        booking.setCheckIn(checkInDate);
-        booking.setCheckOut(checkOutDate);
-        booking.setGuestCount(parseGuestCount(guests));
-        booking.setPricePerNight(pricePerNight == null ? 0 : pricePerNight);
-        booking.setTaxAndServiceFee(taxAndServiceFee == null ? 0 : taxAndServiceFee);
-        booking.setLocation(blankToDefault(location, "부산"));
-        booking.setImageUrl(imageUrl);
+        Booking booking = Booking.create(
+                user,
+                plan,
+                lodgingName,
+                checkInDate,
+                checkOutDate,
+                parseGuestCount(guests),
+                pricePerNight == null ? 0 : pricePerNight,
+                taxAndServiceFee == null ? 0 : taxAndServiceFee,
+                blankToDefault(location, BookVar.DEFAULT_LOCATION_NAME),
+                imageUrl);
 
         bookingRepository.save(booking);
     }
@@ -342,17 +341,17 @@ public class BookingService {
         if (plan == null)
             return;
 
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setTripPlan(plan);
-        booking.setLodgingName(reqDTO.getLodgingName());
-        booking.setCheckIn(reqDTO.getCheckIn());
-        booking.setCheckOut(reqDTO.getCheckOut());
-        booking.setGuestCount(reqDTO.getGuestCount());
-        booking.setPricePerNight(reqDTO.getPricePerNight());
-        booking.setTaxAndServiceFee(reqDTO.getTaxAndServiceFee());
-        booking.setLocation(reqDTO.getLocation());
-        booking.setImageUrl(reqDTO.getImageUrl());
+        Booking booking = Booking.create(
+                user,
+                plan,
+                reqDTO.getLodgingName(),
+                reqDTO.getCheckIn(),
+                reqDTO.getCheckOut(),
+                reqDTO.getGuestCount(),
+                reqDTO.getPricePerNight(),
+                reqDTO.getTaxAndServiceFee(),
+                reqDTO.getLocation(),
+                reqDTO.getImageUrl());
 
         bookingRepository.save(booking);
     }

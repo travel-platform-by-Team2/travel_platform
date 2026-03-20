@@ -5,11 +5,15 @@ import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public class TripRequest {
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreatePlanDTO {
         @NotBlank(message = "여행 제목을 입력해주세요.")
         private String title;
@@ -28,6 +32,8 @@ public class TripRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class AddPlaceDTO {
         @NotBlank(message = "장소 이름이 필요합니다.")
         private String placeName;

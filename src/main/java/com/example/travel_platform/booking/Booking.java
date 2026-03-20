@@ -65,4 +65,35 @@ public class Booking {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @lombok.Builder
+    private Booking(User user, TripPlan tripPlan, String lodgingName, LocalDate checkIn, LocalDate checkOut,
+            Integer guestCount, Integer pricePerNight, Integer taxAndServiceFee, String location, String imageUrl) {
+        this.user = user;
+        this.tripPlan = tripPlan;
+        this.lodgingName = lodgingName;
+        this.checkIn = checkIn;
+        this.checkOut = checkOut;
+        this.guestCount = guestCount;
+        this.pricePerNight = pricePerNight;
+        this.taxAndServiceFee = taxAndServiceFee;
+        this.location = location;
+        this.imageUrl = imageUrl;
+    }
+
+    public static Booking create(User user, TripPlan tripPlan, String lodgingName, LocalDate checkIn, LocalDate checkOut,
+            Integer guestCount, Integer pricePerNight, Integer taxAndServiceFee, String location, String imageUrl) {
+        return Booking.builder()
+                .user(user)
+                .tripPlan(tripPlan)
+                .lodgingName(lodgingName)
+                .checkIn(checkIn)
+                .checkOut(checkOut)
+                .guestCount(guestCount)
+                .pricePerNight(pricePerNight)
+                .taxAndServiceFee(taxAndServiceFee)
+                .location(location)
+                .imageUrl(imageUrl)
+                .build();
+    }
 }
