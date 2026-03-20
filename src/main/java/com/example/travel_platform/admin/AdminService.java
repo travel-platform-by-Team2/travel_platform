@@ -2,6 +2,7 @@ package com.example.travel_platform.admin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,8 +45,13 @@ public class AdminService {
             users = adminRepository.findByActiveAndKeyword(active, searchKeyword);
         }
 
+        Map<Integer, Long> boardCounts = boardRepository.countBoardsByUserIds(
+                users.stream().map(User::getId).toList());
+
         return users.stream()
-                .map(user -> UserResponse.AdminListDTO.fromUser(user))
+                .map(user -> UserResponse.AdminListDTO.fromUser(
+                        user,
+                        Math.toIntExact(boardCounts.getOrDefault(user.getId(), 0L))))
                 .toList();
     }
 
@@ -58,9 +64,9 @@ public class AdminService {
     }
 
     @Transactional
-    public void toggleUserActive(Integer userId) {
+    public void updateUserActive(Integer userId, boolean active) {
         User user = findUser(userId);
-        user.setActive(!user.isActive());
+        user.setActive(active);
     }
 
     @Transactional

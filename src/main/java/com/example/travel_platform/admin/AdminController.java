@@ -56,10 +56,11 @@ public class AdminController {
     @PostMapping("/users/{userId}/status")
     public String toggleUserStatus(
             @PathVariable("userId") Integer userId,
+            @RequestParam(name = "targetActive") boolean targetActive,
             @RequestParam(name = "active", required = false) Boolean active,
             @RequestParam(name = "keyword", required = false) String keyword,
             RedirectAttributes redirectAttributes) {
-        adminService.toggleUserActive(userId);
+        adminService.updateUserActive(userId, targetActive);
 
         if (active != null) {
             redirectAttributes.addAttribute("active", active);

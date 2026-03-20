@@ -77,7 +77,7 @@
                   >
                   <button type="submit" class="admin-search-submit">검색</button>
                 </form>
-                </div>
+              </div>
             </div>
 
             <div class="admin-table-wrap">
@@ -86,7 +86,7 @@
                   <tr>
                     <th>사용자 정보</th>
                     <th>가입일</th>
-                    <th>상태</th>
+                    <th>게시글 수</th>
                     <th class="text-end">관리</th>
                   </tr>
                 </thead>
@@ -101,16 +101,9 @@
                       </div>
                     </td>
                     <td>{{createdAt}}</td>
-                    <td>
-                      {{#active}}
-                      <span class="admin-status-badge status-active">{{statusText}}</span>
-                      {{/active}}
-                      {{^active}}
-                      <span class="admin-status-badge status-danger">{{statusText}}</span>
-                      {{/active}}
-                    </td>
+                    <td>{{boardCount}}</td>
                     <td class="text-end">
-                      <form action="/admin/users/{{userId}}/status" method="post">
+                      <form action="/admin/users/{{userId}}/status" method="post" class="admin-status-actions">
                         {{#currentActive}}
                         <input type="hidden" name="active" value="true">
                         {{/currentActive}}
@@ -120,7 +113,14 @@
                         {{/currentActive}}
                         {{/isAllTab}}
                         <input type="hidden" name="keyword" value="{{keyword}}">
-                        <button class="admin-pill status-neutral" type="submit">{{managementLabel}}</button>
+                        {{#active}}
+                        <button class="admin-pill status-active" type="submit" name="targetActive" value="true" disabled>활성</button>
+                        <button class="admin-pill status-neutral" type="submit" name="targetActive" value="false">비활성</button>
+                        {{/active}}
+                        {{^active}}
+                        <button class="admin-pill status-neutral" type="submit" name="targetActive" value="true">활성</button>
+                        <button class="admin-pill status-danger" type="submit" name="targetActive" value="false" disabled>비활성</button>
+                        {{/active}}
                       </form>
                     </td>
                   </tr>

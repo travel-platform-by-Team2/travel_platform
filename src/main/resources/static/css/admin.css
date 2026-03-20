@@ -607,6 +607,23 @@
   border-color: #e2e8f0;
 }
 
+.page-admin .admin-status-actions {
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.page-admin .admin-status-actions .admin-pill {
+  cursor: pointer;
+}
+
+.page-admin .admin-status-actions .admin-pill:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
 .page-admin .category-blue {
   color: #1d4ed8;
   background: #dbeafe;
