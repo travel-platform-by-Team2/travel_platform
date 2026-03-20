@@ -36,7 +36,7 @@ public class BookingApiController {
     }
 
     @DeleteMapping("/{bookingId}")
-    public ResponseEntity<?> cancelBooking(@PathVariable("bookingId") Integer bookingId) {
+    public ResponseEntity<?> cancelBooking(@PathVariable(name = "bookingId") Integer bookingId) {
         bookingService.cancelBooking(1, bookingId);
         return Resp.ok(null);
     }
@@ -48,7 +48,7 @@ public class BookingApiController {
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<?> getBookingDetail(@PathVariable("bookingId") Integer bookingId) {
+    public ResponseEntity<?> getBookingDetail(@PathVariable(name = "bookingId") Integer bookingId) {
         BookingResponse.BookingDetailDTO detail = bookingService.getBookingDetail(1, bookingId);
         return Resp.ok(detail);
     }
@@ -69,9 +69,9 @@ public class BookingApiController {
      */
     @GetMapping("/place-image")
     public BookingResponse.PlaceImageDTO getPlaceImage(
-            @RequestParam(value = "placeUrl", required = false) String placeUrl,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "address", required = false) String address) {
+            @RequestParam(name = "placeUrl", required = false) String placeUrl,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "address", required = false) String address) {
         return bookingService.getPlaceImage(this.tourApiServiceKey, placeUrl, name, address);
     }
 

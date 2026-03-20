@@ -271,11 +271,11 @@ insert into board_reply_tb (board_id, user_id, content, created_at)
 values (2, 1, '가능하지만 이동 동선을 미리 정하시면 좋아요.', now());
 
 -- 예약
-insert into booking_tb (user_id, trip_plan_id, lodging_name, check_in, check_out, guest_count, total_price, created_at)
-values (1, 1, '제주 오션뷰 호텔', date '2026-04-10', date '2026-04-12', 2, 320000, now());
+insert into booking_tb (user_id, trip_plan_id, lodging_name, check_in, check_out, guest_count, price_per_night, tax_and_service_fee, location, created_at)
+values (1, 1, '제주 오션뷰 호텔', date '2026-04-10', date '2026-04-12', 2, 280000, 50400, '제주', now());
 
-insert into booking_tb (user_id, trip_plan_id, lodging_name, check_in, check_out, guest_count, total_price, created_at)
-values (2, 2, '해운대 비치 호텔', date '2026-05-01', date '2026-05-02', 1, 140000, now());
+insert into booking_tb (user_id, trip_plan_id, lodging_name, check_in, check_out, guest_count, price_per_night, tax_and_service_fee, location, created_at)
+values (2, 2, '해운대 비치 호텔', date '2025-05-01', date '2025-05-02', 1, 140000, 25200, '부산', now());
 
 -- 캘린더 일정
 insert into calendar_event_tb (user_id, trip_plan_id, title, start_at, end_at, event_type)

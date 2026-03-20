@@ -17,6 +17,7 @@ import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardRepository;
+import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.User;
 
 import lombok.RequiredArgsConstructor;
@@ -105,7 +106,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteBoard(User sessionUser, Integer boardId) {
+    public void deleteBoard(SessionUser sessionUser, Integer boardId) {
         if (sessionUser == null) {
             throw new Exception401("로그인이 필요합니다.");
         }
@@ -123,7 +124,7 @@ public class AdminService {
     public AdminResponse.AdminBoardListDTO getBoardsPage(String category, String keyword, String sort, int page) {
         int offset = page * BOARD_PAGE_SIZE;
         String normalizedKeyword = normalizeKeyword(keyword);
-        String normalizedSort = normalizeSort(sort);
+        sort = normalizeSort(sort);
         String allCategory = (category == null || category.isBlank()) ? "all" : category;
 
         List<Board> boards;
@@ -135,17 +136,17 @@ public class AdminService {
         if (hasKeyword) {
             String[] words = normalizedKeyword.split("\\s+");
             if (isAllCategory) {
-                boards = boardRepository.search(null, words, normalizedSort, offset, BOARD_PAGE_SIZE);
+                boards = boardRepository.search(null, words, sort, offset, BOARD_PAGE_SIZE);
                 categoryCount = boardRepository.countSearch(null, words);
             } else {
-                boards = boardRepository.search(allCategory, words, normalizedSort, offset, BOARD_PAGE_SIZE);
+                boards = boardRepository.search(allCategory, words, sort, offset, BOARD_PAGE_SIZE);
                 categoryCount = boardRepository.countSearch(allCategory, words);
             }
         } else if (!isAllCategory) {
-            boards = boardRepository.findAllPagingByCategory(allCategory, normalizedSort, offset, BOARD_PAGE_SIZE);
+            boards = boardRepository.findAllPagingByCategory(allCategory, sort, offset, BOARD_PAGE_SIZE);
             categoryCount = boardRepository.countByCategory(allCategory);
         } else {
-            boards = boardRepository.findAllPaging(normalizedSort, offset, BOARD_PAGE_SIZE);
+            boards = boardRepository.findAllPaging(sort, offset, BOARD_PAGE_SIZE);
             categoryCount = boardRepository.count();
         }
 
@@ -154,39 +155,39 @@ public class AdminService {
                 page,
                 totalPages,
                 normalizedKeyword,
-                normalizedSort,
+                sort,
                 allCategory);
         List<AdminResponse.AdminBoardDTO> boardDTOs = createBoardDTOs(boards);
         Integer prevPage = page == 0 ? null : page - 1;
         Integer nextPage = page >= totalPages - 1 ? null : page + 1;
 
-        return AdminResponse.AdminBoardListDTO.of(
-                boardDTOs,
-                pageItems,
-                page,
-                totalPages,
-                categoryCount,
-                allCount,
-                prevPage,
-                nextPage,
-                category,
-                normalizedKeyword,
-                normalizedSort,
-                toSortLabel(normalizedSort),
-                allCategory,
-                isAllCategory,
-                "likes".equals(normalizedSort),
-                "downlikes".equals(normalizedSort),
-                "view".equals(normalizedSort),
-                "downview".equals(normalizedSort),
-                "latest".equals(normalizedSort),
-                "date".equals(normalizedSort),
-                isAllCategory ? null : allCategory,
-                isCategory(category, "tips"),
-                isCategory(category, "plan"),
-                isCategory(category, "food"),
-                isCategory(category, "review"),
-                isCategory(category, "qna"));
+        AdminResponse.AdminBoardListDTO dto = new AdminResponse.AdminBoardListDTO();
+        dto.setBoards(boardDTOs);
+        dto.setPageItems(pageItems);
+        dto.setCurrentPage(page);
+        dto.setTotalPages(totalPages);
+        dto.setTotalCount(categoryCount);
+        dto.setAllCount(allCount);
+        dto.setPrevPage(prevPage);
+        dto.setNextPage(nextPage);
+        dto.setCategory(category);
+        dto.setKeyword(normalizedKeyword);
+        dto.setSort(sort);
+        dto.setSortFieldLabel(toSortFieldLabel(sort));
+        dto.setSortDirectionLabel(toSortDirectionLabel(sort));
+        dto.setToggleDirectionSort(toToggleDirectionSort(sort));
+        dto.setDateField(toFieldSort(sort, "date"));
+        dto.setViewField(toFieldSort(sort, "view"));
+        dto.setLikesField(toFieldSort(sort, "likes"));
+        dto.setAllCategory(allCategory);
+        dto.setAllCategoryTab(isAllCategory);
+        dto.setSelectCategory(isAllCategory ? null : allCategory);
+        dto.setTips(isCategory(category, "tips"));
+        dto.setPlan(isCategory(category, "plan"));
+        dto.setFood(isCategory(category, "food"));
+        dto.setReview(isCategory(category, "review"));
+        dto.setQna(isCategory(category, "qna"));
+        return dto;
     }
 
     private List<User> findUsers(Boolean active, String keyword) {
@@ -395,14 +396,48 @@ public class AdminService {
         };
     }
 
-    private String toSortLabel(String sort) {
+    private String toSortFieldLabel(String sort) {
         return switch (sort) {
-            case "likes" -> "좋아요순 ↓";
-            case "downlikes" -> "좋아요순 ↑";
-            case "view" -> "조회수순 ↓";
-            case "downview" -> "조회수순 ↑";
-            case "date" -> "날짜순 ↑";
-            default -> "날짜순 ↓";
+            case "view", "downview" -> "조회순";
+            case "likes", "downlikes" -> "좋아요순";
+            default -> "날짜순";
+        };
+    }
+
+    private String toSortDirectionLabel(String sort) {
+        return switch (sort) {
+            case "downlikes", "downview", "date" -> "↓";
+            default -> "↑";
+        };
+    }
+
+    private String toToggleDirectionSort(String sort) {
+        return switch (sort) {
+            case "latest" -> "date";
+            case "date" -> "latest";
+            case "view" -> "downview";
+            case "downview" -> "view";
+            case "likes" -> "downlikes";
+            case "downlikes" -> "likes";
+            default -> "date";
+        };
+    }
+
+    private String toFieldSort(String sort, String field) {
+        boolean isAsc = isAscendingSort(sort);
+
+        return switch (field) {
+            case "date" -> isAsc ? "date" : "latest";
+            case "view" -> isAsc ? "downview" : "view";
+            case "likes" -> isAsc ? "downlikes" : "likes";
+            default -> "latest";
+        };
+    }
+
+    private boolean isAscendingSort(String sort) {
+        return switch (sort) {
+            case "downlikes", "downview", "date" -> true;
+            default -> false;
         };
     }
 
