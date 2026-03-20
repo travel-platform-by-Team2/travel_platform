@@ -226,7 +226,7 @@ public class AdminResponse {
         private Integer userId;
         private String username;
         private String email;
-        private LocalDateTime createdAt;
+        private LocalDate createdAt;
         private boolean active;
         private int boardCount;
         private String statusText;
@@ -236,7 +236,7 @@ public class AdminResponse {
                 Integer userId,
                 String username,
                 String email,
-                LocalDateTime createdAt,
+                LocalDate createdAt,
                 boolean active,
                 int boardCount,
                 String statusText,

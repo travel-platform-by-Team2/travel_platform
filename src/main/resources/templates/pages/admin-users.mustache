@@ -99,8 +99,8 @@
                   <tr>
                     <th>사용자 정보</th>
                     <th>가입일</th>
-                    <th>게시글 수</th>
-                    <th class="text-end">관리</th>
+                    <th class="text-center">게시글 수</th>
+                    <th class="text-end admin-manage-cell">관리</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -114,8 +114,8 @@
                       </div>
                     </td>
                     <td>{{createdAt}}</td>
-                    <td>{{boardCount}}</td>
-                    <td class="text-end">
+                    <td class="text-center">{{boardCount}}</td>
+                    <td class="text-end admin-manage-cell">
                       <form action="/admin/users/{{userId}}/status" method="post" class="admin-status-actions">
                         {{#currentActive}}
                         <input type="hidden" name="active" value="true">
