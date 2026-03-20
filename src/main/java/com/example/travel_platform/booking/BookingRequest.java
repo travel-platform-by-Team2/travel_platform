@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 public class BookingRequest {
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreateBookingDTO {
         private Integer tripPlanId;
         private String lodgingName;
@@ -23,6 +25,8 @@ public class BookingRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MergeMapPoisDTO {
         private String regionKey;
         private MapBoundsDTO bounds;
@@ -30,6 +34,8 @@ public class BookingRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapBoundsDTO {
         private Double swLat;
         private Double swLng;

@@ -118,12 +118,14 @@ public class BookingService {
                     + "&imageYN=Y&subImageYN=Y";
 
             String json = executeGet(urlStr);
-            if (json == null) return images;
+            if (json == null)
+                return images;
 
             Map<String, Object> response = objectMapper.readValue(json, Map.class);
             Map<String, Object> res = (Map<String, Object>) response.get("response");
             Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null || body.get("items").equals("")) return images;
+            if (body == null || body.get("items") == null || body.get("items").equals(""))
+                return images;
 
             Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
             Object itemData = itemsObj.get("item");
@@ -137,7 +139,8 @@ public class BookingService {
 
             for (Map<String, Object> item : itemList) {
                 // 이미지 필드명 후보들: originimgurl, smallimageurl, imageUrl 등
-                String imgUrl = getAnyField(item, "originimgurl", "originImgUrl", "smallimageurl", "smallImageUrl", "imageUrl");
+                String imgUrl = getAnyField(item, "originimgurl", "originImgUrl", "smallimageurl", "smallImageUrl",
+                        "imageUrl");
                 if (imgUrl != null && !imgUrl.isBlank()) {
                     images.add(imgUrl);
                 }
@@ -297,9 +300,6 @@ public class BookingService {
         LocalDate checkInDate = resolveDate(checkIn, LocalDate.now());
         LocalDate checkOutDate = resolveDate(checkOut, LocalDate.now().plusDays(1));
 
-        Booking booking = new Booking();
-        booking.setUser(user);
-
         var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
         TripPlan plan;
         if (!plans.isEmpty()) {
@@ -308,7 +308,7 @@ public class BookingService {
             plan = TripPlan.create(
                     user,
                     "나의 여행 계획",
-                    blankToDefault(regionKey, "busan"),
+                    blankToDefault(regionKey, BookVar.DEFAULT_REGION_KEY),
                     null,
                     checkInDate,
                     checkOutDate,
@@ -316,15 +316,17 @@ public class BookingService {
             plan = tripRepository.savePlan(plan);
         }
 
-        booking.setTripPlan(plan);
-        booking.setLodgingName(lodgingName);
-        booking.setCheckIn(checkInDate);
-        booking.setCheckOut(checkOutDate);
-        booking.setGuestCount(parseGuestCount(guests));
-        booking.setPricePerNight(pricePerNight == null ? 0 : pricePerNight);
-        booking.setTaxAndServiceFee(taxAndServiceFee == null ? 0 : taxAndServiceFee);
-        booking.setLocation(blankToDefault(location, "부산"));
-        booking.setImageUrl(imageUrl);
+        Booking booking = Booking.create(
+                user,
+                plan,
+                lodgingName,
+                checkInDate,
+                checkOutDate,
+                parseGuestCount(guests),
+                pricePerNight == null ? 0 : pricePerNight,
+                taxAndServiceFee == null ? 0 : taxAndServiceFee,
+                blankToDefault(location, BookVar.DEFAULT_LOCATION_NAME),
+                imageUrl);
 
         bookingRepository.save(booking);
     }
@@ -332,22 +334,24 @@ public class BookingService {
     @Transactional
     public void createBooking(Integer sessionUserId, BookingRequest.CreateBookingDTO reqDTO) {
         User user = userRepository.findById(sessionUserId).orElse(null);
-        if (user == null) return;
+        if (user == null)
+            return;
 
         TripPlan plan = tripRepository.findPlanById(reqDTO.getTripPlanId()).orElse(null);
-        if (plan == null) return;
+        if (plan == null)
+            return;
 
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setTripPlan(plan);
-        booking.setLodgingName(reqDTO.getLodgingName());
-        booking.setCheckIn(reqDTO.getCheckIn());
-        booking.setCheckOut(reqDTO.getCheckOut());
-        booking.setGuestCount(reqDTO.getGuestCount());
-        booking.setPricePerNight(reqDTO.getPricePerNight());
-        booking.setTaxAndServiceFee(reqDTO.getTaxAndServiceFee());
-        booking.setLocation(reqDTO.getLocation());
-        booking.setImageUrl(reqDTO.getImageUrl());
+        Booking booking = Booking.create(
+                user,
+                plan,
+                reqDTO.getLodgingName(),
+                reqDTO.getCheckIn(),
+                reqDTO.getCheckOut(),
+                reqDTO.getGuestCount(),
+                reqDTO.getPricePerNight(),
+                reqDTO.getTaxAndServiceFee(),
+                reqDTO.getLocation(),
+                reqDTO.getImageUrl());
 
         bookingRepository.save(booking);
     }
@@ -365,7 +369,8 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingResponse.PlaceImageDTO getPlaceImage(String serviceKey, String placeUrl, String name, String address) {
+    public BookingResponse.PlaceImageDTO getPlaceImage(String serviceKey, String placeUrl, String name,
+            String address) {
         String normalizedName = (name == null) ? "" : name.replaceAll("\\s+", "").toLowerCase();
         String imageUrl = bookingRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
 
