@@ -1,6 +1,5 @@
 package com.example.travel_platform.admin;
 
-import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserResponse;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +25,7 @@ public class AdminController {
     @GetMapping("")
     public String dashboard(Model model) {
         applySidebarState(model, "dashboard");
+        model.addAttribute("page", adminService.getDashboardPage());
         return "pages/admin-dashboard";
     }
 
@@ -35,21 +34,14 @@ public class AdminController {
             @RequestParam(name = "active", required = false) Boolean active,
             @RequestParam(name = "keyword", required = false) String keyword,
             Model model) {
-        List<UserResponse.AdminListDTO> users = adminService.getAdminUserList(active, keyword);
+        AdminResponse.UserListPageDTO page = adminService.getUsersPage(active, keyword);
 
         applySidebarState(model, "users");
-        model.addAttribute("users", users);
-        model.addAttribute("hasUsers", !users.isEmpty());
-        model.addAttribute("totalUserCount", adminService.getTotalUserCount());
-        model.addAttribute("inactiveUserCount", adminService.getInactiveUserCount());
-        model.addAttribute("keyword", keyword == null ? "" : keyword);
-        model.addAttribute("currentActive", active);
-        model.addAttribute("isAllTab", active == null);
-        model.addAttribute("isActiveTab", Boolean.TRUE.equals(active));
-        model.addAttribute("isInactiveTab", Boolean.FALSE.equals(active));
-        model.addAttribute("allTabHref", buildUsersUrl(null, keyword));
-        model.addAttribute("activeTabHref", buildUsersUrl(true, keyword));
-        model.addAttribute("inactiveTabHref", buildUsersUrl(false, keyword));
+        applyUsersPageModel(model, page);
+        model.addAttribute("hasUsers", !page.getUsers().isEmpty());
+        model.addAttribute("allTabHref", buildUsersUrl(null, page.getKeyword()));
+        model.addAttribute("activeTabHref", buildUsersUrl(true, page.getKeyword()));
+        model.addAttribute("inactiveTabHref", buildUsersUrl(false, page.getKeyword()));
         return "pages/admin-users";
     }
 
@@ -75,10 +67,11 @@ public class AdminController {
     @GetMapping("/boards")
     public String boards(@RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "page", defaultValue = "0") int page,
             Model model) {
 
-        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardList(category, keyword, page);
+        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardsPage(category, keyword, sort, page);
         model.addAttribute("model", responseDTO);
         applySidebarState(model, "boards");
         return "pages/admin-boards";
@@ -96,6 +89,17 @@ public class AdminController {
         model.addAttribute("usersActiveClass", isCurrentMenu(currentMenu, "users"));
         model.addAttribute("lodgingsActiveClass", isCurrentMenu(currentMenu, "lodgings"));
         model.addAttribute("boardsActiveClass", isCurrentMenu(currentMenu, "boards"));
+    }
+
+    private void applyUsersPageModel(Model model, AdminResponse.UserListPageDTO page) {
+        model.addAttribute("users", page.getUsers());
+        model.addAttribute("totalUserCount", page.getTotalUserCount());
+        model.addAttribute("inactiveUserCount", page.getInactiveUserCount());
+        model.addAttribute("keyword", page.getKeyword());
+        model.addAttribute("currentActive", page.getCurrentActive());
+        model.addAttribute("isAllTab", page.isAllTab());
+        model.addAttribute("isActiveTab", page.isActiveTab());
+        model.addAttribute("isInactiveTab", page.isInactiveTab());
     }
 
     private String isCurrentMenu(String currentMenu, String targetMenu) {

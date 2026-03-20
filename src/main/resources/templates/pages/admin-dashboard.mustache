@@ -25,86 +25,134 @@
           <div class="admin-page-header">
             <div>
               <h1 class="admin-page-title">관리자 홈 요약</h1>
-              <p class="admin-page-subtitle">현재 관리자 범위에 맞춰 유저와 커뮤니티 현황만 빠르게 볼 수 있도록 단순화한 대시보드 시안입니다.</p>
+              <p class="admin-page-subtitle">사용자와 커뮤니티 현황을 빠르게 확인할 수 있도록 실데이터 기반 대시보드로 정리했습니다.</p>
+            </div>
+            <div class="admin-summary-note">
+              <span class="material-symbols-outlined">monitoring</span>
+              <span>유저/게시글 현황 요약</span>
             </div>
           </div>
 
           <div class="admin-metric-grid">
+            {{#page.metrics}}
             <article class="admin-metric-card">
               <div class="admin-metric-card__top">
-                <div class="admin-metric-icon metric-icon-blue">
-                  <span class="material-symbols-outlined">groups</span>
+                <div class="admin-metric-icon {{iconClass}}">
+                  <span class="material-symbols-outlined">{{icon}}</span>
                 </div>
               </div>
-              <span class="admin-metric-label">사용자 수</span>
-              <p class="admin-metric-value">125,400명</p>
+              <span class="admin-metric-label">{{label}}</span>
+              <p class="admin-metric-value">{{valueLabel}}</p>
+              <p class="admin-metric-helper">{{helperLabel}}</p>
             </article>
-
-            <article class="admin-metric-card">
-              <div class="admin-metric-card__top">
-                <div class="admin-metric-icon metric-icon-purple">
-                  <span class="material-symbols-outlined">edit_note</span>
-                </div>
-              </div>
-              <span class="admin-metric-label">신규 게시글</span>
-              <p class="admin-metric-value">452개</p>
-            </article>
+            {{/page.metrics}}
           </div>
 
-          <div class="admin-grid-2">
+          <div class="admin-grid-2 admin-grid-2--charts">
+            <section class="admin-panel">
+              <div class="admin-panel__header">
+                <div>
+                  <h2 class="admin-panel__title">
+                    <span class="material-symbols-outlined">donut_large</span>
+                    <span>사용자 상태 비율</span>
+                  </h2>
+                  <p class="admin-panel__subtitle">활성/비활성 사용자 분포</p>
+                </div>
+              </div>
+
+              <div class="admin-panel__body">
+                <div class="admin-chart-list">
+                  {{#page.userStatusItems}}
+                  <article class="admin-chart-row">
+                    <div class="admin-chart-row__head">
+                      <div class="admin-chart-row__title">
+                        <span class="admin-status-badge {{badgeClass}}">{{label}}</span>
+                      </div>
+                      <div class="admin-chart-row__meta">
+                        <span>{{countLabel}}</span>
+                        <span>{{percentLabel}}</span>
+                      </div>
+                    </div>
+                    <div class="admin-chart-track">
+                      <div class="admin-chart-fill {{barClass}}" style="width: {{barWidth}}%;"></div>
+                    </div>
+                  </article>
+                  {{/page.userStatusItems}}
+                </div>
+              </div>
+            </section>
+
+            <section class="admin-panel">
+              <div class="admin-panel__header">
+                <div>
+                  <h2 class="admin-panel__title">
+                    <span class="material-symbols-outlined">stacked_bar_chart</span>
+                    <span>게시글 카테고리 분포</span>
+                  </h2>
+                  <p class="admin-panel__subtitle">커뮤니티 전체 글 기준 점유율</p>
+                </div>
+              </div>
+
+              <div class="admin-panel__body">
+                <div class="admin-chart-list">
+                  {{#page.boardCategoryItems}}
+                  <article class="admin-chart-row">
+                    <div class="admin-chart-row__head">
+                      <div class="admin-chart-row__title">
+                        <span class="{{badgeClass}}">{{label}}</span>
+                      </div>
+                      <div class="admin-chart-row__meta">
+                        <span>{{countLabel}}</span>
+                        <span>{{percentLabel}}</span>
+                      </div>
+                    </div>
+                    <div class="admin-chart-track">
+                      <div class="admin-chart-fill {{barClass}}" style="width: {{barWidth}}%;"></div>
+                    </div>
+                  </article>
+                  {{/page.boardCategoryItems}}
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="admin-grid-2 admin-grid-2--feeds">
             <section class="admin-panel">
               <div class="admin-panel__header">
                 <h2 class="admin-panel__title">
                   <span class="material-symbols-outlined">group</span>
-                  <span>유저 리스트</span>
+                  <span>최근 유저 리스트</span>
                 </h2>
                 <a class="admin-link" href="/admin/users">전체보기</a>
               </div>
 
               <div class="admin-panel__body">
+                {{#page.hasRecentUsers}}
                 <div class="admin-feed-list">
+                  {{#page.recentUsers}}
                   <article class="admin-feed-item">
                     <div class="admin-feed-icon">
                       <span class="material-symbols-outlined">person</span>
                     </div>
                     <div class="flex-grow-1 min-w-0">
-                      <p class="admin-feed-title">김민수</p>
+                      <p class="admin-feed-title">{{username}}</p>
                       <p class="admin-feed-meta">
-                        <span class="admin-status-badge status-active">활성</span>
+                        <span class="admin-status-badge {{statusClass}}">{{statusText}}</span>
                         <span>•</span>
-                        <span>가입일: 2023.12.15</span>
+                        <span>가입일: {{createdAtLabel}}</span>
                       </p>
                     </div>
                   </article>
-
-                  <article class="admin-feed-item">
-                    <div class="admin-feed-icon">
-                      <span class="material-symbols-outlined">person</span>
-                    </div>
-                    <div class="flex-grow-1 min-w-0">
-                      <p class="admin-feed-title">박지훈</p>
-                      <p class="admin-feed-meta">
-                        <span class="admin-status-badge status-danger">정지</span>
-                        <span>•</span>
-                        <span>가입일: 2024.02.05</span>
-                      </p>
-                    </div>
-                  </article>
-
-                  <article class="admin-feed-item">
-                    <div class="admin-feed-icon">
-                      <span class="material-symbols-outlined">person</span>
-                    </div>
-                    <div class="flex-grow-1 min-w-0">
-                      <p class="admin-feed-title">최수진</p>
-                      <p class="admin-feed-meta">
-                        <span class="admin-status-badge status-active">활성</span>
-                        <span>•</span>
-                        <span>가입일: 2024.03.20</span>
-                      </p>
-                    </div>
-                  </article>
+                  {{/page.recentUsers}}
                 </div>
+                {{/page.hasRecentUsers}}
+
+                {{^page.hasRecentUsers}}
+                <div class="admin-empty-state">
+                  <span class="material-symbols-outlined">group_off</span>
+                  <p>표시할 최근 유저가 없습니다.</p>
+                </div>
+                {{/page.hasRecentUsers}}
               </div>
             </section>
 
@@ -112,58 +160,38 @@
               <div class="admin-panel__header">
                 <h2 class="admin-panel__title">
                   <span class="material-symbols-outlined">forum</span>
-                  <span>커뮤니티 게시글 리스트</span>
+                  <span>최근 게시글 리스트</span>
                 </h2>
                 <a class="admin-link" href="/admin/boards">전체보기</a>
               </div>
 
               <div class="admin-panel__body">
+                {{#page.hasRecentBoards}}
                 <div class="admin-feed-list">
+                  {{#page.recentBoards}}
                   <article class="admin-feed-item">
                     <div class="admin-feed-icon">
-                      <span class="material-symbols-outlined">person</span>
+                      <span class="material-symbols-outlined">article</span>
                     </div>
                     <div class="flex-grow-1 min-w-0">
-                      <p class="admin-feed-title">이번 주말 여수 밤바다 코스 추천 부탁드려요!</p>
+                      <p class="admin-feed-title">{{title}}</p>
                       <p class="admin-feed-meta">
-                        <span>작성자: 김여행자</span>
+                        <span>작성자: {{userName}}</span>
                         <span>•</span>
-                        <span>2분 전</span>
+                        <span>{{createdAtLabel}}</span>
                       </p>
                     </div>
-                    <span class="material-symbols-outlined admin-feed-actions">more_vert</span>
                   </article>
-
-                  <article class="admin-feed-item">
-                    <div class="admin-feed-icon">
-                      <span class="material-symbols-outlined">person</span>
-                    </div>
-                    <div class="flex-grow-1 min-w-0">
-                      <p class="admin-feed-title">가평 펜션 사기 주의하세요. 정보 공유합니다.</p>
-                      <p class="admin-feed-meta">
-                        <span>작성자: 정의로운발걸음</span>
-                        <span>•</span>
-                        <span>15분 전</span>
-                      </p>
-                    </div>
-                    <span class="material-symbols-outlined admin-feed-actions">more_vert</span>
-                  </article>
-
-                  <article class="admin-feed-item">
-                    <div class="admin-feed-icon">
-                      <span class="material-symbols-outlined">person</span>
-                    </div>
-                    <div class="flex-grow-1 min-w-0">
-                      <p class="admin-feed-title">혼자 제주도 한달살기 숙소 구했습니다!</p>
-                      <p class="admin-feed-meta">
-                        <span>작성자: 솔로투어</span>
-                        <span>•</span>
-                        <span>45분 전</span>
-                      </p>
-                    </div>
-                    <span class="material-symbols-outlined admin-feed-actions">more_vert</span>
-                  </article>
+                  {{/page.recentBoards}}
                 </div>
+                {{/page.hasRecentBoards}}
+
+                {{^page.hasRecentBoards}}
+                <div class="admin-empty-state">
+                  <span class="material-symbols-outlined">article_person</span>
+                  <p>표시할 최근 게시글이 없습니다.</p>
+                </div>
+                {{/page.hasRecentBoards}}
               </div>
             </section>
           </div>

@@ -15,7 +15,6 @@ import com.example.travel_platform.booking.BookingRepository;
 import com.example.travel_platform.calendar.CalendarRepository;
 import com.example.travel_platform.trip.TripPlaceRepository;
 import com.example.travel_platform.trip.TripRepository;
-
 import lombok.RequiredArgsConstructor;
 
 @Transactional(readOnly = true)
@@ -57,6 +56,10 @@ public class UserService {
         User findUser = userRepository.findByEmail(reqDTO.getEmail())
                 .orElseThrow(() -> new Exception400("email을 찾을 수가 없어요"));
 
+        if (!findUser.isAdmin() && !findUser.isActive()) {
+            throw new Exception403("현재 로그인할 수 없는 계정입니다.");
+        }
+
         if (!findUser.getPassword().equals(reqDTO.getPassword())) {
             throw new Exception401("패스워드가 일치하지 않아요");
         }
@@ -65,6 +68,25 @@ public class UserService {
     }
 
     @Transactional
+
+    public SessionUser snsLogin(String email, String username, String provider, String providerId) {
+        // 1. 기존 유저 확인 (이메일 + 공급자)
+        User user = userRepository.findByEmailAndProvider(email, provider)
+                .orElseGet(() -> {
+                    // 2. 신규 SNS 유저면 자동 회원가입 (username 중복 방지를 위해 뒤에 4자리 추가)
+                    String suffix = providerId.length() > 4 ? providerId.substring(0, 4) : providerId;
+                    User newUser = User.createSNS(
+                            username + "_" + suffix,
+                            email,
+                            provider,
+                            providerId);
+                    return userRepository.save(newUser);
+                });
+
+        // 3. 현재 프로젝트 방식에 맞춰 SessionUser 반환
+        return SessionUser.from(user);
+    }
+
     public void withdrawAccount(Integer sessionUserId, String currentPassword) {
         User user = userRepository.findById(sessionUserId)
                 .orElseThrow(() -> new Exception400("사용자 정보를 찾을 수 없습니다."));
@@ -108,4 +130,5 @@ public class UserService {
         }
         return value;
     }
+
 }

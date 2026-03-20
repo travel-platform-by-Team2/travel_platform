@@ -1,5 +1,6 @@
 package com.example.travel_platform.board;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,25 @@ public class BoardRepository {
                 .getSingleResult();
     }
 
+    public long countByCreatedAtAfter(LocalDateTime since) {
+        return em.createQuery("""
+                select count(b)
+                from Board b
+                where b.createdAt >= :since
+                """, Long.class)
+                .setParameter("since", since)
+                .getSingleResult();
+    }
+
+    public long sumViewCount() {
+        Long totalViewCount = em.createQuery("""
+                select coalesce(sum(b.viewCount), 0)
+                from Board b
+                """, Long.class)
+                .getSingleResult();
+        return totalViewCount == null ? 0L : totalViewCount;
+    }
+
     public List<Board> findAllPagingByCategory(String category, String sort, int offset, int size) {
         String jpql = """
                 select b
@@ -80,6 +100,17 @@ public class BoardRepository {
 
     public List<Board> findAllPagingByCategory(String category, int offset, int size) {
         return findAllPagingByCategory(category, "latest", offset, size);
+    }
+
+    public List<Board> findRecentBoards(int size) {
+        return em.createQuery("""
+                select b
+                from Board b
+                join fetch b.user
+                order by b.createdAt desc, b.id desc
+                """, Board.class)
+                .setMaxResults(size)
+                .getResultList();
     }
 
     public long countByCategory(String category) {
@@ -160,7 +191,7 @@ public class BoardRepository {
                 .executeUpdate();
     }
 
-    public List<Board> search(String category, String[] words, int offset, int size) {
+    public List<Board> search(String category, String[] words, String sort, int offset, int size) {
         StringBuilder jpql = new StringBuilder();
         jpql.append("select b from Board b where 1=1 ");
 
@@ -176,7 +207,7 @@ public class BoardRepository {
             jpql.append(") ");
         }
 
-        jpql.append("order by b.id desc");
+        jpql.append("order by ").append(toOrderBy(sort));
 
         TypedQuery<Board> query = em.createQuery(jpql.toString(), Board.class);
 
@@ -192,6 +223,10 @@ public class BoardRepository {
         return query.setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList();
+    }
+
+    public List<Board> search(String category, String[] words, int offset, int size) {
+        return search(category, words, "latest", offset, size);
     }
 
     public long countSearch(String category, String[] words) {
@@ -227,7 +262,10 @@ public class BoardRepository {
     private String toOrderBy(String sort) {
         return switch (sort) {
             case "likes" -> "(select count(bl) from BoardLike bl where bl.board = b) desc, b.createdAt desc, b.id desc";
-            case "views" -> "b.viewCount desc, b.createdAt desc, b.id desc";
+            case "downlikes" ->
+                "(select count(bl) from BoardLike bl where bl.board = b) asc, b.createdAt asc, b.id asc";
+            case "view" -> "b.viewCount desc, b.createdAt desc, b.id desc";
+            case "downview" -> "b.viewCount asc, b.createdAt asc, b.id asc";
             case "date" -> "b.createdAt asc, b.id asc";
             default -> "b.createdAt desc, b.id desc";
         };
