@@ -703,14 +703,22 @@
 }
 
 .page-admin .admin-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: min(100%, 34rem);
+}
+
+.page-admin .admin-search-row {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.6rem;
-  width: min(100%, 28rem);
+  width: 100%;
 }
 
-.page-admin .admin-search-wrap .material-symbols-outlined {
+.page-admin .admin-search-row .material-symbols-outlined {
   position: absolute;
   left: 0.85rem;
   top: 50%;
@@ -734,6 +742,33 @@
 
 .page-admin .admin-search-submit:hover {
   background: #1e293b;
+}
+
+.page-admin .admin-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  justify-content: flex-end;
+  padding-left: 0;
+}
+
+.page-admin .admin-filter-controls .admin-select-field {
+  min-width: 5.9rem;
+  padding-left: 0.7rem;
+  padding-right: 1.9rem;
+  width: auto;
+  text-align: center;
+  text-align-last: center;
+  color: #475569;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3e%3cpath d='M4 6l4 4 4-4' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 0.85rem 0.65rem;
+}
+
+.page-admin .admin-filter-controls .admin-select-field option {
+  text-align: center;
 }
 
 .page-admin .admin-icon-button {
@@ -849,6 +884,23 @@
   color: #475569;
   background: #f1f5f9;
   border-color: #e2e8f0;
+}
+
+.page-admin .admin-status-actions {
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.page-admin .admin-status-actions .admin-pill {
+  cursor: pointer;
+}
+
+.page-admin .admin-status-actions .admin-pill:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .page-admin .category-blue {
@@ -1310,9 +1362,20 @@
   }
 
   .page-admin .admin-search-wrap,
+  .page-admin .admin-search-row,
   .page-admin .admin-search-field,
   .page-admin .admin-select-field {
     width: 100%;
+  }
+
+  .page-admin .admin-filter-controls {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .page-admin .admin-filter-controls .admin-select-field {
+    min-width: 0;
   }
 
   .page-admin .admin-search-submit {

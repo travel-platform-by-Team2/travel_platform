@@ -19,6 +19,7 @@
           <div class="admin-page-header">
             <div>
               <h1 class="admin-page-title">사용자 관리</h1>
+              <p class="admin-page-subtitle">등록된 사용자 목록을 조회하고 상태를 관리하는 관리자 화면입니다.</p>
             </div>
           </div>
 
@@ -46,32 +47,50 @@
 
           <section class="admin-panel">
             <div class="admin-toolbar">
-              <div class="admin-tab-shell" aria-label="사용자 상태 탭">
-                <a class="admin-tab-button{{#isAllTab}} is-active-tab{{/isAllTab}}" href="/admin/users">전체</a>
-                <a class="admin-tab-button{{#isActiveTab}} is-active-tab{{/isActiveTab}}" href="/admin/users?active=true">활성</a>
-                <a class="admin-tab-button{{#isInactiveTab}} is-active-tab{{/isInactiveTab}}" href="/admin/users?active=false">비활성</a>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h2 class="admin-table-title mb-0">사용자 목록</h2>
+                <div class="admin-tab-shell" aria-label="사용자 상태 탭">
+                  <a class="admin-tab-button{{#isAllTab}} is-active-tab{{/isAllTab}}" href="{{allTabHref}}">전체</a>
+                  <a class="admin-tab-button{{#isActiveTab}} is-active-tab{{/isActiveTab}}" href="{{activeTabHref}}">활성</a>
+                  <a class="admin-tab-button{{#isInactiveTab}} is-active-tab{{/isInactiveTab}}" href="{{inactiveTabHref}}">비활성</a>
+                </div>
               </div>
 
-              <form class="admin-search-group" action="/admin/users" method="get">
-                {{#currentActive}}
-                <input type="hidden" name="active" value="true">
-                {{/currentActive}}
-                {{^isAllTab}}
-                {{^currentActive}}
-                <input type="hidden" name="active" value="false">
-                {{/currentActive}}
-                {{/isAllTab}}
-                <div class="admin-search-wrap">
-                  <span class="material-symbols-outlined">search</span>
-                  <input
-                    class="form-control admin-search-field"
-                    type="text"
-                    name="keyword"
-                    value="{{keyword}}"
-                    placeholder="이름 또는 이메일 검색"
-                  >
-                </div>
-              </form>
+              <div class="admin-search-group">
+                <form class="admin-search-wrap" action="/admin/users" method="get">
+                  {{#currentActive}}
+                  <input type="hidden" name="active" value="true">
+                  {{/currentActive}}
+                  {{^isAllTab}}
+                  {{^currentActive}}
+                  <input type="hidden" name="active" value="false">
+                  {{/currentActive}}
+                  {{/isAllTab}}
+
+                  <div class="admin-search-row">
+                    <span class="material-symbols-outlined">search</span>
+                    <input
+                      class="form-control admin-search-field"
+                      type="text"
+                      name="keyword"
+                      value="{{keyword}}"
+                      placeholder="이름 또는 이메일 검색"
+                    >
+                    <button type="submit" class="admin-search-submit">검색</button>
+                  </div>
+
+                  <div class="admin-filter-controls">
+                    <select class="form-select admin-select-field text-center" name="sortBy" aria-label="정렬 기준" onchange="this.form.submit()">
+                      <option value="createdAt"{{#isSortByCreatedAt}} selected{{/isSortByCreatedAt}}>가입일</option>
+                      <option value="postCount"{{#isSortByPostCount}} selected{{/isSortByPostCount}}>게시글 수</option>
+                    </select>
+                    <select class="form-select admin-select-field text-center" name="orderBy" aria-label="정렬 방향" onchange="this.form.submit()">
+                      <option value="asc"{{#isOrderByAsc}} selected{{/isOrderByAsc}}>오름차순</option>
+                      <option value="desc"{{#isOrderByDesc}} selected{{/isOrderByDesc}}>내림차순</option>
+                    </select>
+                  </div>
+                </form>
+              </div>
             </div>
 
             <div class="admin-table-wrap">
@@ -80,11 +99,12 @@
                   <tr>
                     <th>사용자 정보</th>
                     <th>가입일</th>
-                    <th>상태</th>
+                    <th>게시글 수</th>
                     <th class="text-end">관리</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {{#hasUsers}}
                   {{#users}}
                   <tr>
                     <td>
@@ -94,26 +114,40 @@
                       </div>
                     </td>
                     <td>{{createdAt}}</td>
-                    <td>
-                      {{#active}}
-                      <span class="admin-status-badge status-active">{{statusText}}</span>
-                      {{/active}}
-                      {{^active}}
-                      <span class="admin-status-badge status-danger">{{statusText}}</span>
-                      {{/active}}
-                    </td>
+                    <td>{{boardCount}}</td>
                     <td class="text-end">
-                      <span class="admin-pill status-neutral">{{managementLabel}}</span>
+                      <form action="/admin/users/{{userId}}/status" method="post" class="admin-status-actions">
+                        {{#currentActive}}
+                        <input type="hidden" name="active" value="true">
+                        {{/currentActive}}
+                        {{^isAllTab}}
+                        {{^currentActive}}
+                        <input type="hidden" name="active" value="false">
+                        {{/currentActive}}
+                        {{/isAllTab}}
+                        <input type="hidden" name="keyword" value="{{keyword}}">
+                        <input type="hidden" name="sortBy" value="{{sortBy}}">
+                        <input type="hidden" name="orderBy" value="{{orderBy}}">
+                        {{#active}}
+                        <button class="admin-pill status-active" type="submit" name="targetActive" value="true" disabled>활성</button>
+                        <button class="admin-pill status-neutral" type="submit" name="targetActive" value="false">비활성</button>
+                        {{/active}}
+                        {{^active}}
+                        <button class="admin-pill status-neutral" type="submit" name="targetActive" value="true">활성</button>
+                        <button class="admin-pill status-danger" type="submit" name="targetActive" value="false" disabled>비활성</button>
+                        {{/active}}
+                      </form>
                     </td>
                   </tr>
                   {{/users}}
-                  {{^users}}
+                  {{/hasUsers}}
+                  {{^hasUsers}}
                   <tr>
                     <td colspan="4" class="text-center text-muted py-5">
                       조회된 사용자 데이터가 없습니다.
                     </td>
                   </tr>
-                  {{/users}}
+                  {{/hasUsers}}
                 </tbody>
               </table>
             </div>
