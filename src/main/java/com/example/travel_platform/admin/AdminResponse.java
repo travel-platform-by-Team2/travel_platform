@@ -281,15 +281,14 @@ public class AdminResponse {
         private String category;
         private String keyword;
         private String sort;
-        private String sortLabel;
+        private String sortFieldLabel;
+        private String sortDirectionLabel;
+        private String toggleDirectionSort;
+        private String dateField;
+        private String viewField;
+        private String likesField;
         private String allCategory;
         private boolean allCategoryTab;
-        private boolean isSortLikes;
-        private boolean isSortDownlikes;
-        private boolean isSortViews;
-        private boolean isSortDownviews;
-        private boolean isSortLatest;
-        private boolean isSortDate;
         private String selectCategory;
         private boolean isTips;
         private boolean isPlan;
@@ -309,15 +308,14 @@ public class AdminResponse {
                 String category,
                 String keyword,
                 String sort,
-                String sortLabel,
+                String sortFieldLabel,
+                String sortDirectionLabel,
+                String toggleDirectionSort,
+                String dateField,
+                String viewField,
+                String likesField,
                 String allCategory,
                 boolean allCategoryTab,
-                boolean isSortLikes,
-                boolean isSortDownlikes,
-                boolean isSortViews,
-                boolean isSortDownviews,
-                boolean isSortLatest,
-                boolean isSortDate,
                 String selectCategory,
                 boolean isTips,
                 boolean isPlan,
@@ -336,15 +334,14 @@ public class AdminResponse {
             dto.setCategory(category);
             dto.setKeyword(keyword);
             dto.setSort(sort);
-            dto.setSortLabel(sortLabel);
+            dto.setSortFieldLabel(sortFieldLabel);
+            dto.setSortDirectionLabel(sortDirectionLabel);
+            dto.setToggleDirectionSort(toggleDirectionSort);
+            dto.setDateField(dateField);
+            dto.setViewField(viewField);
+            dto.setLikesField(likesField);
             dto.setAllCategory(allCategory);
             dto.setAllCategoryTab(allCategoryTab);
-            dto.setSortLikes(isSortLikes);
-            dto.setSortDownlikes(isSortDownlikes);
-            dto.setSortViews(isSortViews);
-            dto.setSortDownviews(isSortDownviews);
-            dto.setSortLatest(isSortLatest);
-            dto.setSortDate(isSortDate);
             dto.setSelectCategory(selectCategory);
             dto.setTips(isTips);
             dto.setPlan(isPlan);
