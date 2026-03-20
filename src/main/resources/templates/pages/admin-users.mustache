@@ -49,7 +49,6 @@
             <div class="admin-toolbar">
               <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h2 class="admin-table-title mb-0">사용자 목록</h2>
-                <span class="admin-pill status-neutral">Total {{totalUserCount}}</span>
                 <div class="admin-tab-shell" aria-label="사용자 상태 탭">
                   <a class="admin-tab-button{{#isAllTab}} is-active-tab{{/isAllTab}}" href="{{allTabHref}}">전체</a>
                   <a class="admin-tab-button{{#isActiveTab}} is-active-tab{{/isActiveTab}}" href="{{activeTabHref}}">활성</a>
@@ -67,15 +66,29 @@
                   <input type="hidden" name="active" value="false">
                   {{/currentActive}}
                   {{/isAllTab}}
-                  <span class="material-symbols-outlined">search</span>
-                  <input
-                    class="form-control admin-search-field"
-                    type="text"
-                    name="keyword"
-                    value="{{keyword}}"
-                    placeholder="이름 또는 이메일 검색"
-                  >
-                  <button type="submit" class="admin-search-submit">검색</button>
+
+                  <div class="admin-search-row">
+                    <span class="material-symbols-outlined">search</span>
+                    <input
+                      class="form-control admin-search-field"
+                      type="text"
+                      name="keyword"
+                      value="{{keyword}}"
+                      placeholder="이름 또는 이메일 검색"
+                    >
+                    <button type="submit" class="admin-search-submit">검색</button>
+                  </div>
+
+                  <div class="admin-filter-controls">
+                    <select class="form-select admin-select-field text-center" name="sortBy" aria-label="정렬 기준" onchange="this.form.submit()">
+                      <option value="createdAt"{{#isSortByCreatedAt}} selected{{/isSortByCreatedAt}}>가입일</option>
+                      <option value="postCount"{{#isSortByPostCount}} selected{{/isSortByPostCount}}>게시글 수</option>
+                    </select>
+                    <select class="form-select admin-select-field text-center" name="orderBy" aria-label="정렬 방향" onchange="this.form.submit()">
+                      <option value="asc"{{#isOrderByAsc}} selected{{/isOrderByAsc}}>오름차순</option>
+                      <option value="desc"{{#isOrderByDesc}} selected{{/isOrderByDesc}}>내림차순</option>
+                    </select>
+                  </div>
                 </form>
               </div>
             </div>
@@ -113,6 +126,8 @@
                         {{/currentActive}}
                         {{/isAllTab}}
                         <input type="hidden" name="keyword" value="{{keyword}}">
+                        <input type="hidden" name="sortBy" value="{{sortBy}}">
+                        <input type="hidden" name="orderBy" value="{{orderBy}}">
                         {{#active}}
                         <button class="admin-pill status-active" type="submit" name="targetActive" value="true" disabled>활성</button>
                         <button class="admin-pill status-neutral" type="submit" name="targetActive" value="false">비활성</button>
