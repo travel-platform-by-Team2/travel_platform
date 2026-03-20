@@ -31,7 +31,8 @@ public class AdminService {
     private static final int RECENT_BOARD_DAYS = 7;
     private static final int BOARD_PAGE_SIZE = 10;
     private static final int BOARD_PAGE_BLOCK_SIZE = 5;
-    private static final DateTimeFormatter DASHBOARD_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    private static final DateTimeFormatter DASHBOARD_DATE_TIME_FORMATTER = DateTimeFormatter
+            .ofPattern("yyyy.MM.dd HH:mm");
     private static final String USER_SORT_BY_CREATED_AT = "createdAt";
     private static final String USER_SORT_BY_POST_COUNT = "postCount";
     private static final String USER_ORDER_BY_ASC = "asc";
@@ -215,7 +216,7 @@ public class AdminService {
                     user.getId(),
                     user.getUsername(),
                     user.getEmail(),
-                    user.getCreatedAt(),
+                    user.getCreatedAt().toLocalDate(),
                     user.isActive(),
                     Math.toIntExact(boardCounts.getOrDefault(user.getId(), 0L)),
                     user.isActive() ? "활성" : "비활성",
@@ -282,10 +283,14 @@ public class AdminService {
             long recentBoardCount,
             long totalBoardViewCount) {
         List<AdminResponse.DashboardMetricDTO> metrics = new ArrayList<>();
-        metrics.add(AdminResponse.DashboardMetricDTO.of("전체 사용자", formatCount(totalUserCount), "활성 " + formatCount(activeUserCount) + "명", "groups", "metric-icon-blue"));
-        metrics.add(AdminResponse.DashboardMetricDTO.of("비활성 사용자", formatCount(inactiveUserCount), "관리 필요 계정", "person_off", "metric-icon-rose"));
-        metrics.add(AdminResponse.DashboardMetricDTO.of("전체 게시글", formatCount(totalBoardCount), "최근 7일 " + formatCount(recentBoardCount) + "개", "forum", "metric-icon-purple"));
-        metrics.add(AdminResponse.DashboardMetricDTO.of("누적 조회수", formatCount(totalBoardViewCount), "커뮤니티 전체 기준", "visibility", "metric-icon-orange"));
+        metrics.add(AdminResponse.DashboardMetricDTO.of("전체 사용자", formatCount(totalUserCount),
+                "활성 " + formatCount(activeUserCount) + "명", "groups", "metric-icon-blue"));
+        metrics.add(AdminResponse.DashboardMetricDTO.of("비활성 사용자", formatCount(inactiveUserCount), "관리 필요 계정",
+                "person_off", "metric-icon-rose"));
+        metrics.add(AdminResponse.DashboardMetricDTO.of("전체 게시글", formatCount(totalBoardCount),
+                "최근 7일 " + formatCount(recentBoardCount) + "개", "forum", "metric-icon-purple"));
+        metrics.add(AdminResponse.DashboardMetricDTO.of("누적 조회수", formatCount(totalBoardViewCount), "커뮤니티 전체 기준",
+                "visibility", "metric-icon-orange"));
         return metrics;
     }
 
@@ -294,8 +299,10 @@ public class AdminService {
             long activeUserCount,
             long inactiveUserCount) {
         List<AdminResponse.StatusChartItemDTO> items = new ArrayList<>();
-        items.add(createUserStatusItem("활성 사용자", activeUserCount, totalUserCount, "status-active", "admin-chart-bar--blue"));
-        items.add(createUserStatusItem("비활성 사용자", inactiveUserCount, totalUserCount, "status-danger", "admin-chart-bar--rose"));
+        items.add(createUserStatusItem("활성 사용자", activeUserCount, totalUserCount, "status-active",
+                "admin-chart-bar--blue"));
+        items.add(createUserStatusItem("비활성 사용자", inactiveUserCount, totalUserCount, "status-danger",
+                "admin-chart-bar--rose"));
         return items;
     }
 
@@ -306,16 +313,22 @@ public class AdminService {
             String badgeClass,
             String barClass) {
         int percent = calculatePercent(count, total);
-        return AdminResponse.StatusChartItemDTO.of(label, formatCount(count) + "명", percent + "%", percent, badgeClass, barClass);
+        return AdminResponse.StatusChartItemDTO.of(label, formatCount(count) + "명", percent + "%", percent, badgeClass,
+                barClass);
     }
 
     private List<AdminResponse.CategoryChartItemDTO> createBoardCategoryItems(long totalBoardCount) {
         List<AdminResponse.CategoryChartItemDTO> items = new ArrayList<>();
-        items.add(createCategoryChartItem("여행 팁", boardRepository.countByCategory("tips"), totalBoardCount, "admin-category-badge cat-tips", "admin-chart-bar--tips"));
-        items.add(createCategoryChartItem("여행 계획", boardRepository.countByCategory("plan"), totalBoardCount, "admin-category-badge cat-plan", "admin-chart-bar--plan"));
-        items.add(createCategoryChartItem("맛집/카페", boardRepository.countByCategory("food"), totalBoardCount, "admin-category-badge cat-food", "admin-chart-bar--food"));
-        items.add(createCategoryChartItem("숙소 후기", boardRepository.countByCategory("review"), totalBoardCount, "admin-category-badge cat-review", "admin-chart-bar--review"));
-        items.add(createCategoryChartItem("질문/답변", boardRepository.countByCategory("qna"), totalBoardCount, "admin-category-badge cat-qna", "admin-chart-bar--qna"));
+        items.add(createCategoryChartItem("여행 팁", boardRepository.countByCategory("tips"), totalBoardCount,
+                "admin-category-badge cat-tips", "admin-chart-bar--tips"));
+        items.add(createCategoryChartItem("여행 계획", boardRepository.countByCategory("plan"), totalBoardCount,
+                "admin-category-badge cat-plan", "admin-chart-bar--plan"));
+        items.add(createCategoryChartItem("맛집/카페", boardRepository.countByCategory("food"), totalBoardCount,
+                "admin-category-badge cat-food", "admin-chart-bar--food"));
+        items.add(createCategoryChartItem("숙소 후기", boardRepository.countByCategory("review"), totalBoardCount,
+                "admin-category-badge cat-review", "admin-chart-bar--review"));
+        items.add(createCategoryChartItem("질문/답변", boardRepository.countByCategory("qna"), totalBoardCount,
+                "admin-category-badge cat-qna", "admin-chart-bar--qna"));
         return items;
     }
 
@@ -326,7 +339,8 @@ public class AdminService {
             String badgeClass,
             String barClass) {
         int percent = calculatePercent(count, total);
-        return AdminResponse.CategoryChartItemDTO.of(label, formatCount(count) + "개", percent + "%", percent, badgeClass, barClass);
+        return AdminResponse.CategoryChartItemDTO.of(label, formatCount(count) + "개", percent + "%", percent,
+                badgeClass, barClass);
     }
 
     private List<AdminResponse.RecentUserDTO> loadRecentUsers() {
