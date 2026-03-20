@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 public class BookingRequest {
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreateBookingDTO {
         private Integer tripPlanId;
         private String lodgingName;
@@ -25,6 +27,8 @@ public class BookingRequest {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CompleteBookingDTO {
         private String lodgingName;
         private String roomName;
@@ -40,6 +44,8 @@ public class BookingRequest {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class RoomQueryDTO {
         private String lodgingName;
         private String address;
@@ -47,6 +53,8 @@ public class BookingRequest {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class PlaceImageQueryDTO {
         private String placeUrl;
         private String name;
@@ -54,6 +62,8 @@ public class BookingRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MergeMapPoisDTO {
         private String regionKey;
         private MapBoundsDTO bounds;
@@ -61,6 +71,8 @@ public class BookingRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapBoundsDTO {
         private Double swLat;
         private Double swLng;
@@ -70,7 +82,7 @@ public class BookingRequest {
 
     @Data
     @NoArgsConstructor
-    @AllArgsConstructor // JPQL 'new' 키워드 사용을 위해 추가
+    @AllArgsConstructor
     public static class MapPoiDTO {
         private String externalPlaceId;
         private String name;

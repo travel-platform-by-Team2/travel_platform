@@ -1,11 +1,15 @@
 package com.example.travel_platform.user;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +23,15 @@ public class UserController {
 
     private final UserService userService;
     private final HttpSession session;
+
+    @Value("${KAKAO_JS_APP_KEY:}")
+    private String kakaoJsAppKey;
+
+    @Value("${NAVER_CLIENT_ID:}")
+    private String naverClientId;
+
+    @Value("${GOOGLE_CLIENT_ID:}")
+    private String googleClientId;
 
     @GetMapping("/")
     public String mainIndex() {
@@ -38,9 +51,24 @@ public class UserController {
     }
 
     @GetMapping("/auth/{provider}/callback")
-    public String snsCallback(@PathVariable String provider, String code) {
-        signIn(createDemoSnsSessionUser(provider));
-        return REDIRECT_HOME;
+    public String snsCallback(
+            @PathVariable(name = "provider") String provider,
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "nickname", required = false) String nickname,
+            @RequestParam(name = "providerId", required = false) String providerId,
+            HttpServletRequest request) {
+        try {
+            if (providerId == null || email == null) {
+                return REDIRECT_LOGIN_FORM + "?error=sns";
+            }
+
+            SessionUser sessionUser = userService.snsLogin(email, nickname, provider, providerId);
+            renewSession(request, sessionUser);
+            return REDIRECT_HOME;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return REDIRECT_LOGIN_FORM + "?error=sns";
+        }
     }
 
     @PostMapping("/join")
@@ -53,7 +81,10 @@ public class UserController {
     }
 
     @GetMapping("/login-form")
-    public String loginForm() {
+    public String loginForm(Model model) {
+        model.addAttribute("kakaoJsAppKey", kakaoJsAppKey);
+        model.addAttribute("naverClientId", naverClientId);
+        model.addAttribute("googleClientId", googleClientId);
         return "pages/login";
     }
 
@@ -70,10 +101,9 @@ public class UserController {
         session.invalidate();
     }
 
-    private SessionUser createDemoSnsSessionUser(String provider) {
-        String email = "test_" + provider + "@example.com";
-        String username = provider + "_User";
-        String providerId = "unique_id_12345";
-        return userService.snsLogin(email, username, provider, providerId);
+    private void renewSession(HttpServletRequest request, SessionUser sessionUser) {
+        clearSession();
+        HttpSession newSession = request.getSession(true);
+        SessionUsers.save(newSession, sessionUser);
     }
 }

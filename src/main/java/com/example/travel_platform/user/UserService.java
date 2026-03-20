@@ -45,7 +45,9 @@ public class UserService {
 
     @Transactional
     public SessionUser snsLogin(String email, String username, String provider, String providerId) {
-        return SessionUser.from(findOrCreateSnsUser(email, username, provider, providerId));
+        User user = findOrCreateSnsUser(email, username, provider, providerId);
+        activateSnsUser(user);
+        return SessionUser.from(user);
     }
 
     public void withdrawAccount(Integer sessionUserId, String currentPassword) {
@@ -93,8 +95,17 @@ public class UserService {
     }
 
     private User createSnsUser(String email, String username, String provider, String providerId) {
-        String suffix = providerId.length() > 4 ? providerId.substring(0, 4) : providerId;
-        return User.createSNS(username + "_" + suffix, email, provider, providerId);
+        String safeBaseName = (username == null || username.isBlank()) ? provider : username;
+        String suffix = providerId.length() > 4 ? providerId.substring(providerId.length() - 4) : providerId;
+        User user = User.createSNS(safeBaseName + "_" + suffix, email, provider, providerId);
+        user.setActive(true);
+        return user;
+    }
+
+    private void activateSnsUser(User user) {
+        if (!user.isActive()) {
+            user.setActive(true);
+        }
     }
 
     private User findUserById(Integer userId) {

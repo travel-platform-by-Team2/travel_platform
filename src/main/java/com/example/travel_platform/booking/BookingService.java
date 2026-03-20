@@ -126,12 +126,14 @@ public class BookingService {
                     + "&imageYN=Y&subImageYN=Y";
 
             String json = executeGet(urlStr);
-            if (json == null) return images;
+            if (json == null)
+                return images;
 
             Map<String, Object> response = objectMapper.readValue(json, Map.class);
             Map<String, Object> res = (Map<String, Object>) response.get("response");
             Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null || body.get("items").equals("")) return images;
+            if (body == null || body.get("items") == null || body.get("items").equals(""))
+                return images;
 
             Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
             Object itemData = itemsObj.get("item");
@@ -145,7 +147,8 @@ public class BookingService {
 
             for (Map<String, Object> item : itemList) {
                 // 이미지 필드명 후보들: originimgurl, smallimageurl, imageUrl 등
-                String imgUrl = getAnyField(item, "originimgurl", "originImgUrl", "smallimageurl", "smallImageUrl", "imageUrl");
+                String imgUrl = getAnyField(item, "originimgurl", "originImgUrl", "smallimageurl", "smallImageUrl",
+                        "imageUrl");
                 if (imgUrl != null && !imgUrl.isBlank()) {
                     images.add(imgUrl);
                 }

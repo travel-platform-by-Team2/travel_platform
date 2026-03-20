@@ -28,6 +28,15 @@ public class AdminResponse {
         private String dashboardActiveClass;
         private String usersActiveClass;
         private String boardsActiveClass;
+        private String sortBy;
+        private String orderBy;
+        private boolean sortByPostCount;
+        private boolean sortByCreatedAt;
+        private boolean orderByAsc;
+        private boolean orderByDesc;
+        private String allTabHref;
+        private String activeTabHref;
+        private String inactiveTabHref;
 
         public static UserListPageDTO of(
                 List<AdminUserDTO> users,
@@ -37,7 +46,9 @@ public class AdminResponse {
                 Boolean currentActive,
                 boolean allTab,
                 boolean activeTab,
-                boolean inactiveTab) {
+                boolean inactiveTab,
+                String sortBy,
+                String orderBy) {
             UserListPageDTO dto = new UserListPageDTO();
             dto.setUsers(users);
             dto.setTotalUserCount(totalUserCount);
@@ -47,7 +58,20 @@ public class AdminResponse {
             dto.setAllTab(allTab);
             dto.setActiveTab(activeTab);
             dto.setInactiveTab(inactiveTab);
+            dto.setSortBy(sortBy);
+            dto.setOrderBy(orderBy);
+            dto.setSortByPostCount("postCount".equals(sortBy));
+            dto.setSortByCreatedAt("createdAt".equals(sortBy));
+            dto.setOrderByAsc("asc".equals(orderBy));
+            dto.setOrderByDesc("desc".equals(orderBy));
             return dto;
+        }
+
+        public UserListPageDTO withTabHrefs(String allTabHref, String activeTabHref, String inactiveTabHref) {
+            this.allTabHref = allTabHref;
+            this.activeTabHref = activeTabHref;
+            this.inactiveTabHref = inactiveTabHref;
+            return this;
         }
 
         public UserListPageDTO withCurrentMenu(String currentMenu) {
@@ -239,8 +263,9 @@ public class AdminResponse {
         private Integer userId;
         private String username;
         private String email;
-        private LocalDateTime createdAt;
+        private LocalDate createdAt;
         private boolean active;
+        private int boardCount;
         private String statusText;
         private String managementLabel;
 
@@ -248,8 +273,9 @@ public class AdminResponse {
                 Integer userId,
                 String username,
                 String email,
-                LocalDateTime createdAt,
+                LocalDate createdAt,
                 boolean active,
+                int boardCount,
                 String statusText,
                 String managementLabel) {
             AdminUserDTO dto = new AdminUserDTO();
@@ -258,6 +284,7 @@ public class AdminResponse {
             dto.setEmail(email);
             dto.setCreatedAt(createdAt);
             dto.setActive(active);
+            dto.setBoardCount(boardCount);
             dto.setStatusText(statusText);
             dto.setManagementLabel(managementLabel);
             return dto;
@@ -271,7 +298,6 @@ public class AdminResponse {
         private String userName;
         private LocalDate createdDate;
         private Integer viewCount;
-
         private String category;
         private String categoryClass;
 
@@ -398,7 +424,12 @@ public class AdminResponse {
         private String sort;
         private String selectCategory;
 
-        public static PageItemDTO of(int page, int displayNumber, boolean current, String keyword, String sort,
+        public static PageItemDTO of(
+                int page,
+                int displayNumber,
+                boolean current,
+                String keyword,
+                String sort,
                 String selectCategory) {
             PageItemDTO dto = new PageItemDTO();
             dto.setPage(page);

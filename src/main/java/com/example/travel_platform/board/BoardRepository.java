@@ -160,6 +160,27 @@ public class BoardRepository {
         return likeCounts;
     }
 
+    public Map<Integer, Long> countBoardsByUserIds(List<Integer> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Object[]> rows = em.createQuery("""
+                select b.user.id, count(b)
+                from Board b
+                where b.user.id in :userIds
+                group by b.user.id
+                """, Object[].class)
+                .setParameter("userIds", userIds)
+                .getResultList();
+
+        Map<Integer, Long> boardCounts = new HashMap<>();
+        for (Object[] row : rows) {
+            boardCounts.put((Integer) row[0], (Long) row[1]);
+        }
+        return boardCounts;
+    }
+
     @Transactional
     public int deleteLikesByBoard(Integer boardId) {
         return em.createNativeQuery("""

@@ -12,13 +12,19 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpSession;
+
+import com.example.travel_platform._core.handler.ex.Exception401;
+import com.example.travel_platform._core.util.Resp;
+import com.example.travel_platform.user.SessionUser;
+import com.example.travel_platform.user.SessionUsers;
 
 class BookingApiControllerTest {
 
     @Test
     void rooms() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key");
+        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
         List<BookingResponse.RoomDTO> rooms = List.of(BookingResponse.RoomDTO.of(
                 "디럭스 룸",
                 "오션뷰",
@@ -34,15 +40,15 @@ class BookingApiControllerTest {
                         && "부산 해운대구".equals(reqDTO.getAddress()))))
                 .thenReturn(rooms);
 
-        List<BookingResponse.RoomDTO> response = controller.getRooms("시그니엘 부산", "부산 해운대구");
+        ResponseEntity<Resp<List<BookingResponse.RoomDTO>>> response = controller.getRooms("시그니엘 부산", "부산 해운대구");
 
-        assertSame(rooms, response);
+        assertSame(rooms, response.getBody().getBody());
     }
 
     @Test
     void img() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key");
+        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
         BookingResponse.PlaceImageDTO dto = BookingResponse.PlaceImageDTO.of("https://image.test/place.jpg", "해운대");
 
         when(bookingService.getPlaceImage(
@@ -53,18 +59,18 @@ class BookingApiControllerTest {
                         && "부산 해운대구".equals(reqDTO.getAddress()))))
                 .thenReturn(dto);
 
-        BookingResponse.PlaceImageDTO response = controller.getPlaceImage(
+        ResponseEntity<Resp<BookingResponse.PlaceImageDTO>> response = controller.getPlaceImage(
                 "https://place.map.kakao.com/1",
                 "해운대",
                 "부산 해운대구");
 
-        assertSame(dto, response);
+        assertSame(dto, response.getBody().getBody());
     }
 
     @Test
     void merge() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key");
+        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
         BookingRequest.MergeMapPoisDTO reqDTO = new BookingRequest.MergeMapPoisDTO();
         List<BookingResponse.MapPoiDTO> pois = List.of(new BookingResponse.MapPoiDTO(
                 "p1",
@@ -82,15 +88,15 @@ class BookingApiControllerTest {
 
         when(bookingService.mergeMapPois(reqDTO)).thenReturn(pois);
 
-        List<BookingResponse.MapPoiDTO> response = controller.mergeMapPois(reqDTO);
+        ResponseEntity<Resp<List<BookingResponse.MapPoiDTO>>> response = controller.mergeMapPois(reqDTO);
 
-        assertSame(pois, response);
+        assertSame(pois, response.getBody().getBody());
     }
 
     @Test
     void create() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key");
+        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
         BookingRequest.CreateBookingDTO reqDTO = new BookingRequest.CreateBookingDTO();
 
         ResponseEntity<?> response = controller.createBooking(reqDTO);
@@ -102,7 +108,7 @@ class BookingApiControllerTest {
     @Test
     void cancel() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key");
+        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
 
         ResponseEntity<?> response = controller.cancelBooking(33);
 
@@ -113,7 +119,7 @@ class BookingApiControllerTest {
     @Test
     void list() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key");
+        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
         List<BookingResponse.BookingSummaryDTO> list = List.of();
 
         when(bookingService.getBookingList(1)).thenReturn(list);
@@ -127,7 +133,7 @@ class BookingApiControllerTest {
     @Test
     void detail() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key");
+        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
 
         when(bookingService.getBookingDetail(1, 77)).thenReturn(null);
 
@@ -135,5 +141,19 @@ class BookingApiControllerTest {
 
         verify(bookingService).getBookingDetail(1, 77);
         assertEquals(200, response.getStatusCode().value());
+    }
+
+    @Test
+    void create401() {
+        BookingApiController controller = new BookingApiController(mock(BookingService.class), "tour-key", new MockHttpSession());
+
+        org.junit.jupiter.api.Assertions.assertThrows(Exception401.class,
+                () -> controller.createBooking(new BookingRequest.CreateBookingDTO()));
+    }
+
+    private MockHttpSession session() {
+        MockHttpSession session = new MockHttpSession();
+        SessionUsers.save(session, new SessionUser(1, "ssar", "ssar@nate.com", "010-1111-2222", "USER"));
+        return session;
     }
 }

@@ -46,7 +46,7 @@ class AdminServiceDashboardTest {
 
     @Test
     void users() {
-        AdminResponse.UserListPageDTO page = adminService.getUsersPage(null, null);
+        AdminResponse.UserListPageDTO page = adminService.getUsersPage(null, null, null, null);
 
         assertEquals(3L, page.getTotalUserCount());
         assertEquals(1L, page.getInactiveUserCount());
@@ -54,8 +54,10 @@ class AdminServiceDashboardTest {
         assertTrue(page.isAllTab());
         assertFalse(page.isActiveTab());
         assertFalse(page.isInactiveTab());
+        assertEquals("createdAt", page.getSortBy());
+        assertEquals("desc", page.getOrderBy());
         assertEquals(3, page.getUsers().size());
-        assertEquals("admin", page.getUsers().get(0).getUsername());
+        assertEquals("ssar", page.getUsers().get(0).getUsername());
     }
 
     @Test

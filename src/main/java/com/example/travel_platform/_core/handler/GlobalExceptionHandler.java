@@ -50,7 +50,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(exception = Exception.class)
     public String exUnknown(Exception e) {
-        System.out.println(e.getMessage());
+        if (e.getClass().getName().equals("org.springframework.web.servlet.resource.NoResourceFoundException")) {
+            return null;
+        }
+
+        e.printStackTrace();
         return back("관리자에게 문의하세요");
     }
 

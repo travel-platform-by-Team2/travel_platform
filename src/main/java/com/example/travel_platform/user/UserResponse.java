@@ -13,19 +13,22 @@ public class UserResponse {
         private String email;
         private LocalDateTime createdAt;
         private boolean active;
+        private int boardCount;
         private String statusText;
-        private String managementLabel;
 
-        // User 객체로 AdminListDTO 변환 메서드
         public static AdminListDTO fromUser(User user) {
+            return fromUser(user, 0);
+        }
+
+        public static AdminListDTO fromUser(User user, int boardCount) {
             AdminListDTO dto = new AdminListDTO();
             dto.setUserId(user.getId());
             dto.setUsername(user.getUsername());
             dto.setEmail(user.getEmail());
             dto.setCreatedAt(user.getCreatedAt());
             dto.setActive(user.isActive());
+            dto.setBoardCount(boardCount);
             dto.setStatusText(user.isActive() ? "활성" : "비활성");
-            dto.setManagementLabel(user.isActive() ? "비활성화" : "활성화");
             return dto;
         }
     }

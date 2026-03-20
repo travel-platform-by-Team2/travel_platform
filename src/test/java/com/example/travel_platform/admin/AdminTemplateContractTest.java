@@ -28,6 +28,8 @@ class AdminTemplateContractTest {
         assertContains(template, "{{page.inactiveUserCount}}");
         assertContains(template, "{{#page.users}}");
         assertContains(template, "{{page.keyword}}");
+        assertContains(template, "{{page.sortBy}}");
+        assertContains(template, "{{page.orderBy}}");
         assertFalse(template.contains("{{totalUserCount}}"), "{{totalUserCount}}");
     }
 

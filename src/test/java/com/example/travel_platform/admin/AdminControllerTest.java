@@ -43,17 +43,23 @@ class AdminControllerTest {
         AdminController controller = new AdminController(adminService, new MockHttpSession());
         Model model = new ExtendedModelMap();
         AdminResponse.UserListPageDTO pageDTO = new AdminResponse.UserListPageDTO();
+        pageDTO.setKeyword("ssar");
+        pageDTO.setSortBy("postCount");
+        pageDTO.setOrderBy("asc");
 
-        when(adminService.getUsersPage(true, "ssar")).thenReturn(pageDTO);
+        when(adminService.getUsersPage(true, "ssar", "postCount", "asc")).thenReturn(pageDTO);
 
-        String view = controller.users(true, "ssar", model);
+        String view = controller.users(true, "ssar", "postCount", "asc", model);
 
         assertEquals("pages/admin-users", view);
         assertSame(pageDTO, model.getAttribute("page"));
         assertEquals("", pageDTO.getDashboardActiveClass());
         assertEquals(" is-active", pageDTO.getUsersActiveClass());
         assertEquals("", pageDTO.getBoardsActiveClass());
-        verify(adminService).getUsersPage(true, "ssar");
+        assertEquals("/admin/users?keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getAllTabHref());
+        assertEquals("/admin/users?active=true&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getActiveTabHref());
+        assertEquals("/admin/users?active=false&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getInactiveTabHref());
+        verify(adminService).getUsersPage(true, "ssar", "postCount", "asc");
     }
 
     @Test
