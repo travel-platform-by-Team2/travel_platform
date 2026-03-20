@@ -16,7 +16,10 @@ public class BookingRequest {
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
-        private Integer totalPrice;
+        private Integer pricePerNight;
+        private Integer taxAndServiceFee;
+        private String location;
+        private String imageUrl;
     }
 
     @Data

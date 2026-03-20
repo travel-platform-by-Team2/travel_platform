@@ -20,7 +20,9 @@ public class BookingResponse {
         private String lodgingName;
         private LocalDate checkIn;
         private LocalDate checkOut;
-        private Integer totalPrice;
+        private Integer pricePerNight;
+        private Integer taxAndServiceFee;
+        private String location;
     }
 
     // 예약 상세 응답 DTO
@@ -33,7 +35,9 @@ public class BookingResponse {
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
-        private Integer totalPrice;
+        private Integer pricePerNight;
+        private Integer taxAndServiceFee;
+        private String location;
         private LocalDateTime createdAt;
     }
 
