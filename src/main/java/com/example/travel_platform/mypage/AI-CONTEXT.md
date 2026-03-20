@@ -8,12 +8,12 @@
 
 ## 주요 파일
 
-| 파일명 | 설명 |
-| --- | --- |
+| 파일명                | 설명                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
 | MypageController.java | `/mypage`, `/mypage/password`, `/mypage/withdraw`, `/mypage/bookings/{bookingId}` 요청을 처리한다. |
-| MypageRequest.java | 비밀번호 변경, 회원 탈퇴 입력 DTO를 정의한다. |
-| MypageResponse.java | 마이페이지 화면 DTO, 카드 변환 로직, 예약 상세 placeholder DTO를 정의한다. |
-| MypageService.java | 프로필 조회, 다가오는 예약/여행 계획 카드 조합, 비밀번호 변경을 처리한다. |
+| MypageRequest.java    | 비밀번호 변경, 회원 탈퇴 입력 DTO를 정의한다.                                                      |
+| MypageResponse.java   | 마이페이지 화면 DTO, 카드 변환 로직, 예약 상세 placeholder DTO를 정의한다.                         |
+| MypageService.java    | 프로필 조회, 다가오는 예약/여행 계획 카드 조합, 비밀번호 변경을 처리한다.                          |
 
 ## 하위 디렉토리
 
@@ -22,7 +22,7 @@
 ## AI 작업 지침
 
 - 이 패키지는 `UserRepository`, `UserService`, `BookingRepository`, `TripRepository`를 재사용해 프로필과 예약/여행 요약, 탈퇴 흐름을 연결한다.
-- `/mypage`는 로그인 사용자 전용 SSR 페이지이며 `_core/filter/LoginFilter`와 함께 봐야 한다.
+- `/mypage`는 로그인 사용자 전용 SSR 페이지이며 `_core/interceptor/LoginInterceptor`와 함께 봐야 한다.
 - 비밀번호 변경 실패는 같은 요청에서 `pages/mypage`를 다시 렌더링해 모달 에러를 보여주고, 성공은 redirect 후 토스트형 1회성 메시지로 처리한다.
 - 회원 탈퇴 실패도 같은 요청에서 `pages/mypage`를 다시 렌더링해 모달 에러를 보여주고, 성공은 세션 종료 후 `/login-form` 으로 redirect 한다.
 - `MypageController`는 `renderMainPage(...)` helper로 메인 화면 공통 모델 조립을 모은다.
