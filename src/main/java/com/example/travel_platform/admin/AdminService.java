@@ -290,8 +290,8 @@ public class AdminService {
 
     private String toSortDirectionLabel(String sort) {
         return switch (sort) {
-            case "downlikes", "downview", "date" -> "오름차순";
-            default -> "내림차순";
+            case "downlikes", "downview", "date" -> "↓";
+            default -> "↑";
         };
     }
 
