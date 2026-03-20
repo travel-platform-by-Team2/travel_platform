@@ -128,6 +128,52 @@
       return;
     }
 
+    function scheduleMapRelayoutKeepCenter(state) {
+      if (!state || !state.map) {
+        return;
+      }
+      if (state.relayoutTimer) {
+        window.clearTimeout(state.relayoutTimer);
+      }
+      state.relayoutTimer = window.setTimeout(function () {
+        relayoutKeepCenter(state);
+        if (state.syncByViewport) {
+          fetchAndRenderVisiblePois(state);
+        }
+      }, 150);
+    }
+
+    function relayoutKeepCenter(state) {
+      if (!state || !state.map) {
+        return;
+      }
+      var center = state.map.getCenter ? state.map.getCenter() : null;
+      window.requestAnimationFrame(function () {
+        state.map.relayout();
+        window.requestAnimationFrame(function () {
+          if (center) {
+            state.map.setCenter(center);
+          }
+        });
+      });
+    }
+
+    function scheduleRefreshByMapMovement(state) {
+      if (!state) {
+        return;
+      }
+      if (state.moveRefreshTimer) {
+        window.clearTimeout(state.moveRefreshTimer);
+      }
+      state.moveRefreshTimer = window.setTimeout(function () {
+        if (!state.hasSearched) {
+          return;
+        }
+        renderOverlays(state);
+        renderList(state);
+      }, 200);
+    }
+
     function showMapError(message) {
       mapElement.style.display = "flex";
       mapElement.style.alignItems = "center";
@@ -144,12 +190,23 @@
         kakao.maps.load(function () {
           applySearchParamsFromUrl();
 
+          var regionSelect = document.getElementById("mapRegion");
+          var initialCenter = new kakao.maps.LatLng(35.1795543, 129.0756416); // Busan default
+          var initialLevel = 4;
+
+          // If region is provided in URL, use its specific view coordinates
+          if (regionSelect && regionSelect.value && REGION_VIEW[regionSelect.value]) {
+            var view = REGION_VIEW[regionSelect.value];
+            initialCenter = new kakao.maps.LatLng(view.lat, view.lng);
+            initialLevel = view.level;
+          }
+
           var map = new kakao.maps.Map(mapElement, {
-            center: new kakao.maps.LatLng(35.1795543, 129.0756416),
-            level: 4
+            center: initialCenter,
+            level: initialLevel,
+            scrollwheel: false // Disable default cursor-based zoom
           });
 
-          var regionSelect = document.getElementById("mapRegion");
           var state = {
             map: map,
             places: new kakao.maps.services.Places(map),
@@ -158,14 +215,44 @@
             hasSearched: false,
             syncByViewport: false,
             idleTimer: null,
+            relayoutTimer: null,
+            moveRefreshTimer: null,
             loading: false,
             currentRegionKey: regionSelect ? regionSelect.value : "busan",
             panelRequestSeq: 0,
             imageCache: {},
             nearbyById: {},
-            focusOverlay: null
+            focusOverlay: null,
+            lastCenter: initialCenter // Use the calculated initial center
           };
           CURRENT_MAP_STATE = state;
+
+          // 1. Custom wheel zoom: Always towards the 'Source of Truth' center
+          mapElement.addEventListener("wheel", function (e) {
+            e.preventDefault();
+            if (!state.map || !state.lastCenter) return;
+            
+            var level = state.map.getLevel();
+            var nextLevel = e.deltaY > 0 ? level + 1 : level - 1;
+            
+            if (nextLevel >= 1 && nextLevel <= 14) {
+                state.map.setLevel(nextLevel, { anchor: state.lastCenter, animate: true });
+                scheduleRefreshByMapMovement(state);
+            }
+          }, { passive: false });
+
+          // 2. ResizeObserver: Compensation for container size changes
+          if (window.ResizeObserver) {
+            var ro = new ResizeObserver(function() {
+              if (state.map && state.lastCenter) {
+                window.requestAnimationFrame(function() {
+                  state.map.relayout();
+                  state.map.setCenter(state.lastCenter);
+                });
+              }
+            });
+            ro.observe(mapElement);
+          }
 
           initializeResultPanel(state);
           bindViewportSync(state);
@@ -173,11 +260,14 @@
           initPoiCardMapLink(state);
           initNearbyPoiLink(state);
 
-          window.addEventListener("resize", function () {
-            map.relayout();
-            if (state.syncByViewport) {
-              fetchAndRenderVisiblePois(state);
-            }
+          // 3. Update 'Source of Truth' ONLY on user interaction
+          kakao.maps.event.addListener(map, "dragend", function () {
+            state.lastCenter = map.getCenter(); 
+            scheduleRefreshByMapMovement(state);
+          });
+          kakao.maps.event.addListener(map, "zoom_changed", function () {
+            state.lastCenter = map.getCenter();
+            scheduleRefreshByMapMovement(state);
           });
         });
       } catch (error) {
@@ -311,12 +401,15 @@
     return Math.max(1, diffDays);
   }
 
-  function buildCheckoutUrl(item, imageUrl) {
+  function buildCheckoutUrl(item, imageUrl, roomName) {
     var params = new URLSearchParams();
     params.set("lodgingName", item.name || "숙소");
     params.set("address", item.roadAddress || item.address || "주소 정보 없음");
     if (imageUrl) {
       params.set("imageUrl", imageUrl);
+    }
+    if (roomName) {
+      params.set("roomName", roomName);
     }
 
     var startDateEl = document.getElementById("mapStartDate");
@@ -335,14 +428,19 @@
 
     var pricing = getPricing(item, getSelectedNights());
     var nightlyPrice = pricing.roomPrice;
-    var fee = pricing.fee;
+    
+    // 방 종류에 따른 가격 변동 (가상)
+    if (roomName && roomName.indexOf("디럭스") >= 0) nightlyPrice += 50000;
+    if (roomName && roomName.indexOf("스위트") >= 0) nightlyPrice += 150000;
+    
+    var fee = Math.round(nightlyPrice * 0.18);
     params.set("roomPrice", String(nightlyPrice));
     params.set("fee", String(fee));
 
     return "/bookings/checkout?" + params.toString();
   }
 
-  async function goToBookingCheckout(state, item) {
+  async function goToBookingCheckout(state, item, roomName) {
     var fallback = getPoiImageUrl(item);
     var imageUrl = fallback;
     try {
@@ -353,7 +451,7 @@
     } catch (error) {
       console.error(error);
     }
-    window.location.href = buildCheckoutUrl(item, imageUrl);
+    window.location.href = buildCheckoutUrl(item, imageUrl, roomName);
   }
 
   async function fetchPlaceImageFromServer(state, item) {
@@ -369,6 +467,10 @@
       }
       if (item.name) {
         params.set("name", item.name);
+      }
+      var address = item.roadAddress || item.address || "";
+      if (address) {
+        params.set("address", address);
       }
 
       var response = await fetch("/api/bookings/place-image?" + params.toString(), {
@@ -684,6 +786,96 @@
     );
   }
 
+  async function renderRoomList(state, item, container) {
+    if (!container) return;
+    if (item.type !== "hotel") {
+      container.innerHTML = "";
+      return;
+    }
+
+    // 로딩 표시
+    container.innerHTML = '<div class="map-poi-panel-div-16"><p style="font-size: 0.875rem; color: #64748b;">객실 정보를 불러오는 중...</p></div>';
+
+    var pricing = getPricing(item, 1);
+    var basePrice = pricing.roomPrice;
+    var rooms = [];
+
+    try {
+      // 서버 API 호출 (이름과 주소 전달)
+      var params = new URLSearchParams();
+      params.set("lodgingName", item.name);
+      params.set("address", item.roadAddress || item.address || "");
+      
+      var response = await fetch("/api/bookings/rooms?" + params.toString());
+      if (response.ok) {
+        var data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          rooms = data.map(function(r) {
+            return {
+              name: r.name || "객실",
+              price: basePrice + (hashText(r.name) % 100000),
+              img: r.imageUrl || "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop",
+              desc: r.content || "상세 정보 없음"
+            };
+          });
+        }
+      }
+    } catch (error) {
+      console.error("TourAPI fetch error:", error);
+    }
+
+    // 데이터가 없으면 가상 데이터 사용 (폴백) - 숙소 이름을 기반으로 다양하게 생성
+    if (rooms.length === 0) {
+      var seed = hashText(item.name);
+      var themes = ["모던 ", "클래식 ", "우드톤 ", "미니멀 ", "럭셔리 "];
+      var theme = themes[seed % themes.length];
+      
+      var roomCount = 2 + (seed % 3); // 2~4개 객실 생성
+      for (var i = 0; i < roomCount; i++) {
+        var roomType = (i === 0) ? "스탠다드" : (i === 1) ? "디럭스" : (i === 2) ? "프리미엄" : "스위트";
+        var viewType = (seed + i) % 2 === 0 ? " 시티뷰" : " 마운틴뷰";
+        if (item.address && (item.address.indexOf("부산") >= 0 || item.address.indexOf("제주") >= 0)) {
+            viewType = (seed + i) % 2 === 0 ? " 오션뷰" : " 비치뷰";
+        }
+
+        rooms.push({
+          name: theme + roomType + viewType,
+          price: basePrice + (i * 35000) + (seed % 5 * 5000),
+          img: i === 0 ? "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop" :
+               i === 1 ? "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=250&fit=crop" :
+               "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=250&fit=crop",
+          desc: item.name + "에서 정성껏 준비한 " + theme + "테마의 " + roomType + " 객실입니다."
+        });
+      }
+    }
+
+    var html = '<div class="map-poi-panel-div-16"><h3 class="map-poi-panel-h3-01">객실 선택</h3>';
+    html += '<div class="room-list-group" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">';
+    
+    rooms.forEach(function(room) {
+      html += '<div class="room-card" style="border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; background: #fff;">' +
+              '<img src="' + room.img + '" style="width: 100%; height: 160px; object-fit: cover;" alt="' + room.name + '">' +
+              '<div style="padding: 1rem;">' +
+              '<h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">' + room.name + '</h4>' +
+              '<p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">' + (room.desc || "최대 인원 2명 · 금연") + '</p>' +
+              '<div style="display: flex; justify-content: space-between; align-items: flex-end;">' +
+              '<div><span style="font-size: 1.125rem; font-weight: 800; color: #1152d4;">' + formatWon(room.price) + '</span><span style="font-size: 0.75rem; color: #94a3b8;"> / 1박</span></div>' +
+              '<button class="fx-group-cta-primary room-book-btn" data-room-name="' + room.name + '" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto; min-width: 0; width: auto;">예약하기</button>' +
+              '</div></div></div>';
+    });
+    
+    html += '</div></div>';
+    container.innerHTML = html;
+
+    // 예약 버튼 이벤트 바인딩
+    container.querySelectorAll(".room-book-btn").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var roomName = btn.getAttribute("data-room-name");
+        goToBookingCheckout(state, item, roomName);
+      });
+    });
+  }
+
   async function fillPoiPanelDynamicSections(state, item, requestSeq) {
     var panel = document.querySelector("[data-map-poi-panel]");
     if (!panel) {
@@ -692,6 +884,10 @@
 
     updatePanelFacilities(panel, item);
     updatePanelReviewSummary(panel, item);
+    
+    // 방 리스트 렌더링
+    var roomContainer = document.getElementById("poiRoomListContainer");
+    renderRoomList(state, item, roomContainer);
 
     var imageEl = panel.querySelector(".map-poi-panel-div-03");
     try {
@@ -791,6 +987,68 @@
     state.overlays = [];
   }
 
+  function getClusterGridKm(mapLevel) {
+    if (mapLevel <= 5) return 0;
+    if (mapLevel === 6) return 0.7;
+    if (mapLevel === 7) return 1.2;
+    if (mapLevel === 8) return 2.0;
+    if (mapLevel === 9) return 3.5;
+    if (mapLevel === 10) return 6.0;
+    return 8.0;
+  }
+
+  function createClusterNode(count, type) {
+    var node = document.createElement("div");
+    node.className = "stay-marker stay-marker--" + type;
+
+    var safeCount = Math.max(2, parseInt(count, 10) || 2);
+    // 2개~100개 구간을 0~1로 정규화 후, 완만하게 증가(sqrt)
+    var normalized = Math.min(1, (safeCount - 2) / 98);
+    var diameterRem = 2.35 + 1.45 * Math.sqrt(normalized); // 2.35rem ~ 3.8rem
+
+    var pin = document.createElement("div");
+    pin.className = "stay-marker__pin";
+    
+    // 중앙 정렬 및 공통 스타일
+    pin.style.display = "flex";
+    pin.style.alignItems = "center";
+    pin.style.justifyContent = "center";
+    pin.style.width = diameterRem + "rem";
+    pin.style.height = diameterRem + "rem";
+    pin.style.borderRadius = "50%";
+    pin.style.fontSize = (15 + Math.round(5 * Math.sqrt(normalized))) + "px";
+    pin.style.fontWeight = "800";
+    pin.style.boxShadow = "0 8px 24px rgba(15, 23, 42, 0.22)";
+    pin.style.backdropFilter = "blur(4px)";
+    pin.style.transition = "all 200ms ease";
+    pin.textContent = String(safeCount);
+
+    if (type === "hotel") {
+      // 더욱 투명한 연한 하늘색 영역 느낌
+      pin.style.background = "rgba(56, 189, 248, 0.45)";
+      pin.style.border = "none";
+      pin.style.color = "#0369a1";
+    } else {
+      // 더욱 투명한 연한 주황색 영역 느낌 (어트렉션용)
+      pin.style.background = "rgba(251, 146, 60, 0.45)";
+      pin.style.border = "none";
+      pin.style.color = "#c2410c";
+    }
+
+    node.appendChild(pin);
+
+    node.addEventListener("mouseenter", function () {
+      node.classList.add("is-hover");
+      pin.style.transform = "scale(1.08)";
+    });
+    node.addEventListener("mouseleave", function () {
+      node.classList.remove("is-hover");
+      pin.style.transform = "scale(1.0)";
+    });
+
+    return node;
+  }
+
   function renderOverlays(state) {
     clearOverlays(state);
 
@@ -800,35 +1058,99 @@
     var maxPrice = parseInt(params.get("priceMax")) || Infinity;
 
     var filteredItems = state.items.filter(function (item) {
-      if (item.type !== "hotel") return true; // 관광지는 그대로 표시 (원할 경우 관광지도 필터 가능)
-      
+      if (item.type !== "hotel") return true;
       var pricing = getPricing(item, 1);
       return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
     });
 
-    filteredItems.forEach(function (item) {
-      var position = new kakao.maps.LatLng(item.lat, item.lng);
-      var node = createPoiMarkerNode(item);
-      var overlay = new kakao.maps.CustomOverlay({
-        position: position,
-        content: node,
-        yAnchor: 1.05,
-        zIndex: item.type === "hotel" ? 3 : 2
-      });
+    var mapLevel = state.map && state.map.getLevel ? state.map.getLevel() : 0;
+    var gridKm = getClusterGridKm(mapLevel);
 
-      node.addEventListener("click", function (event) {
-        event.preventDefault();
-        state.map.panTo(position);
-        if (item.type === "hotel") {
-          goToBookingCheckout(state, item);
-        } else if (item.type === "attraction") {
-          openPoiDetailPanel(state, item);
+    var types = ["hotel", "attraction"];
+    
+    types.forEach(function(type) {
+        var itemsByType = filteredItems.filter(function (item) {
+          return item.type === type;
+        });
+
+        if (gridKm > 0 && itemsByType.length > 1) {
+          var center = state.map.getCenter();
+          var centerLat = center.getLat();
+          var latStep = gridKm / 110.574;
+          var lngStep = gridKm / (111.320 * Math.max(0.2, Math.cos((centerLat * Math.PI) / 180)));
+
+          var bucket = {};
+          itemsByType.forEach(function (item) {
+            var latKey = Math.floor(item.lat / latStep);
+            var lngKey = Math.floor(item.lng / lngStep);
+            var key = latKey + ":" + lngKey;
+            if (!bucket[key]) bucket[key] = [];
+            bucket[key].push(item);
+          });
+
+          Object.keys(bucket).forEach(function (key) {
+            var items = bucket[key];
+            if (!items || !items.length) return;
+
+            if (items.length === 1) {
+              renderSingleMarker(state, items[0]);
+              return;
+            }
+
+            var sumLat = 0; var sumLng = 0;
+            items.forEach(function (item) {
+              sumLat += item.lat;
+              sumLng += item.lng;
+            });
+
+            var clusterLat = sumLat / items.length;
+            var clusterLng = sumLng / items.length;
+            var clusterPosition = new kakao.maps.LatLng(clusterLat, clusterLng);
+            var clusterNode = createClusterNode(items.length, type);
+            var clusterOverlay = new kakao.maps.CustomOverlay({
+              position: clusterPosition,
+              content: clusterNode,
+              yAnchor: 0.5, // Center align for the circular cluster
+              zIndex: type === "hotel" ? 4 : 3
+            });
+
+            clusterNode.addEventListener("click", function (event) {
+              event.preventDefault();
+              var currentLevel = state.map.getLevel();
+              var nextLevel = Math.max(1, currentLevel - 2);
+              state.map.setLevel(nextLevel);
+              state.map.panTo(clusterPosition);
+            });
+
+            clusterOverlay.setMap(state.map);
+            state.overlays.push(clusterOverlay);
+          });
+        } else {
+          itemsByType.forEach(function (item) {
+            renderSingleMarker(state, item);
+          });
         }
-      });
-
-      overlay.setMap(state.map);
-      state.overlays.push(overlay);
     });
+  }
+
+  function renderSingleMarker(state, item) {
+    var position = new kakao.maps.LatLng(item.lat, item.lng);
+    var node = createPoiMarkerNode(item);
+    var overlay = new kakao.maps.CustomOverlay({
+      position: position,
+      content: node,
+      yAnchor: 1.05,
+      zIndex: item.type === "hotel" ? 3 : 2
+    });
+
+    node.addEventListener("click", function (event) {
+      event.preventDefault();
+      state.map.panTo(position);
+      openPoiDetailPanel(state, item);
+    });
+
+    overlay.setMap(state.map);
+    state.overlays.push(overlay);
   }
 
   function updateResultCount(count) {
@@ -906,6 +1228,28 @@
       return pricing.roomPrice >= minPrice && pricing.roomPrice <= maxPrice;
     });
 
+    if (state.map && listItems.length > 1) {
+      var center = state.map.getCenter();
+      if (center) {
+        var centerLat = center.getLat();
+        var centerLng = center.getLng();
+        var nearestIndex = 0;
+        var nearestDistance = Infinity;
+        for (var i = 0; i < listItems.length; i += 1) {
+          var item = listItems[i];
+          var d = distanceKm(centerLat, centerLng, item.lat, item.lng);
+          if (d < nearestDistance) {
+            nearestDistance = d;
+            nearestIndex = i;
+          }
+        }
+        if (nearestIndex > 0) {
+          var nearest = listItems.splice(nearestIndex, 1)[0];
+          listItems.unshift(nearest);
+        }
+      }
+    }
+
     if (!listItems.length) {
       container.innerHTML = '<div class="panel-muted-center-sm">현재 설정된 가격 범위 내 숙소가 없습니다.</div>';
       updateResultCount(0);
@@ -916,8 +1260,8 @@
       .map(function (item) {
         var badge = item.type === "hotel" ? "숙소" : "관광지";
         var subtitle = item.roadAddress || item.address || "주소 정보 없음";
-        var pricing = getPricing(item, getSelectedNights());
-        var totalPriceText = item.type === "hotel" ? formatWon(pricing.total) : "정보 없음";
+        var pricingMin = getPricing(item, 1);
+        var minPriceText = item.type === "hotel" ? formatWon(pricingMin.roomPrice) + "~" : "정보 없음";
         var imageUrl = getPoiImageUrl(item);
         return (
           '<div class="poi-card" data-map-card data-name="' +
@@ -957,10 +1301,10 @@
           badge +
           '</span></div>' +
           '<div class="row-between-price">' +
-          '<div class="text-neutral-xs-subtle">총 결제 금액</div>' +
+          '<div class="text-neutral-xs-subtle">최소가격</div>' +
           '<div class="text-right-align"><p class="price-strong">' +
-          totalPriceText +
-          "</p></div>" +
+          minPriceText +
+          '</p><span class="text-neutral-xs-subtle">/ 1박</span></div>' +
           "</div>" +
           '</div>' +
           '</div>'
@@ -1141,7 +1485,7 @@
         return kakaoItems;
       }
       var data = await response.json();
-      var items = data && Array.isArray(data.items) ? data.items.map(normalizeMergedPoi).filter(Boolean) : [];
+      var items = Array.isArray(data) ? data.map(normalizeMergedPoi).filter(Boolean) : [];
       return items.length ? items : kakaoItems;
     } catch (error) {
       console.error(error);
@@ -1219,7 +1563,9 @@
       state.currentRegionKey = regionKey;
       updateRegionLabel(regionSelect);
       state.map.setLevel(view.level);
-      state.map.panTo(new kakao.maps.LatLng(view.lat, view.lng));
+      var targetCenter = new kakao.maps.LatLng(view.lat, view.lng);
+      state.map.panTo(targetCenter);
+      state.lastCenter = targetCenter; // Update the Source of Truth
       state.hasSearched = true;
       state.syncByViewport = true;
       fetchAndRenderVisiblePois(state);
@@ -1239,7 +1585,9 @@
       state.currentRegionKey = regionKey;
       updateRegionLabel(regionSelect);
       state.map.setLevel(view.level);
-      state.map.panTo(new kakao.maps.LatLng(view.lat, view.lng));
+      var targetCenter = new kakao.maps.LatLng(view.lat, view.lng);
+      state.map.panTo(targetCenter);
+      state.lastCenter = targetCenter; // Update the Source of Truth
     });
 
     function refreshListPriceOnly() {
@@ -1299,7 +1647,9 @@
       var topOffset = header ? header.offsetHeight + 10 : 10;
       listContainer.scrollTop = Math.max(0, card.offsetTop - topOffset);
 
-      state.map.panTo(new kakao.maps.LatLng(lat, lng));
+      var targetLatLng = new kakao.maps.LatLng(lat, lng);
+      state.map.panTo(targetLatLng);
+      state.lastCenter = targetLatLng;
       state.syncByViewport = false;
     });
   }
@@ -1328,6 +1678,7 @@
 
       var position = new kakao.maps.LatLng(item.lat, item.lng);
       state.map.panTo(position);
+      state.lastCenter = position;
       showFocusOverlay(state, item);
       openPoiDetailPanel(state, item);
     });
@@ -1435,6 +1786,7 @@
     toggleButton.addEventListener("click", function (event) {
       event.preventDefault();
       setResultPanelExpanded(panel.hidden);
+      // Removed manual relayout: ResizeObserver will handle this using state.lastCenter
     });
   }
 
@@ -1451,6 +1803,7 @@
     function setOpen(open) {
       panel.hidden = !open;
       toggleButton.setAttribute("aria-expanded", String(open));
+      // Removed manual relayout: ResizeObserver will handle this using state.lastCenter
     }
 
     setOpen(false);

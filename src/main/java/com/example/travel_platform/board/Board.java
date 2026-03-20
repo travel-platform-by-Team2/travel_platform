@@ -20,6 +20,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -64,6 +65,33 @@ public class Board {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Builder
+    private Board(User user, String title, String category, String content, Integer viewCount, Integer likeCount) {
+        this.user = user;
+        this.title = title;
+        this.category = category;
+        this.content = content;
+        this.viewCount = viewCount == null ? 0 : viewCount;
+        this.likeCount = likeCount == null ? 0 : likeCount;
+    }
+
+    public static Board create(User user, String title, String category, String content) {
+        return Board.builder()
+                .user(user)
+                .title(title)
+                .category(category)
+                .content(content)
+                .viewCount(0)
+                .likeCount(0)
+                .build();
+    }
+
+    public void update(String title, String category, String content) {
+        this.title = title;
+        this.category = category;
+        this.content = content;
+    }
+
     public void increaseViewCount(Integer viewerUserId) {
         Integer authorId = this.user.getId();
 
@@ -81,7 +109,6 @@ public class Board {
         if (this.likeCount > 0) {
             this.likeCount = this.likeCount - 1;
         }
-
     }
 
 }

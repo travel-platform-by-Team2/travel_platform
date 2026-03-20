@@ -2,15 +2,25 @@
   "use strict";
 
   var CALENDAR_MEMO_MAX_LENGTH = 500;
+  var MAX_VISIBLE_DAY_CHIPS = 2;
+
+  // 사용자가 선택한 날짜 
   var selectedDate = "";
+
+  // 서버에서 가져온 현재 월 일정 캐시
   var cachedEvents = [];
+  
+  // 현재 보고 있는 달
   var currentMonthDate = new Date();
 
+  // 캘린더 진입점 함수
+  // 버튼 이벤트 연결, 입력창 이벤트 연결, 월 이동 이벤트 연결, 저장 / 삭제 이벤트 연결
   function initCalendarAddEventPanel() {
     var root = document.querySelector(".calendar-add-event-div-03");
     if (!root) return;
 
     var openButton = root.querySelector("[data-calendar-event-open]");
+    // 일정 입력 패널
     var panel = root.querySelector("[data-calendar-event-panel]");
     var closeButtons = root.querySelectorAll("[data-calendar-event-close]");
     var saveButton = root.querySelector("[data-calendar-event-save]");
@@ -72,6 +82,7 @@
       hasShownMemoLimitAlert = false;
     }
 
+    // 패널 열기/닫기 함수
     function getDefaultFormDate() {
       return dateFromYmd(selectedDate) || currentMonthDate || new Date();
     }
@@ -111,6 +122,7 @@
       });
     });
 
+    // 날짜/시간 문자열 처리 함수
     function normalizeDateInput(value) {
       if (!value) return "";
       return value.replace(/\s+/g, "").replace(/\./g, "-").replace(/\/+/g, "-");
@@ -124,6 +136,7 @@
       return dateText + "T" + timeText + ":00";
     }
 
+    // 날짜/시간 picker 열기 함수
     function bindDatePickerOpen(wrapper, input) {
       if (!wrapper || !input) return;
       function openDatePicker(event) {
@@ -168,6 +181,7 @@
       return { year: year, month: month };
     }
 
+    // 현재 보고 있는 달의 시작일과 마지막일을 계산하는 함수
     function getMonthRangeFromDate(baseDate) {
       if (!baseDate) return null;
       var year = baseDate.getFullYear();
@@ -182,6 +196,7 @@
     currentMonthDate = new Date();
     selectedDate = ymdFromDate(currentMonthDate);
 
+    // 선택한 날짜에 해당하는 일정 목록을 오른쪽 패널에 그리는 함수
     function renderEventList(events) {
       var listRoot = document.querySelector("[data-calendar-event-list]");
       if (!listRoot) return;
@@ -212,25 +227,30 @@
       });
     }
 
+    // 오른쪽 패널 일정 시작/종료 시간 문자열열
     function formatRange(startAt, endAt) {
       if (!startAt || !endAt) return "";
       return startAt.replace("T", " ").slice(0, 16) + " ~ " + endAt.replace("T", " ").slice(0, 16);
     }
 
+    // 달력 일정 표시를 새로 그리기 전에 화면을 초기화하는 함수
     function clearGridChips() {
       var grid = document.querySelector("[data-calendar-grid]");
       if (!grid) return;
-      var chips = grid.querySelectorAll("[data-calendar-chip]");
+      var chips = grid.querySelectorAll("[data-calendar-chip], [data-calendar-chip-overflow]");
       chips.forEach(function (chip) {
         chip.remove();
       });
     }
 
+    // 달력 칸 안에 일정 표시를 그리는 핵심 함수
     function renderEventsOnGrid(events) {
       var grid = document.querySelector("[data-calendar-grid]");
       if (!grid) return;
       clearGridChips();
       if (!events || !events.length) return;
+      var chipCountByDate = {};
+      var overflowByDate = {};
 
       events.forEach(function (event) {
         if (!event.startAt) return;
@@ -238,29 +258,59 @@
         var endDateText = event.endAt ? event.endAt.split("T")[0] : startDateText;
         var dateCursor = dateFromYmd(startDateText);
         var endDate = dateFromYmd(endDateText);
+        // 날짜 변환에 실패 시 해당 일정 건너뛰기
         if (!dateCursor || !endDate) return;
         var categoryKey = getCategoryKey(event.eventType);
         var singleDay = startDateText === endDateText;
         while (dateCursor.getTime() <= endDate.getTime()) {
+          // 현재 반복 중인 날짜를 YYYY-MM-DD 문자열로 바꾸는 함수
           var dateKey = ymdFromDate(dateCursor);
           var dayNode = findDayCardByDate(dateKey);
+
+          // 해당 날짜 있으면 칩 추가
           if (dayNode) {
+            var currentChipCount = chipCountByDate[dateKey] || 0;
+            if (currentChipCount >= MAX_VISIBLE_DAY_CHIPS) {
+              overflowByDate[dateKey] = true;
+              dateCursor.setDate(dateCursor.getDate() + 1);
+              continue;
+            }
+
             var chip = document.createElement("div");
             chip.setAttribute("data-calendar-chip", "true");
+            // 하루짜리 일정, 여러 날 일정 분기기
             if (singleDay) {
               chip.className = "event-chip event-chip--" + categoryKey;
               chip.textContent = event.title || "일정";
             } else {
+              // 현재 날짜가 시작일인지 종료일인지 확인
               var isStart = dateKey === startDateText;
               var isEnd = dateKey === endDateText;
+              // 시작일이면 start, 종료일이면 end, 그 사이 날짜면 mid
               var position = isStart ? "start" : isEnd ? "end" : "mid";
+              // 연속 일정 스타일일
               chip.className = "event-range event-range-" + position + " event-range--" + categoryKey;
+              // 시작일 칸에만 제목 표시 나머지 일자는 바 형태태
               chip.textContent = isStart ? (event.title || "일정") : "";
             }
+            // 만든 칩을 해당 날짜 칸에 붙임임
             dayNode.appendChild(chip);
+            chipCountByDate[dateKey] = currentChipCount + 1;
           }
+          // 다음 칸에도 일정 표시 이어 그리기 위한 코드
           dateCursor.setDate(dateCursor.getDate() + 1);
         }
+      });
+
+      Object.keys(overflowByDate).forEach(function (dateKey) {
+        var dayNode = findDayCardByDate(dateKey);
+        if (!dayNode) return;
+
+        var overflowChip = document.createElement("div");
+        overflowChip.setAttribute("data-calendar-chip-overflow", "true");
+        overflowChip.className = "event-chip";
+        overflowChip.textContent = "...";
+        dayNode.appendChild(overflowChip);
       });
     }
 
@@ -289,17 +339,20 @@
       return new Date(year, month - 1, day);
     }
 
+    // YYYY-MM-DD 문자열을 Date 객체로 바꾸는 함수
     function ymdFromDate(date) {
       return date.getFullYear()
         + "-" + String(date.getMonth() + 1).padStart(2, "0")
         + "-" + String(date.getDate()).padStart(2, "0");
     }
 
+    // 날짜 부분만 잘라 input value에 넣는 함수수
     function formatDateInput(value) {
       if (!value) return "";
       return value.split("T")[0];
     }
 
+    // 시간만 잘라 input value에 넣는 함수
     function formatTimeInput(value) {
       if (!value) return "";
       var timePart = value.split("T")[1] || "";
@@ -322,6 +375,7 @@
       syncDeleteAction();
     }
 
+    // 우측 일정 목록 클릭 시 실행
     function applyEventToForm(event) {
       if (!event || !panel) return;
       var titleInput = panel.querySelector("[data-calendar-title]");
@@ -337,11 +391,16 @@
       if (endDateInput) endDateInput.value = formatDateInput(event.endAt);
       if (endTimeInput) endTimeInput.value = formatTimeInput(event.endAt);
 
+      // 수정할 일정의 카테고리 타입을 넣는다.
       if (event && event.eventType) {
         eventType = event.eventType;
-        categoryButtons.forEach(function (btn) {
-          var match = btn.getAttribute("data-calendar-category") === eventType;
-          btn.classList.toggle("is-active", match);
+        categoryButtons.forEach(function (btn) {                                                                                                                                                                                                                               
+          var match = btn.getAttribute("data-calendar-category") === eventType;                                                                                                                                                                                                
+          if (match) {                                                                                                                                                                                                                                                         
+            btn.classList.add("is-active");                                                                                                                                                                                                                                    
+          } else {                                                                                                                                                                                                                                                             
+            btn.classList.remove("is-active");                                                                                                                                                                                                                                 
+          }                                                                                                                                                                                                                                                                    
         });
       }
 
@@ -349,6 +408,7 @@
         memoInput.value = event.memo || "";
       }
       updateMemoGuide();
+      // 메모 글자 수를 체크해서 표시하는 함수
       hasShownMemoLimitAlert = memoInput ? memoInput.value.length >= CALENDAR_MEMO_MAX_LENGTH : false;
       openPanel();
       setEditMode(event.id);
@@ -365,6 +425,7 @@
       title.textContent = date.getFullYear() + "년 " + (date.getMonth() + 1) + "월";
     }
 
+    // 달력 6주 42칸 생성
     function buildCalendarGrid(date) {
       var grid = document.querySelector("[data-calendar-grid]");
       if (!grid) return;
@@ -411,6 +472,7 @@
       if (endDateInput) endDateInput.value = dateText;
     }
 
+    // 월 단위 새로고침 총괄 함수
     function refreshMonthView(options) {
       var shouldSyncFormDate = !options || options.syncFormDate !== false;
       setMonthTitle(currentMonthDate);
@@ -422,6 +484,7 @@
       return fetchEventList();
     }
 
+    // 월 이동 버튼 클릭 함수수
     function changeMonth(diff) {
       currentMonthDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + diff, 1);
       selectedDate = ymdFromDate(currentMonthDate);
@@ -441,8 +504,15 @@
           if (!response.ok) throw new Error("Failed to load calendar events.");
           return response.json();
         })
-        .then(function (data) {
-          cachedEvents = Array.isArray(data) ? data : data.events || [];
+        .then(function (resp) {
+          var body = resp ? resp.body : null;
+          if (Array.isArray(body)) {
+            cachedEvents = body;
+          } else if (body && body.events) {
+            cachedEvents = body.events;
+          } else {
+            cachedEvents = [];
+          }
           renderEventsOnGrid(cachedEvents);
           renderSelectedDate(renderEventList, applyEventToForm);
           return cachedEvents;
@@ -452,6 +522,7 @@
         });
     }
 
+    // 신규 저장과 수정 저장 처리 함수
     function handleSave() {
       var titleInput = panel.querySelector("[data-calendar-title]");
       var startDateInput = panel.querySelector("[data-calendar-start-date]");
@@ -460,29 +531,62 @@
       var endTimeInput = panel.querySelector("[data-calendar-end-time]");
       var memoInput = panel.querySelector("[data-calendar-memo]");
 
-      var memoText = memoInput ? memoInput.value.trim() : "";
+      var memoText = "";
+      if (memoInput) {
+        memoText = memoInput.value.trim();
+      }
+      // payload 객체 만들기
       var payload = {
         tripPlanId: null,
-        title: titleInput ? titleInput.value.trim() : "",
-        startAt: buildDateTime(startDateInput ? startDateInput.value : "", startTimeInput ? startTimeInput.value : ""),
-        endAt: buildDateTime(endDateInput ? endDateInput.value : "", endTimeInput ? endTimeInput.value : ""),
+        title: "",
+        startAt: buildDateTime("", ""),
+        endAt: buildDateTime("", ""),
         eventType: eventType,
         memo: memoText
       };
+
+      if (titleInput) {
+        payload.title = titleInput.value.trim();
+      }
+
+
+      // 제목/시작/종료 필수값 검증
+      if (startDateInput && startTimeInput) {
+        payload.startAt = buildDateTime(startDateInput.value, startTimeInput.value);
+      } else if (startDateInput) {
+        payload.startAt = buildDateTime(startDateInput.value, "");
+      } else if (startTimeInput) {
+        payload.startAt = buildDateTime("", startTimeInput.value);
+      }
+
+      if (endDateInput && endTimeInput) {
+        payload.endAt = buildDateTime(endDateInput.value, endTimeInput.value);
+      } else if (endDateInput) {
+        payload.endAt = buildDateTime(endDateInput.value, "");
+      } else if (endTimeInput) {
+        payload.endAt = buildDateTime("", endTimeInput.value);
+      }
 
       if (!payload.title || !payload.startAt || !payload.endAt) {
         alert("일정 제목과 일시를 입력해주세요.");
         return;
       }
 
+      // 메모 길이 검증증
       if (memoText.length > CALENDAR_MEMO_MAX_LENGTH) {
         alert("메모는 공백 포함 500자까지 입력할 수 있습니다.");
         return;
       }
 
-      var url = currentEditId ? "/api/calendar/update/" + currentEditId : "/api/calendar/create";
-      var method = currentEditId ? "PUT" : "POST";
+      // 신규인지 수정인지에 따라 URL과 method 결정 함수
+      var url = "/api/calendar/create";
+      var method = "POST";
+      if (currentEditId) {
+        url = "/api/calendar/update/" + currentEditId;
+        method = "PUT";
+      }
 
+      // fetch로 저장 요청
       fetch(url, {
         method: method,
         headers: {
@@ -494,9 +598,12 @@
           if (!response.ok) {
             throw new Error("Failed to save event.");
           }
+          return response.json();
         })
-        .then(function () {
-          var savedDate = dateFromYmd(payload.startAt.split("T")[0]);
+        .then(function (resp) {
+          var savedEvent = resp ? resp.body : null;
+          var savedStartAt = savedEvent && savedEvent.startAt ? savedEvent.startAt : payload.startAt;
+          var savedDate = dateFromYmd(savedStartAt.split("T")[0]);
           if (savedDate) {
             currentMonthDate = savedDate;
             setMonthTitle(currentMonthDate);
@@ -509,8 +616,12 @@
             alert("일정은 저장됐지만 목록 갱신에 실패했습니다.");
           });
         })
-        .catch(function () {
-          alert(currentEditId ? "일정 수정에 실패했습니다." : "일정 저장에 실패했습니다.");
+        .catch(function () { // 500
+          if (currentEditId) {
+            alert("일정 수정에 실패했습니다.");
+          } else {
+            alert("일정 저장에 실패했습니다.");
+          }
         });
     }
 
@@ -527,6 +638,7 @@
           if (!response.ok) {
             throw new Error("Failed to delete event.");
           }
+          return response.json();
         })
         .then(function () {
           closePanel({ reset: true });
@@ -538,6 +650,7 @@
         });
     }
 
+    // 카테고리 선택 상태 관리 코드 
     var eventType = "TRIP";
     var categoryButtons = panel.querySelectorAll("[data-calendar-category]");
     categoryButtons.forEach(function (button, index) {
@@ -568,7 +681,7 @@
 
     if (memoField) {
       memoField.addEventListener("input", handleMemoInput);
-      updateMemoGuide();
+      updateMemoGuide(); 
     }
 
     bindDatePickerOpen(startDateWrap, startDateField);

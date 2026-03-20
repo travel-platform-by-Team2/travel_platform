@@ -24,7 +24,7 @@
 
 ## AI 작업 지침
 
-- `CalendarApiController`는 세션 사용자 ID를 직접 해석하며, 비로그인 요청은 보통 `LoginFilter`에서 먼저 차단된다.
+- `CalendarApiController`는 세션 사용자 ID를 직접 해석하며, 비로그인 요청은 보통 `LoginInterceptor`에서 먼저 차단된다.
 - 생성/수정 시 시작일이 종료일보다 늦지 않도록 검증하고, 수정 시 이벤트에 사용자 정보가 없으면 현재 사용자로 보정한다.
 - 일별, 월별, 범위 조회는 응답 형태가 다르므로 프론트엔드 기대값을 깨지 않게 수정한다.
 - `getDayNodeList`, `getDayNode`는 아직 placeholder 성격이 남아 있으므로 월/일 상세 기능을 확장할 때 서비스 구현과 프런트 기대값을 같이 맞춘다.

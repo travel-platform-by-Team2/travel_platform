@@ -3,9 +3,14 @@ package com.example.travel_platform.admin;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.travel_platform.user.User;
+
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -13,45 +18,45 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
+    private final HttpSession session;
 
     @GetMapping("")
     public String dashboard(Model model) {
         applySidebarState(model, "dashboard");
+        model.addAttribute("page", adminService.getDashboardPage());
         return "pages/admin-dashboard";
     }
 
     @GetMapping("/users")
-    public String users(Model model) {
-        applySidebarState(model, "users");
-        return "pages/admin-users";
-    }
+    public String users(
+            @RequestParam(name = "active", required = false) Boolean active,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            Model model) {
+        AdminResponse.UserListPageDTO page = adminService.getUsersPage(active, keyword);
 
-    @GetMapping("/lodgings")
-    public String lodgings(Model model) {
-        applySidebarState(model, "lodgings");
-        return "pages/admin-lodgings";
+        applySidebarState(model, "users");
+        applyUsersPageModel(model, page);
+        return "pages/admin-users";
     }
 
     @GetMapping("/boards")
     public String boards(@RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "page", defaultValue = "0") int page,
             Model model) {
 
-        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardList(category, keyword, page);
-
+        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardsPage(category, keyword, sort, page);
         model.addAttribute("model", responseDTO);
-        model.addAttribute("totalCount", responseDTO.getAllCount());
-        model.addAttribute("selectCategory", category);
-
-        model.addAttribute("isTips", "tips".equals(category));
-        model.addAttribute("isPlan", "plan".equals(category));
-        model.addAttribute("isFood", "food".equals(category));
-        model.addAttribute("isReview", "review".equals(category));
-        model.addAttribute("isQna", "qna".equals(category));
-
         applySidebarState(model, "boards");
         return "pages/admin-boards";
+    }
+
+    @PostMapping("/boards/{boardId}/delete")
+    public String deleteBoard(@PathVariable("boardId") Integer boardId) {
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        adminService.deleteBoard(sessionUser, boardId);
+        return "redirect:/admin/boards";
     }
 
     private void applySidebarState(Model model, String currentMenu) {
@@ -59,6 +64,17 @@ public class AdminController {
         model.addAttribute("usersActiveClass", isCurrentMenu(currentMenu, "users"));
         model.addAttribute("lodgingsActiveClass", isCurrentMenu(currentMenu, "lodgings"));
         model.addAttribute("boardsActiveClass", isCurrentMenu(currentMenu, "boards"));
+    }
+
+    private void applyUsersPageModel(Model model, AdminResponse.UserListPageDTO page) {
+        model.addAttribute("users", page.getUsers());
+        model.addAttribute("totalUserCount", page.getTotalUserCount());
+        model.addAttribute("inactiveUserCount", page.getInactiveUserCount());
+        model.addAttribute("keyword", page.getKeyword());
+        model.addAttribute("currentActive", page.getCurrentActive());
+        model.addAttribute("isAllTab", page.isAllTab());
+        model.addAttribute("isActiveTab", page.isActiveTab());
+        model.addAttribute("isInactiveTab", page.isInactiveTab());
     }
 
     private String isCurrentMenu(String currentMenu, String targetMenu) {

@@ -30,6 +30,7 @@ public class ReplyRepository {
         return em.createQuery("""
                 select r
                 from Reply r
+                join fetch r.user
                 where r.board.id = :boardId
                 order by r.id asc
                 """, Reply.class)
@@ -39,5 +40,23 @@ public class ReplyRepository {
 
     public void delete(Reply reply) {
         em.remove(reply);
+    }
+
+    public int deleteByUserId(Integer userId) {
+        return em.createQuery("""
+                delete from Reply r
+                where r.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
+
+    public int deleteByBoardUserId(Integer userId) {
+        return em.createQuery("""
+                delete from Reply r
+                where r.board.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
     }
 }

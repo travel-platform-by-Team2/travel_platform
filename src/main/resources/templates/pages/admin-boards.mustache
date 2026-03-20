@@ -16,15 +16,11 @@
         {{>partials/admin-sidebar}}
 
         <section class="admin-content">
-
-          <!-- 수정: model 안에서만 전체 렌더링 -->
-          {{#model}}
-
           <div class="admin-page-header">
             <div>
               <h1 class="admin-page-title">게시글 관리</h1>
               <p class="admin-page-subtitle">
-                커뮤니티의 모든 게시글을 관리하고 모니터링하는 관리자 화면을 현재 공용 템플릿 구조에 맞게 정리했습니다.
+                커뮤니티의 모든 게시글을 관리하고 모니터링하는 관리자 화면입니다.
               </p>
             </div>
           </div>
@@ -34,60 +30,79 @@
               <div class="admin-metric-card__top">
                 <div>
                   <span class="admin-metric-label">전체 게시글</span>
-                  <p class="admin-metric-value">{{allCount}}</p>
+                  <p class="admin-metric-value">{{model.allCount}}</p>
                 </div>
               </div>
             </article>
           </div>
 
           <section class="admin-panel">
-            <div class="admin-toolbar">
-              <div class="admin-tab-shell" aria-label="게시글 카테고리 필터">
-                <!-- 수정: 탭 링크에서 keyword 유지 기능 제거 -->
-                <a href="/admin/boards"
-                   class="admin-tab-button cat-all {{^category}}is-active-tab{{/category}}">
-                  전체
-                </a>
+            <div class="admin-toolbar" style="display:flex; flex-direction:column; align-items:stretch; gap:16px;">
+              <div class="admin-tab-shell" aria-label="게시글 카테고리 필터" style="align-self:flex-start;">
+                <a href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                   class="admin-tab-button cat-all {{#model.allCategoryTab}}is-active-tab{{/model.allCategoryTab}}">
+                   전체
+                 </a>
 
-                <a href="/admin/boards?category=tips"
-                   class="admin-tab-button cat-tips {{#isTips}}is-active-tab{{/isTips}}">
+                <a href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                   class="admin-tab-button cat-tips {{#model.isTips}}is-active-tab{{/model.isTips}}">
                   여행 팁
                 </a>
 
-                <a href="/admin/boards?category=plan"
-                   class="admin-tab-button cat-plan {{#isPlan}}is-active-tab{{/isPlan}}">
+                <a href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                   class="admin-tab-button cat-plan {{#model.isPlan}}is-active-tab{{/model.isPlan}}">
                   여행 계획
                 </a>
 
-                <a href="/admin/boards?category=food"
-                   class="admin-tab-button cat-food {{#isFood}}is-active-tab{{/isFood}}">
+                <a href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                   class="admin-tab-button cat-food {{#model.isFood}}is-active-tab{{/model.isFood}}">
                   맛집/카페
                 </a>
 
-                <a href="/admin/boards?category=review"
-                   class="admin-tab-button cat-review {{#isReview}}is-active-tab{{/isReview}}">
+                <a href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                   class="admin-tab-button cat-review {{#model.isReview}}is-active-tab{{/model.isReview}}">
                   숙소 후기
                 </a>
 
-                <a href="/admin/boards?category=qna"
-                   class="admin-tab-button cat-qna {{#isQna}}is-active-tab{{/isQna}}">
+                <a href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                   class="admin-tab-button cat-qna {{#model.isQna}}is-active-tab{{/model.isQna}}">
                   질문/답변
                 </a>
               </div>
 
-              <div class="admin-search-group">
-                <form action="/admin/boards" method="get" class="admin-search-wrap">
+              <div class="admin-search-group" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:nowrap; width:100%;">
+                <form action="/admin/boards" method="get" class="admin-search-wrap" style="width:auto; min-width:auto; flex:0 0 auto; gap:8px; margin:0;">
                   <span class="material-symbols-outlined">search</span>
-
-                  <!-- 수정: keyword 출력 자체가 계속 터지면 value도 일단 제거 -->
+                  <input type="hidden" name="category" value="{{model.allCategory}}">
+                  <input type="hidden" name="sort" value="{{model.sort}}">
                   <input
-                    class="form-control admin-search-field"
                     type="text"
                     name="keyword"
-                    placeholder="게시글 검색...">
-
-                  <!-- 수정: hidden category 제거 -->
+                    value="{{model.keyword}}"
+                    placeholder="게시글 검색..."
+                    style="width:220px; height:40px; padding:0 16px 0 40px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; outline:none; box-sizing:border-box;">
+                  <button type="submit" class="admin-search-submit" style="height:40px; padding:0 14px; border-radius:14px;">검색</button>
                 </form>
+
+                <details style="position:relative; flex:0 0 auto; margin-left:auto;">
+                  <summary style="list-style:none; cursor:pointer; min-width:108px; height:40px; padding:0 14px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; white-space:nowrap;">
+                     정렬: {{model.sortLabel}}
+                   </summary>
+                   <div class="community-sort-menu" style="position:absolute; top:44px; right:0; z-index:20; min-width:170px;">
+                     <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
+                        href="/admin/boards?sort=latest{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↑</a>
+                     <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
+                        href="/admin/boards?sort=date{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↓</a>
+                     <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
+                        href="/admin/boards?sort=view{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↑</a>
+                     <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
+                        href="/admin/boards?sort=downview{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↓</a>
+                     <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
+                        href="/admin/boards?sort=likes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순 ↑</a>
+                     <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
+                        href="/admin/boards?sort=downlikes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순 ↓</a>
+                   </div>
+                 </details>
               </div>
             </div>
 
@@ -104,7 +119,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {{#boards}}
+                  {{#model.boards}}
                   <tr>
                     <td>
                       <span class="admin-category-badge {{categoryClass}}">{{category}}</span>
@@ -121,28 +136,27 @@
                       </div>
                     </td>
                   </tr>
-                  {{/boards}}
+                  {{/model.boards}}
 
-                  {{^boards}}
+                  {{^model.boards}}
                   <tr>
                     <td colspan="6" class="text-center">게시글이 없습니다.</td>
                   </tr>
-                  {{/boards}}
+                  {{/model.boards}}
                 </tbody>
               </table>
             </div>
 
             <div class="admin-panel__footer">
               <div class="admin-pagination">
-
-                {{#prevPage}}
-                <!-- 수정: prevPage에서 category/keyword 유지 제거 -->
-                <a class="admin-page-button" href="/admin/boards?page={{prevPage}}">
+                {{#model.prevPage}}
+                <a class="admin-page-button"
+                   href="/admin/boards?page={{model.prevPage}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
                   <span class="material-symbols-outlined">chevron_left</span>
                 </a>
-                {{/prevPage}}
+                {{/model.prevPage}}
 
-                {{#pageItems}}
+                {{#model.pageItems}}
                   {{#current}}
                   <button class="admin-page-button is-active-page" type="button">
                     {{displayNumber}}
@@ -150,26 +164,22 @@
                   {{/current}}
 
                   {{^current}}
-                  <!-- 수정: pageItems 안에서는 pageItem 필드만 사용 -->
-                  <a class="admin-page-button" href="/admin/boards?page={{page}}">
+                  <a class="admin-page-button"
+                     href="/admin/boards?page={{page}}{{#selectCategory}}&category={{selectCategory}}{{/selectCategory}}{{#sort}}&sort={{sort}}{{/sort}}{{#keyword}}&keyword={{keyword}}{{/keyword}}">
                     {{displayNumber}}
                   </a>
                   {{/current}}
-                {{/pageItems}}
+                {{/model.pageItems}}
 
-                {{#nextPage}}
-                <!-- 수정: nextPage에서도 category/keyword 유지 제거 -->
-                <a class="admin-page-button" href="/admin/boards?page={{nextPage}}">
+                {{#model.nextPage}}
+                <a class="admin-page-button"
+                   href="/admin/boards?page={{model.nextPage}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
                   <span class="material-symbols-outlined">chevron_right</span>
                 </a>
-                {{/nextPage}}
-
+                {{/model.nextPage}}
               </div>
             </div>
           </section>
-
-          {{/model}}
-
         </section>
       </div>
     </div>

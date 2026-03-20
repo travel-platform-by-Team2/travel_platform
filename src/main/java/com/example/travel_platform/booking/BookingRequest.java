@@ -3,7 +3,9 @@ package com.example.travel_platform.booking;
 import java.time.LocalDate;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public class BookingRequest {
 
@@ -14,7 +16,10 @@ public class BookingRequest {
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
-        private Integer totalPrice;
+        private Integer pricePerNight;
+        private Integer taxAndServiceFee;
+        private String location;
+        private String imageUrl;
     }
 
     @Data
@@ -33,6 +38,8 @@ public class BookingRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor // JPQL 'new' 키워드 사용을 위해 추가
     public static class MapPoiDTO {
         private String externalPlaceId;
         private String name;

@@ -1,20 +1,38 @@
 package com.example.travel_platform.mypage;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import com.example.travel_platform.booking.Booking;
+import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.user.User;
 
 import lombok.Builder;
 import lombok.Data;
 
 public class MypageResponse {
 
+    private static final DateTimeFormatter DATE_LABEL_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+
     @Data
     @Builder
-    public static class MainDTO {
+    public static class PageDTO {
         private ProfileDTO user;
         private boolean hasBookings;
         private List<BookingCardDTO> bookings;
         private boolean hasTripPlans;
         private List<PlanCardDTO> tripPlans;
+
+        public static PageDTO of(ProfileDTO user, List<BookingCardDTO> bookings, List<PlanCardDTO> tripPlans) {
+            return PageDTO.builder()
+                    .user(user)
+                    .hasBookings(!bookings.isEmpty())
+                    .bookings(bookings)
+                    .hasTripPlans(!tripPlans.isEmpty())
+                    .tripPlans(tripPlans)
+                    .build();
+        }
     }
 
     @Data
@@ -23,6 +41,16 @@ public class MypageResponse {
         private Integer id;
         private String username;
         private String email;
+        private boolean withdrawAllowed;
+
+        public static ProfileDTO from(User user) {
+            return ProfileDTO.builder()
+                    .id(user.getId())
+                    .username(normalize(user.getUsername()))
+                    .email(normalize(user.getEmail()))
+                    .withdrawAllowed(!user.isAdmin())
+                    .build();
+        }
     }
 
     @Data
@@ -32,6 +60,15 @@ public class MypageResponse {
         private String lodgingName;
         private String dateRangeLabel;
         private String detailLink;
+
+        public static BookingCardDTO from(Booking booking) {
+            return BookingCardDTO.builder()
+                    .id(booking.getId())
+                    .lodgingName(normalize(booking.getLodgingName()))
+                    .dateRangeLabel(formatDateRange(booking.getCheckIn(), booking.getCheckOut()))
+                    .detailLink("/mypage/bookings/" + booking.getId())
+                    .build();
+        }
     }
 
     @Data
@@ -40,5 +77,41 @@ public class MypageResponse {
         private Integer id;
         private String title;
         private String dateRangeLabel;
+        private String detailLink;
+
+        public static PlanCardDTO from(TripPlan tripPlan) {
+            return PlanCardDTO.builder()
+                    .id(tripPlan.getId())
+                    .title(normalize(tripPlan.getTitle()))
+                    .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
+                    .detailLink("/trip/detail?id=" + tripPlan.getId())
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
+    public static class BookingDetailPageDTO {
+        private Integer bookingId;
+
+        public static BookingDetailPageDTO of(Integer bookingId) {
+            return BookingDetailPageDTO.builder()
+                    .bookingId(bookingId)
+                    .build();
+        }
+    }
+
+    private static String formatDateRange(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            return "";
+        }
+        return startDate.format(DATE_LABEL_FORMATTER) + " - " + endDate.format(DATE_LABEL_FORMATTER);
+    }
+
+    private static String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value;
     }
 }
