@@ -583,6 +583,21 @@
   color: #0f172a;
 }
 
+.page-community-list .stack-gap-3 {
+  width: 100%;
+}
+
+.page-community-list .place-card-row {
+  width: 100%;
+  padding: 1.15rem 1.35rem;
+  border-radius: 0.5rem;
+}
+
+.page-community-list .community-list-div-04 {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 @media (max-width: 767.98px) {
   .community-board-hero {
     padding: 1rem;
