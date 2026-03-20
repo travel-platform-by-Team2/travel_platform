@@ -38,40 +38,46 @@
 
           <section class="admin-panel">
             <div class="admin-toolbar" style="display:flex; flex-direction:column; align-items:stretch; gap:16px;">
-              <div class="admin-tab-shell" aria-label="게시글 카테고리 필터" style="align-self:flex-start;">
+              <div class="admin-tab-shell" aria-label="게시글 카테고리 필터" style="align-self:stretch; width:100%; display:flex;">
                 <a href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-all {{#model.allCategoryTab}}is-active-tab{{/model.allCategoryTab}}">
+                   class="admin-tab-button cat-all {{#model.allCategoryTab}}is-active-tab{{/model.allCategoryTab}}"
+                   style="flex:1 1 0; min-width:120px; text-align:center; font-size:0.98rem; padding:0.78rem 1.1rem;">
                    전체
                  </a>
 
                 <a href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-tips {{#model.isTips}}is-active-tab{{/model.isTips}}">
+                   class="admin-tab-button cat-tips {{#model.isTips}}is-active-tab{{/model.isTips}}"
+                   style="flex:1 1 0; min-width:120px; text-align:center; font-size:0.98rem; padding:0.78rem 1.1rem;">
                   여행 팁
                 </a>
 
                 <a href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-plan {{#model.isPlan}}is-active-tab{{/model.isPlan}}">
+                   class="admin-tab-button cat-plan {{#model.isPlan}}is-active-tab{{/model.isPlan}}"
+                   style="flex:1 1 0; min-width:120px; text-align:center; font-size:0.98rem; padding:0.78rem 1.1rem;">
                   여행 계획
                 </a>
 
                 <a href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-food {{#model.isFood}}is-active-tab{{/model.isFood}}">
+                   class="admin-tab-button cat-food {{#model.isFood}}is-active-tab{{/model.isFood}}"
+                   style="flex:1 1 0; min-width:120px; text-align:center; font-size:0.98rem; padding:0.78rem 1.1rem;">
                   맛집/카페
                 </a>
 
                 <a href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-review {{#model.isReview}}is-active-tab{{/model.isReview}}">
+                   class="admin-tab-button cat-review {{#model.isReview}}is-active-tab{{/model.isReview}}"
+                   style="flex:1 1 0; min-width:120px; text-align:center; font-size:0.98rem; padding:0.78rem 1.1rem;">
                   숙소 후기
                 </a>
 
                 <a href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-qna {{#model.isQna}}is-active-tab{{/model.isQna}}">
+                   class="admin-tab-button cat-qna {{#model.isQna}}is-active-tab{{/model.isQna}}"
+                   style="flex:1 1 0; min-width:120px; text-align:center; font-size:0.98rem; padding:0.78rem 1.1rem;">
                   질문/답변
                 </a>
               </div>
 
               <div class="admin-search-group" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:nowrap; width:100%;">
-                <form action="/admin/boards" method="get" class="admin-search-wrap" style="width:auto; min-width:auto; flex:0 0 auto; gap:8px; margin:0;">
+                <form action="/admin/boards" method="get" class="admin-search-wrap" style="width:100%; max-width:520px; min-width:420px; flex:1 1 auto; gap:8px; margin:0;">
                   <span class="material-symbols-outlined">search</span>
                   <input type="hidden" name="category" value="{{model.allCategory}}">
                   <input type="hidden" name="sort" value="{{model.sort}}">
@@ -80,29 +86,32 @@
                     name="keyword"
                     value="{{model.keyword}}"
                     placeholder="게시글 검색..."
-                    style="width:220px; height:40px; padding:0 16px 0 40px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; outline:none; box-sizing:border-box;">
+                    style="width:100%; height:40px; padding:0 16px 0 40px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; outline:none; box-sizing:border-box;">
                   <button type="submit" class="admin-search-submit" style="height:40px; padding:0 14px; border-radius:14px;">검색</button>
                 </form>
 
-                <details style="position:relative; flex:0 0 auto; margin-left:auto;">
-                  <summary style="list-style:none; cursor:pointer; min-width:108px; height:40px; padding:0 14px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; white-space:nowrap;">
-                     정렬: {{model.sortLabel}}
-                   </summary>
-                   <div class="community-sort-menu" style="position:absolute; top:44px; right:0; z-index:20; min-width:170px;">
-                     <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
-                        href="/admin/boards?sort=latest{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↑</a>
-                     <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
-                        href="/admin/boards?sort=date{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↓</a>
-                     <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
-                        href="/admin/boards?sort=view{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↑</a>
-                     <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
-                        href="/admin/boards?sort=downview{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↓</a>
-                     <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
-                        href="/admin/boards?sort=likes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순 ↑</a>
-                     <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
-                        href="/admin/boards?sort=downlikes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순 ↓</a>
-                   </div>
-                 </details>
+                <div style="display:flex; align-items:center; gap:10px; flex:0 0 auto; margin-left:auto;">
+                  <details style="position:relative;">
+                    <summary style="list-style:none; cursor:pointer; min-width:122px; height:40px; padding:0 16px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:14px; font-weight:700; white-space:nowrap;">
+                      {{model.sortFieldLabel}}
+                      <span class="material-symbols-outlined" style="font-size:18px;">expand_more</span>
+                    </summary>
+                    <div class="community-sort-menu" style="position:absolute; top:44px; right:0; z-index:20; min-width:132px;">
+                      <a class="community-sort-option"
+                         href="/admin/boards?sort={{model.viewField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순</a>
+                      <a class="community-sort-option"
+                         href="/admin/boards?sort={{model.likesField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순</a>
+                      <a class="community-sort-option"
+                         href="/admin/boards?sort={{model.dateField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순</a>
+                    </div>
+                  </details>
+
+                  <a href="/admin/boards?sort={{model.toggleDirectionSort}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                     class="admin-filter-button"
+                     style="min-width:92px; min-height:40px; padding:0 16px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; white-space:nowrap; text-decoration:none;">
+                    {{model.sortDirectionLabel}}
+                  </a>
+                </div>
               </div>
             </div>
 
