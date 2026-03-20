@@ -1,6 +1,8 @@
 package com.example.travel_platform.user;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +19,9 @@ public class UserController {
 
     private final UserService userService;
     private final HttpSession session;
+
+    @Value("${KAKAO_JS_APP_KEY:}")
+    private String kakaoJsAppKey;
 
     @GetMapping("/")
     public String mainIndex() {
@@ -37,27 +42,31 @@ public class UserController {
         return "redirect:/";
     }
 
-    // SNS 로그인 콜백 (카카오/네이버/구글 공통)
+    // SNS 로그인 콜백 (프론트엔드에서 사용자 정보를 직접 전달받음)
     @GetMapping("/auth/{provider}/callback")
-    public String snsCallback(@PathVariable("provider") String provider, @RequestParam("code") String code) {
+    public String snsCallback(
+            @PathVariable("provider") String provider,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "nickname", required = false) String nickname,
+            @RequestParam(value = "providerId", required = false) String providerId,
+            jakarta.servlet.http.HttpServletRequest request) {
         try {
-            // 실제 구현 시 OAuthService를 통해 토큰 및 유저 정보를 가져와야 함
-            // 여기서는 흐름 확인을 위한 가상 데이터를 사용
-            String email = "test_" + provider + "@example.com";
-            
-            // 제공자별 한글 이름 설정
-            String nickname = provider.equals("kakao") ? "카카오" : 
-                             provider.equals("naver") ? "네이버" : "구글";
-            
-            String providerId = "12345"; 
+            // 정보가 부족한 경우 예외 처리
+            if (providerId == null || email == null) {
+                return "redirect:/login-form?error=sns";
+            }
 
             SessionUser sessionUser = userService.snsLogin(email, nickname, provider, providerId);
-            SessionUsers.save(session, sessionUser);
+            
+            // 기존 세션 무효화 후 새 세션 생성 (보안 및 세션 꼬임 방지)
+            session.invalidate();
+            HttpSession newSession = request.getSession(true);
+            SessionUsers.save(newSession, sessionUser);
 
             return "redirect:/";
         } catch (Exception e) {
             e.printStackTrace();
-            throw e;
+            return "redirect:/login-form?error=sns";
         }
     }
 
@@ -72,7 +81,8 @@ public class UserController {
     }
 
     @GetMapping("/login-form")
-    public String loginForm() {
+    public String loginForm(Model model) {
+        model.addAttribute("kakaoJsAppKey", kakaoJsAppKey);
         return "pages/login";
     }
 

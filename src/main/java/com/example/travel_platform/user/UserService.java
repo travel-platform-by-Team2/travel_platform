@@ -73,19 +73,23 @@ public class UserService {
         User user = userRepository.findByEmailAndProvider(email, provider)
                 .orElseGet(() -> {
                     // 2. 신규 SNS 유저면 자동 회원가입
-                    // username이 "카카오"라면, "카카오12" 처럼 짧고 한글/숫자 조합으로 생성 (제약 조건 준수용)
                     String suffix = providerId.length() > 2 ? providerId.substring(0, 2) : providerId;
-                    String safeUsername = username + suffix; // "카카오12" 형태
+                    String safeUsername = username + suffix;
 
                     User newUser = User.createSNS(
                             safeUsername,
                             email,
                             provider,
                             providerId);
+                    newUser.setActive(true); // 명시적으로 활성화 설정
                     return userRepository.save(newUser);
                 });
 
-        // 3. 현재 프로젝트 방식에 맞춰 SessionUser 반환
+        // 3. 기존 유저가 혹시라도 비활성 상태라면 강제로 활성화 (로그인 허용)
+        if (!user.isActive()) {
+            user.setActive(true);
+        }
+
         return SessionUser.from(user);
     }
 

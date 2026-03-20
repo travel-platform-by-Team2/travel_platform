@@ -80,7 +80,7 @@
     </a>
 
     <!-- 카카오 로그인 (Yellow) -->
-    <a href="/auth/kakao/callback?code=fake_code" class="login-button-01" style="background-color: #FEE500; color: #191919; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; height: 50px; border-radius: 8px;">
+    <a href="#" onclick="loginWithKakao(event)" class="login-button-01" style="background-color: #FEE500; color: #191919; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; height: 50px; border-radius: 8px;">
         <span class="icon-ms-sm" style="margin-right: 8px;">chat</span>
         <span style="font-weight: bold;">카카오 로그인</span>
     </a>
@@ -104,6 +104,75 @@
 
   {{>partials/chatbot}}
   {{>partials/footer}}
+  
+  <!-- 카카오 SDK 로드 (v1 버전 사용으로 안정성 확보) -->
+  <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+  <script>
+    // 서버에서 전달받은 앱 키
+    const KAKAO_JS_KEY = '{{kakaoJsAppKey}}'.trim();
+    
+    // 초기화 함수
+    function initKakao() {
+      if (typeof Kakao === 'undefined') return false;
+      if (!Kakao.isInitialized()) {
+        if (KAKAO_JS_KEY) {
+          Kakao.init(KAKAO_JS_KEY);
+          console.log('카카오 SDK 초기화 완료');
+        }
+      }
+      return true;
+    }
+
+    // 페이지 로드 시 즉시 초기화
+    initKakao();
+    
+    function loginWithKakao(event) {
+      if (event) event.preventDefault();
+      
+      if (!initKakao()) {
+        alert('카카오 SDK를 로드할 수 없습니다.');
+        return;
+      }
+
+      console.log('Kakao Login 시도...');
+
+      // v1 SDK 방식의 로그인 호출
+      try {
+        Kakao.Auth.login({
+          success: function(authObj) {
+            console.log('로그인 성공, 정보 요청 중...');
+            Kakao.API.request({
+              url: '/v2/user/me',
+              success: function(res) {
+                console.log('사용자 정보:', res);
+                const providerId = res.id;
+                const nickname = (res.properties && res.properties.nickname) ? res.properties.nickname : 'Unknown';
+                const email = (res.kakao_account && res.kakao_account.email) ? res.kakao_account.email : ("kakao_" + providerId + "@kakao.com");
+                
+                // 서버 콜백으로 사용자 정보 전달
+                const callbackUrl = `/auth/kakao/callback?providerId=${providerId}&nickname=${encodeURIComponent(nickname)}&email=${email}`;
+                window.location.href = callbackUrl;
+              },
+              fail: function(error) {
+                console.error('정보 요청 실패:', error);
+                alert('사용자 정보를 가져오는데 실패했습니다.');
+              }
+            });
+          },
+          fail: function(err) {
+            console.error('로그인 실패:', err);
+            if (err.error !== 'access_denied') {
+              alert('카카오 로그인에 실패했습니다.');
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Kakao.Auth.login 호출 중 예외 발생:', e);
+        alert('카카오 로그인 모듈 실행 중 오류가 발생했습니다. 브라우저의 캐시를 삭제하고 다시 시도해 주세요.');
+      }
+    }
+  </script>
+  
   {{>partials/scripts}}
 </body>
 </html>
