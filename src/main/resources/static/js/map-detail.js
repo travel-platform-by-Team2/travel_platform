@@ -190,13 +190,23 @@
         kakao.maps.load(function () {
           applySearchParamsFromUrl();
 
+          var regionSelect = document.getElementById("mapRegion");
+          var initialCenter = new kakao.maps.LatLng(35.1795543, 129.0756416); // Busan default
+          var initialLevel = 4;
+
+          // If region is provided in URL, use its specific view coordinates
+          if (regionSelect && regionSelect.value && REGION_VIEW[regionSelect.value]) {
+            var view = REGION_VIEW[regionSelect.value];
+            initialCenter = new kakao.maps.LatLng(view.lat, view.lng);
+            initialLevel = view.level;
+          }
+
           var map = new kakao.maps.Map(mapElement, {
-            center: new kakao.maps.LatLng(35.1795543, 129.0756416),
-            level: 4,
+            center: initialCenter,
+            level: initialLevel,
             scrollwheel: false // Disable default cursor-based zoom
           });
 
-          var regionSelect = document.getElementById("mapRegion");
           var state = {
             map: map,
             places: new kakao.maps.services.Places(map),
@@ -213,7 +223,7 @@
             imageCache: {},
             nearbyById: {},
             focusOverlay: null,
-            lastCenter: map.getCenter() // This is our 'Source of Truth' center
+            lastCenter: initialCenter // Use the calculated initial center
           };
           CURRENT_MAP_STATE = state;
 
@@ -226,7 +236,6 @@
             var nextLevel = e.deltaY > 0 ? level + 1 : level - 1;
             
             if (nextLevel >= 1 && nextLevel <= 14) {
-                // Use lastCenter as anchor to prevent axis drift
                 state.map.setLevel(nextLevel, { anchor: state.lastCenter, animate: true });
                 scheduleRefreshByMapMovement(state);
             }
@@ -236,7 +245,6 @@
           if (window.ResizeObserver) {
             var ro = new ResizeObserver(function() {
               if (state.map && state.lastCenter) {
-                // Use RAF to ensure DOM layout is settled
                 window.requestAnimationFrame(function() {
                   state.map.relayout();
                   state.map.setCenter(state.lastCenter);
@@ -261,8 +269,6 @@
             state.lastCenter = map.getCenter();
             scheduleRefreshByMapMovement(state);
           });
-          // Note: We deliberately EXCLUDE 'idle' or 'relayout' from updating lastCenter
-          // to prevent shifted coordinates during transitions from becoming the new truth.
         });
       } catch (error) {
         console.error(error);
@@ -1557,7 +1563,9 @@
       state.currentRegionKey = regionKey;
       updateRegionLabel(regionSelect);
       state.map.setLevel(view.level);
-      state.map.panTo(new kakao.maps.LatLng(view.lat, view.lng));
+      var targetCenter = new kakao.maps.LatLng(view.lat, view.lng);
+      state.map.panTo(targetCenter);
+      state.lastCenter = targetCenter; // Update the Source of Truth
       state.hasSearched = true;
       state.syncByViewport = true;
       fetchAndRenderVisiblePois(state);
@@ -1577,7 +1585,9 @@
       state.currentRegionKey = regionKey;
       updateRegionLabel(regionSelect);
       state.map.setLevel(view.level);
-      state.map.panTo(new kakao.maps.LatLng(view.lat, view.lng));
+      var targetCenter = new kakao.maps.LatLng(view.lat, view.lng);
+      state.map.panTo(targetCenter);
+      state.lastCenter = targetCenter; // Update the Source of Truth
     });
 
     function refreshListPriceOnly() {
@@ -1637,7 +1647,9 @@
       var topOffset = header ? header.offsetHeight + 10 : 10;
       listContainer.scrollTop = Math.max(0, card.offsetTop - topOffset);
 
-      state.map.panTo(new kakao.maps.LatLng(lat, lng));
+      var targetLatLng = new kakao.maps.LatLng(lat, lng);
+      state.map.panTo(targetLatLng);
+      state.lastCenter = targetLatLng;
       state.syncByViewport = false;
     });
   }
@@ -1666,6 +1678,7 @@
 
       var position = new kakao.maps.LatLng(item.lat, item.lng);
       state.map.panTo(position);
+      state.lastCenter = position;
       showFocusOverlay(state, item);
       openPoiDetailPanel(state, item);
     });
