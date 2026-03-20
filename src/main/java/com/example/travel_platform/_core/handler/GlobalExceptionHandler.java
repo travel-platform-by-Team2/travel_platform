@@ -77,6 +77,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(exception = Exception.class) // 어떤 예외인지 지정하기
     public String exUnknown(Exception e) {
+        // 아이콘 미존재 등 정적 리소스 관련 예외는 로그를 출력하지 않음
+        if (e.getClass().getName().equals("org.springframework.web.servlet.resource.NoResourceFoundException")) {
+            return null;
+        }
+
         String html = String.format("""
                 <script>
                     alert('%s');
@@ -84,9 +89,9 @@ public class GlobalExceptionHandler {
                 </script>
                 """, "관리자에게 문의하세요");
 
-        // 1. 로그
-        System.out.println(e.getMessage());
-        // 2. SMS 알림
+        // 상세 로그 출력 (실제 서버 오류만 출력)
+        e.printStackTrace();
+        
         return html;
     }
 
