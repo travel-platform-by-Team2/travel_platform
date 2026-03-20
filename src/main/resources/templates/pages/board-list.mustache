@@ -23,30 +23,31 @@
 <span>글쓰기</span>
 </a>
 </div>
+
 <div class="community-list-div-02">
   <div class="community-list-div-03">
-    <div class="chips-scroll-mask"> 
-      <a class="community-filter-btn cat-all {{^model.category}}is-active{{/model.category}}" href="/boards{{#model.sort}}?sort={{model.sort}}{{/model.sort}}">
+    <div class="chips-scroll-mask">
+      <a class="community-filter-btn cat-all {{^model.category}}is-active{{/model.category}}" href="/boards{{#model.sort}}?sort={{model.sort}}{{/model.sort}}{{#model.keyword}}{{#model.sort}}&{{/model.sort}}keyword={{model.keyword}}{{/model.keyword}}">
         전체
       </a>
 
-      <a class="community-filter-btn cat-tips {{#model.isTips}}is-active{{/model.isTips}}" href="/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+      <a class="community-filter-btn cat-tips {{#model.isTips}}is-active{{/model.isTips}}" href="/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         여행 팁
       </a>
 
-      <a class="community-filter-btn cat-plan {{#model.isPlan}}is-active{{/model.isPlan}}" href="/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+      <a class="community-filter-btn cat-plan {{#model.isPlan}}is-active{{/model.isPlan}}" href="/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         여행 계획
       </a>
 
-      <a class="community-filter-btn cat-food {{#model.isFood}}is-active{{/model.isFood}}" href="/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+      <a class="community-filter-btn cat-food {{#model.isFood}}is-active{{/model.isFood}}" href="/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         맛집/카페
       </a>
 
-      <a class="community-filter-btn cat-review {{#model.isReview}}is-active{{/model.isReview}}" href="/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+      <a class="community-filter-btn cat-review {{#model.isReview}}is-active{{/model.isReview}}" href="/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         숙소 후기
       </a>
 
-      <a class="community-filter-btn cat-qna {{#model.isQna}}is-active{{/model.isQna}}" href="/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+      <a class="community-filter-btn cat-qna {{#model.isQna}}is-active{{/model.isQna}}" href="/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         질문/답변
       </a>
     </div>
@@ -57,22 +58,54 @@
     </a>
   </div>
 
-  <div class="community-sort-wrap">
+  <div class="community-list-div-03" style="justify-content:flex-start; align-items:center; gap:12px; flex-wrap:nowrap;">
+    <form action="/boards" method="get" style="display:flex; align-items:center; gap:8px; flex:0 0 auto; width:min(100%, 420px); margin:0;">
+      {{#model.category}}<input type="hidden" name="category" value="{{model.category}}">{{/model.category}}
+      {{#model.sort}}<input type="hidden" name="sort" value="{{model.sort}}">{{/model.sort}}
+      <div style="flex:1 1 auto; display:flex; align-items:center;">
+        <input
+          type="text"
+          name="keyword"
+          value="{{model.keyword}}"
+          style="width:100%; height:44px; padding:0 16px; border:1px solid #d5dbe7; border-radius:14px; background:#ffffff; color:#1f2937; outline:none; box-sizing:border-box;"
+          placeholder="제목 또는 내용 검색">
+      </div>
+      <button class="community-list-button-03" type="submit" style="height:44px; display:inline-flex; align-items:center; justify-content:center; margin:0; white-space:nowrap;">
+        <span class="icon-ms-18">search</span>
+        검색
+      </button>
+    </form>
+
+    <div class="community-sort-wrap" style="margin:0 0 0 auto; flex:0 0 auto;">
     <details class="community-sort-dropdown">
       <summary class="community-sort-summary">
         <span>정렬: {{model.sortLabel}}</span>
-        <span class="icon-ms-18">expand_more</span>
       </summary>
 
       <div class="community-sort-menu" aria-label="게시글 정렬">
-        <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}" href="/boards?sort=views{{#model.category}}&category={{model.category}}{{/model.category}}">조회순</a>
-        <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}" href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}">좋아요순</a>
-        <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}" href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}">최신순</a>
-        <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}" href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}">날짜순</a>
+        <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
+        href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↑</a>
+
+        <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
+        href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↓</a>
+
+        <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
+        href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↑</a>
+
+        <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
+        href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↓</a>
+
+        <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
+        href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순 ↑</a>
+
+        <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
+        href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 ↓</a>
       </div>
     </details>
   </div>
+  </div>
 </div>
+
 <div class="stack-gap-3">
 {{#model.boards}}
 <a class="place-card-row" href="/boards/{{id}}">
@@ -115,7 +148,7 @@
 
 <div class="pagination-wrap">
   {{#model.prevPage}}
-  <a class="community-page-btn" href="/boards?page={{model.prevPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+  <a class="community-page-btn" href="/boards?page={{model.prevPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
     이전
   </a>
   {{/model.prevPage}}
@@ -126,14 +159,14 @@
     {{/current}}
 
     {{^current}}
-    <a class="community-page-btn" href="/boards?page={{page}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+    <a class="community-page-btn" href="/boards?page={{page}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
       {{displayNumber}}
     </a>
     {{/current}}
   {{/model.pageItems}}
 
   {{#model.nextPage}}
-  <a class="community-page-btn" href="/boards?page={{model.nextPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}">
+  <a class="community-page-btn" href="/boards?page={{model.nextPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
     다음
   </a>
   {{/model.nextPage}}
