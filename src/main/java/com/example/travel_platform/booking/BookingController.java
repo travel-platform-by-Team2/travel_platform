@@ -22,8 +22,7 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/bookings")
 public class BookingController {
 
-    private static final String DEFAULT_COMPLETE_IMAGE_URL =
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+    private static final String DEFAULT_COMPLETE_IMAGE_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
 
     private final String kakaoMapAppKey;
     private final String tourApiServiceKey;
@@ -80,6 +79,8 @@ public class BookingController {
         model.addAttribute("roomSubtotalText", String.format("%,d원", roomSubtotal));
         model.addAttribute("feeText", String.format("%,d원", feeSubtotal));
         model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
+        model.addAttribute("roomPrice", safeRoomPrice);
+        model.addAttribute("totalFee", feeSubtotal);
         model.addAttribute("totalPriceRaw", totalPrice);
 
         SessionUser sessionUser = resolveSessionUser();
@@ -111,12 +112,14 @@ public class BookingController {
             @RequestParam(name = "checkIn", required = false, defaultValue = "") String checkIn,
             @RequestParam(name = "checkOut", required = false, defaultValue = "") String checkOut,
             @RequestParam(name = "totalPriceText", required = false, defaultValue = "") String totalPriceText,
-            @RequestParam(name = "totalPriceRaw", required = false) Integer totalPriceRaw,
+            @RequestParam(name = "pricePerNight", required = false, defaultValue = "0") Integer pricePerNight,
+            @RequestParam(name = "totalFee", required = false, defaultValue = "0") Integer totalFee,
             @RequestParam(name = "imageUrl", required = false) String imageUrl,
             Model model) {
 
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
         String regionKey = normalizeRegionKey(safeRegion);
+        String locationName = extractLocationName(safeRegion);
 
         SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
@@ -124,10 +127,12 @@ public class BookingController {
                     sessionUser.getId(),
                     lodgingName + " (" + roomName + ")",
                     regionKey,
+                    locationName,
                     checkIn,
                     checkOut,
                     guests,
-                    totalPriceRaw,
+                    pricePerNight,
+                    totalFee,
                     imageUrl);
         }
 
@@ -145,6 +150,21 @@ public class BookingController {
         model.addAttribute("totalPriceText", safeTotalPriceText);
         model.addAttribute("completeImageUrl", resolveCompleteImageUrl(imageUrl));
         return "pages/booking-complete";
+    }
+
+    private String extractLocationName(String address) {
+        if (address == null || address.isBlank() || address.equals("지역 정보 없음")) {
+            return "부산";
+        }
+        String[] parts = address.split("\\s+");
+        if (parts.length > 0) {
+            String first = parts[0];
+            if (first.endsWith("시") || first.endsWith("도")) {
+                return first.substring(0, first.length() - 1);
+            }
+            return first;
+        }
+        return "부산";
     }
 
     private String calculateNightsLabel(String checkIn, String checkOut) {

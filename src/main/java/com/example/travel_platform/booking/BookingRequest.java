@@ -10,16 +10,23 @@ import lombok.NoArgsConstructor;
 public class BookingRequest {
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreateBookingDTO {
         private Integer tripPlanId;
         private String lodgingName;
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
-        private Integer totalPrice;
+        private Integer pricePerNight;
+        private Integer taxAndServiceFee;
+        private String location;
+        private String imageUrl;
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MergeMapPoisDTO {
         private String regionKey;
         private MapBoundsDTO bounds;
@@ -27,6 +34,8 @@ public class BookingRequest {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MapBoundsDTO {
         private Double swLat;
         private Double swLng;
