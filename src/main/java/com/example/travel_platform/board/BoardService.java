@@ -47,19 +47,30 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
-    public BoardResponse.ListPageDTO getBoardList(String category, String sort, int page) {
+    public BoardResponse.ListPageDTO getBoardList(String category, String keyword, String sort, int page) {
         int size = 10;
         int offset = page * size;
-        String normalizedSort = normalizeSort(sort);
+        String sortList = normalizeSort(sort);
+        keyword = normalizeKeyword(keyword);
+        boolean hasKeyword = !keyword.isBlank();
 
         List<Board> boards;
         long totalCount;
 
-        if (category != null && !category.isBlank()) {
-            boards = boardRepository.findAllPagingByCategory(category, normalizedSort, offset, size);
+        if (hasKeyword) {
+            String[] words = keyword.split("\\s+");
+            if (category != null && !category.isBlank()) {
+                boards = boardRepository.search(category, words, sortList, offset, size);
+                totalCount = boardRepository.countSearch(category, words);
+            } else {
+                boards = boardRepository.search(null, words, sortList, offset, size);
+                totalCount = boardRepository.countSearch(null, words);
+            }
+        } else if (category != null && !category.isBlank()) {
+            boards = boardRepository.findAllPagingByCategory(category, sortList, offset, size);
             totalCount = boardRepository.countByCategory(category);
         } else {
-            boards = boardRepository.findAllPaging(normalizedSort, offset, size);
+            boards = boardRepository.findAllPaging(sortList, offset, size);
             totalCount = boardRepository.count();
         }
 
@@ -86,7 +97,6 @@ public class BoardService {
         int blockSize = 5;
         int startPage = (page / blockSize) * blockSize;
         int endPage = startPage + blockSize - 1;
-
         if (endPage >= totalPages) {
             endPage = totalPages - 1;
         }
@@ -112,12 +122,15 @@ public class BoardService {
                 .prevPage(prevPage)
                 .nextPage(nextPage)
                 .category(category)
-                .sort(normalizedSort)
-                .sortLabel(toSortLabel(normalizedSort))
-                .isSortLikes("likes".equals(normalizedSort))
-                .isSortViews("views".equals(normalizedSort))
-                .isSortLatest("latest".equals(normalizedSort))
-                .isSortDate("date".equals(normalizedSort))
+                .keyword(keyword)
+                .sort(sortList)
+                .sortLabel(toSortLabel(sortList))
+                .isSortLikes("likes".equals(sortList))
+                .isSortDownlikes("downlikes".equals(sortList))
+                .isSortViews("view".equals(sortList))
+                .isSortDownviews("downview".equals(sortList))
+                .isSortLatest("latest".equals(sortList))
+                .isSortDate("date".equals(sortList))
                 .isTips("tips".equals(category))
                 .isPlan("plan".equals(category))
                 .isFood("food".equals(category))
@@ -185,17 +198,26 @@ public class BoardService {
         }
 
         return switch (sort) {
-            case "likes", "views", "latest", "date" -> sort;
+            case "likes", "downlikes", "view", "downview", "latest", "date" -> sort;
             default -> "latest";
         };
     }
 
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return "";
+        }
+        return keyword.trim();
+    }
+
     private String toSortLabel(String sort) {
         return switch (sort) {
-            case "likes" -> "좋아요순";
-            case "views" -> "조회순";
-            case "date" -> "날짜순";
-            default -> "최신순";
+            case "likes" -> "좋아요순 ↑";
+            case "downlikes" -> "좋아요순 ↓";
+            case "view" -> "조회순 ↑";
+            case "downview" -> "조회순 ↓";
+            case "date" -> "날짜순 ↓";
+            default -> "날짜순 ↑";
         };
     }
 

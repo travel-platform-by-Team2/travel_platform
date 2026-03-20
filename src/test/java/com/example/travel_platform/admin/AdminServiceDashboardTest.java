@@ -60,11 +60,21 @@ class AdminServiceDashboardTest {
 
     @Test
     void getBoardsPage_setsSelectedCategoryForPagingLinks() {
-        AdminResponse.AdminBoardListDTO page = adminService.getBoardsPage("tips", "", 0);
+        AdminResponse.AdminBoardListDTO page = adminService.getBoardsPage("tips", "", null, 0);
 
         assertEquals("tips", page.getAllCategory());
         assertEquals("tips", page.getSelectCategory());
+        assertFalse(page.isAllCategoryTab());
         assertTrue(page.isTips());
         assertTrue(page.getTotalPages() >= 1);
+    }
+
+    @Test
+    void getBoardsPage_marksAllCategoryTabWhenCategoryIsMissing() {
+        AdminResponse.AdminBoardListDTO page = adminService.getBoardsPage(null, "", null, 0);
+
+        assertEquals("all", page.getAllCategory());
+        assertTrue(page.isAllCategoryTab());
+        assertFalse(page.isTips());
     }
 }

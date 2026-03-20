@@ -24,11 +24,11 @@ public class BoardController {
     private final HttpSession session;
 
     @GetMapping
-    public String list(@RequestParam(name = "category", required = false) String category,
-            @RequestParam(name = "sort", required = false) String sort,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            Model model) {
-        BoardResponse.ListPageDTO responseDTO = boardService.getBoardList(category, sort, page);
+    public String list(@RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "sort", required = false) String sort,
+            @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
+        BoardResponse.ListPageDTO responseDTO = boardService.getBoardList(category, keyword, sort, page);
         model.addAttribute("model", responseDTO);
         return "pages/board-list";
     }
