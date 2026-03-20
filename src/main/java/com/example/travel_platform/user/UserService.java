@@ -73,19 +73,20 @@ public class UserService {
         User user = userRepository.findByEmailAndProvider(email, provider)
                 .orElseGet(() -> {
                     // 2. 신규 SNS 유저면 자동 회원가입
-                    String suffix = providerId.length() > 2 ? providerId.substring(0, 2) : providerId;
-                    String safeUsername = username + suffix;
+                    // username이 중복될 가능성을 최소화하기 위해 providerId 뒷 4자리를 붙임
+                    String suffix = providerId.length() > 4 ? providerId.substring(providerId.length() - 4) : providerId;
+                    String safeUsername = (username != null ? username : provider) + "_" + suffix;
 
                     User newUser = User.createSNS(
                             safeUsername,
                             email,
                             provider,
                             providerId);
-                    newUser.setActive(true); // 명시적으로 활성화 설정
+                    newUser.setActive(true);
                     return userRepository.save(newUser);
                 });
 
-        // 3. 기존 유저가 혹시라도 비활성 상태라면 강제로 활성화 (로그인 허용)
+        // 3. 기존 유저 활성화 보장
         if (!user.isActive()) {
             user.setActive(true);
         }

@@ -23,6 +23,12 @@ public class UserController {
     @Value("${KAKAO_JS_APP_KEY:}")
     private String kakaoJsAppKey;
 
+    @Value("${NAVER_CLIENT_ID:}")
+    private String naverClientId;
+
+    @Value("${GOOGLE_CLIENT_ID:}")
+    private String googleClientId;
+
     @GetMapping("/")
     public String mainIndex() {
         return "pages/main-index";
@@ -82,7 +88,10 @@ public class UserController {
 
     @GetMapping("/login-form")
     public String loginForm(Model model) {
+        System.out.println("DEBUG: googleClientId = [" + googleClientId + "]");
         model.addAttribute("kakaoJsAppKey", kakaoJsAppKey);
+        model.addAttribute("naverClientId", naverClientId);
+        model.addAttribute("googleClientId", googleClientId);
         return "pages/login";
     }
 
