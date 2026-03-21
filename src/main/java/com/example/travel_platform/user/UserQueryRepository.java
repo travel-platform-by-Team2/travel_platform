@@ -43,6 +43,14 @@ public class UserQueryRepository {
     }
 
     public Optional<User> findSnsUser(String email, String provider) {
+        UserAuthProvider providerType = UserAuthProvider.fromCodeOrNull(provider);
+        if (providerType == null) {
+            return Optional.empty();
+        }
+        return findSnsUser(email, providerType);
+    }
+
+    public Optional<User> findSnsUser(String email, UserAuthProvider provider) {
         return em.createQuery("""
                 select u
                 from User u

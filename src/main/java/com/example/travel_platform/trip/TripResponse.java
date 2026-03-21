@@ -37,7 +37,7 @@ public class TripResponse {
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
-                    .regionLabel(toRegionLabel(tripPlan.getRegion()))
+                    .regionLabel(tripPlan.getRegionLabel())
                     .dDay(disabled ? "비활성화" : "D-" + diff)
                     .disabled(disabled)
                     .placeCount(placeCount)
@@ -158,7 +158,7 @@ public class TripResponse {
                     .address(tripPlace.getAddress())
                     .latitude(tripPlace.getLatitude() == null ? null : tripPlace.getLatitude().doubleValue())
                     .longitude(tripPlace.getLongitude() == null ? null : tripPlace.getLongitude().doubleValue())
-                    .dayOrder(tripPlace.getDayOrder())
+                    .dayOrder(tripPlace.getTripDay())
                     .build();
         }
     }
@@ -186,7 +186,7 @@ public class TripResponse {
         public static DetailDTO createPlanDetail(TripPlan tripPlan, List<PlaceItemDTO> places) {
             long nightCount = calculateNightCount(tripPlan.getStartDate(), tripPlan.getEndDate());
             long dayCount = nightCount + 1;
-            String regionLabel = toRegionLabel(tripPlan.getRegion());
+            String regionLabel = tripPlan.getRegionLabel();
 
             return DetailDTO.builder()
                     .id(tripPlan.getId())
@@ -195,7 +195,7 @@ public class TripResponse {
                     .region(tripPlan.getRegion())
                     .regionLabel(regionLabel)
                     .whoWith(tripPlan.getWhoWith())
-                    .whoWithLabel(toWhoWithLabel(tripPlan.getWhoWith()))
+                    .whoWithLabel(tripPlan.getWhoWithLabel())
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
@@ -327,7 +327,7 @@ public class TripResponse {
                     .planId(planId)
                     .placeName(tripPlace.getPlaceName())
                     .address(tripPlace.getAddress())
-                    .dayOrder(tripPlace.getDayOrder())
+                    .dayOrder(tripPlace.getTripDay())
                     .placeCount(placeCount)
                     .detailUrl("/trip/detail?id=" + planId)
                     .build();
@@ -379,37 +379,4 @@ public class TripResponse {
         return imageUrl;
     }
 
-    private static String toRegionLabel(String region) {
-        if (region == null || region.isBlank()) {
-            return "지역 정보 없음";
-        }
-
-        return switch (region) {
-            case "seoul" -> "서울";
-            case "busan" -> "부산";
-            case "daegu" -> "대구";
-            case "incheon" -> "인천";
-            case "gwangju" -> "광주";
-            case "daejeon" -> "대전";
-            case "ulsan" -> "울산";
-            case "sejong" -> "세종";
-            case "gyeonggi" -> "경기";
-            case "gangwon" -> "강원";
-            case "chungbuk" -> "충북";
-            case "chungnam" -> "충남";
-            case "jeonbuk" -> "전북";
-            case "jeonnam" -> "전남";
-            case "gyeongbuk" -> "경북";
-            case "gyeongnam" -> "경남";
-            case "jeju" -> "제주";
-            default -> region;
-        };
-    }
-
-    private static String toWhoWithLabel(String whoWith) {
-        if (whoWith == null || whoWith.isBlank()) {
-            return "동행 정보 없음";
-        }
-        return whoWith;
-    }
 }

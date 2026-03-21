@@ -37,6 +37,7 @@ class AdminServiceDashboardTest {
         assertTrue(view.isHasRecentUsers());
         assertEquals(3, view.getRecentUsers().size());
         assertEquals("admin", view.getRecentUsers().get(0).getUsername());
+        assertEquals("활성", view.getRecentUsers().get(0).getStatusText());
 
         assertTrue(view.isHasRecentBoards());
         assertEquals(3, view.getRecentBoards().size());

@@ -12,30 +12,33 @@ class MypageResponseTest {
 
     @Test
     void page() {
-        MypageResponse.ProfileDTO user = MypageResponse.ProfileDTO.builder()
+        MypageResponse.ProfileViewDTO profile = MypageResponse.ProfileViewDTO.builder()
                 .username("ssar")
                 .email("ssar@nate.com")
                 .withdrawAllowed(true)
                 .build();
 
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(user, List.of(), List.of());
+        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createMainPage(
+                profile,
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()));
 
-        assertFalse(page.isHasBookings());
-        assertFalse(page.isHasTripPlans());
+        assertFalse(page.getBookingSection().isHasItems());
+        assertFalse(page.getTripPlanSection().isHasItems());
         assertFalse(page.isPasswordModalOpen());
         assertFalse(page.isWithdrawModalOpen());
     }
 
     @Test
     void pwd() {
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(
-                MypageResponse.ProfileDTO.builder().build(),
-                List.of(),
-                List.of());
+        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createMainPage(
+                MypageResponse.ProfileViewDTO.builder().build(),
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()));
 
-        page.openPasswordModal("현재 비밀번호가 일치하지 않습니다.");
+        page.openPasswordModal("?꾩옱 鍮꾨?踰덊샇媛 ?쇱튂?섏? ?딆뒿?덈떎.");
 
-        assertEquals("현재 비밀번호가 일치하지 않습니다.", page.getPasswordError());
+        assertEquals("?꾩옱 鍮꾨?踰덊샇媛 ?쇱튂?섏? ?딆뒿?덈떎.", page.getPasswordError());
         assertTrue(page.isPasswordModalOpen());
         assertEquals(null, page.getWithdrawError());
         assertFalse(page.isWithdrawModalOpen());
@@ -43,14 +46,14 @@ class MypageResponseTest {
 
     @Test
     void wd() {
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(
-                MypageResponse.ProfileDTO.builder().build(),
-                List.of(),
-                List.of());
+        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createMainPage(
+                MypageResponse.ProfileViewDTO.builder().build(),
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()));
 
-        page.openWithdrawModal("관리자 계정은 탈퇴할 수 없습니다.");
+        page.openWithdrawModal("愿由ъ옄 怨꾩젙? ?덊눜?????놁뒿?덈떎.");
 
-        assertEquals("관리자 계정은 탈퇴할 수 없습니다.", page.getWithdrawError());
+        assertEquals("愿由ъ옄 怨꾩젙? ?덊눜?????놁뒿?덈떎.", page.getWithdrawError());
         assertTrue(page.isWithdrawModalOpen());
         assertEquals(null, page.getPasswordError());
         assertFalse(page.isPasswordModalOpen());
@@ -58,22 +61,23 @@ class MypageResponseTest {
 
     @Test
     void ok() {
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(
-                MypageResponse.ProfileDTO.builder().build(),
-                List.of(),
-                List.of());
+        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createMainPage(
+                MypageResponse.ProfileViewDTO.builder().build(),
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()));
 
-        page.withPasswordSuccess("비밀번호가 변경되었습니다.");
+        page.withPasswordSuccess("鍮꾨?踰덊샇媛 蹂寃쎈릺?덉뒿?덈떎.");
 
-        assertEquals("비밀번호가 변경되었습니다.", page.getPasswordSuccessMessage());
+        assertEquals("鍮꾨?踰덊샇媛 蹂寃쎈릺?덉뒿?덈떎.", page.getPasswordSuccessMessage());
     }
 
     @Test
     void detail() {
-        MypageResponse.BookingDetailPageDTO page = MypageResponse.BookingDetailPageDTO.createBookingDetailPage(21);
+        MypageResponse.BookingDetailPlaceholderPageDTO page = MypageResponse.BookingDetailPlaceholderPageDTO
+                .createBookingDetailPlaceholderPage(21);
 
         assertEquals(21, page.getBookingId());
         assertEquals("/mypage", page.getBackLink());
-        assertEquals("현재 화면은 placeholder이며 예약 ID만 연결된 상태입니다.", page.getPlaceholderNotice());
+        assertEquals("?꾩옱 ?붾㈃? placeholder?대ŉ ?덉빟 ID留??곌껐???곹깭?낅땲??", page.getPlaceholderNotice());
     }
 }

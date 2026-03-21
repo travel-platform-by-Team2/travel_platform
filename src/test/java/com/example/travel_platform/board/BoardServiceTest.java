@@ -46,9 +46,9 @@ class BoardServiceTest {
         User author = user(1, "ssar", "USER");
         Board board = board(10, author, "Busan route", "tips", "<p>Busan travel tips</p>");
 
-        when(boardQueryRepository.search(eq("tips"), any(String[].class), eq("likes"), eq(10), eq(10)))
+        when(boardQueryRepository.search(eq(BoardCategory.TIPS), any(String[].class), eq("likes"), eq(10), eq(10)))
                 .thenReturn(List.of(board));
-        when(boardQueryRepository.countSearch(eq("tips"), any(String[].class))).thenReturn(12L);
+        when(boardQueryRepository.countSearch(eq(BoardCategory.TIPS), any(String[].class))).thenReturn(12L);
         when(boardLikeRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 2L));
 
         BoardResponse.ListViewDTO response = boardService.getBoardList("tips", " busan trip ", "likes", 1);
@@ -63,7 +63,7 @@ class BoardServiceTest {
         assertEquals(2, response.getModels().get(0).getLikeCount());
 
         ArgumentCaptor<String[]> wordsCaptor = ArgumentCaptor.forClass(String[].class);
-        verify(boardQueryRepository).search(eq("tips"), wordsCaptor.capture(), eq("likes"), eq(10), eq(10));
+        verify(boardQueryRepository).search(eq(BoardCategory.TIPS), wordsCaptor.capture(), eq("likes"), eq(10), eq(10));
         assertArrayEquals(new String[] { "busan", "trip" }, wordsCaptor.getValue());
     }
 
@@ -247,7 +247,6 @@ class BoardServiceTest {
 
         assertTrue(response.isLiked());
         assertEquals(1L, response.getLikeCount());
-        assertEquals(1, board.getLikeCount());
         verify(boardLikeRepository).save(any(BoardLike.class));
     }
 

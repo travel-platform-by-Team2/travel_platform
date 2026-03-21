@@ -95,7 +95,7 @@ class TripControllerTest {
         TripRequest.CreatePlanDTO reqDTO = new TripRequest.CreatePlanDTO();
         reqDTO.setTitle("제주 여행");
         reqDTO.setRegion("jeju");
-        reqDTO.setWhoWith("친구");
+        reqDTO.setWhoWith("friend");
         reqDTO.setStartDate(LocalDate.of(2026, 3, 22));
         BindingResult bindingResult = new BeanPropertyBindingResult(reqDTO, "reqDTO");
         bindingResult.rejectValue("endDate", "NotNull", "여행 종료일을 선택해주세요.");
@@ -106,7 +106,7 @@ class TripControllerTest {
         assertEquals("pages/trip-create", view);
         assertEquals("제주 여행", formDTO.getTitle());
         assertEquals("jeju", formDTO.getRegion());
-        assertEquals("친구", formDTO.getWhoWith());
+        assertEquals("friend", formDTO.getWhoWith());
         assertEquals("여행 종료일을 선택해주세요.", formDTO.getEndDateError());
         verifyNoInteractions(tripService);
     }

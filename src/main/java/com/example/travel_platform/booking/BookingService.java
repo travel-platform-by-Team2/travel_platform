@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.travel_platform.trip.TripPlan;
 import com.example.travel_platform.trip.TripPlanQueryRepository;
 import com.example.travel_platform.trip.TripRepository;
+import com.example.travel_platform.trip.TripRegion;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserQueryRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -475,23 +476,18 @@ public class BookingService {
     private BookingCompletionDraft createCompletionDraft(BookingRequest.CompleteBookingDTO reqDTO) {
         LocalDate checkInDate = resolveDate(reqDTO.getCheckIn(), LocalDate.now());
         LocalDate checkOutDate = resolveDate(reqDTO.getCheckOut(), LocalDate.now().plusDays(1));
+        TripRegion regionType = resolveBookingRegion(reqDTO.getRegionKey(), reqDTO.getLocation());
 
         return new BookingCompletionDraft(
-                buildCompletionLodgingName(reqDTO),
-                blankToDefault(reqDTO.getRegionKey(), "busan"),
-                blankToDefault(reqDTO.getLocation(), "부산"),
+                blankToDefault(reqDTO.getLodgingName(), "숙소"),
+                blankToDefault(reqDTO.getRoomName(), BookVar.DEFAULT_ROOM_NAME),
+                regionType,
                 checkInDate,
                 checkOutDate,
                 parseGuestCount(reqDTO.getGuests()),
                 reqDTO.getPricePerNight() == null ? 0 : reqDTO.getPricePerNight(),
                 reqDTO.getTaxAndServiceFee() == null ? 0 : reqDTO.getTaxAndServiceFee(),
                 blankToDefault(reqDTO.getImageUrl(), ""));
-    }
-
-    private String buildCompletionLodgingName(BookingRequest.CompleteBookingDTO reqDTO) {
-        String lodgingName = blankToDefault(reqDTO.getLodgingName(), "숙소");
-        String roomName = blankToDefault(reqDTO.getRoomName(), "기본 객실");
-        return lodgingName + " (" + roomName + ")";
     }
 
     private TripPlan resolveCompletionPlan(User user, BookingCompletionDraft draft) {
@@ -506,7 +502,7 @@ public class BookingService {
         return TripPlan.create(
                 user,
                 "나의 여행 계획",
-                draft.regionKey(),
+                draft.regionType(),
                 null,
                 draft.checkInDate(),
                 draft.checkOutDate(),
@@ -514,33 +510,34 @@ public class BookingService {
     }
 
     private Booking buildCompletionBooking(User user, TripPlan plan, BookingCompletionDraft draft) {
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setTripPlan(plan);
-        booking.setLodgingName(draft.lodgingName());
-        booking.setCheckIn(draft.checkInDate());
-        booking.setCheckOut(draft.checkOutDate());
-        booking.setGuestCount(draft.guestCount());
-        booking.setPricePerNight(draft.pricePerNight());
-        booking.setTaxAndServiceFee(draft.taxAndServiceFee());
-        booking.setLocation(draft.location());
-        booking.setImageUrl(draft.imageUrl());
-        return booking;
+        return Booking.create(
+                user,
+                plan,
+                draft.lodgingName(),
+                draft.roomName(),
+                draft.checkInDate(),
+                draft.checkOutDate(),
+                draft.guestCount(),
+                draft.pricePerNight(),
+                draft.taxAndServiceFee(),
+                draft.regionType(),
+                draft.imageUrl());
     }
 
     private Booking buildCreatedBooking(User user, TripPlan plan, BookingRequest.CreateBookingDTO reqDTO) {
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setTripPlan(plan);
-        booking.setLodgingName(reqDTO.getLodgingName());
-        booking.setCheckIn(reqDTO.getCheckIn());
-        booking.setCheckOut(reqDTO.getCheckOut());
-        booking.setGuestCount(reqDTO.getGuestCount());
-        booking.setPricePerNight(reqDTO.getPricePerNight());
-        booking.setTaxAndServiceFee(reqDTO.getTaxAndServiceFee());
-        booking.setLocation(reqDTO.getLocation());
-        booking.setImageUrl(reqDTO.getImageUrl());
-        return booking;
+        TripRegion regionType = resolveBookingRegion(reqDTO.getRegionKey(), reqDTO.getLocation());
+        return Booking.create(
+                user,
+                plan,
+                reqDTO.getLodgingName(),
+                reqDTO.getRoomName(),
+                reqDTO.getCheckIn(),
+                reqDTO.getCheckOut(),
+                reqDTO.getGuestCount(),
+                reqDTO.getPricePerNight(),
+                reqDTO.getTaxAndServiceFee(),
+                regionType,
+                reqDTO.getImageUrl());
     }
 
     private void keepPlaceholderCancel(Integer sessionUserId, Integer bookingId) {
@@ -624,6 +621,67 @@ public class BookingService {
         return (value == null || value.isBlank()) ? defaultValue : value;
     }
 
+    private TripRegion resolveBookingRegion(String regionKey, String location) {
+        TripRegion region = TripRegion.fromCodeOrNull(regionKey);
+        if (region != null) {
+            return region;
+        }
+
+        String locationText = location == null ? "" : location.trim();
+        if (locationText.contains("서울")) {
+            return TripRegion.SEOUL;
+        }
+        if (locationText.contains("부산")) {
+            return TripRegion.BUSAN;
+        }
+        if (locationText.contains("대구")) {
+            return TripRegion.DAEGU;
+        }
+        if (locationText.contains("인천")) {
+            return TripRegion.INCHEON;
+        }
+        if (locationText.contains("광주")) {
+            return TripRegion.GWANGJU;
+        }
+        if (locationText.contains("대전")) {
+            return TripRegion.DAEJEON;
+        }
+        if (locationText.contains("울산")) {
+            return TripRegion.ULSAN;
+        }
+        if (locationText.contains("세종")) {
+            return TripRegion.SEJONG;
+        }
+        if (locationText.contains("경기")) {
+            return TripRegion.GYEONGGI;
+        }
+        if (locationText.contains("강원")) {
+            return TripRegion.GANGWON;
+        }
+        if (locationText.contains("충북")) {
+            return TripRegion.CHUNGBUK;
+        }
+        if (locationText.contains("충남")) {
+            return TripRegion.CHUNGNAM;
+        }
+        if (locationText.contains("전북")) {
+            return TripRegion.JEONBUK;
+        }
+        if (locationText.contains("전남")) {
+            return TripRegion.JEONNAM;
+        }
+        if (locationText.contains("경북")) {
+            return TripRegion.GYEONGBUK;
+        }
+        if (locationText.contains("경남")) {
+            return TripRegion.GYEONGNAM;
+        }
+        if (locationText.contains("제주")) {
+            return TripRegion.JEJU;
+        }
+        return TripRegion.fromCode(BookVar.DEFAULT_REGION_KEY);
+    }
+
     private BookingResponse.MapPoiDTO normalizePoi(BookingResponse.MapPoiDTO item, String defaultSource) {
         if (item == null || !isValidCoordinate(item.getLat()) || !isValidCoordinate(item.getLng()))
             return null;
@@ -684,8 +742,8 @@ public class BookingService {
 
     private record BookingCompletionDraft(
             String lodgingName,
-            String regionKey,
-            String location,
+            String roomName,
+            TripRegion regionType,
             LocalDate checkInDate,
             LocalDate checkOutDate,
             int guestCount,

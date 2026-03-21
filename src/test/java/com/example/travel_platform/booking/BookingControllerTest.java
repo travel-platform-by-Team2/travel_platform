@@ -55,6 +55,8 @@ class BookingControllerTest {
         assertEquals("pages/booking-checkout", view);
         assertEquals("시그니엘 부산", page.getLodgingName());
         assertEquals("디럭스 룸", page.getRoomName());
+        assertEquals("busan", page.getRegionKey());
+        assertEquals("부산", page.getRegionLabel());
         assertEquals("", page.getImageUrl());
         assertEquals("2박", page.getNightsLabel());
         assertEquals("450,000원", page.getRoomPriceText());
@@ -94,6 +96,8 @@ class BookingControllerTest {
         assertEquals("ssar", page.getBookerName());
         assertEquals("ssar@nate.com", page.getBookerEmail());
         assertEquals("010-1111-2222", page.getBookerPhone());
+        assertEquals("busan", page.getRegionKey());
+        assertEquals("부산", page.getRegionLabel());
         assertEquals("350,000원", page.getRoomPriceText());
         assertEquals("105,000원", page.getFeeText());
         verify(bookingService).getUserById(5);
@@ -109,6 +113,7 @@ class BookingControllerTest {
                 "시그니엘 부산",
                 "디럭스 룸",
                 "",
+                "",
                 "성인 2명",
                 "2026-04-10",
                 "2026-04-12",
@@ -120,7 +125,7 @@ class BookingControllerTest {
 
         BookingResponse.CompletePageDTO page = (BookingResponse.CompletePageDTO) model.getAttribute("model");
         assertEquals("pages/booking-complete", view);
-        assertEquals("지역 정보 없음", page.getRegion());
+        assertEquals("부산", page.getRegion());
         assertEquals("busan", page.getRegionKey());
         assertEquals("2박", page.getNightsLabel());
         assertEquals("0원", page.getTotalPriceText());
@@ -140,6 +145,7 @@ class BookingControllerTest {
                 "롯데 호텔",
                 "프리미어 룸",
                 "서울특별시 중구",
+                "seoul",
                 "성인 2명",
                 "2026-06-01",
                 "2026-06-03",
@@ -151,7 +157,7 @@ class BookingControllerTest {
 
         BookingResponse.CompletePageDTO page = (BookingResponse.CompletePageDTO) model.getAttribute("model");
         assertEquals("pages/booking-complete", view);
-        assertEquals("서울특별시 중구", page.getRegion());
+        assertEquals("서울", page.getRegion());
         assertEquals("seoul", page.getRegionKey());
         assertEquals("https://image.test/complete.jpg", page.getCompleteImageUrl());
         verify(bookingService).processBookingCompletion(

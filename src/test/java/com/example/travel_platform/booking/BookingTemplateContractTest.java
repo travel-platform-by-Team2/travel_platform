@@ -24,6 +24,7 @@ class BookingTemplateContractTest {
 
         assertContains(template, "{{#model}}");
         assertContains(template, "value=\"{{lodgingName}}\"");
+        assertContains(template, "value=\"{{regionKey}}\"");
         assertContains(template, "value=\"{{bookerName}}\"");
         assertContains(template, "{{totalPriceText}}");
     }

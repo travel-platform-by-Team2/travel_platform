@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import com.example.travel_platform.booking.Booking;
-import com.example.travel_platform.trip.TripPlan;
 import com.example.travel_platform.user.User;
 
 import lombok.Builder;
@@ -17,25 +15,24 @@ public class MypageResponse {
 
     @Data
     @Builder
-    public static class PageDTO {
-        private ProfileDTO user;
-        private boolean hasBookings;
-        private List<BookingCardDTO> bookings;
-        private boolean hasTripPlans;
-        private List<PlanCardDTO> tripPlans;
+    public static class MainPageDTO {
+        private ProfileViewDTO profile;
+        private BookingSummarySectionDTO bookingSection;
+        private TripPlanSummarySectionDTO tripPlanSection;
         private String passwordError;
         private boolean passwordModalOpen;
         private String withdrawError;
         private boolean withdrawModalOpen;
         private String passwordSuccessMessage;
 
-        public static PageDTO createMainPage(ProfileDTO user, List<BookingCardDTO> bookings, List<PlanCardDTO> tripPlans) {
-            return PageDTO.builder()
-                    .user(user)
-                    .hasBookings(!bookings.isEmpty())
-                    .bookings(bookings)
-                    .hasTripPlans(!tripPlans.isEmpty())
-                    .tripPlans(tripPlans)
+        public static MainPageDTO createMainPage(
+                ProfileViewDTO profile,
+                BookingSummarySectionDTO bookingSection,
+                TripPlanSummarySectionDTO tripPlanSection) {
+            return MainPageDTO.builder()
+                    .profile(profile)
+                    .bookingSection(bookingSection)
+                    .tripPlanSection(tripPlanSection)
                     .passwordError(null)
                     .passwordModalOpen(false)
                     .withdrawError(null)
@@ -44,7 +41,7 @@ public class MypageResponse {
                     .build();
         }
 
-        public PageDTO openPasswordModal(String errorMessage) {
+        public MainPageDTO openPasswordModal(String errorMessage) {
             this.passwordError = normalize(errorMessage);
             this.passwordModalOpen = true;
             this.withdrawError = null;
@@ -52,7 +49,7 @@ public class MypageResponse {
             return this;
         }
 
-        public PageDTO openWithdrawModal(String errorMessage) {
+        public MainPageDTO openWithdrawModal(String errorMessage) {
             this.passwordError = null;
             this.passwordModalOpen = false;
             this.withdrawError = normalize(errorMessage);
@@ -60,7 +57,7 @@ public class MypageResponse {
             return this;
         }
 
-        public PageDTO withPasswordSuccess(String message) {
+        public MainPageDTO withPasswordSuccess(String message) {
             this.passwordSuccessMessage = normalize(message);
             return this;
         }
@@ -68,14 +65,14 @@ public class MypageResponse {
 
     @Data
     @Builder
-    public static class ProfileDTO {
+    public static class ProfileViewDTO {
         private Integer id;
         private String username;
         private String email;
         private boolean withdrawAllowed;
 
-        public static ProfileDTO fromUser(User user) {
-            return ProfileDTO.builder()
+        public static ProfileViewDTO fromUserEntity(User user) {
+            return ProfileViewDTO.builder()
                     .id(user.getId())
                     .username(normalize(user.getUsername()))
                     .email(normalize(user.getEmail()))
@@ -86,52 +83,88 @@ public class MypageResponse {
 
     @Data
     @Builder
-    public static class BookingCardDTO {
+    public static class BookingSummarySectionDTO {
+        private boolean hasItems;
+        private List<BookingSummaryCardDTO> items;
+
+        public static BookingSummarySectionDTO createBookingSection(List<BookingSummaryCardDTO> items) {
+            return BookingSummarySectionDTO.builder()
+                    .hasItems(!items.isEmpty())
+                    .items(items)
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
+    public static class BookingSummaryCardDTO {
         private Integer id;
         private String lodgingName;
         private String dateRangeLabel;
         private String detailLink;
 
-        public static BookingCardDTO fromBooking(Booking booking) {
-            return BookingCardDTO.builder()
-                    .id(booking.getId())
-                    .lodgingName(normalize(booking.getLodgingName()))
-                    .dateRangeLabel(formatDateRange(booking.getCheckIn(), booking.getCheckOut()))
-                    .detailLink("/mypage/bookings/" + booking.getId())
+        public static BookingSummaryCardDTO createBookingSummaryCard(
+                Integer bookingId,
+                String lodgingName,
+                LocalDate checkIn,
+                LocalDate checkOut) {
+            return BookingSummaryCardDTO.builder()
+                    .id(bookingId)
+                    .lodgingName(normalize(lodgingName))
+                    .dateRangeLabel(formatDateRange(checkIn, checkOut))
+                    .detailLink("/mypage/bookings/" + bookingId)
                     .build();
         }
     }
 
     @Data
     @Builder
-    public static class PlanCardDTO {
+    public static class TripPlanSummarySectionDTO {
+        private boolean hasItems;
+        private List<TripPlanSummaryCardDTO> items;
+
+        public static TripPlanSummarySectionDTO createTripPlanSection(List<TripPlanSummaryCardDTO> items) {
+            return TripPlanSummarySectionDTO.builder()
+                    .hasItems(!items.isEmpty())
+                    .items(items)
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
+    public static class TripPlanSummaryCardDTO {
         private Integer id;
         private String title;
         private String dateRangeLabel;
         private String detailLink;
 
-        public static PlanCardDTO fromTripPlan(TripPlan tripPlan) {
-            return PlanCardDTO.builder()
-                    .id(tripPlan.getId())
-                    .title(normalize(tripPlan.getTitle()))
-                    .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
-                    .detailLink("/trip/detail?id=" + tripPlan.getId())
+        public static TripPlanSummaryCardDTO createTripPlanSummaryCard(
+                Integer planId,
+                String title,
+                LocalDate startDate,
+                LocalDate endDate) {
+            return TripPlanSummaryCardDTO.builder()
+                    .id(planId)
+                    .title(normalize(title))
+                    .dateRangeLabel(formatDateRange(startDate, endDate))
+                    .detailLink("/trip/detail?id=" + planId)
                     .build();
         }
     }
 
     @Data
     @Builder
-    public static class BookingDetailPageDTO {
+    public static class BookingDetailPlaceholderPageDTO {
         private Integer bookingId;
         private String backLink;
         private String placeholderNotice;
 
-        public static BookingDetailPageDTO createBookingDetailPage(Integer bookingId) {
-            return BookingDetailPageDTO.builder()
+        public static BookingDetailPlaceholderPageDTO createBookingDetailPlaceholderPage(Integer bookingId) {
+            return BookingDetailPlaceholderPageDTO.builder()
                     .bookingId(bookingId)
                     .backLink("/mypage")
-                    .placeholderNotice("현재 화면은 placeholder이며 예약 ID만 연결된 상태입니다.")
+                    .placeholderNotice("?꾩옱 ?붾㈃? placeholder?대ŉ ?덉빟 ID留??곌껐???곹깭?낅땲??")
                     .build();
         }
     }

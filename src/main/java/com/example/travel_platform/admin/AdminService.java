@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,8 +14,8 @@ import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.board.Board;
+import com.example.travel_platform.board.BoardCategory;
 import com.example.travel_platform.board.BoardLikeRepository;
-import com.example.travel_platform.board.BoardQueryRepository;
 import com.example.travel_platform.board.BoardRepository;
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.User;
@@ -40,9 +39,9 @@ public class AdminService {
     private static final String USER_ORDER_BY_DESC = "desc";
 
     private final AdminUserQueryRepository adminUserQueryRepository;
+    private final AdminBoardQueryRepository adminBoardQueryRepository;
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
-    private final BoardQueryRepository boardQueryRepository;
     private final BoardLikeRepository boardLikeRepository;
 
     public AdminResponse.DashboardViewDTO getDashboardView() {
@@ -50,9 +49,9 @@ public class AdminService {
         long inactiveUserCount = adminUserQueryRepository.countInactiveUsers();
         long activeUserCount = totalUserCount - inactiveUserCount;
 
-        long totalBoardCount = boardQueryRepository.count();
-        long recentBoardCount = boardQueryRepository.countByCreatedAtAfter(LocalDateTime.now().minusDays(RECENT_BOARD_DAYS));
-        long totalBoardViewCount = boardQueryRepository.sumViewCount();
+        long totalBoardCount = adminBoardQueryRepository.countBoards();
+        long recentBoardCount = adminBoardQueryRepository.countBoardsByCreatedAtAfter(LocalDateTime.now().minusDays(RECENT_BOARD_DAYS));
+        long totalBoardViewCount = adminBoardQueryRepository.sumBoardViewCount();
 
         return AdminResponse.DashboardViewDTO.createDashboardView(
                 totalUserCount,
@@ -73,8 +72,8 @@ public class AdminService {
         String normalizedKeyword = normalizeKeyword(keyword);
         String normalizedSortBy = normalizeUserSortBy(sortBy);
         String normalizedOrderBy = normalizeUserOrderBy(orderBy);
-        List<User> users = findUsersByFilter(active, normalizedKeyword);
-        List<AdminResponse.AdminUserDTO> userModels = createAdminUserModels(users, normalizedSortBy, normalizedOrderBy);
+        List<AdminUserSummaryRow> userRows = findUsersByFilter(active, normalizedKeyword);
+        List<AdminResponse.AdminUserDTO> userModels = createAdminUserModels(userRows, normalizedSortBy, normalizedOrderBy);
         AdminResponse.UserListPageDTO pageModel = createUserListPageModel(
                 normalizedKeyword,
                 active,
@@ -103,11 +102,12 @@ public class AdminService {
         String normalizedSort = normalizeBoardSort(sort);
         String selectedCategory = resolveSelectedCategory(category);
         boolean allCategoryTab = isAllCategory(selectedCategory);
-        List<Board> boards = findBoards(selectedCategory, normalizedKeyword, normalizedSort, page);
-        long totalCount = countBoards(selectedCategory, normalizedKeyword);
-        List<AdminResponse.AdminBoardDTO> boardModels = createAdminBoardModels(boards);
+        BoardCategory boardCategory = resolveBoardCategoryOrNull(selectedCategory);
+        List<AdminBoardSummaryRow> boardRows = findBoards(boardCategory, normalizedKeyword, normalizedSort, page);
+        long totalCount = countBoards(boardCategory, normalizedKeyword);
+        List<AdminResponse.AdminBoardDTO> boardModels = createAdminBoardModels(boardRows);
         AdminResponse.BoardListPageDTO pageModel = createBoardListPageModel(
-                category,
+                selectedCategory,
                 normalizedKeyword,
                 normalizedSort,
                 selectedCategory,
@@ -135,35 +135,37 @@ public class AdminService {
                 normalizedOrderBy);
     }
 
-    private List<User> findUsersByFilter(Boolean active, String keyword) {
+    private List<AdminUserSummaryRow> findUsersByFilter(Boolean active, String keyword) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
 
         if (hasKeyword && active != null) {
-            return adminUserQueryRepository.findUsersByActiveAndKeyword(active, keyword);
+            return adminUserQueryRepository.findUserSummaryRowsByActiveAndKeyword(active, keyword);
         }
         if (hasKeyword) {
-            return adminUserQueryRepository.findUsersByKeyword(keyword);
+            return adminUserQueryRepository.findUserSummaryRowsByKeyword(keyword);
         }
         if (active == null) {
-            return adminUserQueryRepository.findAllUsersByCreatedAtDesc();
+            return adminUserQueryRepository.findAllUserSummaryRowsByCreatedAtDesc();
         }
-        return adminUserQueryRepository.findUsersByActiveByCreatedAtDesc(active);
+        return adminUserQueryRepository.findUserSummaryRowsByActiveByCreatedAtDesc(active);
     }
 
-    private List<AdminResponse.AdminUserDTO> createAdminUserModels(List<User> users, String sortBy, String orderBy) {
-        Map<Integer, Long> boardCounts = boardQueryRepository.countBoardsByUserIds(users.stream().map(User::getId).toList());
+    private List<AdminResponse.AdminUserDTO> createAdminUserModels(
+            List<AdminUserSummaryRow> userRows,
+            String sortBy,
+            String orderBy) {
         List<AdminResponse.AdminUserDTO> userModels = new ArrayList<>();
 
-        for (User user : users) {
+        for (AdminUserSummaryRow userRow : userRows) {
             userModels.add(AdminResponse.AdminUserDTO.createAdminUser(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getCreatedAt().toLocalDate(),
-                    user.isActive(),
-                    Math.toIntExact(boardCounts.getOrDefault(user.getId(), 0L)),
-                    user.isActive() ? "활성" : "비활성",
-                    user.isActive() ? "비활성" : "활성"));
+                    userRow.userId(),
+                    userRow.username(),
+                    userRow.email(),
+                    userRow.createdAt().toLocalDate(),
+                    userRow.active(),
+                    Math.toIntExact(userRow.boardCount()),
+                    userRow.active() ? "활성" : "비활성",
+                    userRow.active() ? "비활성" : "활성"));
         }
 
         userModels.sort(buildUserSortComparator(sortBy, orderBy));
@@ -197,7 +199,7 @@ public class AdminService {
                 page,
                 totalPages,
                 totalCount,
-                boardQueryRepository.count(),
+                adminBoardQueryRepository.countBoards(),
                 getPrevPage(page),
                 getNextPage(page, totalPages),
                 category,
@@ -219,41 +221,15 @@ public class AdminService {
                 isCategory(category, "qna"));
     }
 
-    private List<Board> findBoards(String selectedCategory, String keyword, String sort, int page) {
+    private List<AdminBoardSummaryRow> findBoards(BoardCategory selectedCategory, String keyword, String sort, int page) {
         int offset = page * BOARD_PAGE_SIZE;
-        boolean hasKeyword = !keyword.isBlank();
-
-        if (hasKeyword) {
-            String[] words = splitKeywords(keyword);
-            if (isAllCategory(selectedCategory)) {
-                return boardQueryRepository.search(null, words, sort, offset, BOARD_PAGE_SIZE);
-            }
-            return boardQueryRepository.search(selectedCategory, words, sort, offset, BOARD_PAGE_SIZE);
-        }
-
-        if (isAllCategory(selectedCategory)) {
-            return boardQueryRepository.findAllPaging(sort, offset, BOARD_PAGE_SIZE);
-        }
-
-        return boardQueryRepository.findAllPagingByCategory(selectedCategory, sort, offset, BOARD_PAGE_SIZE);
+        String[] words = keyword.isBlank() ? new String[0] : splitKeywords(keyword);
+        return adminBoardQueryRepository.findBoardSummaryRows(selectedCategory, words, sort, offset, BOARD_PAGE_SIZE);
     }
 
-    private long countBoards(String selectedCategory, String keyword) {
-        boolean hasKeyword = !keyword.isBlank();
-
-        if (hasKeyword) {
-            String[] words = splitKeywords(keyword);
-            if (isAllCategory(selectedCategory)) {
-                return boardQueryRepository.countSearch(null, words);
-            }
-            return boardQueryRepository.countSearch(selectedCategory, words);
-        }
-
-        if (isAllCategory(selectedCategory)) {
-            return boardQueryRepository.count();
-        }
-
-        return boardQueryRepository.countByCategory(selectedCategory);
+    private long countBoards(BoardCategory selectedCategory, String keyword) {
+        String[] words = keyword.isBlank() ? new String[0] : splitKeywords(keyword);
+        return adminBoardQueryRepository.countBoardSummaryRows(selectedCategory, words);
     }
 
     private List<AdminResponse.PageItemDTO> createBoardPageItems(
@@ -273,18 +249,18 @@ public class AdminService {
         return pageItems;
     }
 
-    private List<AdminResponse.AdminBoardDTO> createAdminBoardModels(List<Board> boards) {
+    private List<AdminResponse.AdminBoardDTO> createAdminBoardModels(List<AdminBoardSummaryRow> boardRows) {
         List<AdminResponse.AdminBoardDTO> boardModels = new ArrayList<>();
 
-        for (Board board : boards) {
+        for (AdminBoardSummaryRow boardRow : boardRows) {
             boardModels.add(AdminResponse.AdminBoardDTO.createAdminBoard(
-                    board.getId(),
-                    board.getTitle(),
-                    board.getUser().getUsername(),
-                    board.getCreatedAt().toLocalDate(),
-                    board.getViewCount(),
-                    toCategoryLabel(board.getCategory()),
-                    toCategoryClass(board.getCategory())));
+                    boardRow.boardId(),
+                    boardRow.title(),
+                    boardRow.userName(),
+                    boardRow.createdAt().toLocalDate(),
+                    boardRow.viewCount(),
+                    boardRow.category().getLabel(),
+                    boardRow.category().getCssClass()));
         }
 
         return boardModels;
@@ -306,7 +282,7 @@ public class AdminService {
         metrics.add(AdminResponse.DashboardMetricDTO.createMetric("전체 사용자", formatCount(totalUserCount),
                 "활성 " + formatCount(activeUserCount) + "명", "groups", "metric-icon-blue"));
         metrics.add(AdminResponse.DashboardMetricDTO.createMetric("비활성 사용자", formatCount(inactiveUserCount),
-                "관리 필요 계정", "person_off", "metric-icon-rose"));
+                "관리 필요한 계정", "person_off", "metric-icon-rose"));
         metrics.add(AdminResponse.DashboardMetricDTO.createMetric("전체 게시글", formatCount(totalBoardCount),
                 "최근 7일 " + formatCount(recentBoardCount) + "개", "forum", "metric-icon-purple"));
         metrics.add(AdminResponse.DashboardMetricDTO.createMetric("누적 조회수", formatCount(totalBoardViewCount),
@@ -344,15 +320,20 @@ public class AdminService {
 
     private List<AdminResponse.CategoryChartItemDTO> createBoardCategoryItems(long totalBoardCount) {
         List<AdminResponse.CategoryChartItemDTO> items = new ArrayList<>();
-        items.add(createCategoryChartItem("여행 팁", boardQueryRepository.countByCategory("tips"), totalBoardCount,
+        items.add(createCategoryChartItem(BoardCategory.TIPS.getLabel(),
+                adminBoardQueryRepository.countBoardsByCategory(BoardCategory.TIPS), totalBoardCount,
                 "admin-category-badge cat-tips", "admin-chart-bar--tips"));
-        items.add(createCategoryChartItem("여행 계획", boardQueryRepository.countByCategory("plan"), totalBoardCount,
+        items.add(createCategoryChartItem(BoardCategory.PLAN.getLabel(),
+                adminBoardQueryRepository.countBoardsByCategory(BoardCategory.PLAN), totalBoardCount,
                 "admin-category-badge cat-plan", "admin-chart-bar--plan"));
-        items.add(createCategoryChartItem("맛집/카페", boardQueryRepository.countByCategory("food"), totalBoardCount,
+        items.add(createCategoryChartItem(BoardCategory.FOOD.getLabel(),
+                adminBoardQueryRepository.countBoardsByCategory(BoardCategory.FOOD), totalBoardCount,
                 "admin-category-badge cat-food", "admin-chart-bar--food"));
-        items.add(createCategoryChartItem("숙소 후기", boardQueryRepository.countByCategory("review"), totalBoardCount,
+        items.add(createCategoryChartItem(BoardCategory.REVIEW.getLabel(),
+                adminBoardQueryRepository.countBoardsByCategory(BoardCategory.REVIEW), totalBoardCount,
                 "admin-category-badge cat-review", "admin-chart-bar--review"));
-        items.add(createCategoryChartItem("질문/답변", boardQueryRepository.countByCategory("qna"), totalBoardCount,
+        items.add(createCategoryChartItem(BoardCategory.QNA.getLabel(),
+                adminBoardQueryRepository.countBoardsByCategory(BoardCategory.QNA), totalBoardCount,
                 "admin-category-badge cat-qna", "admin-chart-bar--qna"));
         return items;
     }
@@ -374,30 +355,30 @@ public class AdminService {
     }
 
     private List<AdminResponse.RecentUserDTO> loadRecentUsers() {
-        List<User> users = adminUserQueryRepository.findRecentUsers(DASHBOARD_RECENT_LIMIT);
+        List<AdminRecentUserRow> userRows = adminUserQueryRepository.findRecentUserRows(DASHBOARD_RECENT_LIMIT);
         List<AdminResponse.RecentUserDTO> recentUsers = new ArrayList<>();
 
-        for (User user : users) {
+        for (AdminRecentUserRow userRow : userRows) {
             recentUsers.add(AdminResponse.RecentUserDTO.createRecentUser(
-                    user.getUsername(),
-                    user.isActive() ? "활성" : "비활성",
-                    user.isActive() ? "status-active" : "status-danger",
-                    formatDateTime(user.getCreatedAt())));
+                    userRow.username(),
+                    userRow.active() ? "활성" : "비활성",
+                    userRow.active() ? "status-active" : "status-danger",
+                    formatDateTime(userRow.createdAt())));
         }
 
         return recentUsers;
     }
 
     private List<AdminResponse.RecentBoardDTO> loadRecentBoards() {
-        List<Board> boards = boardQueryRepository.findRecentBoards(DASHBOARD_RECENT_LIMIT);
+        List<AdminRecentBoardRow> boardRows = adminBoardQueryRepository.findRecentBoardRows(DASHBOARD_RECENT_LIMIT);
         List<AdminResponse.RecentBoardDTO> recentBoards = new ArrayList<>();
 
-        for (Board board : boards) {
+        for (AdminRecentBoardRow boardRow : boardRows) {
             recentBoards.add(AdminResponse.RecentBoardDTO.createRecentBoard(
-                    board.getId(),
-                    board.getTitle(),
-                    board.getUser().getUsername(),
-                    formatDateTime(board.getCreatedAt())));
+                    boardRow.boardId(),
+                    boardRow.title(),
+                    boardRow.userName(),
+                    formatDateTime(boardRow.createdAt())));
         }
 
         return recentBoards;
@@ -409,7 +390,7 @@ public class AdminService {
         }
 
         if (!sessionUser.isAdmin()) {
-            throw new Exception403("관리자만 제어할 수 있습니다.");
+            throw new Exception403("관리자만 사용할 수 있습니다.");
         }
     }
 
@@ -484,10 +465,18 @@ public class AdminService {
     }
 
     private String resolveSelectedCategory(String category) {
-        if (category == null || category.isBlank()) {
+        BoardCategory boardCategory = BoardCategory.fromCodeOrNull(category);
+        if (boardCategory == null) {
             return "all";
         }
-        return category;
+        return boardCategory.getCode();
+    }
+
+    private BoardCategory resolveBoardCategoryOrNull(String category) {
+        if (isAllCategory(category)) {
+            return null;
+        }
+        return BoardCategory.fromCodeOrNull(category);
     }
 
     private boolean isAllCategory(String category) {
@@ -500,16 +489,16 @@ public class AdminService {
 
     private String toSortFieldLabel(String sort) {
         return switch (sort) {
-            case "view", "downview" -> "조회순";
-            case "likes", "downlikes" -> "좋아요순";
+            case "view", "downview" -> "조회수";
+            case "likes", "downlikes" -> "좋아요수";
             default -> "날짜순";
         };
     }
 
     private String toSortDirectionLabel(String sort) {
         return switch (sort) {
-            case "downlikes", "downview", "date" -> "↓";
-            default -> "↑";
+            case "downlikes", "downview", "date" -> "오름차순";
+            default -> "내림차순";
         };
     }
 
@@ -545,35 +534,5 @@ public class AdminService {
 
     private boolean isCategory(String category, String targetCategory) {
         return targetCategory.equals(category);
-    }
-
-    private String toCategoryLabel(String category) {
-        if (category == null || category.isBlank()) {
-            return "기타";
-        }
-
-        return switch (category) {
-            case "tips" -> "여행 팁";
-            case "plan" -> "여행 계획";
-            case "food" -> "맛집/카페";
-            case "review" -> "숙소 후기";
-            case "qna" -> "질문/답변";
-            default -> "기타";
-        };
-    }
-
-    private String toCategoryClass(String category) {
-        if (category == null || category.isBlank()) {
-            return "cat-plan";
-        }
-
-        return switch (category) {
-            case "tips" -> "cat-tips";
-            case "plan" -> "cat-plan";
-            case "food" -> "cat-food";
-            case "review" -> "cat-review";
-            case "qna" -> "cat-qna";
-            default -> "cat-plan";
-        };
     }
 }

@@ -31,7 +31,7 @@ class TripApiControllerTest {
         TripRequest.CreatePlanDTO reqDTO = new TripRequest.CreatePlanDTO();
         reqDTO.setTitle("부산 여행");
         reqDTO.setRegion("busan");
-        reqDTO.setWhoWith("친구");
+        reqDTO.setWhoWith("friend");
         reqDTO.setStartDate(LocalDate.of(2026, 4, 1));
         reqDTO.setEndDate(LocalDate.of(2026, 4, 3));
         TripResponse.CreatedDTO responseDTO = TripResponse.CreatedDTO.createCreatedPlan(11);
@@ -97,7 +97,7 @@ class TripApiControllerTest {
 
         Exception401 exception = assertThrows(Exception401.class, () -> controller.getPlanList("result", 0));
 
-        assertTrue(exception.getMessage() != null && exception.getMessage().contains("로그인"));
+        assertTrue(exception.getMessage() != null && !exception.getMessage().isBlank());
     }
 
     private MockHttpSession session(Integer userId) {

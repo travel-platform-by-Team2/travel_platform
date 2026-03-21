@@ -16,11 +16,13 @@ public class BookingRequest {
     public static class CreateBookingDTO {
         private Integer tripPlanId;
         private String lodgingName;
+        private String roomName;
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
         private Integer pricePerNight;
         private Integer taxAndServiceFee;
+        private String regionKey;
         private String location;
         private String imageUrl;
     }

@@ -35,14 +35,15 @@ public class BoardResponse {
             String plainText = Jsoup.parse(board.getContent()).text();
             String summary = plainText.substring(0, Math.min(80, plainText.length()));
             LocalDateTime createdAt = board.getCreatedAt();
+            BoardCategory category = board.getCategory();
 
             return SummaryDTO.builder()
                     .id(board.getId())
                     .title(board.getTitle())
                     .username(board.getUser().getUsername())
-                    .category(board.getCategory())
-                    .categoryLabel(toCategoryLabel(board.getCategory()))
-                    .categoryClass(toCategoryClass(board.getCategory()))
+                    .category(category.getCode())
+                    .categoryLabel(category.getLabel())
+                    .categoryClass(category.getCssClass())
                     .viewCount(board.getViewCount())
                     .likeCount(likeCount)
                     .replyCount(board.getReplies().size())
@@ -211,14 +212,15 @@ public class BoardResponse {
                 boolean isOwner,
                 boolean isAdmin) {
             LocalDateTime createdAt = board.getCreatedAt();
+            BoardCategory category = board.getCategory();
 
             return DetailDTO.builder()
                     .id(board.getId())
                     .title(board.getTitle())
                     .content(board.getContent())
-                    .category(board.getCategory())
-                    .categoryLabel(toCategoryLabel(board.getCategory()))
-                    .categoryClass(toCategoryClass(board.getCategory()))
+                    .category(category.getCode())
+                    .categoryLabel(category.getLabel())
+                    .categoryClass(category.getCssClass())
                     .username(board.getUser().getUsername())
                     .viewCount(board.getViewCount())
                     .replyCount(replies.size())
@@ -266,7 +268,7 @@ public class BoardResponse {
         public static FormDTO fromBoard(Board board) {
             return createForm(
                     board.getId(),
-                    board.getCategory(),
+                    board.getCategoryCode(),
                     board.getTitle(),
                     board.getContent(),
                     null,
@@ -329,44 +331,14 @@ public class BoardResponse {
         return dateTime.format(DATE_TIME_FORMATTER);
     }
 
-    private static String toCategoryLabel(String category) {
-        if (category == null) {
-            return "";
-        }
-
-        return switch (category) {
-            case "tips" -> "여행 팁";
-            case "plan" -> "여행 계획";
-            case "food" -> "맛집/카페";
-            case "review" -> "숙소 후기";
-            case "qna" -> "질문/답변";
-            default -> category;
-        };
-    }
-
-    private static String toCategoryClass(String category) {
-        if (category == null) {
-            return "";
-        }
-
-        return switch (category) {
-            case "tips" -> "cat-tips";
-            case "plan" -> "cat-plan";
-            case "food" -> "cat-food";
-            case "review" -> "cat-review";
-            case "qna" -> "cat-qna";
-            default -> "";
-        };
-    }
-
     private static String toSortLabel(String sort) {
         return switch (sort) {
-            case "likes" -> "좋아요순 ↑";
-            case "downlikes" -> "좋아요순 ↓";
-            case "view" -> "조회순 ↑";
-            case "downview" -> "조회순 ↓";
-            case "date" -> "날짜순 ↓";
-            default -> "날짜순 ↑";
+            case "likes" -> "좋아요 많은 순";
+            case "downlikes" -> "좋아요 적은 순";
+            case "view" -> "조회수 많은 순";
+            case "downview" -> "조회수 적은 순";
+            case "date" -> "날짜 오래된 순";
+            default -> "날짜 최신 순";
         };
     }
 

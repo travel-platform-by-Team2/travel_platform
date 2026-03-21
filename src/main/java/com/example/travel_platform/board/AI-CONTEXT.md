@@ -33,8 +33,10 @@
 - 상세/작성/수정 화면은 `model` 단건 DTO만 사용한다.
 - Entity를 직접 외부로 반환하지 않고 `BoardResponse` DTO로 변환해서 반환한다.
 - `BoardResponse` 정적 팩토리 메서드는 `fromBoard`, `fromCreateRequest`, `createListView`처럼 역할이 드러나는 이름을 유지한다.
+- `Board.category`는 `BoardCategory` enum을 사용하고, DB 저장은 `BoardCategoryConverter`가 문자열 코드로 처리한다.
 - `BoardRepository`는 command 중심, `BoardQueryRepository`는 검색/통계/목록 중심으로 역할을 분리한다.
 - 좋아요 bulk 삭제와 목록 좋아요 집계는 `BoardLikeRepository`가 담당한다.
+- 좋아요 수 단일 기준은 `board_like_tb` 집계다. `Board` 엔티티에 별도 `likeCount` 컬럼을 두지 않는다.
 - 좋아요 API는 `/api/boards/{boardId}/likes/toggle` 경로와 `Resp.ok(...)` 응답 패턴을 사용한다.
 - 템플릿 계약이 바뀌면 `BoardControllerTest`, `BoardTemplateContractTest`를 함께 확인한다.
 
@@ -56,7 +58,9 @@
 - `BoardApiControllerTest`
   - 좋아요 JSON 응답과 로그인 필요 예외를 확인한다.
 - `BoardServiceTest`
-  - 목록 검색, 상세 DTO, 권한 플래그, 좋아요 토글 흐름을 확인한다.
+  - 목록 검색, 상세 DTO, 권한 플래그, enum category 해석, 좋아요 토글 흐름을 확인한다.
+- `BoardCategoryTest`
+  - category 코드와 enum 매핑을 확인한다.
 - `BoardTemplateContractTest`
   - `board-*` 템플릿이 `model/models` 계약을 따르는지 확인한다.
 

@@ -21,9 +21,7 @@
           <div class="admin-page-header">
             <div>
               <h1 class="admin-page-title">게시글 관리</h1>
-              <p class="admin-page-subtitle">
-                커뮤니티의 모든 게시글을 관리하고 모니터링하는 관리자 화면입니다.
-              </p>
+              <p class="admin-page-subtitle">커뮤니티 게시글을 검색하고 카테고리와 정렬 기준으로 관리할 수 있습니다.</p>
             </div>
           </div>
 
@@ -49,41 +47,36 @@
 
               <div class="admin-board-hero__tab-row">
                 <div class="admin-board-hero__tabs admin-tab-shell" aria-label="게시글 카테고리 필터">
-                <a href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-all {{#model.allCategoryTab}}is-active-tab{{/model.allCategoryTab}}"
-                   style="flex:1 1 0; min-width:120px; text-align:center;">
-                   전체
-                 </a>
-
-                <a href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-tips {{#model.isTips}}is-active-tab{{/model.isTips}}"
-                   style="flex:1 1 0; min-width:120px; text-align:center;">
-                  여행 팁
-                </a>
-
-                <a href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-plan {{#model.isPlan}}is-active-tab{{/model.isPlan}}"
-                   style="flex:1 1 0; min-width:120px; text-align:center;">
-                  여행 계획
-                </a>
-
-                <a href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-food {{#model.isFood}}is-active-tab{{/model.isFood}}"
-                   style="flex:1 1 0; min-width:120px; text-align:center;">
-                  맛집/카페
-                </a>
-
-                <a href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-review {{#model.isReview}}is-active-tab{{/model.isReview}}"
-                   style="flex:1 1 0; min-width:120px; text-align:center;">
-                  숙소 후기
-                </a>
-
-                <a href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                   class="admin-tab-button cat-qna {{#model.isQna}}is-active-tab{{/model.isQna}}"
-                   style="flex:1 1 0; min-width:120px; text-align:center;">
-                  질문/답변
-                </a>
+                  <a href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                     class="admin-tab-button cat-all {{#model.allCategoryTab}}is-active-tab{{/model.allCategoryTab}}"
+                     style="flex:1 1 0; min-width:120px; text-align:center;">
+                    전체
+                  </a>
+                  <a href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                     class="admin-tab-button cat-tips {{#model.isTips}}is-active-tab{{/model.isTips}}"
+                     style="flex:1 1 0; min-width:120px; text-align:center;">
+                    여행 팁
+                  </a>
+                  <a href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                     class="admin-tab-button cat-plan {{#model.isPlan}}is-active-tab{{/model.isPlan}}"
+                     style="flex:1 1 0; min-width:120px; text-align:center;">
+                    여행 계획
+                  </a>
+                  <a href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                     class="admin-tab-button cat-food {{#model.isFood}}is-active-tab{{/model.isFood}}"
+                     style="flex:1 1 0; min-width:120px; text-align:center;">
+                    맛집/카페
+                  </a>
+                  <a href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                     class="admin-tab-button cat-review {{#model.isReview}}is-active-tab{{/model.isReview}}"
+                     style="flex:1 1 0; min-width:120px; text-align:center;">
+                    숙소 후기
+                  </a>
+                  <a href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
+                     class="admin-tab-button cat-qna {{#model.isQna}}is-active-tab{{/model.isQna}}"
+                     style="flex:1 1 0; min-width:120px; text-align:center;">
+                    질문/답변
+                  </a>
                 </div>
               </div>
 
@@ -96,7 +89,7 @@
                     type="text"
                     name="keyword"
                     value="{{model.keyword}}"
-                    placeholder="게시글 검색..."
+                    placeholder="게시글 검색"
                     class="admin-board-search__input">
                   <button type="submit" class="admin-search-submit admin-board-search__submit">검색</button>
                 </form>
@@ -109,9 +102,9 @@
                     </summary>
                     <div class="community-sort-menu admin-board-sort-menu">
                       <a class="community-sort-option"
-                         href="/admin/boards?sort={{model.viewField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순</a>
+                         href="/admin/boards?sort={{model.viewField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수</a>
                       <a class="community-sort-option"
-                         href="/admin/boards?sort={{model.likesField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순</a>
+                         href="/admin/boards?sort={{model.likesField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요수</a>
                       <a class="community-sort-option"
                          href="/admin/boards?sort={{model.dateField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순</a>
                     </div>

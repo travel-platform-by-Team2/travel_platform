@@ -15,12 +15,13 @@ public class ChatSchemaProvider {
                     "user_id",
                     "trip_plan_id",
                     "lodging_name",
+                    "room_name",
                     "check_in",
                     "check_out",
                     "guest_count",
                     "price_per_night",
                     "tax_and_service_fee",
-                    "location",
+                    "region_key",
                     "image_url",
                     "created_at"
                   ]
@@ -31,7 +32,7 @@ public class ChatSchemaProvider {
                 },
                 {
                   "name": "board_tb",
-                  "columns": ["id", "user_id", "title", "category", "content", "view_count", "like_count", "created_at"]
+                  "columns": ["id", "user_id", "title", "category", "content", "view_count", "created_at"]
                 },
                 {
                   "name": "trip_plan_tb",
@@ -39,7 +40,7 @@ public class ChatSchemaProvider {
                 },
                 {
                   "name": "trip_place_tb",
-                  "columns": ["id", "trip_plan_id", "place_name", "address", "latitude", "longitude", "day_order"]
+                  "columns": ["id", "trip_plan_id", "place_name", "address", "latitude", "longitude", "trip_day"]
                 }
               ]
             }

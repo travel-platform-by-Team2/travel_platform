@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.travel_platform.trip.TripRegion;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +31,8 @@ public class BookingResponse {
         private String lodgingName;
         private String roomName;
         private String address;
+        private String regionKey;
+        private String regionLabel;
         private String imageUrl;
         private String checkIn;
         private String checkOut;
@@ -49,6 +53,8 @@ public class BookingResponse {
                 String lodgingName,
                 String roomName,
                 String address,
+                String regionKey,
+                String regionLabel,
                 String imageUrl,
                 String checkIn,
                 String checkOut,
@@ -65,6 +71,8 @@ public class BookingResponse {
                     .lodgingName(defaultText(lodgingName, "숙소"))
                     .roomName(defaultText(roomName, "기본 객실"))
                     .address(defaultText(address, "주소 정보 없음"))
+                    .regionKey(defaultText(regionKey, BookVar.DEFAULT_REGION_KEY))
+                    .regionLabel(defaultText(regionLabel, BookVar.DEFAULT_LOCATION_NAME))
                     .imageUrl(normalize(imageUrl))
                     .checkIn(normalize(checkIn))
                     .checkOut(normalize(checkOut))
@@ -132,11 +140,27 @@ public class BookingResponse {
     public static class BookingSummaryDTO {
         private Integer id;
         private String lodgingName;
+        private String roomName;
+        private String regionKey;
+        private String location;
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer pricePerNight;
         private Integer taxAndServiceFee;
-        private String location;
+
+        public static BookingSummaryDTO fromBooking(Booking booking) {
+            return BookingSummaryDTO.builder()
+                    .id(booking.getId())
+                    .lodgingName(defaultText(booking.getLodgingName(), "숙소"))
+                    .roomName(defaultText(booking.getRoomName(), BookVar.DEFAULT_ROOM_NAME))
+                    .regionKey(defaultText(booking.getRegionKey(), BookVar.DEFAULT_REGION_KEY))
+                    .location(defaultText(booking.getLocation(), BookVar.DEFAULT_LOCATION_NAME))
+                    .checkIn(booking.getCheckIn())
+                    .checkOut(booking.getCheckOut())
+                    .pricePerNight(booking.getPricePerNight())
+                    .taxAndServiceFee(booking.getTaxAndServiceFee())
+                    .build();
+        }
     }
 
     @Data
@@ -145,13 +169,32 @@ public class BookingResponse {
         private Integer id;
         private Integer tripPlanId;
         private String lodgingName;
+        private String roomName;
+        private String regionKey;
+        private String location;
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
         private Integer pricePerNight;
         private Integer taxAndServiceFee;
-        private String location;
         private LocalDateTime createdAt;
+
+        public static BookingDetailDTO fromBooking(Booking booking) {
+            return BookingDetailDTO.builder()
+                    .id(booking.getId())
+                    .tripPlanId(booking.getTripPlan() == null ? null : booking.getTripPlan().getId())
+                    .lodgingName(defaultText(booking.getLodgingName(), "숙소"))
+                    .roomName(defaultText(booking.getRoomName(), BookVar.DEFAULT_ROOM_NAME))
+                    .regionKey(defaultText(booking.getRegionKey(), BookVar.DEFAULT_REGION_KEY))
+                    .location(defaultText(booking.getLocation(), BookVar.DEFAULT_LOCATION_NAME))
+                    .checkIn(booking.getCheckIn())
+                    .checkOut(booking.getCheckOut())
+                    .guestCount(booking.getGuestCount())
+                    .pricePerNight(booking.getPricePerNight())
+                    .taxAndServiceFee(booking.getTaxAndServiceFee())
+                    .createdAt(booking.getCreatedAt())
+                    .build();
+        }
     }
 
     @Data
@@ -232,6 +275,14 @@ public class BookingResponse {
             return defaultValue;
         }
         return value;
+    }
+
+    public static String resolveLocationLabel(String regionKey) {
+        TripRegion region = TripRegion.fromCodeOrNull(regionKey);
+        if (region == null) {
+            return BookVar.DEFAULT_LOCATION_NAME;
+        }
+        return region.getLabel();
     }
 
     private static String formatWon(long value) {

@@ -25,6 +25,7 @@
 - `ReplyApiController`는 `/api/boards/{boardId}/replies`, `/api/boards/{boardId}/replies/{replyId}` 경로를 사용한다.
 - 고정된 API 응답 스키마는 `ReplyResponse` DTO와 `Resp.ok(...)`로 반환한다.
 - `ReplyResponse` 정적 팩토리 메서드는 `fromReply`처럼 변환 대상이 드러나는 이름을 유지한다.
+- 상위 게시글의 좋아요 수와 카테고리 구조는 `BoardCategory` enum + `board_like_tb` 집계 기준을 따른다.
 - 댓글 수정/삭제 권한은 게시글 owner/admin 정책과 다르게 댓글 작성자 본인만 허용한다.
 - `ReplyService`는 `findEditableReply(...)` 기준으로 `조회 -> boardId 매칭 -> 권한 검증` 순서가 보이게 유지한다.
 

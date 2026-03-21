@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception403;
+import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.trip.TripPlanQueryRepository;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserQueryRepository;
 
@@ -22,6 +24,7 @@ public class CalendarService {
 
     private final CalendarRepository calendarRepository;
     private final CalendarQueryRepository calendarQueryRepository;
+    private final TripPlanQueryRepository tripPlanQueryRepository;
     private final UserQueryRepository userQueryRepository;
 
     @Transactional
@@ -30,7 +33,7 @@ public class CalendarService {
 
         User user = findUser(userId);
         CalendarEvent savedEvent = calendarRepository.save(buildCreatedEvent(user, reqDTO));
-        return CalendarResponse.EventDTO.fromEvent(savedEvent);
+        return CalendarResponse.EventDTO.fromCalendarEvent(savedEvent);
     }
 
     @Transactional
@@ -43,7 +46,7 @@ public class CalendarService {
         applyEventChanges(event, reqDTO);
 
         CalendarEvent updatedEvent = calendarRepository.update(event);
-        return CalendarResponse.EventDTO.fromEvent(updatedEvent);
+        return CalendarResponse.EventDTO.fromCalendarEvent(updatedEvent);
     }
 
     @Transactional
@@ -60,7 +63,7 @@ public class CalendarService {
         List<CalendarEvent> events = calendarQueryRepository.findEventList(sessionUserId, startDate, endDate);
 
         return events.stream()
-                .map(CalendarResponse.EventDTO::fromEvent)
+                .map(CalendarResponse.EventDTO::fromCalendarEvent)
                 .toList();
     }
 
@@ -97,10 +100,11 @@ public class CalendarService {
     private CalendarEvent buildCreatedEvent(User user, CalendarRequest.CreateEventDTO reqDTO) {
         CalendarEvent event = new CalendarEvent();
         event.setUser(user);
+        event.setTripPlan(findTripPlan(reqDTO.getTripPlanId()));
         event.setTitle(reqDTO.getTitle());
         event.setStartAt(reqDTO.getStartAt());
         event.setEndAt(reqDTO.getEndAt());
-        event.setEventType(reqDTO.getEventType());
+        event.setEventType(resolveEventType(reqDTO.getEventType()));
         event.setMemo(reqDTO.getMemo());
         return event;
     }
@@ -121,8 +125,26 @@ public class CalendarService {
         event.setTitle(reqDTO.getTitle());
         event.setStartAt(reqDTO.getStartAt());
         event.setEndAt(reqDTO.getEndAt());
-        event.setEventType(reqDTO.getEventType());
+        event.setEventType(resolveEventType(reqDTO.getEventType()));
         event.setMemo(reqDTO.getMemo());
+    }
+
+    private TripPlan findTripPlan(Integer tripPlanId) {
+        if (tripPlanId == null) {
+            return null;
+        }
+        return tripPlanQueryRepository.findPlan(tripPlanId).orElse(null);
+    }
+
+    private CalendarEventType resolveEventType(String eventTypeCode) {
+        String safeEventTypeCode = eventTypeCode == null || eventTypeCode.isBlank()
+                ? CalendarEventType.TRIP.getCode()
+                : eventTypeCode;
+        try {
+            return CalendarEventType.fromCode(safeEventTypeCode);
+        } catch (IllegalArgumentException e) {
+            throw new Exception400("지원하지 않는 일정 타입입니다.");
+        }
     }
 
     private List<CalendarResponse.DayNodeDTO> buildPlaceholderDayNodeList(

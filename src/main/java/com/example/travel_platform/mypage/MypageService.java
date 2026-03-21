@@ -8,9 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
-import com.example.travel_platform.booking.Booking;
-import com.example.travel_platform.trip.TripPlan;
-import com.example.travel_platform.trip.TripPlanQueryRepository;
+import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserQueryRepository;
 
@@ -26,18 +24,19 @@ public class MypageService {
 
     private final UserQueryRepository userQueryRepository;
     private final MypageBookingQueryRepository mypageBookingQueryRepository;
-    private final TripPlanQueryRepository tripPlanQueryRepository;
+    private final MypageTripPlanQueryRepository mypageTripPlanQueryRepository;
 
-    public MypageResponse.PageDTO getMainPage(Integer sessionUserId) {
+    public MypageResponse.MainPageDTO getMainPage(Integer sessionUserId) {
         User user = findUser(sessionUserId);
-        List<MypageResponse.BookingCardDTO> bookings = loadUpcomingBookings(sessionUserId);
-        List<MypageResponse.PlanCardDTO> tripPlans = loadUpcomingTripPlans(sessionUserId);
+        List<MypageResponse.BookingSummaryCardDTO> bookings = loadUpcomingBookings(sessionUserId);
+        List<MypageResponse.TripPlanSummaryCardDTO> tripPlans = loadUpcomingTripPlans(sessionUserId);
         return createMainPage(user, bookings, tripPlans);
     }
 
-    public MypageResponse.BookingDetailPageDTO getBookingDetailPage(Integer sessionUserId, Integer bookingId) {
+    public MypageResponse.BookingDetailPlaceholderPageDTO getBookingDetailPage(Integer sessionUserId, Integer bookingId) {
         findUser(sessionUserId);
-        return MypageResponse.BookingDetailPageDTO.createBookingDetailPage(bookingId);
+        requireOwnedBooking(sessionUserId, bookingId);
+        return MypageResponse.BookingDetailPlaceholderPageDTO.createBookingDetailPlaceholderPage(bookingId);
     }
 
     @Transactional
@@ -54,51 +53,71 @@ public class MypageService {
         user.changePassword(newPassword);
     }
 
-    private List<MypageResponse.BookingCardDTO> loadUpcomingBookings(Integer sessionUserId) {
-        return findUpcomingBookings(sessionUserId).stream()
-                .map(MypageResponse.BookingCardDTO::fromBooking)
+    private List<MypageResponse.BookingSummaryCardDTO> loadUpcomingBookings(Integer sessionUserId) {
+        return mypageBookingQueryRepository.findUpcomingBookingSummaryRows(
+                sessionUserId,
+                LocalDate.now(),
+                UPCOMING_BOOKING_LIMIT).stream()
+                .map(this::createBookingSummaryCard)
                 .collect(Collectors.toList());
     }
 
-    private List<MypageResponse.PlanCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
-        return findUpcomingTripPlans(sessionUserId).stream()
-                .map(MypageResponse.PlanCardDTO::fromTripPlan)
+    private List<MypageResponse.TripPlanSummaryCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
+        return mypageTripPlanQueryRepository.findUpcomingTripPlanSummaryRows(
+                sessionUserId,
+                LocalDate.now().minusDays(1),
+                UPCOMING_TRIP_PLAN_LIMIT).stream()
+                .map(this::createTripPlanSummaryCard)
                 .collect(Collectors.toList());
     }
 
-    private MypageResponse.PageDTO createMainPage(
+    private MypageResponse.MainPageDTO createMainPage(
             User user,
-            List<MypageResponse.BookingCardDTO> bookings,
-            List<MypageResponse.PlanCardDTO> tripPlans) {
-        return MypageResponse.PageDTO.createMainPage(MypageResponse.ProfileDTO.fromUser(user), bookings, tripPlans);
+            List<MypageResponse.BookingSummaryCardDTO> bookings,
+            List<MypageResponse.TripPlanSummaryCardDTO> tripPlans) {
+        return MypageResponse.MainPageDTO.createMainPage(
+                MypageResponse.ProfileViewDTO.fromUserEntity(user),
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(bookings),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(tripPlans));
     }
 
-    private List<Booking> findUpcomingBookings(Integer sessionUserId) {
-        return mypageBookingQueryRepository.findUpcomingBookings(sessionUserId, LocalDate.now(), UPCOMING_BOOKING_LIMIT);
+    private MypageResponse.BookingSummaryCardDTO createBookingSummaryCard(MypageBookingSummaryRow row) {
+        return MypageResponse.BookingSummaryCardDTO.createBookingSummaryCard(
+                row.bookingId(),
+                row.lodgingName(),
+                row.checkIn(),
+                row.checkOut());
     }
 
-    private List<TripPlan> findUpcomingTripPlans(Integer sessionUserId) {
-        LocalDate inclusiveToday = LocalDate.now().minusDays(1);
+    private MypageResponse.TripPlanSummaryCardDTO createTripPlanSummaryCard(MypageTripPlanSummaryRow row) {
+        return MypageResponse.TripPlanSummaryCardDTO.createTripPlanSummaryCard(
+                row.planId(),
+                row.title(),
+                row.startDate(),
+                row.endDate());
+    }
 
-        // 조회 조건이 startDate > 기준일이므로 오늘 출발 계획도 포함되게 하루를 보정한다.
-        return tripPlanQueryRepository.findUpcomingPlanList(sessionUserId, inclusiveToday, 0, UPCOMING_TRIP_PLAN_LIMIT);
+    private void requireOwnedBooking(Integer sessionUserId, Integer bookingId) {
+        if (!mypageBookingQueryRepository.existsOwnedBooking(sessionUserId, bookingId)) {
+            throw new Exception404("예약 정보를 찾을 수 없습니다.");
+        }
     }
 
     private void validateCurrentPassword(User user, String currentPassword) {
         if (!normalize(user.getPassword()).equals(currentPassword)) {
-            throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
+            throw new Exception400("?꾩옱 鍮꾨?踰덊샇媛 ?쇱튂?섏? ?딆뒿?덈떎.");
         }
     }
 
     private void validateNewPasswordConfirm(String newPassword, String newPasswordConfirm) {
         if (!newPassword.equals(newPasswordConfirm)) {
-            throw new Exception400("새 비밀번호와 확인값이 일치하지 않습니다.");
+            throw new Exception400("??鍮꾨?踰덊샇? ?뺤씤媛믪씠 ?쇱튂?섏? ?딆뒿?덈떎.");
         }
     }
 
     private User findUser(Integer sessionUserId) {
         return userQueryRepository.findUser(sessionUserId)
-                .orElseThrow(() -> new Exception400("사용자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new Exception400("?ъ슜???뺣낫瑜?李얠쓣 ???놁뒿?덈떎."));
     }
 
     private String normalize(String value) {

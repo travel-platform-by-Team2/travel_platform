@@ -57,7 +57,7 @@ public class BoardQueryRepository {
                 .getResultList();
     }
 
-    public List<Board> findAllPagingByCategory(String category, String sort, int offset, int size) {
+    public List<Board> findAllPagingByCategory(BoardCategory category, String sort, int offset, int size) {
         String jpql = """
                 select b
                 from Board b
@@ -83,7 +83,7 @@ public class BoardQueryRepository {
                 .getResultList();
     }
 
-    public long countByCategory(String category) {
+    public long countByCategory(BoardCategory category) {
         return em.createQuery("""
                 select count(b)
                 from Board b
@@ -114,11 +114,11 @@ public class BoardQueryRepository {
         return boardCounts;
     }
 
-    public List<Board> search(String category, String[] words, String sort, int offset, int size) {
+    public List<Board> search(BoardCategory category, String[] words, String sort, int offset, int size) {
         StringBuilder jpql = new StringBuilder();
         jpql.append("select b from Board b where 1=1 ");
 
-        boolean hasCategory = category != null && !category.isBlank();
+        boolean hasCategory = category != null;
         if (hasCategory) {
             jpql.append("and b.category = :category ");
         }
@@ -148,11 +148,11 @@ public class BoardQueryRepository {
                 .getResultList();
     }
 
-    public long countSearch(String category, String[] words) {
+    public long countSearch(BoardCategory category, String[] words) {
         StringBuilder jpql = new StringBuilder();
         jpql.append("select count(b) from Board b where 1=1 ");
 
-        boolean hasCategory = category != null && !category.isBlank();
+        boolean hasCategory = category != null;
         if (hasCategory) {
             jpql.append("and b.category = :category ");
         }

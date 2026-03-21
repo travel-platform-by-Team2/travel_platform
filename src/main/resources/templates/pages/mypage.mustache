@@ -23,8 +23,8 @@
     <div class="mypage-screen__inner">
       <section class="mypage-summary-card">
         <div class="mypage-summary-card__body">
-          <h1 class="mypage-summary-card__name">{{model.user.username}}</h1>
-          <p class="mypage-summary-card__email">{{model.user.email}}</p>
+          <h1 class="mypage-summary-card__name">{{model.profile.username}}</h1>
+          <p class="mypage-summary-card__email">{{model.profile.email}}</p>
         </div>
       </section>
 
@@ -33,9 +33,9 @@
           <h2 class="mypage-section__title">예약된 일정</h2>
         </div>
 
-        {{#model.hasBookings}}
+        {{#model.bookingSection.hasItems}}
         <div class="mypage-reservation-list">
-          {{#model.bookings}}
+          {{#model.bookingSection.items}}
           <article class="mypage-reservation-card">
             <div class="mypage-reservation-card__top">
               <div class="mypage-reservation-card__text">
@@ -48,16 +48,16 @@
             </div>
             <a class="mypage-primary-button" href="{{detailLink}}">상세 보기</a>
           </article>
-          {{/model.bookings}}
+          {{/model.bookingSection.items}}
         </div>
-        {{/model.hasBookings}}
+        {{/model.bookingSection.hasItems}}
 
-        {{^model.hasBookings}}
+        {{^model.bookingSection.hasItems}}
         <div class="mypage-empty-state">
           <span class="material-symbols-outlined">event_busy</span>
           <p>예정된 예약이 없습니다.</p>
         </div>
-        {{/model.hasBookings}}
+        {{/model.bookingSection.hasItems}}
       </section>
 
       <section class="mypage-section">
@@ -69,9 +69,9 @@
           </a>
         </div>
 
-        {{#model.hasTripPlans}}
+        {{#model.tripPlanSection.hasItems}}
         <div class="mypage-plan-grid">
-          {{#model.tripPlans}}
+          {{#model.tripPlanSection.items}}
           <article class="mypage-plan-card">
             <div class="mypage-plan-card__top">
               <div class="mypage-plan-card__text">
@@ -84,16 +84,16 @@
             </div>
             <a class="mypage-secondary-button" href="{{detailLink}}">상세 보기</a>
           </article>
-          {{/model.tripPlans}}
+          {{/model.tripPlanSection.items}}
         </div>
-        {{/model.hasTripPlans}}
+        {{/model.tripPlanSection.hasItems}}
 
-        {{^model.hasTripPlans}}
+        {{^model.tripPlanSection.hasItems}}
         <div class="mypage-empty-state">
           <span class="material-symbols-outlined">travel_explore</span>
           <p>다가오는 여행 계획이 없습니다.</p>
         </div>
-        {{/model.hasTripPlans}}
+        {{/model.tripPlanSection.hasItems}}
       </section>
 
       <section class="mypage-section mypage-section--account">
@@ -121,7 +121,7 @@
             </div>
             <span class="material-symbols-outlined">chevron_right</span>
           </a>
-          {{#model.user.withdrawAllowed}}
+          {{#model.profile.withdrawAllowed}}
           <button
             class="mypage-account-row mypage-account-row--danger"
             type="button"
@@ -135,7 +135,7 @@
             </div>
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
-          {{/model.user.withdrawAllowed}}
+          {{/model.profile.withdrawAllowed}}
         </div>
       </section>
     </div>

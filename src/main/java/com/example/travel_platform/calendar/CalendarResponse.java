@@ -32,14 +32,14 @@ public class CalendarResponse {
         private String eventType;
         private String memo;
 
-        public static EventDTO fromEvent(CalendarEvent event) {
+        public static EventDTO fromCalendarEvent(CalendarEvent event) {
             return EventDTO.builder()
                     .id(event.getId())
                     .tripPlanId(event.getTripPlan() == null ? null : event.getTripPlan().getId())
                     .title(event.getTitle())
                     .startAt(event.getStartAt())
                     .endAt(event.getEndAt())
-                    .eventType(event.getEventType())
+                    .eventType(event.getEventTypeCode())
                     .memo(event.getMemo())
                     .build();
         }

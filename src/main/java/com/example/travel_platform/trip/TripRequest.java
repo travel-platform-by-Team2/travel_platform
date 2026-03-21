@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,9 +20,11 @@ public class TripRequest {
         private String title;
 
         @NotBlank(message = "누구와 함께 가는 여행인지 선택해주세요.")
+        @Pattern(regexp = "solo|friend|family|couple", message = "유효한 동행 유형을 선택해주세요.")
         private String whoWith;
 
         @NotBlank(message = "여행 지역을 선택해주세요.")
+        @Pattern(regexp = "seoul|busan|daegu|incheon|gwangju|daejeon|ulsan|sejong|gyeonggi|gangwon|chungbuk|chungnam|jeonbuk|jeonnam|gyeongbuk|gyeongnam|jeju", message = "유효한 여행 지역을 선택해주세요.")
         private String region;
 
         @NotNull(message = "여행 시작일을 선택해주세요.")

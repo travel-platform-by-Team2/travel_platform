@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 public class TripService {
 
     private static final int PLAN_PAGE_SIZE = 9;
-    private static final String DEFAULT_IMAGE_URL = "/images/dumimg.jpg";
     private static final String DEFAULT_CATEGORY = "result";
 
     private final TripRepository tripRepository;
@@ -94,21 +93,22 @@ public class TripService {
         return TripPlan.create(
                 user,
                 reqDTO.getTitle(),
-                reqDTO.getRegion(),
-                reqDTO.getWhoWith(),
+                resolveTripRegion(reqDTO.getRegion()),
+                resolveCompanionType(reqDTO.getWhoWith()),
                 reqDTO.getStartDate(),
                 reqDTO.getEndDate(),
-                DEFAULT_IMAGE_URL);
+                null);
     }
 
     private TripPlace createTripPlace(TripPlan tripPlan, TripRequest.AddPlaceDTO reqDTO) {
+        Integer tripDay = reqDTO.getDayOrder();
         return TripPlace.create(
                 tripPlan,
                 reqDTO.getPlaceName(),
                 reqDTO.getAddress(),
                 reqDTO.getLatitude(),
                 reqDTO.getLongitude(),
-                reqDTO.getDayOrder());
+                tripDay);
     }
 
     private PlanListQuery createPlanListQuery(Integer userId, String category, int page) {
@@ -161,9 +161,9 @@ public class TripService {
     }
 
     private int compareTripPlaces(TripPlace left, TripPlace right) {
-        int dayOrderCompare = compareNullableInteger(left.getDayOrder(), right.getDayOrder());
-        if (dayOrderCompare != 0) {
-            return dayOrderCompare;
+        int tripDayCompare = compareNullableInteger(left.getTripDay(), right.getTripDay());
+        if (tripDayCompare != 0) {
+            return tripDayCompare;
         }
         return compareNullableInteger(left.getId(), right.getId());
     }
@@ -194,6 +194,22 @@ public class TripService {
         if (dayOrder == null || dayOrder < 1) {
             throw new Exception400("여행 일차 정보가 올바르지 않습니다.");
         }
+    }
+
+    private TripRegion resolveTripRegion(String regionCode) {
+        TripRegion tripRegion = TripRegion.fromCodeOrNull(regionCode);
+        if (tripRegion == null) {
+            throw new Exception400("유효한 여행 지역을 선택해주세요.");
+        }
+        return tripRegion;
+    }
+
+    private TripCompanionType resolveCompanionType(String whoWithCode) {
+        TripCompanionType companionType = TripCompanionType.fromCodeOrNull(whoWithCode);
+        if (companionType == null) {
+            throw new Exception400("유효한 동행 유형을 선택해주세요.");
+        }
+        return companionType;
     }
 
     private TripPlan findOwnedPlan(Integer sessionUserId, Integer planId) {

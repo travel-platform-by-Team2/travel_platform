@@ -73,19 +73,19 @@
   <div class="col-span-2-md-1">
   <label class="block-title">누구와 함께 가나요?</label>
   <div class="trip-plan-create-div-04">
-  <button class="feature-tile" type="button">
+  <button class="feature-tile" type="button" data-who-with="solo">
   <span class="icon-ms-2xl-hover-scale">person</span>
   <span class="trip-plan-create-span-01">혼자</span>
   </button>
-  <button class="feature-tile" type="button">
+  <button class="feature-tile" type="button" data-who-with="friend">
   <span class="icon-ms-2xl-hover-scale">group</span>
   <span class="trip-plan-create-span-01">친구와</span>
   </button>
-  <button class="feature-tile" type="button">
+  <button class="feature-tile" type="button" data-who-with="family">
   <span class="icon-ms-2xl-hover-scale">family_restroom</span>
   <span class="trip-plan-create-span-01">가족과</span>
   </button>
-  <button class="feature-tile" type="button">
+  <button class="feature-tile" type="button" data-who-with="couple">
   <span class="icon-ms-2xl-hover-scale">favorite</span>
   <span class="trip-plan-create-span-01">연인과</span>
   </button>
@@ -185,7 +185,7 @@
       e.preventDefault();
       highlightWhoWithButton(this);
 
-      const selection = this.querySelector('span:last-child').innerText;
+      const selection = this.dataset.whoWith || '';
       whoWithInput.value = selection;
     });
   });
@@ -196,8 +196,7 @@
 
   if (whoWithInput && whoWithInput.value) {
     const initialButton = Array.from(whoWithButtons).find(button => {
-      const label = button.querySelector('span:last-child');
-      return label && label.innerText.trim() === whoWithInput.value;
+      return button.dataset.whoWith === whoWithInput.value;
     });
 
     if (initialButton) {

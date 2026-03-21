@@ -95,7 +95,7 @@ public class MypageController {
         return renderMainPage(model, mypageService.getMainPage(sessionUserId).openWithdrawModal(errorMessage));
     }
 
-    private String renderMainPage(Model model, MypageResponse.PageDTO page) {
+    private String renderMainPage(Model model, MypageResponse.MainPageDTO page) {
         model.addAttribute(MODEL, page);
         return MAIN_PAGE_VIEW;
     }

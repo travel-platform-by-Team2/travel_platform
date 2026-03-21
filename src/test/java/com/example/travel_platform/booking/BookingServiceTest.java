@@ -74,12 +74,14 @@ class BookingServiceTest {
         Booking booking = captor.getValue();
         assertSame(user, booking.getUser());
         assertSame(plan, booking.getTripPlan());
-        assertEquals("시그니엘 부산 (디럭스 룸)", booking.getLodgingName());
+        assertEquals("시그니엘 부산", booking.getLodgingName());
+        assertEquals("디럭스 룸", booking.getRoomName());
         assertEquals(LocalDate.of(2026, 4, 10), booking.getCheckIn());
         assertEquals(LocalDate.of(2026, 4, 12), booking.getCheckOut());
         assertEquals(2, booking.getGuestCount());
         assertEquals(450000, booking.getPricePerNight());
         assertEquals(200000, booking.getTaxAndServiceFee());
+        assertEquals("busan", booking.getRegionKey());
         assertEquals("부산", booking.getLocation());
     }
 
@@ -139,6 +141,8 @@ class BookingServiceTest {
 
         Booking booking = bookingCaptor.getValue();
         assertSame(savedPlan, booking.getTripPlan());
+        assertEquals("프리미어 룸", booking.getRoomName());
+        assertEquals("seoul", booking.getRegionKey());
         assertEquals("서울", booking.getLocation());
         assertEquals(3, booking.getGuestCount());
     }
@@ -171,11 +175,13 @@ class BookingServiceTest {
         BookingRequest.CreateBookingDTO reqDTO = new BookingRequest.CreateBookingDTO();
         reqDTO.setTripPlanId(11);
         reqDTO.setLodgingName("제주 스테이");
+        reqDTO.setRoomName("오션 스위트");
         reqDTO.setCheckIn(LocalDate.of(2026, 7, 10));
         reqDTO.setCheckOut(LocalDate.of(2026, 7, 12));
         reqDTO.setGuestCount(2);
         reqDTO.setPricePerNight(300000);
         reqDTO.setTaxAndServiceFee(90000);
+        reqDTO.setRegionKey("jeju");
         reqDTO.setLocation("제주");
         reqDTO.setImageUrl("https://image.test/jeju.jpg");
 
@@ -191,7 +197,9 @@ class BookingServiceTest {
         assertSame(user, booking.getUser());
         assertSame(plan, booking.getTripPlan());
         assertEquals("제주 스테이", booking.getLodgingName());
+        assertEquals("오션 스위트", booking.getRoomName());
         assertEquals(2, booking.getGuestCount());
+        assertEquals("jeju", booking.getRegionKey());
         assertEquals("제주", booking.getLocation());
     }
 

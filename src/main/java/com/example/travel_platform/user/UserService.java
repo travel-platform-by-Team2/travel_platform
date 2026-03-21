@@ -47,7 +47,8 @@ public class UserService {
 
     @Transactional
     public SessionUser loginWithSns(String email, String username, String provider, String providerId) {
-        User user = findOrCreateSnsUser(email, username, provider, providerId);
+        UserAuthProvider providerType = resolveAuthProvider(provider);
+        User user = findOrCreateSnsUser(email, username, providerType, providerId);
         ensureActiveSnsUser(user);
         return createSessionUser(user);
     }
@@ -96,15 +97,15 @@ public class UserService {
         }
     }
 
-    private User findOrCreateSnsUser(String email, String username, String provider, String providerId) {
+    private User findOrCreateSnsUser(String email, String username, UserAuthProvider provider, String providerId) {
         return userQueryRepository.findSnsUser(email, provider)
                 .orElseGet(() -> userRepository.save(createSnsUser(email, username, provider, providerId)));
     }
 
-    private User createSnsUser(String email, String username, String provider, String providerId) {
-        String safeBaseName = (username == null || username.isBlank()) ? provider : username;
+    private User createSnsUser(String email, String username, UserAuthProvider provider, String providerId) {
+        String safeBaseName = (username == null || username.isBlank()) ? provider.getCode() : username;
         String suffix = providerId.length() > 4 ? providerId.substring(providerId.length() - 4) : providerId;
-        User user = User.createSNS(safeBaseName + "_" + suffix, email, provider, providerId);
+        User user = User.createSNS(safeBaseName + "_" + suffix, email, provider.getCode(), providerId);
         user.setActive(true);
         return user;
     }
@@ -116,7 +117,7 @@ public class UserService {
     }
 
     private SessionUser createSessionUser(User user) {
-        return SessionUser.fromUser(user);
+        return SessionUser.fromUserEntity(user);
     }
 
     private User findUser(Integer userId) {
@@ -159,5 +160,13 @@ public class UserService {
             return "";
         }
         return value;
+    }
+
+    private UserAuthProvider resolveAuthProvider(String providerCode) {
+        try {
+            return UserAuthProvider.fromCode(providerCode);
+        } catch (IllegalArgumentException e) {
+            throw new Exception400("지원하지 않는 SNS 제공자입니다.");
+        }
     }
 }

@@ -15,10 +15,11 @@ class MypageTemplateContractTest {
         String template = template("mypage.mustache");
 
         assertContains(template, "{{#model.passwordSuccessMessage}}");
-        assertContains(template, "{{#model.hasBookings}}");
-        assertContains(template, "{{^model.hasBookings}}");
-        assertContains(template, "{{#model.hasTripPlans}}");
-        assertContains(template, "{{^model.hasTripPlans}}");
+        assertContains(template, "{{model.profile.username}}");
+        assertContains(template, "{{#model.bookingSection.hasItems}}");
+        assertContains(template, "{{^model.bookingSection.hasItems}}");
+        assertContains(template, "{{#model.tripPlanSection.hasItems}}");
+        assertContains(template, "{{^model.tripPlanSection.hasItems}}");
         assertContains(template, "{{#model.passwordError}}");
         assertContains(template, "{{#model.withdrawError}}");
         assertContains(template, "{{^model.passwordModalOpen}}is-hidden{{/model.passwordModalOpen}}");

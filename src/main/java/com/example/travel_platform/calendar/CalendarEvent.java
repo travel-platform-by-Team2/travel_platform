@@ -6,6 +6,7 @@ import com.example.travel_platform.trip.TripPlan;
 import com.example.travel_platform.user.User;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -44,8 +45,9 @@ public class CalendarEvent {
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
+    @Convert(converter = CalendarEventTypeConverter.class)
     @Column(name = "event_type", nullable = false, length = 50)
-    private String eventType;
+    private CalendarEventType eventType;
 
     @Column(columnDefinition = "TEXT")
     private String memo;
@@ -55,5 +57,9 @@ public class CalendarEvent {
                 && user != null
                 && user.getId() != null
                 && user.getId().equals(userId);
+    }
+
+    public String getEventTypeCode() {
+        return eventType == null ? CalendarEventType.TRIP.getCode() : eventType.getCode();
     }
 }

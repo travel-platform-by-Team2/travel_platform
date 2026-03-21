@@ -21,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.trip.TripPlanQueryRepository;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserQueryRepository;
 
@@ -30,8 +31,13 @@ class CalendarServiceTest {
     void create() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
         User user = user(4);
         CalendarRequest.CreateEventDTO reqDTO = createReq();
 
@@ -50,6 +56,7 @@ class CalendarServiceTest {
         CalendarEvent saved = captor.getValue();
         assertSame(user, saved.getUser());
         assertEquals("제주 여행", saved.getTitle());
+        assertEquals(CalendarEventType.TRIP, saved.getEventType());
         assertEquals(11, response.getId());
         assertEquals("제주 여행", response.getTitle());
     }
@@ -58,15 +65,20 @@ class CalendarServiceTest {
     void updateUser() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
         User user = user(7);
         CalendarEvent event = new CalendarEvent();
         event.setId(21);
         event.setTitle("old");
         event.setStartAt(LocalDateTime.of(2026, 5, 1, 10, 0));
         event.setEndAt(LocalDateTime.of(2026, 5, 1, 11, 0));
-        event.setEventType("TRIP");
+        event.setEventType(CalendarEventType.TRIP);
         event.setMemo("old");
         CalendarRequest.UpdateEventDTO reqDTO = updateReq();
 
@@ -79,6 +91,7 @@ class CalendarServiceTest {
         verify(calendarRepository).update(event);
         assertSame(user, event.getUser());
         assertEquals("수정 일정", event.getTitle());
+        assertEquals(CalendarEventType.HOTEL, event.getEventType());
         assertEquals("수정 일정", response.getTitle());
     }
 
@@ -86,8 +99,13 @@ class CalendarServiceTest {
     void del() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
         CalendarEvent event = new CalendarEvent();
         event.setUser(user(9));
         event.setId(31);
@@ -104,8 +122,13 @@ class CalendarServiceTest {
     void range() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
         CalendarEvent event = new CalendarEvent();
         TripPlan tripPlan = TripPlan.create(
                 user(1),
@@ -121,7 +144,7 @@ class CalendarServiceTest {
         event.setTitle("제주 일정");
         event.setStartAt(LocalDateTime.of(2026, 4, 2, 10, 0));
         event.setEndAt(LocalDateTime.of(2026, 4, 2, 12, 0));
-        event.setEventType("TRIP");
+        event.setEventType(CalendarEventType.TRIP);
         event.setMemo("memo");
 
         when(calendarQueryRepository.findEventList(9, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30)))
@@ -141,28 +164,45 @@ class CalendarServiceTest {
     void monthPh() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
 
         assertEquals(List.of(), service.getDayNodeList(9, 2026, 4));
+        verifyNoInteractions(calendarRepository, calendarQueryRepository, tripPlanQueryRepository, userQueryRepository);
     }
 
     @Test
     void dayPh() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
 
         assertNull(service.getDayNode(9, LocalDate.of(2026, 4, 10)));
+        verifyNoInteractions(calendarRepository, calendarQueryRepository, tripPlanQueryRepository, userQueryRepository);
     }
 
     @Test
     void rangeErr() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
 
         assertThrows(
                 Exception400.class,
@@ -174,8 +214,13 @@ class CalendarServiceTest {
     void del403() {
         CalendarRepository calendarRepository = mock(CalendarRepository.class);
         CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(calendarRepository, calendarQueryRepository, userQueryRepository);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
         CalendarEvent event = new CalendarEvent();
         event.setId(51);
         event.setUser(user(3));
@@ -185,6 +230,40 @@ class CalendarServiceTest {
         Exception403 exception = assertThrows(Exception403.class, () -> service.deleteEvent(9, 51));
 
         assertEquals("본인 일정만 수정하거나 삭제할 수 있습니다.", exception.getMessage());
+    }
+
+    @Test
+    void createTripPlan() {
+        CalendarRepository calendarRepository = mock(CalendarRepository.class);
+        CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
+        CalendarService service = new CalendarService(
+                calendarRepository,
+                calendarQueryRepository,
+                tripPlanQueryRepository,
+                userQueryRepository);
+        User user = user(4);
+        TripPlan plan = TripPlan.create(
+                user,
+                "제주 여행",
+                "jeju",
+                null,
+                LocalDate.of(2026, 4, 10),
+                LocalDate.of(2026, 4, 12),
+                "");
+        plan.setId(77);
+        CalendarRequest.CreateEventDTO reqDTO = createReq();
+        reqDTO.setTripPlanId(77);
+
+        when(userQueryRepository.findUser(4)).thenReturn(Optional.of(user));
+        when(tripPlanQueryRepository.findPlan(77)).thenReturn(Optional.of(plan));
+        when(calendarRepository.save(org.mockito.ArgumentMatchers.any(CalendarEvent.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        CalendarResponse.EventDTO response = service.createEvent(4, reqDTO);
+
+        assertEquals(77, response.getTripPlanId());
     }
 
     private CalendarRequest.CreateEventDTO createReq() {

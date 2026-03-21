@@ -80,6 +80,7 @@ public class BookingController {
             @RequestParam(name = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
             @RequestParam(name = "roomName", required = false, defaultValue = "기본 객실") String roomName,
             @RequestParam(name = "region", required = false, defaultValue = "") String region,
+            @RequestParam(name = "regionKey", required = false, defaultValue = "") String regionKey,
             @RequestParam(name = "guests", required = false, defaultValue = "성인 2명") String guests,
             @RequestParam(name = "checkIn", required = false, defaultValue = "") String checkIn,
             @RequestParam(name = "checkOut", required = false, defaultValue = "") String checkOut,
@@ -89,8 +90,8 @@ public class BookingController {
             @RequestParam(name = "imageUrl", required = false) String imageUrl,
             Model model) {
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
-        String regionKey = normalizeRegionKey(safeRegion);
-        String locationName = extractLocationName(safeRegion);
+        String safeRegionKey = (regionKey == null || regionKey.isBlank()) ? normalizeRegionKey(safeRegion) : normalizeRegionKey(regionKey);
+        String locationName = toLocationName(safeRegionKey);
 
         SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
@@ -99,7 +100,7 @@ public class BookingController {
                     BookingRequest.CompleteBookingDTO.builder()
                             .lodgingName(lodgingName)
                             .roomName(roomName)
-                            .regionKey(regionKey)
+                            .regionKey(safeRegionKey)
                             .location(locationName)
                             .checkIn(checkIn)
                             .checkOut(checkOut)
@@ -114,20 +115,13 @@ public class BookingController {
                 buildCompletePage(
                         lodgingName,
                         roomName,
-                        safeRegion,
-                        regionKey,
+                        locationName,
+                        safeRegionKey,
                         guests,
                         checkIn,
                         checkOut,
                         totalPriceText,
                         imageUrl));
-    }
-
-    private String extractLocationName(String address) {
-        if (address == null || address.isBlank() || address.equals("지역 정보 없음")) {
-            return "부산";
-        }
-        return toLocationName(normalizeRegionKey(address));
     }
 
     private String calculateNightsLabel(String checkIn, String checkOut) {
@@ -281,12 +275,14 @@ public class BookingController {
             String guests,
             Integer roomPrice,
             Integer fee) {
-        int safeRoomPrice = resolveRoomPrice(roomPrice);
+            int safeRoomPrice = resolveRoomPrice(roomPrice);
         int safeFee = resolveFee(fee);
         long nights = calculateNights(checkIn, checkOut);
         long roomSubtotal = (long) safeRoomPrice * nights;
         long feeSubtotal = (long) safeFee * nights;
         long totalPrice = roomSubtotal + feeSubtotal;
+        String regionKey = normalizeRegionKey(address);
+        String regionLabel = toLocationName(regionKey);
         User booker = resolveBooker();
         SessionUser sessionUser = resolveSessionUser();
 
@@ -294,6 +290,8 @@ public class BookingController {
                 lodgingName,
                 roomName,
                 address,
+                regionKey,
+                regionLabel,
                 imageUrl,
                 checkIn,
                 checkOut,
