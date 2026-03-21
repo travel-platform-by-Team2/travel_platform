@@ -38,3 +38,4 @@ class ChatbotAnswerServiceTest {
         verify(chatbotLlmClient).createDbAnswer("hello", "GENERAL_CHAT", attempts, false);
     }
 }
+

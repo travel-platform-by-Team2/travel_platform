@@ -7,9 +7,11 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserRepository;
+import com.example.travel_platform.user.UserQueryRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +21,8 @@ import lombok.RequiredArgsConstructor;
 public class CalendarService {
 
     private final CalendarRepository calendarRepository;
-    private final UserRepository userRepository;
+    private final CalendarQueryRepository calendarQueryRepository;
+    private final UserQueryRepository userQueryRepository;
 
     @Transactional
     public CalendarResponse.EventDTO createEvent(Integer userId, CalendarRequest.CreateEventDTO reqDTO) {
@@ -27,7 +30,7 @@ public class CalendarService {
 
         User user = findUser(userId);
         CalendarEvent savedEvent = calendarRepository.save(buildCreatedEvent(user, reqDTO));
-        return CalendarResponse.EventDTO.from(savedEvent);
+        return CalendarResponse.EventDTO.fromEvent(savedEvent);
     }
 
     @Transactional
@@ -36,25 +39,28 @@ public class CalendarService {
 
         CalendarEvent event = findEvent(eventId);
         attachUserIfMissing(userId, event);
+        validateEventOwner(userId, event);
         applyEventChanges(event, reqDTO);
 
         CalendarEvent updatedEvent = calendarRepository.update(event);
-        return CalendarResponse.EventDTO.from(updatedEvent);
+        return CalendarResponse.EventDTO.fromEvent(updatedEvent);
     }
 
     @Transactional
-    public Map<String, Integer> deleteEvent(Integer eventId) {
+    public Map<String, Integer> deleteEvent(Integer userId, Integer eventId) {
         CalendarEvent event = findEvent(eventId);
+        attachUserIfMissing(userId, event);
+        validateEventOwner(userId, event);
         calendarRepository.delete(event);
         return Map.of("eventId", eventId);
     }
 
     public List<CalendarResponse.EventDTO> getEventList(Integer sessionUserId, LocalDate startDate, LocalDate endDate) {
         validateDateRange(startDate, endDate);
-        List<CalendarEvent> events = calendarRepository.findEventListByUserId(sessionUserId, startDate, endDate);
+        List<CalendarEvent> events = calendarQueryRepository.findEventList(sessionUserId, startDate, endDate);
 
         return events.stream()
-                .map(CalendarResponse.EventDTO::from)
+                .map(CalendarResponse.EventDTO::fromEvent)
                 .toList();
     }
 
@@ -79,7 +85,7 @@ public class CalendarService {
     }
 
     private User findUser(Integer userId) {
-        return userRepository.findById(userId)
+        return userQueryRepository.findUser(userId)
                 .orElseThrow(() -> new Exception400("사용자를 찾을 수 없습니다."));
     }
 
@@ -102,6 +108,12 @@ public class CalendarService {
     private void attachUserIfMissing(Integer userId, CalendarEvent event) {
         if (event.getUser() == null) {
             event.setUser(findUser(userId));
+        }
+    }
+
+    private void validateEventOwner(Integer userId, CalendarEvent event) {
+        if (!event.isOwnedBy(userId)) {
+            throw new Exception403("본인 일정만 수정하거나 삭제할 수 있습니다.");
         }
     }
 

@@ -18,7 +18,7 @@ class MypageResponseTest {
                 .withdrawAllowed(true)
                 .build();
 
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.of(user, List.of(), List.of());
+        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(user, List.of(), List.of());
 
         assertFalse(page.isHasBookings());
         assertFalse(page.isHasTripPlans());
@@ -28,7 +28,7 @@ class MypageResponseTest {
 
     @Test
     void pwd() {
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.of(
+        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(
                 MypageResponse.ProfileDTO.builder().build(),
                 List.of(),
                 List.of());
@@ -43,7 +43,7 @@ class MypageResponseTest {
 
     @Test
     void wd() {
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.of(
+        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(
                 MypageResponse.ProfileDTO.builder().build(),
                 List.of(),
                 List.of());
@@ -58,7 +58,7 @@ class MypageResponseTest {
 
     @Test
     void ok() {
-        MypageResponse.PageDTO page = MypageResponse.PageDTO.of(
+        MypageResponse.PageDTO page = MypageResponse.PageDTO.createMainPage(
                 MypageResponse.ProfileDTO.builder().build(),
                 List.of(),
                 List.of());
@@ -70,7 +70,7 @@ class MypageResponseTest {
 
     @Test
     void detail() {
-        MypageResponse.BookingDetailPageDTO page = MypageResponse.BookingDetailPageDTO.of(21);
+        MypageResponse.BookingDetailPageDTO page = MypageResponse.BookingDetailPageDTO.createBookingDetailPage(21);
 
         assertEquals(21, page.getBookingId());
         assertEquals("/mypage", page.getBackLink());

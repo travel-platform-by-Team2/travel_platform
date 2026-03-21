@@ -8,14 +8,14 @@ class BookingResponseTest {
 
     @Test
     void map() {
-        BookingResponse.MapDetailPageDTO page = BookingResponse.MapDetailPageDTO.of(null);
+        BookingResponse.MapDetailPageDTO page = BookingResponse.MapDetailPageDTO.createMapDetailPage(null);
 
         assertEquals("", page.getKakaoMapAppKey());
     }
 
     @Test
     void co() {
-        BookingResponse.CheckoutPageDTO page = BookingResponse.CheckoutPageDTO.of(
+        BookingResponse.CheckoutPageDTO page = BookingResponse.CheckoutPageDTO.createCheckoutPage(
                 "",
                 "",
                 "",
@@ -44,7 +44,7 @@ class BookingResponseTest {
 
     @Test
     void done() {
-        BookingResponse.CompletePageDTO page = BookingResponse.CompletePageDTO.of(
+        BookingResponse.CompletePageDTO page = BookingResponse.CompletePageDTO.createCompletePage(
                 "KR-20260320-123",
                 "",
                 "",

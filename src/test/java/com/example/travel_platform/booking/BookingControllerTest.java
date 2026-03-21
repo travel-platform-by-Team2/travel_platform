@@ -27,7 +27,7 @@ class BookingControllerTest {
 
         String view = controller.detailMap(model);
 
-        BookingResponse.MapDetailPageDTO page = (BookingResponse.MapDetailPageDTO) model.getAttribute("page");
+        BookingResponse.MapDetailPageDTO page = (BookingResponse.MapDetailPageDTO) model.getAttribute("model");
         assertEquals("pages/map-detail", view);
         assertEquals("kakao-key", page.getKakaoMapAppKey());
         verifyNoInteractions(bookingService);
@@ -51,7 +51,7 @@ class BookingControllerTest {
                 100000,
                 model);
 
-        BookingResponse.CheckoutPageDTO page = (BookingResponse.CheckoutPageDTO) model.getAttribute("page");
+        BookingResponse.CheckoutPageDTO page = (BookingResponse.CheckoutPageDTO) model.getAttribute("model");
         assertEquals("pages/booking-checkout", view);
         assertEquals("시그니엘 부산", page.getLodgingName());
         assertEquals("디럭스 룸", page.getRoomName());
@@ -89,7 +89,7 @@ class BookingControllerTest {
                 -1,
                 model);
 
-        BookingResponse.CheckoutPageDTO page = (BookingResponse.CheckoutPageDTO) model.getAttribute("page");
+        BookingResponse.CheckoutPageDTO page = (BookingResponse.CheckoutPageDTO) model.getAttribute("model");
         assertEquals("pages/booking-checkout", view);
         assertEquals("ssar", page.getBookerName());
         assertEquals("ssar@nate.com", page.getBookerEmail());
@@ -118,7 +118,7 @@ class BookingControllerTest {
                 null,
                 model);
 
-        BookingResponse.CompletePageDTO page = (BookingResponse.CompletePageDTO) model.getAttribute("page");
+        BookingResponse.CompletePageDTO page = (BookingResponse.CompletePageDTO) model.getAttribute("model");
         assertEquals("pages/booking-complete", view);
         assertEquals("지역 정보 없음", page.getRegion());
         assertEquals("busan", page.getRegionKey());
@@ -149,7 +149,7 @@ class BookingControllerTest {
                 "https://image.test/complete.jpg",
                 model);
 
-        BookingResponse.CompletePageDTO page = (BookingResponse.CompletePageDTO) model.getAttribute("page");
+        BookingResponse.CompletePageDTO page = (BookingResponse.CompletePageDTO) model.getAttribute("model");
         assertEquals("pages/booking-complete", view);
         assertEquals("서울특별시 중구", page.getRegion());
         assertEquals("seoul", page.getRegionKey());

@@ -13,9 +13,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.interceptor.AdminInterceptor;
 import com.example.travel_platform._core.interceptor.LoginInterceptor;
-import com.example.travel_platform._core.handler.ex.Exception403;
 
 @SpringBootTest
 @Transactional
@@ -34,7 +34,7 @@ class UserServiceLoginAndFilterTest {
         reqDTO.setPassword("1234");
 
         Exception403 exception = assertThrows(Exception403.class, () -> userService.login(reqDTO));
-        assertEquals("현재 로그인할 수 없는 계정입니다.", exception.getMessage());
+        assertEquals("현재 로그인할 수 없는 계정입니다", exception.getMessage());
     }
 
     @Test
@@ -49,7 +49,7 @@ class UserServiceLoginAndFilterTest {
 
         loginInterceptor.preHandle(request, response, chain);
 
-        assertTrue(response.getContentAsString().contains("계정 상태가 변경되어 다시 로그인해 주세요."));
+        assertTrue(response.getContentAsString().contains("계정 상태가 변경되어 다시 로그인해 주세요"));
         assertTrue(response.getContentAsString().contains("/login-form"));
         assertTrue(session.isInvalid());
     }
@@ -82,7 +82,7 @@ class UserServiceLoginAndFilterTest {
 
         adminInterceptor.preHandle(request, response, chain);
 
-        assertTrue(response.getContentAsString().contains("계정 상태가 변경되어 다시 로그인해 주세요."));
+        assertTrue(response.getContentAsString().contains("계정 상태가 변경되어 다시 로그인해 주세요"));
         assertTrue(response.getContentAsString().contains("/login-form"));
         assertTrue(session.isInvalid());
     }

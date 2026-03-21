@@ -4,41 +4,48 @@
 
 ## 목적
 
-숙소 예약, 지도 상세 화면, 예약 API, 지도 보조 데이터 가공 로직을 담당한다.
+숙소 예약 SSR 화면, 예약 API, 지도 보조 API, 예약 완료 후 저장 흐름을 담당한다.
 
 ## 주요 파일
 
-| 파일명                      | 설명                                                  |
-| --------------------------- | ----------------------------------------------------- |
-| `Booking.java`              | 예약 엔티티                                           |
-| `BookingApiController.java` | 예약 관련 REST API                                    |
-| `BookingController.java`    | 지도 상세, 체크아웃, 예약 완료 SSR 화면 라우팅        |
-| `BookingRepository.java`    | 예약, 숙소 POI 조회, 장소 이미지 캐싱 통합 리포지토리 |
-| `BookingRequest.java`       | 예약 입력 DTO                                         |
+| 파일명 | 설명 |
+| --- | --- |
+| `BookingController.java` | 지도 상세, 체크아웃, 예약 완료 SSR 화면 |
+| `BookingApiController.java` | 예약 CRUD placeholder, 객실/이미지/POI 보조 API |
+| `BookingService.java` | 예약 완료 저장, 예약 생성, 보조 API, placeholder CRUD |
+| `BookingRequest.java` | 예약/지도 보조 API 입력 DTO |
+| `BookingResponse.java` | SSR/API 응답 DTO |
+| `Booking.java` | 예약 엔티티 |
+| `BookingRepository.java` | 예약 저장, 삭제 같은 기본 영속화 |
+| `LodgingQueryRepository.java` | 숙소 POI JPQL 조회 |
+| `MapPlaceImageRepository.java` | 장소 이미지 캐시 조회/업서트 |
 
-## 하위 디렉토리
+## 현재 구조 기준
 
-- 없음
+- SSR 모델 키는 `model` 단건 규칙을 사용한다.
+- `map-detail.mustache`, `booking-checkout.mustache`, `booking-complete.mustache`는 모두 `model` 기준으로 렌더링한다.
+- `BookingController`는 파라미터 정리, 세션 사용자 확인, DTO 조립, 화면 렌더링만 담당한다.
+- `BookingApiController`는 `sessionUser` 기준으로 사용자 ID를 꺼내고 `Resp.ok(...)`만 반환한다.
+- `BookingResponse`의 정적 팩토리는 `createMapDetailPage`, `createCheckoutPage`, `createCompletePage`, `createRoom`, `createPlaceImage`처럼 역할이 드러나는 이름을 사용한다.
+- `BookingService`는 예약 완료 저장, 예약 생성, 이미지 조회, POI 병합, placeholder CRUD를 helper 기준으로 분리한다.
+- `cancelBooking`, `getBookingList`, `getBookingDetail`은 아직 placeholder 상태이며 이번 v3에서도 완성하지 않는다.
+- `mergeMapPois(...)`는 `LodgingQueryRepository`의 JPQL 결과와 Kakao POI를 합친다.
+- 장소 이미지 캐시는 `MapPlaceImageRepository`를 통해 `캐시 조회 -> 외부 조회 -> 업서트` 순서로 처리한다.
+- 예약 완료 시 여행 계획이 없으면 `TripPlan.create(...)`로 최소 계획을 만들고 저장한다.
 
-## AI 작업 지침
+## 정규화 메모
 
-- 지도 상세, 체크아웃, 예약 완료 화면은 현재 `page` 루트 DTO 계약을 사용하므로 템플릿 변경 시 `BookingController`, `BookingResponse`, Mustache 템플릿을 같이 본다.
-- `map-detail.mustache`는 Kakao SDK 다음에 `/js/map-detail.js`를 직접 로드하고, 공통 `scripts.mustache`는 더 이상 지도 전용 JS를 싣지 않는다.
-- `BookingApiController`의 예약 생성/조회/취소는 아직 `PLACEHOLDER_USER_ID = 1` 기준 placeholder 흐름을 유지한다.
-- `BookingRepository`는 `mypage`의 다가오는 예약 카드 조회에도 재사용되므로, 예약 정렬/필터 기준 변경 시 마이페이지 영향 범위를 같이 본다.
-- `mergeMapPois`는 Kakao POI와 DB 숙소 목록을 합치는 보조 API이고, `getPlaceImage`는 `DB 캐시 -> TourAPI -> Kakao 페이지 scraping` 순서로 이미지를 찾는다.
-- `BookingService.processBookingCompletion(...)`은 `BookingRequest.CompleteBookingDTO`를 받고, 새 여행 계획이 필요할 때 `TripPlan.create(...)`를 사용한다.
-- 예약 완료 화면의 `region` 문자열은 표시용이고, 실제 `TripPlan.region`에는 길이/매핑 제약을 고려해 `regionKey`를 넣는다.
-- 예약 CRUD 중 `cancelBooking`, `getBookingList`, `getBookingDetail`은 아직 no-op, 빈 리스트, null 상세 placeholder 상태다.
+- `Booking`은 `TripPlan`, `User`를 함께 참조하므로 예약 상세/마이페이지와 강하게 연결된다.
+- `location`, `lodgingName`, `imageUrl`은 외부 연동 데이터라 정규화 후보가 될 수 있지만 이번 차수에서는 구조 변경 없이 유지한다.
+- `Lodging`, `MapPlaceImage`는 지도 보조 데이터 저장 구조라 실제 정규화는 승인 단위로 분리한다.
 
 ## 테스트
 
-- `BookingControllerTest`, `BookingResponseTest`, `BookingTemplateContractTest`로 `/bookings/map-detail`, `/bookings/checkout`, `/bookings/complete`의 SSR 계약을 점검한다.
-- `StaticScriptContractTest`로 지도 상세의 전용 script include 위치도 함께 점검한다.
-- `BookingApiControllerTest`로 `/api/bookings`, `/api/bookings/place-image`, `/api/bookings/map-pois/merge`의 현재 응답 계약과 placeholder CRUD 흐름을 점검한다.
-- `BookingServiceTest`로 예약 완료 시 새 `TripPlan` 생성 경로와 placeholder CRUD 상태를 함께 점검한다.
+- `BookingControllerTest`
+- `BookingApiControllerTest`
+- `BookingServiceTest`
+- `BookingResponseTest`
+- `BookingTemplateContractTest`
+- `BookingRepositoryUpsertTest`
 
-## 의존
-
-- 도메인: `trip`, `src/main/resources/templates/pages`, `src/main/resources/static/js/map-detail.js`
-- 프레임워크: `Spring MVC`, `JPA/Hibernate`, `Kakao Map JS SDK`, `Jsoup`
+최종 검증은 `./gradlew.bat test --tests com.example.travel_platform.booking.BookingControllerTest --tests com.example.travel_platform.booking.BookingApiControllerTest --tests com.example.travel_platform.booking.BookingServiceTest --tests com.example.travel_platform.booking.BookingResponseTest --tests com.example.travel_platform.booking.BookingTemplateContractTest --tests com.example.travel_platform.booking.BookingRepositoryUpsertTest` 기준으로 맞춘다.

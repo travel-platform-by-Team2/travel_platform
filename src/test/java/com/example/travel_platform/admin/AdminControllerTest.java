@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.ui.ExtendedModelMap;
@@ -23,18 +25,18 @@ class AdminControllerTest {
         AdminService adminService = mock(AdminService.class);
         AdminController controller = new AdminController(adminService, new MockHttpSession());
         Model model = new ExtendedModelMap();
-        AdminResponse.DashboardPageDTO pageDTO = new AdminResponse.DashboardPageDTO();
+        AdminResponse.DashboardViewDTO viewDTO = new AdminResponse.DashboardViewDTO();
 
-        when(adminService.getDashboardPage()).thenReturn(pageDTO);
+        when(adminService.getDashboardView()).thenReturn(viewDTO);
 
         String view = controller.dashboard(model);
 
         assertEquals("pages/admin-dashboard", view);
-        assertSame(pageDTO, model.getAttribute("page"));
-        assertEquals(" is-active", pageDTO.getDashboardActiveClass());
-        assertEquals("", pageDTO.getUsersActiveClass());
-        assertEquals("", pageDTO.getBoardsActiveClass());
-        verify(adminService).getDashboardPage();
+        assertSame(viewDTO, model.getAttribute("model"));
+        assertEquals(" is-active", viewDTO.getDashboardActiveClass());
+        assertEquals("", viewDTO.getUsersActiveClass());
+        assertEquals("", viewDTO.getBoardsActiveClass());
+        verify(adminService).getDashboardView();
     }
 
     @Test
@@ -42,24 +44,32 @@ class AdminControllerTest {
         AdminService adminService = mock(AdminService.class);
         AdminController controller = new AdminController(adminService, new MockHttpSession());
         Model model = new ExtendedModelMap();
-        AdminResponse.UserListPageDTO pageDTO = new AdminResponse.UserListPageDTO();
-        pageDTO.setKeyword("ssar");
-        pageDTO.setSortBy("postCount");
-        pageDTO.setOrderBy("asc");
+        AdminResponse.UserListPageDTO pageDTO = AdminResponse.UserListPageDTO.createUserListPage(
+                3L,
+                1L,
+                "ssar",
+                true,
+                false,
+                true,
+                false,
+                "postCount",
+                "asc");
+        AdminResponse.UserListViewDTO viewDTO = AdminResponse.UserListViewDTO.createUserListView(pageDTO, List.of());
 
-        when(adminService.getUsersPage(true, "ssar", "postCount", "asc")).thenReturn(pageDTO);
+        when(adminService.getUserListView(true, "ssar", "postCount", "asc")).thenReturn(viewDTO);
 
         String view = controller.users(true, "ssar", "postCount", "asc", model);
 
         assertEquals("pages/admin-users", view);
-        assertSame(pageDTO, model.getAttribute("page"));
+        assertSame(pageDTO, model.getAttribute("model"));
+        assertSame(viewDTO.getModels(), model.getAttribute("models"));
         assertEquals("", pageDTO.getDashboardActiveClass());
         assertEquals(" is-active", pageDTO.getUsersActiveClass());
         assertEquals("", pageDTO.getBoardsActiveClass());
         assertEquals("/admin/users?keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getAllTabHref());
         assertEquals("/admin/users?active=true&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getActiveTabHref());
         assertEquals("/admin/users?active=false&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getInactiveTabHref());
-        verify(adminService).getUsersPage(true, "ssar", "postCount", "asc");
+        verify(adminService).getUserListView(true, "ssar", "postCount", "asc");
     }
 
     @Test
@@ -67,18 +77,20 @@ class AdminControllerTest {
         AdminService adminService = mock(AdminService.class);
         AdminController controller = new AdminController(adminService, new MockHttpSession());
         Model model = new ExtendedModelMap();
-        AdminResponse.AdminBoardListDTO pageDTO = new AdminResponse.AdminBoardListDTO();
+        AdminResponse.BoardListPageDTO pageDTO = new AdminResponse.BoardListPageDTO();
+        AdminResponse.BoardListViewDTO viewDTO = AdminResponse.BoardListViewDTO.createBoardListView(pageDTO, List.of());
 
-        when(adminService.getBoardsPage("tips", "busan", "latest", 1)).thenReturn(pageDTO);
+        when(adminService.getBoardListView("tips", "busan", "latest", 1)).thenReturn(viewDTO);
 
         String view = controller.boards("tips", "busan", "latest", 1, model);
 
         assertEquals("pages/admin-boards", view);
-        assertSame(pageDTO, model.getAttribute("page"));
+        assertSame(pageDTO, model.getAttribute("model"));
+        assertSame(viewDTO.getModels(), model.getAttribute("models"));
         assertEquals("", pageDTO.getDashboardActiveClass());
         assertEquals("", pageDTO.getUsersActiveClass());
         assertEquals(" is-active", pageDTO.getBoardsActiveClass());
-        verify(adminService).getBoardsPage("tips", "busan", "latest", 1);
+        verify(adminService).getBoardListView("tips", "busan", "latest", 1);
     }
 
     @Test
@@ -91,7 +103,7 @@ class AdminControllerTest {
         String view = controller.deleteBoard(17);
 
         assertEquals("redirect:/admin/boards", view);
-        verify(adminService).deleteBoard(sessionUser, 17);
+        verify(adminService).deleteBoardByAdmin(sessionUser, 17);
     }
 
     @Test

@@ -22,7 +22,7 @@
 </button>
 </div>
 
-{{#page}}
+{{#model}}
 <div class="tab-strip-scroll">
   <a href="/trip?category=result&page=0"
      class="{{#isResult}}trip-plan-list-button-02{{/isResult}}{{^isResult}}chip-surface{{/isResult}}">
@@ -41,7 +41,7 @@
 </div>
 
 <div class="trip-plan-list-div-02">
-{{#plans}}
+{{#models}}
 <div class="trip-card">
 <div class="trip-card-media">
 <div class="trip-card-media-bg" onclick="location.href='/trip/detail?id={{id}}'" role="link" tabindex="0" data-alt="Beautiful view of Busan coastline during sunset"
@@ -74,13 +74,13 @@ style="background-image: url('{{imgUrl}}');"></div>{{^disabled}}
 </div>
 </div>
 </div>
-{{/plans}}
+{{/models}}
 
-{{^plans}}
+{{^models}}
 <div class="empty-state">
   등록된 여행 계획이 없습니다.
 </div>
-{{/plans}}
+{{/models}}
 </div>
 
 <div class="trip-plan-list-div-06">
@@ -110,7 +110,7 @@ style="background-image: url('{{imgUrl}}');"></div>{{^disabled}}
   </a>
   {{/hasNext}}
 </div>
-{{/page}}
+{{/model}}
 </main>
 
   {{>partials/chatbot}}

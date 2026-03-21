@@ -14,7 +14,7 @@ public class ApiErrorResponse {
     private Integer status;
     private LocalDateTime timestamp;
 
-    public static ApiErrorResponse of(String code, String message, Integer status) {
+    public static ApiErrorResponse createErrorResponse(String code, String message, Integer status) {
         return ApiErrorResponse.builder()
                 .code(code)
                 .message(message)

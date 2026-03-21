@@ -65,10 +65,10 @@ public class ChatbotOrchestrator {
     }
 
     private ChatbotResponse.AskDTO buildDirectResponse(ChatbotLlmPlan llmPlan) {
-        return ChatbotResponse.AskDTO.of(
+        return ChatbotResponse.AskDTO.createAskResponse(
                 PROCESSING_TYPE_DIRECT_LLM,
                 chatbotAnswerService.resolveDirectAnswer(llmPlan),
-                ChatbotResponse.MetaDTO.direct());
+                ChatbotResponse.MetaDTO.createDirectMeta());
     }
 
     private ChatbotResponse.AskDTO buildDbResponse(
@@ -78,10 +78,10 @@ public class ChatbotOrchestrator {
         DbSearchResult dbSearchResult = resolveDbAnswer(message, context, initialPlan);
         ChatbotQueryService.QueryResult queryResult = dbSearchResult.queryResult();
 
-        return ChatbotResponse.AskDTO.of(
+        return ChatbotResponse.AskDTO.createAskResponse(
                 PROCESSING_TYPE_DB_QUERY,
                 dbSearchResult.answer(),
-                ChatbotResponse.MetaDTO.db(
+                ChatbotResponse.MetaDTO.createDbMeta(
                         queryResult.querySummary(),
                         queryResult.sql(),
                         queryResult.rows().size()));
@@ -195,3 +195,4 @@ public class ChatbotOrchestrator {
     private record DbSearchResult(String answer, ChatbotQueryService.QueryResult queryResult) {
     }
 }
+

@@ -14,24 +14,24 @@ class MypageTemplateContractTest {
     void mainPage() throws IOException {
         String template = template("mypage.mustache");
 
-        assertContains(template, "{{#page.passwordSuccessMessage}}");
-        assertContains(template, "{{#page.hasBookings}}");
-        assertContains(template, "{{^page.hasBookings}}");
-        assertContains(template, "{{#page.hasTripPlans}}");
-        assertContains(template, "{{^page.hasTripPlans}}");
-        assertContains(template, "{{#page.passwordError}}");
-        assertContains(template, "{{#page.withdrawError}}");
-        assertContains(template, "{{^page.passwordModalOpen}}is-hidden{{/page.passwordModalOpen}}");
-        assertContains(template, "{{^page.withdrawModalOpen}}is-hidden{{/page.withdrawModalOpen}}");
+        assertContains(template, "{{#model.passwordSuccessMessage}}");
+        assertContains(template, "{{#model.hasBookings}}");
+        assertContains(template, "{{^model.hasBookings}}");
+        assertContains(template, "{{#model.hasTripPlans}}");
+        assertContains(template, "{{^model.hasTripPlans}}");
+        assertContains(template, "{{#model.passwordError}}");
+        assertContains(template, "{{#model.withdrawError}}");
+        assertContains(template, "{{^model.passwordModalOpen}}is-hidden{{/model.passwordModalOpen}}");
+        assertContains(template, "{{^model.withdrawModalOpen}}is-hidden{{/model.withdrawModalOpen}}");
     }
 
     @Test
     void bookingDetail() throws IOException {
         String template = template("booking-detail.mustache");
 
-        assertContains(template, "{{page.bookingId}}");
-        assertContains(template, "{{page.placeholderNotice}}");
-        assertContains(template, "href=\"{{page.backLink}}\"");
+        assertContains(template, "{{model.bookingId}}");
+        assertContains(template, "{{model.placeholderNotice}}");
+        assertContains(template, "href=\"{{model.backLink}}\"");
     }
 
     private String template(String fileName) throws IOException {

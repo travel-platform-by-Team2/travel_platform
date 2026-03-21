@@ -1,4 +1,4 @@
-<!-- Parent: ../AI-CONTEXT.md -->
+﻿<!-- Parent: ../AI-CONTEXT.md -->
 
 # dto
 
@@ -21,6 +21,8 @@
 
 - 필드 이름이나 검증 규칙을 바꾸면 컨트롤러 테스트와 프런트엔드 요청 형태를 같이 수정한다.
 - LLM 메타데이터 필드는 응답 소비 코드가 기대하는 구조를 유지한다.
+- DTO factory 이름은 `createAskRequest`, `createContext`, `createAskResponse`, `createDirectMeta`, `createDbMeta`처럼 역할이 드러나게 유지한다.
+- DTO는 API 경계 전용 객체로 두고, application 계층의 탐색 상태나 infra 모델을 그대로 섞지 않는다.
 
 ## 테스트
 
@@ -30,3 +32,4 @@
 
 - 내부: `chatbot/api`, `chatbot/application`
 - 외부: `Jakarta Validation`
+

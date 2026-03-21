@@ -1,4 +1,4 @@
-<!-- Parent: ../AI-CONTEXT.md -->
+﻿<!-- Parent: ../AI-CONTEXT.md -->
 
 # infra
 
@@ -30,3 +30,4 @@
 
 - 내부: `chatbot/application`, `_core/handler/ex`
 - 외부: `OpenAI Responses API`
+

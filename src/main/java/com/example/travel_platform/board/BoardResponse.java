@@ -31,7 +31,7 @@ public class BoardResponse {
         private String createdAtDisplay;
         private String summary;
 
-        public static SummaryDTO from(Board board, int likeCount) {
+        public static SummaryDTO fromBoard(Board board, int likeCount) {
             String plainText = Jsoup.parse(board.getContent()).text();
             String summary = plainText.substring(0, Math.min(80, plainText.length()));
             LocalDateTime createdAt = board.getCreatedAt();
@@ -83,7 +83,7 @@ public class BoardResponse {
         private boolean isReview;
         private boolean isQna;
 
-        public static ListPageDTO of(List<SummaryDTO> boards,
+        public static ListPageDTO createListPage(List<SummaryDTO> boards,
                 List<PageItemDTO> pageItems,
                 int currentPage,
                 int size,
@@ -128,12 +128,26 @@ public class BoardResponse {
 
     @Data
     @Builder
+    public static class ListViewDTO {
+        private ListPageDTO model;
+        private List<SummaryDTO> models;
+
+        public static ListViewDTO createListView(ListPageDTO model, List<SummaryDTO> models) {
+            return ListViewDTO.builder()
+                    .model(model)
+                    .models(models)
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
     public static class PageItemDTO {
         private int page;
         private int displayNumber;
         private boolean current;
 
-        public static PageItemDTO of(int page, boolean current) {
+        public static PageItemDTO createPageItem(int page, boolean current) {
             return PageItemDTO.builder()
                     .page(page)
                     .displayNumber(page + 1)
@@ -153,7 +167,7 @@ public class BoardResponse {
         private String createdAtDisplay;
         private boolean isOwner;
 
-        public static ReplyItemDTO from(Reply reply, Integer sessionUserId) {
+        public static ReplyItemDTO fromReply(Reply reply, Integer sessionUserId) {
             boolean isOwner = sessionUserId != null && reply.getUser().getId().equals(sessionUserId);
             LocalDateTime createdAt = reply.getCreatedAt();
 
@@ -190,7 +204,7 @@ public class BoardResponse {
         private Long likeCount;
         private Boolean likedByMe;
 
-        public static DetailDTO of(Board board,
+        public static DetailDTO fromBoard(Board board,
                 List<ReplyItemDTO> replies,
                 long likeCount,
                 boolean likedByMe,
@@ -232,14 +246,14 @@ public class BoardResponse {
         private String contentError;
 
         public static FormDTO empty() {
-            return fromValues(null, "", "", "", null, null, null);
+            return createForm(null, "", "", "", null, null, null);
         }
 
-        public static FormDTO fromCreate(BoardRequest.CreateDTO reqDTO,
+        public static FormDTO fromCreateRequest(BoardRequest.CreateDTO reqDTO,
                 String categoryError,
                 String titleError,
                 String contentError) {
-            return fromValues(
+            return createForm(
                     null,
                     reqDTO.getCategory(),
                     reqDTO.getTitle(),
@@ -250,7 +264,7 @@ public class BoardResponse {
         }
 
         public static FormDTO fromBoard(Board board) {
-            return fromValues(
+            return createForm(
                     board.getId(),
                     board.getCategory(),
                     board.getTitle(),
@@ -260,12 +274,12 @@ public class BoardResponse {
                     null);
         }
 
-        public static FormDTO fromUpdate(Integer boardId,
+        public static FormDTO fromUpdateRequest(Integer boardId,
                 BoardRequest.UpdateDTO reqDTO,
                 String categoryError,
                 String titleError,
                 String contentError) {
-            return fromValues(
+            return createForm(
                     boardId,
                     reqDTO.getCategory(),
                     reqDTO.getTitle(),
@@ -275,7 +289,7 @@ public class BoardResponse {
                     contentError);
         }
 
-        private static FormDTO fromValues(Integer id,
+        private static FormDTO createForm(Integer id,
                 String category,
                 String title,
                 String content,
@@ -300,7 +314,7 @@ public class BoardResponse {
         private boolean liked;
         private long likeCount;
 
-        public static LikeToggleDTO of(boolean liked, long likeCount) {
+        public static LikeToggleDTO createLikeToggle(boolean liked, long likeCount) {
             return LikeToggleDTO.builder()
                     .liked(liked)
                     .likeCount(likeCount)

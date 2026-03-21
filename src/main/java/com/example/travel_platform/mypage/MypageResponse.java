@@ -29,7 +29,7 @@ public class MypageResponse {
         private boolean withdrawModalOpen;
         private String passwordSuccessMessage;
 
-        public static PageDTO of(ProfileDTO user, List<BookingCardDTO> bookings, List<PlanCardDTO> tripPlans) {
+        public static PageDTO createMainPage(ProfileDTO user, List<BookingCardDTO> bookings, List<PlanCardDTO> tripPlans) {
             return PageDTO.builder()
                     .user(user)
                     .hasBookings(!bookings.isEmpty())
@@ -74,7 +74,7 @@ public class MypageResponse {
         private String email;
         private boolean withdrawAllowed;
 
-        public static ProfileDTO from(User user) {
+        public static ProfileDTO fromUser(User user) {
             return ProfileDTO.builder()
                     .id(user.getId())
                     .username(normalize(user.getUsername()))
@@ -92,7 +92,7 @@ public class MypageResponse {
         private String dateRangeLabel;
         private String detailLink;
 
-        public static BookingCardDTO from(Booking booking) {
+        public static BookingCardDTO fromBooking(Booking booking) {
             return BookingCardDTO.builder()
                     .id(booking.getId())
                     .lodgingName(normalize(booking.getLodgingName()))
@@ -110,7 +110,7 @@ public class MypageResponse {
         private String dateRangeLabel;
         private String detailLink;
 
-        public static PlanCardDTO from(TripPlan tripPlan) {
+        public static PlanCardDTO fromTripPlan(TripPlan tripPlan) {
             return PlanCardDTO.builder()
                     .id(tripPlan.getId())
                     .title(normalize(tripPlan.getTitle()))
@@ -127,7 +127,7 @@ public class MypageResponse {
         private String backLink;
         private String placeholderNotice;
 
-        public static BookingDetailPageDTO of(Integer bookingId) {
+        public static BookingDetailPageDTO createBookingDetailPage(Integer bookingId) {
             return BookingDetailPageDTO.builder()
                     .bookingId(bookingId)
                     .backLink("/mypage")

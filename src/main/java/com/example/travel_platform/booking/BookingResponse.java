@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// 예약 조회 응답 포맷을 정의하는 DTO 클래스
 public class BookingResponse {
 
     @Data
@@ -17,7 +16,7 @@ public class BookingResponse {
     public static class MapDetailPageDTO {
         private String kakaoMapAppKey;
 
-        public static MapDetailPageDTO of(String kakaoMapAppKey) {
+        public static MapDetailPageDTO createMapDetailPage(String kakaoMapAppKey) {
             return MapDetailPageDTO.builder()
                     .kakaoMapAppKey(normalize(kakaoMapAppKey))
                     .build();
@@ -46,7 +45,7 @@ public class BookingResponse {
         private String bookerEmail;
         private String bookerPhone;
 
-        public static CheckoutPageDTO of(
+        public static CheckoutPageDTO createCheckoutPage(
                 String lodgingName,
                 String roomName,
                 String address,
@@ -71,7 +70,7 @@ public class BookingResponse {
                     .checkOut(normalize(checkOut))
                     .nightsLabel(defaultText(nightsLabel, "1박"))
                     .guests(defaultText(guests, "성인 2명"))
-                    .roomPriceText(formatWon(roomPrice))
+                    .roomPriceText(formatWon(roomPrice == null ? 0 : roomPrice))
                     .roomSubtotalText(formatWon(roomSubtotal))
                     .feeText(formatWon(feeSubtotal))
                     .totalPriceText(formatWon(totalPrice))
@@ -100,7 +99,7 @@ public class BookingResponse {
         private String totalPriceText;
         private String completeImageUrl;
 
-        public static CompletePageDTO of(
+        public static CompletePageDTO createCompletePage(
                 String bookingNumber,
                 String lodgingName,
                 String roomName,
@@ -128,7 +127,6 @@ public class BookingResponse {
         }
     }
 
-    // 예약 목록 아이템 응답 DTO
     @Data
     @Builder
     public static class BookingSummaryDTO {
@@ -141,7 +139,6 @@ public class BookingResponse {
         private String location;
     }
 
-    // 예약 상세 응답 DTO
     @Data
     @Builder
     public static class BookingDetailDTO {
@@ -165,9 +162,9 @@ public class BookingResponse {
         private String baseCount;
         private String maxCount;
         private String imageUrl;
-        private List<String> allImages; // 추가 이미지 리스트 필드
+        private List<String> allImages;
 
-        public static RoomDTO of(
+        public static RoomDTO createRoom(
                 String name,
                 String content,
                 String baseCount,
@@ -191,7 +188,7 @@ public class BookingResponse {
         private String imageUrl;
         private String name;
 
-        public static PlaceImageDTO of(String imageUrl, String name) {
+        public static PlaceImageDTO createPlaceImage(String imageUrl, String name) {
             return PlaceImageDTO.builder()
                     .imageUrl(normalize(imageUrl))
                     .name(normalize(name))

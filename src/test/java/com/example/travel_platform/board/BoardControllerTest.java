@@ -9,6 +9,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.ui.ExtendedModelMap;
@@ -26,14 +28,18 @@ class BoardControllerTest {
         BoardService boardService = mock(BoardService.class);
         BoardController controller = new BoardController(boardService, new MockHttpSession());
         Model model = new ExtendedModelMap();
-        BoardResponse.ListPageDTO responseDTO = BoardResponse.ListPageDTO.builder().build();
+        BoardResponse.ListViewDTO responseDTO = BoardResponse.ListViewDTO.builder()
+                .model(BoardResponse.ListPageDTO.builder().build())
+                .models(List.of())
+                .build();
 
         when(boardService.getBoardList("tips", "busan", "latest", 1)).thenReturn(responseDTO);
 
         String view = controller.list("tips", "busan", "latest", 1, model);
 
         assertEquals("pages/board-list", view);
-        assertSame(responseDTO, model.getAttribute("page"));
+        assertSame(responseDTO.getModel(), model.getAttribute("model"));
+        assertSame(responseDTO.getModels(), model.getAttribute("models"));
         verify(boardService).getBoardList("tips", "busan", "latest", 1);
     }
 
@@ -50,7 +56,7 @@ class BoardControllerTest {
 
         String view = controller.create(reqDTO, bindingResult, model);
 
-        BoardResponse.FormDTO page = (BoardResponse.FormDTO) model.getAttribute("page");
+        BoardResponse.FormDTO page = (BoardResponse.FormDTO) model.getAttribute("model");
         assertEquals("pages/board-create", view);
         assertEquals("제목", page.getTitle());
         assertEquals("카테고리를 선택해주세요.", page.getCategoryError());
@@ -69,7 +75,7 @@ class BoardControllerTest {
         String view = controller.detail(3, model);
 
         assertEquals("pages/board-detail", view);
-        assertSame(detailDTO, model.getAttribute("page"));
+        assertSame(detailDTO, model.getAttribute("model"));
         verify(boardService).getBoardDetail(null, 3);
     }
 
@@ -89,7 +95,7 @@ class BoardControllerTest {
 
         String view = controller.update(11, reqDTO, bindingResult, model);
 
-        BoardResponse.FormDTO page = (BoardResponse.FormDTO) model.getAttribute("page");
+        BoardResponse.FormDTO page = (BoardResponse.FormDTO) model.getAttribute("model");
         assertEquals("pages/board-edit", view);
         assertEquals(11, page.getId());
         assertEquals("tips", page.getCategory());

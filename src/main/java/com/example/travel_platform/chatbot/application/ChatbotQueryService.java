@@ -211,3 +211,4 @@ public class ChatbotQueryService {
     private record SafeQuery(String sql, String querySummary) {
     }
 }
+

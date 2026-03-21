@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -672,13 +672,14 @@
 </main>
 
   {{>partials/footer}}
-  {{#page.kakaoMapAppKey}}
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{page.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
-  {{/page.kakaoMapAppKey}}
+  {{#model.kakaoMapAppKey}}
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  {{/model.kakaoMapAppKey}}
   <script src="/js/map-detail.js"></script>
   {{>partials/scripts}}
 </body>
 </html>
+
 
 
 

@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,16 +23,17 @@ import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserRepository;
+import com.example.travel_platform.user.UserQueryRepository;
 
 class TripServiceTest {
 
     @Test
     void create() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         User user = user(3, "ssar");
         TripRequest.CreatePlanDTO reqDTO = new TripRequest.CreatePlanDTO();
         reqDTO.setTitle("trip to jeju");
@@ -42,7 +42,7 @@ class TripServiceTest {
         reqDTO.setStartDate(LocalDate.of(2026, 4, 2));
         reqDTO.setEndDate(LocalDate.of(2026, 4, 4));
 
-        when(userRepository.findById(3)).thenReturn(Optional.of(user));
+        when(userQueryRepository.findUser(3)).thenReturn(Optional.of(user));
         when(tripRepository.savePlan(any(TripPlan.class))).thenAnswer(invocation -> {
             TripPlan tripPlan = invocation.getArgument(0);
             setField(tripPlan, "id", 15);
@@ -64,10 +64,11 @@ class TripServiceTest {
 
     @Test
     void createBadDate() {
-        TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
-        TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(
+                mock(TripRepository.class),
+                mock(TripPlanQueryRepository.class),
+                mock(UserQueryRepository.class),
+                mock(TripPlaceRepository.class));
         TripRequest.CreatePlanDTO reqDTO = new TripRequest.CreatePlanDTO();
         reqDTO.setTitle("trip to busan");
         reqDTO.setRegion("busan");
@@ -77,22 +78,21 @@ class TripServiceTest {
 
         Exception400 exception = assertThrows(Exception400.class, () -> tripService.createPlan(1, reqDTO));
 
-        assertTrue(exception.getMessage() != null && !exception.getMessage().isBlank());
-        verify(userRepository, never()).findById(any());
-        verify(tripRepository, never()).savePlan(any());
+        assertEquals("종료 날짜는 시작 날짜보다 빠를 수 없습니다.", exception.getMessage());
     }
 
     @Test
     void listResult() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         LocalDate today = LocalDate.now();
         TripPlan tripPlan = plan(7, user(2, "cos"), "tokyo trip", "seoul", "solo", today.plusDays(5), today.plusDays(7));
 
-        when(tripRepository.findPlanListByUserId(2, 0, 9)).thenReturn(List.of(tripPlan));
-        when(tripRepository.countPlanByUserId(2)).thenReturn(11L);
+        when(tripPlanQueryRepository.findPlanList(2, 0, 9)).thenReturn(List.of(tripPlan));
+        when(tripPlanQueryRepository.countPlanList(2)).thenReturn(11L);
         when(tripPlaceRepository.countByTripPlanId(7)).thenReturn(3L);
 
         TripResponse.ListPageDTO response = tripService.getPlanList(2, "invalid", -1);
@@ -105,22 +105,23 @@ class TripServiceTest {
         assertEquals(1, response.getPlans().size());
         assertEquals(3L, response.getPlans().get(0).getPlaceCount());
         assertEquals("/images/dumimg.jpg", response.getPlans().get(0).getImgUrl());
-        verify(tripRepository).findPlanListByUserId(2, 0, 9);
-        verify(tripRepository).countPlanByUserId(2);
+        verify(tripPlanQueryRepository).findPlanList(2, 0, 9);
+        verify(tripPlanQueryRepository).countPlanList(2);
     }
 
     @Test
     void listUpcoming() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         LocalDate today = LocalDate.now();
         TripPlan tripPlan = plan(9, user(2, "cos"), "osaka trip", "busan", "friend", today.plusDays(10), today.plusDays(12));
 
-        when(tripRepository.findUpcomingPlanListByUserId(eq(2), any(LocalDate.class), eq(9), eq(9)))
+        when(tripPlanQueryRepository.findUpcomingPlanList(eq(2), any(LocalDate.class), eq(9), eq(9)))
                 .thenReturn(List.of(tripPlan));
-        when(tripRepository.countUpcomingPlanByUserId(eq(2), any(LocalDate.class))).thenReturn(1L);
+        when(tripPlanQueryRepository.countUpcomingPlanList(eq(2), any(LocalDate.class))).thenReturn(1L);
         when(tripPlaceRepository.countByTripPlanId(9)).thenReturn(2L);
 
         TripResponse.ListPageDTO response = tripService.getPlanList(2, "upcoming", 1);
@@ -130,16 +131,17 @@ class TripServiceTest {
         assertTrue(response.isUpcoming());
         assertFalse(response.isPast());
         assertEquals(2L, response.getPlans().get(0).getPlaceCount());
-        verify(tripRepository).findUpcomingPlanListByUserId(eq(2), any(LocalDate.class), eq(9), eq(9));
-        verify(tripRepository).countUpcomingPlanByUserId(eq(2), any(LocalDate.class));
+        verify(tripPlanQueryRepository).findUpcomingPlanList(eq(2), any(LocalDate.class), eq(9), eq(9));
+        verify(tripPlanQueryRepository).countUpcomingPlanList(eq(2), any(LocalDate.class));
     }
 
     @Test
     void list401() {
-        TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
-        TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(
+                mock(TripRepository.class),
+                mock(TripPlanQueryRepository.class),
+                mock(UserQueryRepository.class),
+                mock(TripPlaceRepository.class));
 
         Exception401 exception = assertThrows(Exception401.class, () -> tripService.getPlanList(null, "result", 0));
 
@@ -149,9 +151,10 @@ class TripServiceTest {
     @Test
     void detailSort() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         TripPlan tripPlan = plan(21, user(2, "cos"), "jeju plan", "jeju", "friend",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 3));
         TripPlace first = place(40, tripPlan, "museum", 2);
@@ -160,43 +163,45 @@ class TripServiceTest {
         TripPlace fourth = place(5, tripPlan, "hotel", null);
         setField(tripPlan, "places", List.of(first, second, third, fourth));
 
-        when(tripRepository.findPlanByIdWithPlaces(21)).thenReturn(Optional.of(tripPlan));
+        when(tripPlanQueryRepository.findPlanWithPlaces(21)).thenReturn(Optional.of(tripPlan));
 
         TripResponse.DetailDTO response = tripService.getPlanDetail(2, 21);
 
         assertTrue(response.isHasPlaces());
         assertEquals(4L, response.getPlaceCount());
         assertEquals(List.of(10, 30, 40, 5),
-                response.getPlaces().stream().map(item -> item.getId()).toList());
+                response.getPlaces().stream().map(TripResponse.PlaceItemDTO::getId).toList());
     }
 
     @Test
     void detail403() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         TripPlan tripPlan = plan(21, user(2, "cos"), "jeju plan", "jeju", "friend",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 3));
 
-        when(tripRepository.findPlanByIdWithPlaces(21)).thenReturn(Optional.of(tripPlan));
+        when(tripPlanQueryRepository.findPlanWithPlaces(21)).thenReturn(Optional.of(tripPlan));
 
-        Exception403 exception = assertThrows(Exception403.class, () -> tripService.getPlanDetail(9, 21));
+        Exception403 exception = assertThrows(Exception403.class, () -> tripService.getPlanDetail(8, 21));
 
-        assertTrue(exception.getMessage() != null && !exception.getMessage().isBlank());
+        assertEquals("본인 여행 계획만 접근할 수 있습니다.", exception.getMessage());
     }
 
     @Test
     void placePage() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         TripPlan tripPlan = plan(9, user(2, "cos"), "jeju plan", "jeju", "friend",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 3));
         setField(tripPlan, "places", List.of(place(11, tripPlan, "beach", 1), place(12, tripPlan, "hotel", 2)));
 
-        when(tripRepository.findPlanByIdWithPlaces(9)).thenReturn(Optional.of(tripPlan));
+        when(tripPlanQueryRepository.findPlanWithPlaces(9)).thenReturn(Optional.of(tripPlan));
 
         TripResponse.PlacePageDTO response = tripService.getPlacePage(2, 9, "kakao-key");
 
@@ -210,9 +215,10 @@ class TripServiceTest {
     @Test
     void addPlace() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         TripPlan tripPlan = plan(17, user(4, "ssar"), "busan plan", "busan", "friend",
                 LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 2));
         TripRequest.AddPlaceDTO reqDTO = new TripRequest.AddPlaceDTO();
@@ -222,7 +228,7 @@ class TripServiceTest {
         reqDTO.setLongitude(new BigDecimal("129.0400"));
         reqDTO.setDayOrder(3);
 
-        when(tripRepository.findPlanById(17)).thenReturn(Optional.of(tripPlan));
+        when(tripPlanQueryRepository.findPlan(17)).thenReturn(Optional.of(tripPlan));
         when(tripPlaceRepository.save(any(TripPlace.class))).thenAnswer(invocation -> {
             TripPlace tripPlace = invocation.getArgument(0);
             setField(tripPlace, "id", 31);
@@ -247,9 +253,10 @@ class TripServiceTest {
     @Test
     void add403() {
         TripRepository tripRepository = mock(TripRepository.class);
-        UserRepository userRepository = mock(UserRepository.class);
+        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
+        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = new TripService(tripRepository, userRepository, tripPlaceRepository);
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
         TripPlan tripPlan = plan(17, user(4, "ssar"), "busan plan", "busan", "friend",
                 LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 2));
         TripRequest.AddPlaceDTO reqDTO = new TripRequest.AddPlaceDTO();
@@ -259,11 +266,19 @@ class TripServiceTest {
         reqDTO.setLongitude(new BigDecimal("129.0400"));
         reqDTO.setDayOrder(3);
 
-        when(tripRepository.findPlanById(17)).thenReturn(Optional.of(tripPlan));
+        when(tripPlanQueryRepository.findPlan(17)).thenReturn(Optional.of(tripPlan));
 
         Exception403 exception = assertThrows(Exception403.class, () -> tripService.addPlace(8, 17, reqDTO));
 
-        assertTrue(exception.getMessage() != null && !exception.getMessage().isBlank());
+        assertEquals("본인 여행 계획만 접근할 수 있습니다.", exception.getMessage());
+    }
+
+    private TripService service(
+            TripRepository tripRepository,
+            TripPlanQueryRepository tripPlanQueryRepository,
+            UserQueryRepository userQueryRepository,
+            TripPlaceRepository tripPlaceRepository) {
+        return new TripService(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
     }
 
     private User user(int id, String username) {
@@ -272,7 +287,8 @@ class TripServiceTest {
         return user;
     }
 
-    private TripPlan plan(int id,
+    private TripPlan plan(
+            int id,
             User user,
             String title,
             String region,

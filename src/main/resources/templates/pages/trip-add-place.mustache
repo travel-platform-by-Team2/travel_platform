@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{#page}}{{detail.formattedTitle}}{{/page}}{{^page}}여행 장소 추가{{/page}}</title>
+  <title>{{#model}}{{detail.formattedTitle}}{{/model}}{{^model}}여행 장소 추가{{/model}}</title>
   {{>partials/head-assets}}
   <style>
     body {
@@ -167,7 +167,7 @@
 <body>
   {{>partials/header}}
 
-{{#page}}
+{{#model}}
 <div id="tripPlacePage"
      data-plan-id="{{detail.id}}"
      data-existing-count="{{existingCount}}"
@@ -206,8 +206,8 @@
 
       <div class="selected-place-tray">
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-          <h4 style="margin: 0; font-size: 0.9rem; font-weight: 800;">담은 장소 <span id="selectedPlaceCount" style="color: #2563eb;">0</span></h4>
-          <button id="clearSelectedPlaces" style="font-size: 0.75rem; color: #64748b; background: none; border: 0; cursor: pointer;">전체삭제</button>
+          <h4 style="margin: 0; font-size: 0.9rem; font-weight: 800;">선택 장소 <span id="selectedPlaceCount" style="color: #2563eb;">0</span></h4>
+          <button id="clearSelectedPlaces" style="font-size: 0.75rem; color: #64748b; background: none; border: 0; cursor: pointer;">전체 해제</button>
         </div>
         <div id="selectedPlaceList" class="selected-place-horizontal-scroll">
           <div class="empty-state" style="font-size: 0.8rem; color: #94a3b8;">장소를 추가해 보세요.</div>
@@ -225,10 +225,10 @@
     </div>
   </main>
 </div>
-{{/page}}
-  {{#page.kakaoMapAppKey}}
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{page.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
-  {{/page.kakaoMapAppKey}}
+{{/model}}
+  {{#model.kakaoMapAppKey}}
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  {{/model.kakaoMapAppKey}}
   <script src="/js/trip-add-place.js"></script>
   {{>partials/scripts}}
 </body>

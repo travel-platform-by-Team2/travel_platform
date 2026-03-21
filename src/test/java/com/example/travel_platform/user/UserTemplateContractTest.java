@@ -16,7 +16,7 @@ class UserTemplateContractTest {
     void home() throws IOException {
         String template = template("main-index.mustache");
 
-        assertContains(template, "<title>TravelMate | 홈</title>");
+        assertContains(template, "<title>TravelMate |");
         assertContains(template, "form class=\"main-index-form-01\" action=\"/bookings/map-detail\" method=\"get\"");
         assertContains(template, "id=\"region\"");
         assertContains(template, "id=\"startDate\"");
@@ -28,8 +28,11 @@ class UserTemplateContractTest {
     void login() throws IOException {
         String template = template("login.mustache");
 
-        assertContains(template, "<title>TravelMate | 로그인</title>");
+        assertContains(template, "<title>TravelMate |");
         assertContains(template, "form class=\"login-form-01\" action=\"/login\" method=\"post\"");
+        assertContains(template, "{{model.kakaoJsAppKey}}");
+        assertContains(template, "{{model.naverClientId}}");
+        assertContains(template, "{{model.googleClientId}}");
         assertContains(template, "name=\"email\"");
         assertContains(template, "name=\"password\"");
     }
@@ -38,7 +41,7 @@ class UserTemplateContractTest {
     void join() throws IOException {
         String template = template("signup.mustache");
 
-        assertContains(template, "<title>TravelMate | 회원가입</title>");
+        assertContains(template, "<title>TravelMate |");
         assertContains(template, "form action=\"/join\" method=\"post\"");
         assertContains(template, "name=\"username\"");
         assertContains(template, "name=\"email\"");

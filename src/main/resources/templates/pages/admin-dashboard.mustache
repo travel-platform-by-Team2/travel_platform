@@ -13,9 +13,9 @@
   <main class="app-main admin-main">
     <div class="container-xxl">
       <div class="admin-page-shell">
-        {{#page}}
+        {{#model}}
         {{>partials/admin-sidebar}}
-        {{/page}}
+        {{/model}}
 
         <section class="admin-content">
           <div class="admin-breadcrumb">
@@ -36,7 +36,7 @@
           </div>
 
           <div class="admin-metric-grid">
-            {{#page.metrics}}
+            {{#model.metrics}}
             <article class="admin-metric-card">
               <div class="admin-metric-card__top">
                 <div class="admin-metric-icon {{iconClass}}">
@@ -47,7 +47,7 @@
               <p class="admin-metric-value">{{valueLabel}}</p>
               <p class="admin-metric-helper">{{helperLabel}}</p>
             </article>
-            {{/page.metrics}}
+            {{/model.metrics}}
           </div>
 
           <div class="admin-grid-2 admin-grid-2--charts">
@@ -64,7 +64,7 @@
 
               <div class="admin-panel__body">
                 <div class="admin-chart-list">
-                  {{#page.userStatusItems}}
+                  {{#model.userStatusItems}}
                   <article class="admin-chart-row">
                     <div class="admin-chart-row__head">
                       <div class="admin-chart-row__title">
@@ -79,7 +79,7 @@
                       <div class="admin-chart-fill {{barClass}}" style="width: {{barWidth}}%;"></div>
                     </div>
                   </article>
-                  {{/page.userStatusItems}}
+                  {{/model.userStatusItems}}
                 </div>
               </div>
             </section>
@@ -97,7 +97,7 @@
 
               <div class="admin-panel__body">
                 <div class="admin-chart-list">
-                  {{#page.boardCategoryItems}}
+                  {{#model.boardCategoryItems}}
                   <article class="admin-chart-row">
                     <div class="admin-chart-row__head">
                       <div class="admin-chart-row__title">
@@ -112,7 +112,7 @@
                       <div class="admin-chart-fill {{barClass}}" style="width: {{barWidth}}%;"></div>
                     </div>
                   </article>
-                  {{/page.boardCategoryItems}}
+                  {{/model.boardCategoryItems}}
                 </div>
               </div>
             </section>
@@ -129,9 +129,9 @@
               </div>
 
               <div class="admin-panel__body">
-                {{#page.hasRecentUsers}}
+                {{#model.hasRecentUsers}}
                 <div class="admin-feed-list">
-                  {{#page.recentUsers}}
+                  {{#model.recentUsers}}
                   <article class="admin-feed-item">
                     <div class="admin-feed-icon">
                       <span class="material-symbols-outlined">person</span>
@@ -145,16 +145,16 @@
                       </p>
                     </div>
                   </article>
-                  {{/page.recentUsers}}
+                  {{/model.recentUsers}}
                 </div>
-                {{/page.hasRecentUsers}}
+                {{/model.hasRecentUsers}}
 
-                {{^page.hasRecentUsers}}
+                {{^model.hasRecentUsers}}
                 <div class="admin-empty-state">
                   <span class="material-symbols-outlined">group_off</span>
                   <p>표시할 최근 유저가 없습니다.</p>
                 </div>
-                {{/page.hasRecentUsers}}
+                {{/model.hasRecentUsers}}
               </div>
             </section>
 
@@ -168,9 +168,9 @@
               </div>
 
               <div class="admin-panel__body">
-                {{#page.hasRecentBoards}}
+                {{#model.hasRecentBoards}}
                 <div class="admin-feed-list">
-                  {{#page.recentBoards}}
+                  {{#model.recentBoards}}
                   <article class="admin-feed-item">
                     <div class="admin-feed-icon">
                       <span class="material-symbols-outlined">article</span>
@@ -184,16 +184,16 @@
                       </p>
                     </div>
                   </article>
-                  {{/page.recentBoards}}
+                  {{/model.recentBoards}}
                 </div>
-                {{/page.hasRecentBoards}}
+                {{/model.hasRecentBoards}}
 
-                {{^page.hasRecentBoards}}
+                {{^model.hasRecentBoards}}
                 <div class="admin-empty-state">
                   <span class="material-symbols-outlined">article_person</span>
                   <p>표시할 최근 게시글이 없습니다.</p>
                 </div>
-                {{/page.hasRecentBoards}}
+                {{/model.hasRecentBoards}}
               </div>
             </section>
           </div>

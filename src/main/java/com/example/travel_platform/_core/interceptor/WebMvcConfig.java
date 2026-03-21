@@ -15,25 +15,28 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/admin/**"
     };
 
-    private static final String[] LOGIN_REQUIRED_PATHS = {
+    private static final String[] LOGIN_REQUIRED_PAGE_PATHS = {
             "/boards/*",
             "/boards/*/edit",
             "/boards/*/update",
             "/boards/*/delete",
             "/boards/*/replies",
             "/boards/*/replies/*/delete",
+            "/calendar",
+            "/trip",
+            "/trip/**",
+            "/mypage",
+            "/mypage/**"
+    };
+
+    private static final String[] LOGIN_REQUIRED_API_PATHS = {
             "/api/boards/*/likes/toggle",
             "/api/boards/*/replies",
             "/api/boards/*/replies/*",
-            "/calendar",
             "/api/calendar",
             "/api/calendar/**",
-            "/trip",
-            "/trip/**",
             "/api/trips",
-            "/api/trips/**",
-            "/mypage",
-            "/mypage/**"
+            "/api/trips/**"
     };
 
     private final LoginInterceptor loginInterceptor;
@@ -45,6 +48,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns(ADMIN_ONLY_PATHS);
 
         registry.addInterceptor(loginInterceptor)
-                .addPathPatterns(LOGIN_REQUIRED_PATHS);
+                .addPathPatterns(LOGIN_REQUIRED_PAGE_PATHS)
+                .addPathPatterns(LOGIN_REQUIRED_API_PATHS);
     }
 }

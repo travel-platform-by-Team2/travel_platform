@@ -14,15 +14,15 @@ class BookingTemplateContractTest {
     void map() throws IOException {
         String template = template("map-detail.mustache");
 
-        assertContains(template, "{{#page.kakaoMapAppKey}}");
-        assertContains(template, "{{page.kakaoMapAppKey}}");
+        assertContains(template, "{{#model.kakaoMapAppKey}}");
+        assertContains(template, "{{model.kakaoMapAppKey}}");
     }
 
     @Test
     void co() throws IOException {
         String template = template("booking-checkout.mustache");
 
-        assertContains(template, "{{#page}}");
+        assertContains(template, "{{#model}}");
         assertContains(template, "value=\"{{lodgingName}}\"");
         assertContains(template, "value=\"{{bookerName}}\"");
         assertContains(template, "{{totalPriceText}}");
@@ -32,7 +32,7 @@ class BookingTemplateContractTest {
     void done() throws IOException {
         String template = template("booking-complete.mustache");
 
-        assertContains(template, "{{#page}}");
+        assertContains(template, "{{#model}}");
         assertContains(template, "{{bookingNumber}}");
         assertContains(template, "value=\"{{regionKey}}\"");
         assertContains(template, "{{completeImageUrl}}");

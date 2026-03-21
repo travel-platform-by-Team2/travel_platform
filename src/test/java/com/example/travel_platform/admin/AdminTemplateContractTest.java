@@ -15,33 +15,34 @@ class AdminTemplateContractTest {
     void dash() throws IOException {
         String template = template("admin-dashboard.mustache");
 
-        assertContains(template, "{{#page}}");
+        assertContains(template, "{{#model}}");
         assertContains(template, "{{>partials/admin-sidebar}}");
-        assertContains(template, "{{#page.metrics}}");
+        assertContains(template, "{{#model.metrics}}");
+        assertFalse(template.contains("{{#page}}"), "{{#page}}");
     }
 
     @Test
     void users() throws IOException {
         String template = template("admin-users.mustache");
 
-        assertContains(template, "{{page.totalUserCount}}");
-        assertContains(template, "{{page.inactiveUserCount}}");
-        assertContains(template, "{{#page.users}}");
-        assertContains(template, "{{page.keyword}}");
-        assertContains(template, "{{page.sortBy}}");
-        assertContains(template, "{{page.orderBy}}");
-        assertFalse(template.contains("{{totalUserCount}}"), "{{totalUserCount}}");
+        assertContains(template, "{{model.totalUserCount}}");
+        assertContains(template, "{{model.inactiveUserCount}}");
+        assertContains(template, "{{#models}}");
+        assertContains(template, "{{model.keyword}}");
+        assertContains(template, "{{model.sortBy}}");
+        assertContains(template, "{{model.orderBy}}");
+        assertFalse(template.contains("{{page.totalUserCount}}"), "{{page.totalUserCount}}");
     }
 
     @Test
     void boards() throws IOException {
         String template = template("admin-boards.mustache");
 
-        assertContains(template, "{{page.allCount}}");
-        assertContains(template, "{{#page.boards}}");
-        assertContains(template, "{{#page.pageItems}}");
+        assertContains(template, "{{model.allCount}}");
+        assertContains(template, "{{#models}}");
+        assertContains(template, "{{#model.pageItems}}");
         assertContains(template, "{{createdDate}}");
-        assertFalse(template.contains("{{model."), "{{model.");
+        assertFalse(template.contains("{{page."), "{{page.");
     }
 
     private String template(String fileName) throws IOException {

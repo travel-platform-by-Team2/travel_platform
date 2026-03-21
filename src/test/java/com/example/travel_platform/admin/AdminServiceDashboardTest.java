@@ -16,67 +16,67 @@ class AdminServiceDashboardTest {
 
     @Test
     void dash() {
-        AdminResponse.DashboardPageDTO page = adminService.getDashboardPage();
+        AdminResponse.DashboardViewDTO view = adminService.getDashboardView();
 
-        assertEquals(3L, page.getTotalUserCount());
-        assertEquals(2L, page.getActiveUserCount());
-        assertEquals(1L, page.getInactiveUserCount());
+        assertEquals(3L, view.getTotalUserCount());
+        assertEquals(2L, view.getActiveUserCount());
+        assertEquals(1L, view.getInactiveUserCount());
 
-        assertEquals(4, page.getMetrics().size());
-        assertEquals(2, page.getUserStatusItems().size());
-        assertEquals(5, page.getBoardCategoryItems().size());
+        assertEquals(4, view.getMetrics().size());
+        assertEquals(2, view.getUserStatusItems().size());
+        assertEquals(5, view.getBoardCategoryItems().size());
 
-        long categoryTotal = page.getBoardCategoryItems().stream()
+        long categoryTotal = view.getBoardCategoryItems().stream()
                 .map(item -> item.getCountLabel())
                 .map(label -> label.replace("개", "").replace(",", "").trim())
-                .mapToLong(label -> Long.parseLong(label))
+                .mapToLong(Long::parseLong)
                 .sum();
 
-        assertEquals(page.getTotalBoardCount(), categoryTotal);
+        assertEquals(view.getTotalBoardCount(), categoryTotal);
 
-        assertTrue(page.isHasRecentUsers());
-        assertEquals(3, page.getRecentUsers().size());
-        assertEquals("admin", page.getRecentUsers().get(0).getUsername());
+        assertTrue(view.isHasRecentUsers());
+        assertEquals(3, view.getRecentUsers().size());
+        assertEquals("admin", view.getRecentUsers().get(0).getUsername());
 
-        assertTrue(page.isHasRecentBoards());
-        assertEquals(3, page.getRecentBoards().size());
-        assertFalse(page.getRecentBoards().get(0).getTitle().isBlank());
-        assertFalse(page.getRecentBoards().get(0).getUserName().isBlank());
+        assertTrue(view.isHasRecentBoards());
+        assertEquals(3, view.getRecentBoards().size());
+        assertFalse(view.getRecentBoards().get(0).getTitle().isBlank());
+        assertFalse(view.getRecentBoards().get(0).getUserName().isBlank());
     }
 
     @Test
     void users() {
-        AdminResponse.UserListPageDTO page = adminService.getUsersPage(null, null, null, null);
+        AdminResponse.UserListViewDTO view = adminService.getUserListView(null, null, null, null);
 
-        assertEquals(3L, page.getTotalUserCount());
-        assertEquals(1L, page.getInactiveUserCount());
-        assertEquals("", page.getKeyword());
-        assertTrue(page.isAllTab());
-        assertFalse(page.isActiveTab());
-        assertFalse(page.isInactiveTab());
-        assertEquals("createdAt", page.getSortBy());
-        assertEquals("desc", page.getOrderBy());
-        assertEquals(3, page.getUsers().size());
-        assertEquals("ssar", page.getUsers().get(0).getUsername());
+        assertEquals(3L, view.getModel().getTotalUserCount());
+        assertEquals(1L, view.getModel().getInactiveUserCount());
+        assertEquals("", view.getModel().getKeyword());
+        assertTrue(view.getModel().isAllTab());
+        assertFalse(view.getModel().isActiveTab());
+        assertFalse(view.getModel().isInactiveTab());
+        assertEquals("createdAt", view.getModel().getSortBy());
+        assertEquals("desc", view.getModel().getOrderBy());
+        assertEquals(3, view.getModels().size());
+        assertEquals("ssar", view.getModels().get(0).getUsername());
     }
 
     @Test
     void boardsCat() {
-        AdminResponse.AdminBoardListDTO page = adminService.getBoardsPage("tips", "", null, 0);
+        AdminResponse.BoardListViewDTO view = adminService.getBoardListView("tips", "", null, 0);
 
-        assertEquals("tips", page.getAllCategory());
-        assertEquals("tips", page.getSelectCategory());
-        assertFalse(page.isAllCategoryTab());
-        assertTrue(page.isTips());
-        assertTrue(page.getTotalPages() >= 1);
+        assertEquals("tips", view.getModel().getAllCategory());
+        assertEquals("tips", view.getModel().getSelectCategory());
+        assertFalse(view.getModel().isAllCategoryTab());
+        assertTrue(view.getModel().isTips());
+        assertTrue(view.getModel().getTotalPages() >= 1);
     }
 
     @Test
     void boardsAll() {
-        AdminResponse.AdminBoardListDTO page = adminService.getBoardsPage(null, "", null, 0);
+        AdminResponse.BoardListViewDTO view = adminService.getBoardListView(null, "", null, 0);
 
-        assertEquals("all", page.getAllCategory());
-        assertTrue(page.isAllCategoryTab());
-        assertFalse(page.isTips());
+        assertEquals("all", view.getModel().getAllCategory());
+        assertTrue(view.getModel().isAllCategoryTab());
+        assertFalse(view.getModel().isTips());
     }
 }

@@ -595,3 +595,4 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         return querySummary;
     }
 }
+

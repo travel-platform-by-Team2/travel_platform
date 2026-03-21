@@ -49,4 +49,11 @@ public class CalendarEvent {
 
     @Column(columnDefinition = "TEXT")
     private String memo;
+
+    public boolean isOwnedBy(Integer userId) {
+        return userId != null
+                && user != null
+                && user.getId() != null
+                && user.getId().equals(userId);
+    }
 }

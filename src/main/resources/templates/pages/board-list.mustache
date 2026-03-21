@@ -30,27 +30,27 @@
 
   <div class="community-board-hero__tab-row">
     <div class="community-board-hero__tabs chips-scroll-mask">
-      <a class="community-filter-btn cat-all {{^page.category}}is-active{{/page.category}}" href="/boards{{#page.sort}}?sort={{page.sort}}{{/page.sort}}{{#page.keyword}}{{#page.sort}}&{{/page.sort}}keyword={{page.keyword}}{{/page.keyword}}">
+      <a class="community-filter-btn cat-all {{^model.category}}is-active{{/model.category}}" href="/boards{{#model.sort}}?sort={{model.sort}}{{/model.sort}}{{#model.keyword}}{{#model.sort}}&{{/model.sort}}keyword={{model.keyword}}{{/model.keyword}}">
         전체
       </a>
 
-      <a class="community-filter-btn cat-tips {{#page.isTips}}is-active{{/page.isTips}}" href="/boards?category=tips{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+      <a class="community-filter-btn cat-tips {{#model.isTips}}is-active{{/model.isTips}}" href="/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         여행 팁
       </a>
 
-      <a class="community-filter-btn cat-plan {{#page.isPlan}}is-active{{/page.isPlan}}" href="/boards?category=plan{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+      <a class="community-filter-btn cat-plan {{#model.isPlan}}is-active{{/model.isPlan}}" href="/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         여행 계획
       </a>
 
-      <a class="community-filter-btn cat-food {{#page.isFood}}is-active{{/page.isFood}}" href="/boards?category=food{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+      <a class="community-filter-btn cat-food {{#model.isFood}}is-active{{/model.isFood}}" href="/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         맛집/카페
       </a>
 
-      <a class="community-filter-btn cat-review {{#page.isReview}}is-active{{/page.isReview}}" href="/boards?category=review{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+      <a class="community-filter-btn cat-review {{#model.isReview}}is-active{{/model.isReview}}" href="/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         숙소 후기
       </a>
 
-      <a class="community-filter-btn cat-qna {{#page.isQna}}is-active{{/page.isQna}}" href="/boards?category=qna{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+      <a class="community-filter-btn cat-qna {{#model.isQna}}is-active{{/model.isQna}}" href="/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
         질문/답변
       </a>
     </div>
@@ -58,14 +58,14 @@
 
   <div class="community-board-hero__controls">
     <form action="/boards" method="get" class="community-board-search">
-      {{#page.category}}<input type="hidden" name="category" value="{{page.category}}">{{/page.category}}
-      {{#page.sort}}<input type="hidden" name="sort" value="{{page.sort}}">{{/page.sort}}
+      {{#model.category}}<input type="hidden" name="category" value="{{model.category}}">{{/model.category}}
+      {{#model.sort}}<input type="hidden" name="sort" value="{{model.sort}}">{{/model.sort}}
       <div class="community-board-search__field">
         <span class="icon-ms-18 community-board-search__icon">search</span>
         <input
           type="text"
           name="keyword"
-          value="{{page.keyword}}"
+          value="{{model.keyword}}"
           class="community-board-search__input"
           placeholder="제목 또는 내용 검색">
       </div>
@@ -83,28 +83,28 @@
       <div class="community-sort-wrap">
         <details class="community-sort-dropdown">
           <summary class="community-sort-summary community-board-sort-summary">
-            <span>{{page.sortLabel}}</span>
+            <span>{{model.sortLabel}}</span>
             <span class="icon-ms-18">expand_more</span>
           </summary>
 
           <div class="community-sort-menu community-board-sort-menu" aria-label="게시글 정렬">
-            <a class="community-sort-option {{#page.isSortLatest}}is-active{{/page.isSortLatest}}"
-            href="/boards?sort=latest{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">날짜순 ↑</a>
+            <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
+            href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↑</a>
 
-            <a class="community-sort-option {{#page.isSortDate}}is-active{{/page.isSortDate}}"
-            href="/boards?sort=date{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">날짜순 ↓</a>
+            <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
+            href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↓</a>
 
-            <a class="community-sort-option {{#page.isSortViews}}is-active{{/page.isSortViews}}"
-            href="/boards?sort=view{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">조회순 ↑</a>
+            <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
+            href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↑</a>
 
-            <a class="community-sort-option {{#page.isSortDownviews}}is-active{{/page.isSortDownviews}}"
-            href="/boards?sort=downview{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">조회순 ↓</a>
+            <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
+            href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↓</a>
 
-            <a class="community-sort-option {{#page.isSortLikes}}is-active{{/page.isSortLikes}}"
-            href="/boards?sort=likes{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">좋아요순 ↑</a>
+            <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
+            href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순 ↑</a>
 
-            <a class="community-sort-option {{#page.isSortDownlikes}}is-active{{/page.isSortDownlikes}}"
-            href="/boards?sort=downlikes{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">좋아요 ↓</a>
+            <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
+            href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 ↓</a>
           </div>
         </details>
       </div>
@@ -113,7 +113,7 @@
 </div>
 
 <div class="stack-gap-3">
-{{#page.boards}}
+{{#models}}
 <a class="place-card-row" href="/boards/{{id}}">
 <div class="community-list-div-04">
 <div class="inline-row-gap2-mb2">
@@ -147,35 +147,35 @@
 </div>
 </div>
 </a>
-{{/page.boards}}
-{{^page.boards}}
+{{/models}}
+{{^models}}
 <p class="text-muted-sm-truncate">아직 게시글이 없습니다.</p>
-{{/page.boards}}
+{{/models}}
 
 <div class="pagination-wrap">
-  {{#page.prevPage}}
-  <a class="community-page-btn" href="/boards?page={{page.prevPage}}{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+  {{#model.prevPage}}
+  <a class="community-page-btn" href="/boards?page={{model.prevPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
     이전
   </a>
-  {{/page.prevPage}}
+  {{/model.prevPage}}
 
-  {{#page.pageItems}}
+  {{#model.pageItems}}
     {{#current}}
     <span class="community-page-btn is-active">{{displayNumber}}</span>
     {{/current}}
 
     {{^current}}
-    <a class="community-page-btn" href="/boards?page={{page}}{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+    <a class="community-page-btn" href="/boards?page={{page}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
       {{displayNumber}}
     </a>
     {{/current}}
-  {{/page.pageItems}}
+  {{/model.pageItems}}
 
-  {{#page.nextPage}}
-  <a class="community-page-btn" href="/boards?page={{page.nextPage}}{{#page.category}}&category={{page.category}}{{/page.category}}{{#page.sort}}&sort={{page.sort}}{{/page.sort}}{{#page.keyword}}&keyword={{page.keyword}}{{/page.keyword}}">
+  {{#model.nextPage}}
+  <a class="community-page-btn" href="/boards?page={{model.nextPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
     다음
   </a>
-  {{/page.nextPage}}
+  {{/model.nextPage}}
 </div>
 </div>
 </main>

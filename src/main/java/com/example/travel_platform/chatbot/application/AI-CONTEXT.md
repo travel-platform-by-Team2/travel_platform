@@ -1,4 +1,4 @@
-<!-- Parent: ../AI-CONTEXT.md -->
+﻿<!-- Parent: ../AI-CONTEXT.md -->
 
 # application
 
@@ -29,6 +29,7 @@ LLM 계획 생성, SQL 실행, 재탐색 판단, 최종 답변 조합 등 챗봇
 - `ChatbotOrchestrator`는 `DbSearchState` 기준으로 query intent, query summary, sql 상태를 넘기며 direct/db 응답 조립은 helper로 분리돼 있다.
 - `ChatSchemaProvider`는 실제 컬럼 기준 schemaContext를 제공하고, `ChatbotPlanService`는 그 문자열을 그대로 LLM client에 전달한다.
 - `ChatbotAnswerService`는 direct answer 기본값과 DB answer 기본 intent 보정을 담당한다.
+- v3 기준으로 동적 SQL은 `ChatbotQueryService`만 예외적으로 담당하고, 다른 application 서비스는 SQL 문자열을 직접 다루지 않는다.
 
 ## 테스트
 
@@ -39,3 +40,4 @@ LLM 계획 생성, SQL 실행, 재탐색 판단, 최종 답변 조합 등 챗봇
 
 - 내부: `chatbot/api/dto`, `chatbot/infra/llm`
 - 외부: `Spring JDBC`, `OpenAI Responses API`
+

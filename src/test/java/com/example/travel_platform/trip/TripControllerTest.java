@@ -27,14 +27,16 @@ class TripControllerTest {
         MockHttpSession session = session(3);
         TripController controller = new TripController(tripService, session, "kakao-key");
         Model model = new ExtendedModelMap();
-        TripResponse.ListPageDTO pageDTO = TripResponse.ListPageDTO.builder().build();
+        TripResponse.SummaryDTO plan = TripResponse.SummaryDTO.builder().id(19).title("제주 여행").build();
+        TripResponse.ListPageDTO modelDTO = TripResponse.ListPageDTO.builder().plans(java.util.List.of(plan)).build();
 
-        when(tripService.getPlanList(3, "result", 2)).thenReturn(pageDTO);
+        when(tripService.getPlanList(3, "result", 2)).thenReturn(modelDTO);
 
         String view = controller.tripListPage("result", 2, model);
 
         assertEquals("pages/trip-list", view);
-        assertSame(pageDTO, model.getAttribute("page"));
+        assertSame(modelDTO, model.getAttribute("model"));
+        assertEquals(java.util.List.of(plan), model.getAttribute("models"));
         verify(tripService).getPlanList(3, "result", 2);
     }
 
@@ -47,7 +49,7 @@ class TripControllerTest {
         String view = controller.tripCreatePage(model);
 
         assertEquals("pages/trip-create", view);
-        assertEquals("", ((TripResponse.CreateFormDTO) model.getAttribute("page")).getTitle());
+        assertEquals("", ((TripResponse.CreateFormDTO) model.getAttribute("model")).getTitle());
         verifyNoInteractions(tripService);
     }
 
@@ -57,14 +59,14 @@ class TripControllerTest {
         MockHttpSession session = session(4);
         TripController controller = new TripController(tripService, session, "kakao-key");
         Model model = new ExtendedModelMap();
-        TripResponse.DetailDTO detailDTO = TripResponse.DetailDTO.builder().id(19).title("제주 여행").build();
+        TripResponse.DetailDTO modelDTO = TripResponse.DetailDTO.builder().id(19).title("제주 여행").build();
 
-        when(tripService.getPlanDetail(4, 19)).thenReturn(detailDTO);
+        when(tripService.getPlanDetail(4, 19)).thenReturn(modelDTO);
 
         String view = controller.tripDetailPage(19, model);
 
         assertEquals("pages/trip-detail", view);
-        assertSame(detailDTO, model.getAttribute("plan"));
+        assertSame(modelDTO, model.getAttribute("model"));
         verify(tripService).getPlanDetail(4, 19);
     }
 
@@ -74,14 +76,14 @@ class TripControllerTest {
         MockHttpSession session = session(8);
         TripController controller = new TripController(tripService, session, "kakao-key");
         Model model = new ExtendedModelMap();
-        TripResponse.PlacePageDTO pageDTO = TripResponse.PlacePageDTO.builder().detailUrl("/trip/detail?id=7").build();
+        TripResponse.PlacePageDTO modelDTO = TripResponse.PlacePageDTO.builder().detailUrl("/trip/detail?id=7").build();
 
-        when(tripService.getPlacePage(8, 7, "kakao-key")).thenReturn(pageDTO);
+        when(tripService.getPlacePage(8, 7, "kakao-key")).thenReturn(modelDTO);
 
         String view = controller.tripAddPlacePage(7, model);
 
         assertEquals("pages/trip-add-place", view);
-        assertSame(pageDTO, model.getAttribute("page"));
+        assertSame(modelDTO, model.getAttribute("model"));
         verify(tripService).getPlacePage(8, 7, "kakao-key");
     }
 
@@ -100,12 +102,12 @@ class TripControllerTest {
 
         String view = controller.createPlan(reqDTO, bindingResult, model);
 
-        TripResponse.CreateFormDTO page = (TripResponse.CreateFormDTO) model.getAttribute("page");
+        TripResponse.CreateFormDTO formDTO = (TripResponse.CreateFormDTO) model.getAttribute("model");
         assertEquals("pages/trip-create", view);
-        assertEquals("제주 여행", page.getTitle());
-        assertEquals("jeju", page.getRegion());
-        assertEquals("친구", page.getWhoWith());
-        assertEquals("여행 종료일을 선택해주세요.", page.getEndDateError());
+        assertEquals("제주 여행", formDTO.getTitle());
+        assertEquals("jeju", formDTO.getRegion());
+        assertEquals("친구", formDTO.getWhoWith());
+        assertEquals("여행 종료일을 선택해주세요.", formDTO.getEndDateError());
         verifyNoInteractions(tripService);
     }
 

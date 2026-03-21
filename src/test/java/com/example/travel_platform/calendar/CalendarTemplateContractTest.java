@@ -16,7 +16,7 @@ class CalendarTemplateContractTest {
     void page() throws IOException {
         String template = template("calendar.mustache");
 
-        assertContains(template, "<title>TravelMate | 캘린더</title>");
+        assertContains(template, "<title>{{model.pageTitle}}</title>");
         assertContains(template, "data-calendar-grid");
         assertContains(template, "data-calendar-event-panel");
         assertContains(template, "data-calendar-memo-list");

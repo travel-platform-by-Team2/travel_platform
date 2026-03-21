@@ -17,9 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.trip.TripPlanQueryRepository;
 import com.example.travel_platform.trip.TripRepository;
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserRepository;
+import com.example.travel_platform.user.UserQueryRepository;
 import tools.jackson.databind.ObjectMapper;
 
 @Transactional(readOnly = true)
@@ -27,23 +28,32 @@ import tools.jackson.databind.ObjectMapper;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
+    private final UserQueryRepository userQueryRepository;
     private final TripRepository tripRepository;
+    private final TripPlanQueryRepository tripPlanQueryRepository;
+    private final LodgingQueryRepository lodgingQueryRepository;
+    private final MapPlaceImageRepository mapPlaceImageRepository;
     private final ObjectMapper objectMapper;
 
     // 명시적 생성자 주입
     public BookingService(
             BookingRepository bookingRepository,
-            UserRepository userRepository,
-            TripRepository tripRepository) {
+            UserQueryRepository userQueryRepository,
+            TripRepository tripRepository,
+            TripPlanQueryRepository tripPlanQueryRepository,
+            LodgingQueryRepository lodgingQueryRepository,
+            MapPlaceImageRepository mapPlaceImageRepository) {
         this.bookingRepository = bookingRepository;
-        this.userRepository = userRepository;
+        this.userQueryRepository = userQueryRepository;
         this.tripRepository = tripRepository;
+        this.tripPlanQueryRepository = tripPlanQueryRepository;
+        this.lodgingQueryRepository = lodgingQueryRepository;
+        this.mapPlaceImageRepository = mapPlaceImageRepository;
         this.objectMapper = new ObjectMapper();
     }
 
     public User getUserById(Integer id) {
-        return userRepository.findById(id).orElse(null);
+        return userQueryRepository.findUser(id).orElse(null);
     }
 
     /**
@@ -94,7 +104,7 @@ public class BookingService {
 
             // 3. 만약 객실 정보가 아예 없다면, 추가 이미지를 활용해 가상의 객실이라도 생성 (데이터 보완)
             if (rooms.isEmpty() && !extraImages.isEmpty()) {
-                BookingResponse.RoomDTO virtualRoom = BookingResponse.RoomDTO.of(
+                BookingResponse.RoomDTO virtualRoom = BookingResponse.RoomDTO.createRoom(
                         "기본 객실",
                         "상세 정보는 숙소에 문의해 주세요.",
                         "",
@@ -264,7 +274,7 @@ public class BookingService {
                 String roomMaxCount = getAnyField(item, "roommaxcount", "roomMaxCount", "maxCount");
                 String roomImg = getAnyField(item, "roomimg1", "roomImg1", "roomimg", "imageUrl");
 
-                roomList.add(BookingResponse.RoomDTO.of(
+                roomList.add(BookingResponse.RoomDTO.createRoom(
                         roomTitle,
                         valueToString(roomIntro),
                         valueToString(roomBaseCount),
@@ -334,7 +344,7 @@ public class BookingService {
     @Transactional
     public BookingResponse.PlaceImageDTO getPlaceImage(String serviceKey, BookingRequest.PlaceImageQueryDTO reqDTO) {
         if (reqDTO == null) {
-            return BookingResponse.PlaceImageDTO.of("", "");
+            return BookingResponse.PlaceImageDTO.createPlaceImage("", "");
         }
 
         String normalizedName = normalizePlaceName(reqDTO.getName());
@@ -345,7 +355,7 @@ public class BookingService {
             cachePlaceImage(normalizedName, reqDTO.getName(), imageUrl);
         }
 
-        return BookingResponse.PlaceImageDTO.of(imageUrl, reqDTO.getName());
+        return BookingResponse.PlaceImageDTO.createPlaceImage(imageUrl, reqDTO.getName());
     }
 
     @SuppressWarnings("unchecked")
@@ -399,7 +409,7 @@ public class BookingService {
         String regionKey = reqDTO == null ? "" : blankToDefault(reqDTO.getRegionKey(), "");
         double[] bounds = resolveBounds(reqDTO == null ? null : reqDTO.getBounds());
 
-        List<BookingResponse.MapPoiDTO> dbPois = bookingRepository.findActiveLodgingsInBounds(
+        List<BookingResponse.MapPoiDTO> dbPois = lodgingQueryRepository.findActiveLodgingsInBounds(
                 regionKey, bounds[0], bounds[1], bounds[2], bounds[3]);
 
         LinkedHashMap<String, BookingResponse.MapPoiDTO> merged = new LinkedHashMap<>();
@@ -452,14 +462,14 @@ public class BookingService {
         if (userId == null) {
             return null;
         }
-        return userRepository.findById(userId).orElse(null);
+        return userQueryRepository.findUser(userId).orElse(null);
     }
 
     private TripPlan findTripPlanOrNull(Integer tripPlanId) {
         if (tripPlanId == null) {
             return null;
         }
-        return tripRepository.findPlanById(tripPlanId).orElse(null);
+        return tripPlanQueryRepository.findPlan(tripPlanId).orElse(null);
     }
 
     private BookingCompletionDraft createCompletionDraft(BookingRequest.CompleteBookingDTO reqDTO) {
@@ -485,7 +495,7 @@ public class BookingService {
     }
 
     private TripPlan resolveCompletionPlan(User user, BookingCompletionDraft draft) {
-        List<TripPlan> plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
+        List<TripPlan> plans = tripPlanQueryRepository.findPlanList(user.getId(), 0, 1);
         if (!plans.isEmpty()) {
             return plans.get(0);
         }
@@ -561,7 +571,7 @@ public class BookingService {
         if (normalizedName.isBlank()) {
             return null;
         }
-        return bookingRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
+        return mapPlaceImageRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
     }
 
     private String resolvePlaceImage(String serviceKey, BookingRequest.PlaceImageQueryDTO reqDTO) {
@@ -576,7 +586,7 @@ public class BookingService {
         if (imageUrl == null || imageUrl.isBlank() || normalizedName.isBlank()) {
             return;
         }
-        bookingRepository.upsertMapPlaceImage(
+        mapPlaceImageRepository.upsertMapPlaceImage(
                 normalizedName,
                 blankToDefault(name, normalizedName),
                 imageUrl,

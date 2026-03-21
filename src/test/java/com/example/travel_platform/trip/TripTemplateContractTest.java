@@ -16,8 +16,8 @@ class TripTemplateContractTest {
     void listPage() throws IOException {
         String template = template("trip-list.mustache");
 
-        assertContains(template, "{{#page}}");
-        assertContains(template, "{{#plans}}");
+        assertContains(template, "{{#model}}");
+        assertContains(template, "{{#models}}");
         assertContains(template, "{{category}}");
     }
 
@@ -25,30 +25,33 @@ class TripTemplateContractTest {
     void createPage() throws IOException {
         String template = template("trip-create.mustache");
 
-        assertContains(template, "value=\"{{page.title}}\"");
-        assertContains(template, "data-selected-region=\"{{page.region}}\"");
-        assertContains(template, "value=\"{{page.whoWith}}\"");
-        assertContains(template, "{{#page.titleError}}");
-        assertContains(template, "{{#page.startDateError}}");
+        assertContains(template, "value=\"{{model.title}}\"");
+        assertContains(template, "data-selected-region=\"{{model.region}}\"");
+        assertContains(template, "value=\"{{model.whoWith}}\"");
+        assertContains(template, "value=\"{{model.startDateValue}}\"");
+        assertContains(template, "value=\"{{model.endDateValue}}\"");
+        assertContains(template, "{{#model.titleError}}");
+        assertContains(template, "{{#model.startDateError}}");
     }
 
     @Test
-    void detailPlan() throws IOException {
+    void detailPage() throws IOException {
         String template = template("trip-detail.mustache");
 
-        assertContains(template, "{{#plan}}{{plan.formattedTitle}}{{/plan}}");
-        assertContains(template, "{{#plan}}{{plan.regionLabel}}{{/plan}}");
-        assertContains(template, "{{#plan}}{{plan.travelPeriodLabel}}{{/plan}}");
+        assertContains(template, "{{#model}}{{formattedTitle}}{{/model}}");
+        assertContains(template, "{{#model}}{{regionLabel}}{{/model}}");
+        assertContains(template, "{{#model}}{{travelPeriodLabel}}{{/model}}");
     }
 
     @Test
     void placePage() throws IOException {
         String template = template("trip-add-place.mustache");
 
+        assertContains(template, "{{#model}}");
         assertContains(template, "data-existing-count=\"{{existingCount}}\"");
         assertContains(template, "data-save-url=\"{{saveUrl}}\"");
         assertContains(template, "data-detail-url=\"{{detailUrl}}\"");
-        assertContains(template, "{{#page.kakaoMapAppKey}}");
+        assertContains(template, "{{#model.kakaoMapAppKey}}");
     }
 
     private String template(String fileName) throws IOException {

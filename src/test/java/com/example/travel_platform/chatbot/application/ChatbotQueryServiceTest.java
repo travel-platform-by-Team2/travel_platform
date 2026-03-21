@@ -147,3 +147,4 @@ class ChatbotQueryServiceTest {
         verify(jdbcTemplate).queryForList("select id from board_tb limit 3");
     }
 }
+

@@ -13,9 +13,9 @@
   <main class="app-main admin-main">
     <div class="container-xxl">
       <div class="admin-page-shell">
-        {{#page}}
+        {{#model}}
         {{>partials/admin-sidebar}}
-        {{/page}}
+        {{/model}}
 
         <section class="admin-content">
           <div class="admin-page-header">
@@ -33,7 +33,7 @@
                 </div>
               </div>
               <span class="admin-metric-label">전체 사용자 수</span>
-              <p class="admin-metric-value">{{page.totalUserCount}}</p>
+              <p class="admin-metric-value">{{model.totalUserCount}}</p>
             </article>
 
             <article class="admin-metric-card">
@@ -43,7 +43,7 @@
                 </div>
               </div>
               <span class="admin-metric-label">비활성 사용자 수</span>
-              <p class="admin-metric-value">{{page.inactiveUserCount}}</p>
+              <p class="admin-metric-value">{{model.inactiveUserCount}}</p>
             </article>
           </div>
 
@@ -52,22 +52,22 @@
               <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h2 class="admin-table-title mb-0">사용자 목록</h2>
                 <div class="admin-tab-shell" aria-label="사용자 상태 탭">
-                  <a class="admin-tab-button{{#page.allTab}} is-active-tab{{/page.allTab}}" href="{{page.allTabHref}}">전체</a>
-                  <a class="admin-tab-button{{#page.activeTab}} is-active-tab{{/page.activeTab}}" href="{{page.activeTabHref}}">활성</a>
-                  <a class="admin-tab-button{{#page.inactiveTab}} is-active-tab{{/page.inactiveTab}}" href="{{page.inactiveTabHref}}">비활성</a>
+                  <a class="admin-tab-button{{#model.allTab}} is-active-tab{{/model.allTab}}" href="{{model.allTabHref}}">전체</a>
+                  <a class="admin-tab-button{{#model.activeTab}} is-active-tab{{/model.activeTab}}" href="{{model.activeTabHref}}">활성</a>
+                  <a class="admin-tab-button{{#model.inactiveTab}} is-active-tab{{/model.inactiveTab}}" href="{{model.inactiveTabHref}}">비활성</a>
                 </div>
               </div>
 
               <div class="admin-search-group">
                 <form class="admin-search-wrap" action="/admin/users" method="get">
-                  {{#page.currentActive}}
+                  {{#model.currentActive}}
                   <input type="hidden" name="active" value="true">
-                  {{/page.currentActive}}
-                  {{^page.allTab}}
-                  {{^page.currentActive}}
+                  {{/model.currentActive}}
+                  {{^model.allTab}}
+                  {{^model.currentActive}}
                   <input type="hidden" name="active" value="false">
-                  {{/page.currentActive}}
-                  {{/page.allTab}}
+                  {{/model.currentActive}}
+                  {{/model.allTab}}
 
                   <div class="admin-search-row">
                     <span class="material-symbols-outlined">search</span>
@@ -75,7 +75,7 @@
                       class="form-control admin-search-field"
                       type="text"
                       name="keyword"
-                      value="{{page.keyword}}"
+                      value="{{model.keyword}}"
                       placeholder="이름 또는 이메일 검색"
                     >
                     <button type="submit" class="admin-search-submit">검색</button>
@@ -83,12 +83,12 @@
 
                   <div class="admin-filter-controls">
                     <select class="form-select admin-select-field text-center" name="sortBy" aria-label="정렬 기준" onchange="this.form.submit()">
-                      <option value="createdAt"{{#page.sortByCreatedAt}} selected{{/page.sortByCreatedAt}}>가입일</option>
-                      <option value="postCount"{{#page.sortByPostCount}} selected{{/page.sortByPostCount}}>게시글 수</option>
+                      <option value="createdAt"{{#model.sortByCreatedAt}} selected{{/model.sortByCreatedAt}}>가입일</option>
+                      <option value="postCount"{{#model.sortByPostCount}} selected{{/model.sortByPostCount}}>게시글 수</option>
                     </select>
                     <select class="form-select admin-select-field text-center" name="orderBy" aria-label="정렬 방향" onchange="this.form.submit()">
-                      <option value="asc"{{#page.orderByAsc}} selected{{/page.orderByAsc}}>오름차순</option>
-                      <option value="desc"{{#page.orderByDesc}} selected{{/page.orderByDesc}}>내림차순</option>
+                      <option value="asc"{{#model.orderByAsc}} selected{{/model.orderByAsc}}>오름차순</option>
+                      <option value="desc"{{#model.orderByDesc}} selected{{/model.orderByDesc}}>내림차순</option>
                     </select>
                   </div>
                 </form>
@@ -106,7 +106,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {{#page.users}}
+                  {{#models}}
                   <tr>
                     <td>
                       <div class="d-flex flex-column gap-1">
@@ -118,17 +118,17 @@
                     <td class="text-center">{{boardCount}}</td>
                     <td class="text-end admin-manage-cell">
                       <form action="/admin/users/{{userId}}/status" method="post" class="admin-status-actions">
-                        {{#page.currentActive}}
+                        {{#model.currentActive}}
                         <input type="hidden" name="active" value="true">
-                        {{/page.currentActive}}
-                        {{^page.allTab}}
-                        {{^page.currentActive}}
+                        {{/model.currentActive}}
+                        {{^model.allTab}}
+                        {{^model.currentActive}}
                         <input type="hidden" name="active" value="false">
-                        {{/page.currentActive}}
-                        {{/page.allTab}}
-                        <input type="hidden" name="keyword" value="{{page.keyword}}">
-                        <input type="hidden" name="sortBy" value="{{page.sortBy}}">
-                        <input type="hidden" name="orderBy" value="{{page.orderBy}}">
+                        {{/model.currentActive}}
+                        {{/model.allTab}}
+                        <input type="hidden" name="keyword" value="{{model.keyword}}">
+                        <input type="hidden" name="sortBy" value="{{model.sortBy}}">
+                        <input type="hidden" name="orderBy" value="{{model.orderBy}}">
                         {{#active}}
                         <button class="admin-pill status-active" type="submit" name="targetActive" value="true" disabled>활성</button>
                         <button class="admin-pill status-neutral" type="submit" name="targetActive" value="false">비활성</button>
@@ -140,14 +140,14 @@
                       </form>
                     </td>
                   </tr>
-                  {{/page.users}}
-                  {{^page.users}}
+                  {{/models}}
+                  {{^models}}
                   <tr>
                     <td colspan="4" class="text-center text-muted py-5">
                       조회된 사용자 데이터가 없습니다.
                     </td>
                   </tr>
-                  {{/page.users}}
+                  {{/models}}
                 </tbody>
               </table>
             </div>

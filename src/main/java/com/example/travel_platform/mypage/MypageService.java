@@ -4,17 +4,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform.booking.Booking;
-import com.example.travel_platform.booking.BookingRepository;
 import com.example.travel_platform.trip.TripPlan;
-import com.example.travel_platform.trip.TripRepository;
+import com.example.travel_platform.trip.TripPlanQueryRepository;
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserRepository;
+import com.example.travel_platform.user.UserQueryRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,9 +24,9 @@ public class MypageService {
     private static final int UPCOMING_BOOKING_LIMIT = 2;
     private static final int UPCOMING_TRIP_PLAN_LIMIT = 2;
 
-    private final UserRepository userRepository;
-    private final BookingRepository bookingRepository;
-    private final TripRepository tripRepository;
+    private final UserQueryRepository userQueryRepository;
+    private final MypageBookingQueryRepository mypageBookingQueryRepository;
+    private final TripPlanQueryRepository tripPlanQueryRepository;
 
     public MypageResponse.PageDTO getMainPage(Integer sessionUserId) {
         User user = findUser(sessionUserId);
@@ -37,16 +35,9 @@ public class MypageService {
         return createMainPage(user, bookings, tripPlans);
     }
 
-    private List<MypageResponse.BookingCardDTO> loadUpcomingBookings(Integer sessionUserId) {
-        return findUpcomingBookings(sessionUserId).stream()
-                .map(booking -> MypageResponse.BookingCardDTO.from(booking))
-                .collect(Collectors.toList());
-    }
-
-    private List<MypageResponse.PlanCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
-        return findUpcomingTripPlans(sessionUserId).stream()
-                .map(tripPlan -> MypageResponse.PlanCardDTO.from(tripPlan))
-                .collect(Collectors.toList());
+    public MypageResponse.BookingDetailPageDTO getBookingDetailPage(Integer sessionUserId, Integer bookingId) {
+        findUser(sessionUserId);
+        return MypageResponse.BookingDetailPageDTO.createBookingDetailPage(bookingId);
     }
 
     @Transactional
@@ -63,25 +54,34 @@ public class MypageService {
         user.changePassword(newPassword);
     }
 
+    private List<MypageResponse.BookingCardDTO> loadUpcomingBookings(Integer sessionUserId) {
+        return findUpcomingBookings(sessionUserId).stream()
+                .map(MypageResponse.BookingCardDTO::fromBooking)
+                .collect(Collectors.toList());
+    }
+
+    private List<MypageResponse.PlanCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
+        return findUpcomingTripPlans(sessionUserId).stream()
+                .map(MypageResponse.PlanCardDTO::fromTripPlan)
+                .collect(Collectors.toList());
+    }
+
     private MypageResponse.PageDTO createMainPage(
             User user,
             List<MypageResponse.BookingCardDTO> bookings,
             List<MypageResponse.PlanCardDTO> tripPlans) {
-        return MypageResponse.PageDTO.of(MypageResponse.ProfileDTO.from(user), bookings, tripPlans);
+        return MypageResponse.PageDTO.createMainPage(MypageResponse.ProfileDTO.fromUser(user), bookings, tripPlans);
     }
 
     private List<Booking> findUpcomingBookings(Integer sessionUserId) {
-        return bookingRepository.findByUser_IdAndCheckInGreaterThanEqualOrderByCheckInAscIdAsc(
-                sessionUserId,
-                LocalDate.now(),
-                PageRequest.of(0, UPCOMING_BOOKING_LIMIT));
+        return mypageBookingQueryRepository.findUpcomingBookings(sessionUserId, LocalDate.now(), UPCOMING_BOOKING_LIMIT);
     }
 
     private List<TripPlan> findUpcomingTripPlans(Integer sessionUserId) {
         LocalDate inclusiveToday = LocalDate.now().minusDays(1);
 
-        // TripRepository 조회 조건이 startDate > 기준일이므로 오늘 출발 계획도 포함되게 하루를 보정한다.
-        return tripRepository.findUpcomingPlanListByUserId(sessionUserId, inclusiveToday, 0, UPCOMING_TRIP_PLAN_LIMIT);
+        // 조회 조건이 startDate > 기준일이므로 오늘 출발 계획도 포함되게 하루를 보정한다.
+        return tripPlanQueryRepository.findUpcomingPlanList(sessionUserId, inclusiveToday, 0, UPCOMING_TRIP_PLAN_LIMIT);
     }
 
     private void validateCurrentPassword(User user, String currentPassword) {
@@ -97,7 +97,7 @@ public class MypageService {
     }
 
     private User findUser(Integer sessionUserId) {
-        return userRepository.findById(sessionUserId)
+        return userQueryRepository.findUser(sessionUserId)
                 .orElseThrow(() -> new Exception400("사용자 정보를 찾을 수 없습니다."));
     }
 

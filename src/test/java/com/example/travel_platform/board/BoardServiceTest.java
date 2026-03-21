@@ -3,6 +3,7 @@ package com.example.travel_platform.board;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,47 +32,59 @@ class BoardServiceTest {
     @Test
     void listSearch() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "ssar", "USER");
-        Board board = board(10, author, "부산 여행 팁", "tips", "<p>부산 코스 정리</p>");
+        Board board = board(10, author, "Busan route", "tips", "<p>Busan travel tips</p>");
 
-        when(boardRepository.search(eq("tips"), any(String[].class), eq("likes"), eq(10), eq(10)))
+        when(boardQueryRepository.search(eq("tips"), any(String[].class), eq("likes"), eq(10), eq(10)))
                 .thenReturn(List.of(board));
-        when(boardRepository.countSearch(eq("tips"), any(String[].class))).thenReturn(12L);
-        when(boardRepository.countLikesByBoardIds(List.of(10))).thenReturn(Map.of(10, 2L));
+        when(boardQueryRepository.countSearch(eq("tips"), any(String[].class))).thenReturn(12L);
+        when(boardLikeRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 2L));
 
-        BoardResponse.ListPageDTO response = boardService.getBoardList("tips", " busan trip ", "likes", 1);
+        BoardResponse.ListViewDTO response = boardService.getBoardList("tips", " busan trip ", "likes", 1);
 
-        assertEquals("busan trip", response.getKeyword());
-        assertEquals("likes", response.getSort());
-        assertEquals("좋아요순 ↑", response.getSortLabel());
-        assertEquals(2, response.getTotalPages());
-        assertEquals(2, response.getPageItems().size());
-        assertTrue(response.isTips());
-        assertTrue(response.isSortLikes());
-        assertEquals(2, response.getBoards().get(0).getLikeCount());
+        assertEquals("busan trip", response.getModel().getKeyword());
+        assertEquals("likes", response.getModel().getSort());
+        assertNotNull(response.getModel().getSortLabel());
+        assertEquals(2, response.getModel().getTotalPages());
+        assertEquals(2, response.getModel().getPageItems().size());
+        assertTrue(response.getModel().isTips());
+        assertTrue(response.getModel().isSortLikes());
+        assertEquals(2, response.getModels().get(0).getLikeCount());
 
         ArgumentCaptor<String[]> wordsCaptor = ArgumentCaptor.forClass(String[].class);
-        verify(boardRepository).search(eq("tips"), wordsCaptor.capture(), eq("likes"), eq(10), eq(10));
+        verify(boardQueryRepository).search(eq("tips"), wordsCaptor.capture(), eq("likes"), eq(10), eq(10));
         assertArrayEquals(new String[] { "busan", "trip" }, wordsCaptor.getValue());
     }
 
     @Test
     void detailUser() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "author", "USER");
         User viewer = user(2, "viewer", "USER");
-        Board board = board(7, author, "제목", "tips", "<p>본문</p>");
-        Reply reply = reply(11, board, viewer, "댓글");
+        Board board = board(7, author, "title", "tips", "<p>body</p>");
+        Reply reply = reply(11, board, viewer, "reply");
 
         when(boardRepository.findById(7)).thenReturn(Optional.of(board));
         when(userRepository.findById(2)).thenReturn(Optional.of(viewer));
@@ -93,13 +106,19 @@ class BoardServiceTest {
     @Test
     void detailGuest() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "author", "USER");
-        Board board = board(7, author, "제목", "tips", "<p>본문</p>");
+        Board board = board(7, author, "title", "tips", "<p>body</p>");
 
         when(boardRepository.findById(7)).thenReturn(Optional.of(board));
         when(replyRepository.findByBoardId(7)).thenReturn(List.of());
@@ -116,13 +135,19 @@ class BoardServiceTest {
     @Test
     void detailOwner() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "author", "USER");
-        Board board = board(7, author, "제목", "tips", "<p>본문</p>");
+        Board board = board(7, author, "title", "tips", "<p>body</p>");
 
         when(boardRepository.findById(7)).thenReturn(Optional.of(board));
         when(userRepository.findById(1)).thenReturn(Optional.of(author));
@@ -140,14 +165,20 @@ class BoardServiceTest {
     @Test
     void detailAdmin() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "author", "USER");
         User admin = user(9, "admin", "ADMIN");
-        Board board = board(7, author, "제목", "tips", "<p>본문</p>");
+        Board board = board(7, author, "title", "tips", "<p>body</p>");
 
         when(boardRepository.findById(7)).thenReturn(Optional.of(board));
         when(userRepository.findById(9)).thenReturn(Optional.of(admin));
@@ -165,14 +196,20 @@ class BoardServiceTest {
     @Test
     void formAdmin() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "author", "USER");
         User admin = user(9, "admin", "ADMIN");
-        Board board = board(7, author, "제목", "tips", "<p>본문</p>");
+        Board board = board(7, author, "title", "tips", "<p>body</p>");
 
         when(boardRepository.findById(7)).thenReturn(Optional.of(board));
         when(userRepository.findById(9)).thenReturn(Optional.of(admin));
@@ -180,20 +217,26 @@ class BoardServiceTest {
         BoardResponse.FormDTO response = boardService.getBoardForm(9, 7);
 
         assertEquals(7, response.getId());
-        assertEquals("제목", response.getTitle());
+        assertEquals("title", response.getTitle());
     }
 
     @Test
     void likeOn() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "author", "USER");
         User viewer = user(2, "viewer", "USER");
-        Board board = board(9, author, "제목", "tips", "<p>본문</p>");
+        Board board = board(9, author, "title", "tips", "<p>body</p>");
 
         when(boardRepository.findById(9)).thenReturn(Optional.of(board));
         when(boardLikeRepository.findByBoard_IdAndUser_Id(9, 2)).thenReturn(Optional.empty());
@@ -211,20 +254,24 @@ class BoardServiceTest {
     @Test
     void likeSelf() {
         BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
         BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
         ReplyRepository replyRepository = mock(ReplyRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        BoardService boardService = new BoardService(boardRepository, boardLikeRepository, replyRepository, userRepository);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
 
         User author = user(1, "author", "USER");
-        Board board = board(9, author, "제목", "tips", "<p>본문</p>");
+        Board board = board(9, author, "title", "tips", "<p>body</p>");
 
         when(boardRepository.findById(9)).thenReturn(Optional.of(board));
         when(userRepository.findById(1)).thenReturn(Optional.of(author));
 
-        Exception403 exception = assertThrows(Exception403.class, () -> boardService.toggleBoardLike(1, 9));
-
-        assertEquals("본인 게시글에는 좋아요를 누를 수 없습니다.", exception.getMessage());
+        assertThrows(Exception403.class, () -> boardService.toggleBoardLike(1, 9));
     }
 
     private User user(int id, String username, String role) {

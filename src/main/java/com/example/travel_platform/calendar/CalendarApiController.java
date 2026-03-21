@@ -29,7 +29,7 @@ public class CalendarApiController {
     private final HttpSession session;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createEvent(
+    public ResponseEntity<Resp<CalendarResponse.EventDTO>> createEvent(
             @RequestBody CalendarRequest.CreateEventDTO reqDTO) {
         Integer userId = resolveUserId();
         CalendarResponse.EventDTO responseDTO = calendarService.createEvent(userId, reqDTO);
@@ -37,7 +37,7 @@ public class CalendarApiController {
     }
 
     @PutMapping("/update/{eventId}")
-    public ResponseEntity<?> updateEvent(@PathVariable(name = "eventId") Integer eventId,
+    public ResponseEntity<Resp<CalendarResponse.EventDTO>> updateEvent(@PathVariable(name = "eventId") Integer eventId,
             @RequestBody CalendarRequest.UpdateEventDTO reqDTO) {
         Integer userId = resolveUserId();
         CalendarResponse.EventDTO responseDTO = calendarService.updateEvent(userId, eventId, reqDTO);
@@ -45,8 +45,8 @@ public class CalendarApiController {
     }
 
     @PostMapping("/delete/{eventId}")
-    public ResponseEntity<?> deleteEvent(@PathVariable(name = "eventId") Integer eventId) {
-        Map<String, Integer> responseDTO = calendarService.deleteEvent(eventId);
+    public ResponseEntity<Resp<Map<String, Integer>>> deleteEvent(@PathVariable(name = "eventId") Integer eventId) {
+        Map<String, Integer> responseDTO = calendarService.deleteEvent(resolveUserId(), eventId);
         return Resp.ok(responseDTO);
     }
 

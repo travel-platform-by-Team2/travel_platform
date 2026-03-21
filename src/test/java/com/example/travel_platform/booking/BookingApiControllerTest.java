@@ -25,7 +25,7 @@ class BookingApiControllerTest {
     void rooms() {
         BookingService bookingService = mock(BookingService.class);
         BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
-        List<BookingResponse.RoomDTO> rooms = List.of(BookingResponse.RoomDTO.of(
+        List<BookingResponse.RoomDTO> rooms = List.of(BookingResponse.RoomDTO.createRoom(
                 "디럭스 룸",
                 "오션뷰",
                 "2",
@@ -49,7 +49,7 @@ class BookingApiControllerTest {
     void img() {
         BookingService bookingService = mock(BookingService.class);
         BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
-        BookingResponse.PlaceImageDTO dto = BookingResponse.PlaceImageDTO.of("https://image.test/place.jpg", "해운대");
+        BookingResponse.PlaceImageDTO dto = BookingResponse.PlaceImageDTO.createPlaceImage("https://image.test/place.jpg", "해운대");
 
         when(bookingService.getPlaceImage(
                 eq("tour-key"),

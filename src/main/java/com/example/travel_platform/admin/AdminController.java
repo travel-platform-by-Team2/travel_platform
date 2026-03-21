@@ -21,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminController {
 
+    private static final String MODEL = "model";
+    private static final String MODELS = "models";
     private static final String DASHBOARD_MENU = "dashboard";
     private static final String USERS_MENU = "users";
     private static final String BOARDS_MENU = "boards";
@@ -34,7 +36,7 @@ public class AdminController {
 
     @GetMapping("")
     public String dashboard(Model model) {
-        return renderDashboardPage(model, adminService.getDashboardPage());
+        return renderDashboardPage(model, adminService.getDashboardView());
     }
 
     @GetMapping("/users")
@@ -44,12 +46,9 @@ public class AdminController {
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "orderBy", required = false) String orderBy,
             Model model) {
-        AdminResponse.UserListPageDTO page = adminService.getUsersPage(active, keyword, sortBy, orderBy);
-        page.withTabHrefs(
-                buildUsersUrl(null, page.getKeyword(), page.getSortBy(), page.getOrderBy()),
-                buildUsersUrl(true, page.getKeyword(), page.getSortBy(), page.getOrderBy()),
-                buildUsersUrl(false, page.getKeyword(), page.getSortBy(), page.getOrderBy()));
-        return renderUsersPage(model, page);
+        AdminResponse.UserListViewDTO viewDTO = adminService.getUserListView(active, keyword, sortBy, orderBy);
+        applyUserTabHrefs(viewDTO.getModel());
+        return renderUsersPage(model, viewDTO);
     }
 
     @PostMapping("/users/{userId}/status")
@@ -61,7 +60,7 @@ public class AdminController {
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "orderBy", required = false) String orderBy,
             RedirectAttributes redirectAttributes) {
-        adminService.updateUserActive(userId, targetActive);
+        adminService.updateUserActiveStatus(userId, targetActive);
 
         if (active != null) {
             redirectAttributes.addAttribute("active", active);
@@ -86,29 +85,41 @@ public class AdminController {
             @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "page", defaultValue = "0") int page,
             Model model) {
-        return renderBoardsPage(model, adminService.getBoardsPage(category, keyword, sort, page));
+        return renderBoardsPage(model, adminService.getBoardListView(category, keyword, sort, page));
     }
 
     @PostMapping("/boards/{boardId}/delete")
     public String deleteBoard(@PathVariable(name = "boardId") Integer boardId) {
-        SessionUser sessionUser = SessionUsers.require(session);
-        adminService.deleteBoard(sessionUser, boardId);
+        adminService.deleteBoardByAdmin(requiredSessionUser(), boardId);
         return BOARDS_REDIRECT;
     }
 
-    private String renderDashboardPage(Model model, AdminResponse.DashboardPageDTO page) {
-        model.addAttribute("page", page.withCurrentMenu(DASHBOARD_MENU));
+    private String renderDashboardPage(Model model, AdminResponse.DashboardViewDTO page) {
+        model.addAttribute(MODEL, page.applyCurrentMenu(DASHBOARD_MENU));
         return DASHBOARD_VIEW;
     }
 
-    private String renderUsersPage(Model model, AdminResponse.UserListPageDTO page) {
-        model.addAttribute("page", page.withCurrentMenu(USERS_MENU));
+    private String renderUsersPage(Model model, AdminResponse.UserListViewDTO viewDTO) {
+        model.addAttribute(MODEL, viewDTO.getModel().applyCurrentMenu(USERS_MENU));
+        model.addAttribute(MODELS, viewDTO.getModels());
         return USERS_VIEW;
     }
 
-    private String renderBoardsPage(Model model, AdminResponse.AdminBoardListDTO page) {
-        model.addAttribute("page", page.withCurrentMenu(BOARDS_MENU));
+    private String renderBoardsPage(Model model, AdminResponse.BoardListViewDTO viewDTO) {
+        model.addAttribute(MODEL, viewDTO.getModel().applyCurrentMenu(BOARDS_MENU));
+        model.addAttribute(MODELS, viewDTO.getModels());
         return BOARDS_VIEW;
+    }
+
+    private void applyUserTabHrefs(AdminResponse.UserListPageDTO pageModel) {
+        pageModel.applyTabHrefs(
+                buildUsersUrl(null, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()),
+                buildUsersUrl(true, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()),
+                buildUsersUrl(false, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()));
+    }
+
+    private SessionUser requiredSessionUser() {
+        return SessionUsers.require(session);
     }
 
     private String buildUsersUrl(Boolean active, String keyword, String sortBy, String orderBy) {

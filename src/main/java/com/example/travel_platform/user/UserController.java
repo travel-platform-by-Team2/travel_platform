@@ -7,7 +7,6 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -18,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 public class UserController {
 
+    private static final String MODEL = "model";
     private static final String REDIRECT_HOME = "redirect:/";
     private static final String REDIRECT_LOGIN_FORM = "redirect:/login-form";
 
@@ -53,16 +53,18 @@ public class UserController {
     @GetMapping("/auth/{provider}/callback")
     public String snsCallback(
             @PathVariable(name = "provider") String provider,
-            @RequestParam(name = "email", required = false) String email,
-            @RequestParam(name = "nickname", required = false) String nickname,
-            @RequestParam(name = "providerId", required = false) String providerId,
+            UserRequest.SnsCallbackDTO reqDTO,
             HttpServletRequest request) {
         try {
-            if (providerId == null || email == null) {
+            if (reqDTO.getProviderId() == null || reqDTO.getEmail() == null) {
                 return REDIRECT_LOGIN_FORM + "?error=sns";
             }
 
-            SessionUser sessionUser = userService.snsLogin(email, nickname, provider, providerId);
+            SessionUser sessionUser = userService.loginWithSns(
+                    reqDTO.getEmail(),
+                    reqDTO.getNickname(),
+                    provider,
+                    reqDTO.getProviderId());
             renewSession(request, sessionUser);
             return REDIRECT_HOME;
         } catch (Exception e) {
@@ -82,15 +84,20 @@ public class UserController {
 
     @GetMapping("/login-form")
     public String loginForm(Model model) {
-        model.addAttribute("kakaoJsAppKey", kakaoJsAppKey);
-        model.addAttribute("naverClientId", naverClientId);
-        model.addAttribute("googleClientId", googleClientId);
+        model.addAttribute(MODEL, createLoginPageModel());
         return "pages/login";
     }
 
     @GetMapping("/join-form")
     public String joinForm() {
         return "pages/signup";
+    }
+
+    private UserResponse.LoginPageModelDTO createLoginPageModel() {
+        return UserResponse.LoginPageModelDTO.createLoginPageModel(
+                kakaoJsAppKey,
+                naverClientId,
+                googleClientId);
     }
 
     private void signIn(SessionUser sessionUser) {

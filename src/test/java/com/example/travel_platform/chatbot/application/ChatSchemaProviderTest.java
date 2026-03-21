@@ -17,3 +17,4 @@ class ChatSchemaProviderTest {
         assertTrue(schema.contains("\"like_count\""));
     }
 }
+

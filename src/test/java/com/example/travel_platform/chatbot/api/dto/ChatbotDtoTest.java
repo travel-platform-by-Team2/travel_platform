@@ -9,8 +9,8 @@ class ChatbotDtoTest {
 
     @Test
     void req() {
-        ChatbotRequest.ContextDTO contextDTO = ChatbotRequest.ContextDTO.of("/bookings/checkout", 3);
-        ChatbotRequest.AskDTO askDTO = ChatbotRequest.AskDTO.of("booking list", contextDTO);
+        ChatbotRequest.ContextDTO contextDTO = ChatbotRequest.ContextDTO.createContext("/bookings/checkout", 3);
+        ChatbotRequest.AskDTO askDTO = ChatbotRequest.AskDTO.createAskRequest("booking list", contextDTO);
 
         assertEquals("booking list", askDTO.getMessage());
         assertNotNull(askDTO.getContext());
@@ -20,10 +20,10 @@ class ChatbotDtoTest {
 
     @Test
     void resp() {
-        ChatbotResponse.AskDTO response = ChatbotResponse.AskDTO.of(
+        ChatbotResponse.AskDTO response = ChatbotResponse.AskDTO.createAskResponse(
                 "DIRECT_LLM",
                 "ok",
-                ChatbotResponse.MetaDTO.direct());
+                ChatbotResponse.MetaDTO.createDirectMeta());
 
         assertEquals("DIRECT_LLM", response.getProcessingType());
         assertEquals("ok", response.getAnswer());
@@ -33,7 +33,7 @@ class ChatbotDtoTest {
 
     @Test
     void db() {
-        ChatbotResponse.MetaDTO meta = ChatbotResponse.MetaDTO.db("예약 조회", "select * from booking_tb limit 5", 3);
+        ChatbotResponse.MetaDTO meta = ChatbotResponse.MetaDTO.createDbMeta("예약 조회", "select * from booking_tb limit 5", 3);
 
         assertEquals(true, meta.getNeedsDb());
         assertEquals("예약 조회", meta.getQuerySummary());
@@ -41,3 +41,4 @@ class ChatbotDtoTest {
         assertEquals(3, meta.getRowCount());
     }
 }
+

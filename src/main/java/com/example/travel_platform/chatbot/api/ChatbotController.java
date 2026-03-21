@@ -4,7 +4,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
 
+import com.example.travel_platform._core.util.Resp;
 import com.example.travel_platform.chatbot.api.dto.ChatbotRequest;
 import com.example.travel_platform.chatbot.api.dto.ChatbotResponse;
 import com.example.travel_platform.chatbot.application.ChatbotOrchestrator;
@@ -33,11 +35,13 @@ public class ChatbotController {
      * @return 챗봇 처리 결과 DTO
      */
     @PostMapping(ASK_MESSAGES_PATH)
-    public ChatbotResponse.AskDTO ask(@Valid @RequestBody ChatbotRequest.AskDTO reqDTO) {
-        return askResponse(reqDTO);
+    public ResponseEntity<Resp<ChatbotResponse.AskDTO>> ask(
+            @Valid @RequestBody ChatbotRequest.AskDTO reqDTO) {
+        return Resp.ok(askResponse(reqDTO));
     }
 
     private ChatbotResponse.AskDTO askResponse(ChatbotRequest.AskDTO reqDTO) {
         return chatbotOrchestrator.ask(reqDTO);
     }
 }
+

@@ -40,7 +40,7 @@ class MypageControllerTest {
         String view = controller.showMainPage("비밀번호가 변경되었습니다.", model);
 
         assertEquals("pages/mypage", view);
-        assertSame(pageDTO, model.getAttribute("page"));
+        assertSame(pageDTO, model.getAttribute("model"));
         assertEquals("비밀번호가 변경되었습니다.", pageDTO.getPasswordSuccessMessage());
         assertEquals(null, pageDTO.getPasswordError());
         assertEquals(null, pageDTO.getWithdrawError());
@@ -68,7 +68,7 @@ class MypageControllerTest {
 
         String view = controller.changePassword(reqDTO, model, redirectAttributes);
 
-        MypageResponse.PageDTO page = (MypageResponse.PageDTO) model.getAttribute("page");
+        MypageResponse.PageDTO page = (MypageResponse.PageDTO) model.getAttribute("model");
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, page);
         assertEquals("현재 비밀번호가 일치하지 않습니다.", page.getPasswordError());
@@ -115,7 +115,7 @@ class MypageControllerTest {
 
         String view = controller.withdrawAccount(reqDTO, model);
 
-        MypageResponse.PageDTO page = (MypageResponse.PageDTO) model.getAttribute("page");
+        MypageResponse.PageDTO page = (MypageResponse.PageDTO) model.getAttribute("model");
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, page);
         assertEquals("관리자 계정은 탈퇴할 수 없습니다.", page.getWithdrawError());
@@ -151,14 +151,19 @@ class MypageControllerTest {
         MypageController controller = new MypageController(mypageService, userService, session);
         Model model = new ExtendedModelMap();
 
+        MypageResponse.BookingDetailPageDTO pageDTO = MypageResponse.BookingDetailPageDTO.createBookingDetailPage(21);
+
+        when(mypageService.getBookingDetailPage(21, 21)).thenReturn(pageDTO);
+
         String view = controller.showBookingDetailPage(21, model);
 
-        MypageResponse.BookingDetailPageDTO page = (MypageResponse.BookingDetailPageDTO) model.getAttribute("page");
+        MypageResponse.BookingDetailPageDTO page = (MypageResponse.BookingDetailPageDTO) model.getAttribute("model");
         assertEquals("pages/booking-detail", view);
         assertEquals(21, page.getBookingId());
         assertEquals("/mypage", page.getBackLink());
         assertEquals("현재 화면은 placeholder이며 예약 ID만 연결된 상태입니다.", page.getPlaceholderNotice());
-        verifyNoInteractions(mypageService, userService);
+        verify(mypageService).getBookingDetailPage(21, 21);
+        verifyNoInteractions(userService);
     }
 
     @Test

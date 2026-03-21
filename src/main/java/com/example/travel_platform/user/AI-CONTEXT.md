@@ -1,59 +1,59 @@
 <!-- Parent: ../AI-CONTEXT.md -->
 
-리팩토링 완료
-
 # user
 
 ## 목적
 
-회원가입, 로그인, 세션 사용자/권한 처리, 마이페이지 탈퇴를 포함한 사용자 계정 핵심 흐름과 메인 진입 화면을 담당한다.
+회원가입, 로그인, SNS 로그인, 세션 계약, 비활성 사용자 차단, 회원 탈퇴와 로그인 관련 화면 진입을 담당한다.
 
 ## 주요 파일
 
-| 파일명                  | 설명                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------- |
-| User.java               | 사용자 엔티티다.                                                                        |
-| SessionUser.java        | 세션에 저장하는 사용자 전용 DTO다.                                                      |
-| SessionUsers.java       | 세션 사용자 조회/저장 helper다.                                                         |
-| UserSessionChecker.java | 세션 사용자 기준으로 최신 DB 상태를 확인해 비활성 차단 여부를 판단하는 전용 컴포넌트다. |
-| UserController.java     | 로그인, 로그아웃, 회원가입, 메인 화면 요청을 처리한다.                                  |
-| UserRepository.java     | 사용자 저장/조회/삭제 저장소다.                                                         |
-| UserRequest.java        | 사용자 입력 DTO를 정의한다.                                                             |
-| UserResponse.java       | 사용자 응답 DTO를 정의한다.                                                             |
-| UserService.java        | 회원가입, 로그인, 회원 탈퇴 비즈니스 로직을 처리한다.                                   |
+| 파일명 | 설명 |
+| --- | --- |
+| `User.java` | 사용자 엔티티다. |
+| `SessionUser.java` | 세션에 저장하는 사용자 DTO다. |
+| `SessionUsers.java` | `sessionUser` 조회, 저장, 필수 로그인 검사를 담당하는 helper다. |
+| `UserQueryRepository.java` | 로그인, SNS 로그인, 사용자명 중복 검사 같은 조회 전용 query 저장소다. |
+| `UserRepository.java` | 사용자 저장, 단건 조회, 삭제를 담당하는 저장소다. |
+| `UserSessionChecker.java` | 세션 사용자 기준으로 최신 DB 상태를 확인하고 비활성 사용자 차단 여부를 판단한다. |
+| `UserController.java` | 메인, 로그인 화면, 회원가입 화면 진입과 로그인, 로그아웃, SNS callback 흐름을 담당한다. |
+| `UserRequest.java` | 회원가입, 로그인, SNS callback 입력 DTO를 정의한다. |
+| `UserResponse.java` | 로그인 화면 모델 DTO를 정의한다. |
+| `UserService.java` | 회원가입, 로그인, SNS 로그인, 회원 탈퇴 비즈니스 로직을 담당한다. |
 
-## 하위 디렉토리
+## 작업 기준
 
-- 없음
-
-## AI 작업 지침
-
-- 세션 키는 `sessionUser`를 사용하고, 현재 세션에는 `User` 엔티티가 아니라 `SessionUser` DTO를 저장한다.
-- 세션 조회/저장은 가능하면 `SessionUsers` helper를 우선 사용하고, 직접 `session.getAttribute("sessionUser")`를 퍼뜨리지 않는다.
-- `User.role`은 `_core/interceptor/AdminInterceptor`의 관리자 판별과 공용 헤더의 관리자 대시보드 버튼 노출 조건에 사용되므로, 권한 체계를 바꾸면 `/admin`, `/admin/*` 접근 규칙과 헤더 UI를 함께 조정해야 한다.
-- 일반 사용자 비활성 차단은 `UserService.login(...)`과 `UserSessionChecker` + `_core/interceptor` 조합으로 처리한다. 로그인 시도는 `현재 로그인할 수 없는 계정입니다.`로 막고, 로그인 중 비활성 감지는 `계정 상태가 변경되어 다시 로그인해 주세요.` 문구로 강제 로그아웃한다.
-- 로그인/회원가입 폼 필드 이름은 DTO와 템플릿이 맞물려 있으므로 이름 변경을 한쪽만 하지 않는다.
-- `UserController`는 `/`, `/login-form`, `/join-form`, `/login`, `/join`, `/logout`, `/auth/{provider}/callback`를 담당하므로 인증 진입 경로를 바꿀 때 세션 저장과 redirect 흐름을 같이 확인한다.
-- `main-index.mustache`는 `/js/main-index.js`를 직접 로드하고, `main-index`, `login`, `signup` 같은 챗봇 포함 페이지는 `{{>partials/chatbot-assets}}`로 챗봇 CSS를 가져온다.
-- `SessionUser` 계약은 `mypage`, `_core/interceptor`, `board`, `trip`, `booking`, `calendar`의 세션 참조 코드와 연결되어 있으므로 변경 시 직접 영향 범위를 같이 수정해야 한다.
-- `UserController`는 세션 저장을 직접 처리하되, 세션 키 접근은 `SessionUsers` helper를 통해서만 수행하는 구조를 유지한다.
-- `UserService`는 회원가입, 로그인, SNS dummy 로그인, 회원 탈퇴 흐름을 담당하고, 세션 저장 자체는 맡지 않는다.
-- 회원 탈퇴는 `active` 변경이 아니라 실제 `user_tb` 삭제이며, 관리자 계정은 서비스 레벨에서 탈퇴를 막는다.
-- 탈퇴 로직은 FK 제약 때문에 `board_like`, `reply`, `board`, `calendar_event`, `booking`, `trip_place`, `trip_plan`, `user` 순의 정리 흐름을 함께 봐야 한다.
-- `UserService.withdrawAccount(...)`는 현재 비밀번호 확인 후 관련 저장소를 호출해 연관 데이터를 지운 다음 `UserRepository.delete(...)`를 수행한다.
+- 세션 키는 항상 `sessionUser`를 사용한다.
+- 세션 조회/저장은 `SessionUsers` helper를 우선 사용한다.
+- 세션에는 `User` 엔티티가 아니라 `SessionUser` DTO를 저장한다.
+- `SessionUsers.getOrNull(...)`은 legacy `User` 세션을 읽으면 `SessionUser`로 마이그레이션한다.
+- `UserController`는 화면 진입, 세션 처리, redirect 흐름만 담당한다.
+- 로그인 화면 `/login-form`은 `model` 루트에 `UserResponse.LoginPageModelDTO`를 담아 `pages/login`을 렌더링한다.
+- `main-index`, `signup`은 현재 정적 화면이므로 추가 모델 없이 렌더링한다.
+- `UserService`는 세션을 직접 만지지 않고 비즈니스 로직만 담당한다.
+- `UserService.loginWithSns(...)`는 기존 `snsLogin(...)`을 대체하는 명시적 메서드고, `snsLogin(...)`은 호환용 위임 메서드다.
+- `UserService`는 조회 전용 로직에 `UserQueryRepository`를 사용하고, 저장/삭제는 `UserRepository`를 사용한다.
+- 일반 사용자가 비활성 상태면 로그인과 인터셉터 모두 차단된다.
+- 관리자 계정은 `UserSessionChecker`에서 비활성 차단 대상에서 제외된다.
+- 회원 탈퇴는 관련 게시글, 댓글, 좋아요, 여행, 예약, 일정 데이터를 먼저 정리한 뒤 `UserRepository.delete(...)`를 수행한다.
 
 ## 테스트
 
-- 로그인, 로그아웃, 회원가입과 세션 유지 흐름을 확인한다.
-- `UserTemplateContractTest`로 `main-index`, `login`, `signup`의 title, form, 기본 화면 계약을 확인한다.
-- 비활성 일반 사용자는 로그인할 수 없고, 로그인 중 비활성 처리되면 다음 요청에서 세션이 종료되는지 확인한다.
-- 로그인 후 세션에 `SessionUser` DTO가 저장되고 헤더가 정상 노출되는지 확인한다.
-- `/login-form` 접근, `/join` 검증 실패 시 `pages/signup` 재렌더링, `/logout` 후 세션 제거를 함께 점검한다.
-- 관리자 계정이 도입된 상태라면 로그인 후 `sessionUser.role` 값, 헤더의 관리자 버튼 노출, `/admin` 접근, 관리자 필터 동작을 함께 확인한다.
-- `mypage` 비밀번호 변경 후에도 세션/필터/헤더 흐름이 정상인지 함께 확인한다.
-- 회원 탈퇴 시 일반 사용자 삭제, 관리자 탈퇴 차단, 비밀번호 불일치 실패, 세션 종료를 함께 확인한다.
+- `UserControllerTest`는 로그인 화면 `model` 계약과 SNS callback 세션 갱신 흐름을 검증한다.
+- `UserResponseTest`는 로그인 화면 모델 DTO 생성을 검증한다.
+- `UserServiceTest`, `UserServiceLoginAndFilterTest`, `UserServiceWithdrawalTest`는 로그인, SNS 로그인, 비활성 차단, 탈퇴 흐름을 검증한다.
+- `SessionUsersTest`는 legacy 세션 마이그레이션과 로그인 필수 예외를 검증한다.
+- `UserTemplateContractTest`는 `main-index`, `login`, `signup` 템플릿 계약을 검증한다.
 
-## 의존성
+## 의존
 
-- 내부: `_core/interceptor`, `mypage`, `admin`, `board`, `trip`, `booking`, `calendar`, `src/main/resources/templates/pages/main-index.mustache`, `src/main/resources/templates/pages/login.mustache`, `src/main/resources/templates/pages/signup.mustache`
-- 외부: `Spring MVC`, `JPA/Hibernate`
+- `_core/interceptor`
+- `mypage`
+- `admin`
+- `board`
+- `trip`
+- `booking`
+- `calendar`
+- `src/main/resources/templates/pages/main-index.mustache`
+- `src/main/resources/templates/pages/login.mustache`
+- `src/main/resources/templates/pages/signup.mustache`

@@ -18,8 +18,8 @@ import jakarta.validation.Valid;
 @Controller
 public class TripController {
 
-    private static final String MODEL_PAGE = "page";
-    private static final String MODEL_PLAN = "plan";
+    private static final String MODEL = "model";
+    private static final String MODELS = "models";
 
     private static final String VIEW_LIST = "pages/trip-list";
     private static final String VIEW_CREATE = "pages/trip-create";
@@ -32,7 +32,8 @@ public class TripController {
     private final HttpSession session;
     private final String kakaoMapAppKey;
 
-    public TripController(TripService tripService,
+    public TripController(
+            TripService tripService,
             HttpSession session,
             @Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey) {
         this.tripService = tripService;
@@ -41,60 +42,63 @@ public class TripController {
     }
 
     @GetMapping()
-    public String tripListPage(@RequestParam(name = "category", defaultValue = "result") String category,
+    public String tripListPage(
+            @RequestParam(name = "category", defaultValue = "result") String category,
             @RequestParam(name = "page", defaultValue = "0") int page,
             Model model) {
-        TripResponse.ListPageDTO pageDTO = tripService.getPlanList(requiredSessionUserId(), category, page);
-        return renderPage(model, pageDTO, VIEW_LIST);
+        TripResponse.ListPageDTO modelDTO = tripService.getPlanList(requiredSessionUserId(), category, page);
+        return renderListModel(model, modelDTO);
     }
 
     @GetMapping("/create")
     public String tripCreatePage(Model model) {
-        return renderCreateForm(model, TripResponse.CreateFormDTO.empty());
+        return renderModel(model, TripResponse.CreateFormDTO.createEmptyForm(), VIEW_CREATE);
     }
 
     @GetMapping("/detail")
-    public String tripDetailPage(@RequestParam(name = "id") Integer id,
+    public String tripDetailPage(
+            @RequestParam(name = "id") Integer id,
             Model model) {
-        TripResponse.DetailDTO detailDTO = tripService.getPlanDetail(requiredSessionUserId(), id);
-        return renderDetail(model, detailDTO);
+        TripResponse.DetailDTO modelDTO = tripService.getPlanDetail(requiredSessionUserId(), id);
+        return renderModel(model, modelDTO, VIEW_DETAIL);
     }
 
     @GetMapping("/place")
-    public String tripAddPlacePage(@RequestParam(name = "id") Integer id,
+    public String tripAddPlacePage(
+            @RequestParam(name = "id") Integer id,
             Model model) {
-        TripResponse.PlacePageDTO pageDTO = tripService.getPlacePage(requiredSessionUserId(), id, kakaoMapAppKey);
-        return renderPage(model, pageDTO, VIEW_PLACE);
+        TripResponse.PlacePageDTO modelDTO = tripService.getPlacePage(requiredSessionUserId(), id, kakaoMapAppKey);
+        return renderModel(model, modelDTO, VIEW_PLACE);
     }
 
     @PostMapping("/create")
-    public String createPlan(@Valid TripRequest.CreatePlanDTO reqDTO,
+    public String createPlan(
+            @Valid TripRequest.CreatePlanDTO reqDTO,
             BindingResult bindingResult,
             Model model) {
         if (bindingResult.hasErrors()) {
-            return renderCreateForm(model, createFormPage(reqDTO, bindingResult));
+            return renderModel(model, createCreateForm(reqDTO, bindingResult), VIEW_CREATE);
         }
 
         TripResponse.CreatedDTO createdDTO = tripService.createPlan(requiredSessionUserId(), reqDTO);
         return redirect(createdDTO.getRedirectUrl());
     }
 
-    private String renderPage(Model model, Object pageDTO, String view) {
-        model.addAttribute(MODEL_PAGE, pageDTO);
+    private String renderModel(Model model, Object modelDTO, String view) {
+        model.addAttribute(MODEL, modelDTO);
         return view;
     }
 
-    private String renderCreateForm(Model model, TripResponse.CreateFormDTO formDTO) {
-        return renderPage(model, formDTO, VIEW_CREATE);
+    private String renderListModel(Model model, TripResponse.ListPageDTO modelDTO) {
+        model.addAttribute(MODEL, modelDTO);
+        model.addAttribute(MODELS, modelDTO.getPlans());
+        return VIEW_LIST;
     }
 
-    private String renderDetail(Model model, TripResponse.DetailDTO detailDTO) {
-        model.addAttribute(MODEL_PLAN, detailDTO);
-        return VIEW_DETAIL;
-    }
-
-    private TripResponse.CreateFormDTO createFormPage(TripRequest.CreatePlanDTO reqDTO, BindingResult bindingResult) {
-        return TripResponse.CreateFormDTO.from(
+    private TripResponse.CreateFormDTO createCreateForm(
+            TripRequest.CreatePlanDTO reqDTO,
+            BindingResult bindingResult) {
+        return TripResponse.CreateFormDTO.createCreateForm(
                 reqDTO.getTitle(),
                 reqDTO.getRegion(),
                 reqDTO.getWhoWith(),

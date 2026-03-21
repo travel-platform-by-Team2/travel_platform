@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/mypage")
 public class MypageController {
 
+    private static final String MODEL = "model";
     private static final String MAIN_PAGE_VIEW = "pages/mypage";
     private static final String BOOKING_DETAIL_VIEW = "pages/booking-detail";
     private static final String REDIRECT_MAIN_PAGE = "redirect:/mypage";
@@ -71,8 +72,7 @@ public class MypageController {
 
     @GetMapping("/bookings/{bookingId}")
     public String showBookingDetailPage(@PathVariable(name = "bookingId") Integer bookingId, Model model) {
-        requireSessionUserId();
-        return renderBookingDetailPage(model, bookingId);
+        return renderBookingDetailPage(model, requireSessionUserId(), bookingId);
     }
 
     private Integer requireSessionUserId() {
@@ -96,12 +96,12 @@ public class MypageController {
     }
 
     private String renderMainPage(Model model, MypageResponse.PageDTO page) {
-        model.addAttribute("page", page);
+        model.addAttribute(MODEL, page);
         return MAIN_PAGE_VIEW;
     }
 
-    private String renderBookingDetailPage(Model model, Integer bookingId) {
-        model.addAttribute("page", MypageResponse.BookingDetailPageDTO.of(bookingId));
+    private String renderBookingDetailPage(Model model, Integer sessionUserId, Integer bookingId) {
+        model.addAttribute(MODEL, mypageService.getBookingDetailPage(sessionUserId, bookingId));
         return BOOKING_DETAIL_VIEW;
     }
 }

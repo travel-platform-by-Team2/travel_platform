@@ -22,7 +22,7 @@ class ChatbotPlanServiceTest {
         ChatbotLlmClient chatbotLlmClient = mock(ChatbotLlmClient.class);
         ChatSchemaProvider chatSchemaProvider = mock(ChatSchemaProvider.class);
         ChatbotPlanService service = new ChatbotPlanService(chatbotLlmClient, chatSchemaProvider);
-        ChatbotRequest.ContextDTO context = ChatbotRequest.ContextDTO.of("/trip-detail", 3);
+        ChatbotRequest.ContextDTO context = ChatbotRequest.ContextDTO.createContext("/trip-detail", 3);
         ChatbotLlmPlan plan = new ChatbotLlmPlan(true, "TRIP", "요약", "select id from trip_plan_tb limit 5", "");
 
         when(chatSchemaProvider.getSchemaContext()).thenReturn("{\"tables\":[]}");
@@ -39,7 +39,7 @@ class ChatbotPlanServiceTest {
         ChatbotLlmClient chatbotLlmClient = mock(ChatbotLlmClient.class);
         ChatSchemaProvider chatSchemaProvider = mock(ChatSchemaProvider.class);
         ChatbotPlanService service = new ChatbotPlanService(chatbotLlmClient, chatSchemaProvider);
-        ChatbotRequest.ContextDTO context = ChatbotRequest.ContextDTO.of("/trip-detail", 3);
+        ChatbotRequest.ContextDTO context = ChatbotRequest.ContextDTO.createContext("/trip-detail", 3);
         ChatbotLlmSearchReview review = new ChatbotLlmSearchReview(false, "TRIP", "", "", "충분함");
         List<ChatbotSearchAttempt> attempts = List.of();
 
@@ -52,3 +52,4 @@ class ChatbotPlanServiceTest {
         verify(chatbotLlmClient).reviewSearch("trip", context, "TRIP", attempts, 5, "{\"tables\":[]}");
     }
 }
+

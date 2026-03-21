@@ -20,7 +20,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/boards")
 public class BoardController {
 
-    private static final String MODEL_PAGE = "page";
+    private static final String MODEL = "model";
+    private static final String MODELS = "models";
 
     private static final String VIEW_LIST = "pages/board-list";
     private static final String VIEW_CREATE = "pages/board-create";
@@ -33,11 +34,11 @@ public class BoardController {
     private final HttpSession session;
 
     @GetMapping
-    public String list(@RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
-            @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "page", defaultValue = "0") int page, Model model) {
-        BoardResponse.ListPageDTO responseDTO = boardService.getBoardList(category, keyword, sort, page);
+    public String list(@RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "page", defaultValue = "0") int page, Model model) {
+        BoardResponse.ListViewDTO responseDTO = boardService.getBoardList(category, keyword, sort, page);
         return renderList(model, responseDTO);
     }
 
@@ -93,28 +94,29 @@ public class BoardController {
         return REDIRECT_LIST;
     }
 
-    private String renderList(Model model, BoardResponse.ListPageDTO responseDTO) {
-        model.addAttribute(MODEL_PAGE, responseDTO);
+    private String renderList(Model model, BoardResponse.ListViewDTO responseDTO) {
+        model.addAttribute(MODEL, responseDTO.getModel());
+        model.addAttribute(MODELS, responseDTO.getModels());
         return VIEW_LIST;
     }
 
     private String renderCreateForm(Model model, BoardResponse.FormDTO formDTO) {
-        model.addAttribute(MODEL_PAGE, formDTO);
+        model.addAttribute(MODEL, formDTO);
         return VIEW_CREATE;
     }
 
     private String renderDetail(Model model, BoardResponse.DetailDTO detailDTO) {
-        model.addAttribute(MODEL_PAGE, detailDTO);
+        model.addAttribute(MODEL, detailDTO);
         return VIEW_DETAIL;
     }
 
     private String renderEditForm(Model model, BoardResponse.FormDTO formDTO) {
-        model.addAttribute(MODEL_PAGE, formDTO);
+        model.addAttribute(MODEL, formDTO);
         return VIEW_EDIT;
     }
 
     private BoardResponse.FormDTO createFormPage(BoardRequest.CreateDTO reqDTO, BindingResult bindingResult) {
-        return BoardResponse.FormDTO.fromCreate(
+        return BoardResponse.FormDTO.fromCreateRequest(
                 reqDTO,
                 getFieldError(bindingResult, "category"),
                 getFieldError(bindingResult, "title"),
@@ -125,7 +127,7 @@ public class BoardController {
             BoardRequest.UpdateDTO reqDTO,
             BindingResult bindingResult) {
         BoardResponse.FormDTO formDTO = boardService.getBoardForm(requiredSessionUserId(), boardId);
-        return BoardResponse.FormDTO.fromUpdate(
+        return BoardResponse.FormDTO.fromUpdateRequest(
                 formDTO.getId(),
                 reqDTO,
                 getFieldError(bindingResult, "category"),

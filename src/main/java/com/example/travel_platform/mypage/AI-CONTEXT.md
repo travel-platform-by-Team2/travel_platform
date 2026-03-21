@@ -4,50 +4,38 @@
 
 ## 목적
 
-로그인 사용자 전용 마이페이지 SSR 화면, 비밀번호 변경/회원 탈퇴 흐름, 예약/여행 요약 카드, 예약 상세 placeholder 화면을 담당한다.
+마이페이지 메인 화면, 비밀번호 변경, 회원 탈퇴, 예약 상세 placeholder 화면을 담당한다.
 
 ## 주요 파일
 
-| 파일명                | 설명                                                                                               |
-| --------------------- | -------------------------------------------------------------------------------------------------- |
-| MypageController.java | `/mypage`, `/mypage/password`, `/mypage/withdraw`, `/mypage/bookings/{bookingId}` 요청을 처리한다. |
-| MypageRequest.java    | 비밀번호 변경, 회원 탈퇴 입력 DTO를 정의한다.                                                      |
-| MypageResponse.java   | 마이페이지 화면 DTO, 카드 변환 로직, 예약 상세 placeholder DTO를 정의한다.                         |
-| MypageService.java    | 프로필 조회, 다가오는 예약/여행 계획 카드 조합, 비밀번호 변경을 처리한다.                          |
+| 파일명 | 설명 |
+| --- | --- |
+| `MypageController.java` | 마이페이지 SSR 진입, 비밀번호 변경, 탈퇴, 예약 상세 화면 |
+| `MypageService.java` | 프로필/예약 카드/여행 카드 조회, 비밀번호 변경 |
+| `MypageResponse.java` | 마이페이지 화면 DTO |
+| `MypageBookingQueryRepository.java` | 다가오는 예약 카드 JPQL 조회 |
 
-## 하위 디렉토리
+## 현재 구조 기준
 
-- 없음
+- SSR 루트 모델 키는 `model`을 사용한다.
+- `mypage.mustache`는 프로필, 예약 카드, 여행 카드처럼 컬렉션이 둘 이상이라 예외적으로 `model` 내부 컬렉션을 사용한다.
+- `booking-detail.mustache`는 `model` 단건 계약을 사용한다.
+- `MypageController`는 세션 사용자 확인, 서비스 호출, 화면 렌더링만 담당한다.
+- `MypageService`는 프로필 조회, 예약 카드 조회, 여행 카드 조회, 비밀번호 변경 책임을 가진다.
+- 예약 상세는 이번 v3에서도 placeholder 상태를 유지하고, `BookingDetailPageDTO`만 내려준다.
+- `MypageResponse`의 정적 팩토리는 `createMainPage`, `fromUser`, `fromBooking`, `fromTripPlan`, `createBookingDetailPage`처럼 역할이 드러나는 이름을 사용한다.
 
-## AI 작업 지침
+## 정규화 메모
 
-- 이 패키지는 `UserRepository`, `UserService`, `BookingRepository`, `TripRepository`를 재사용해 프로필과 예약/여행 요약, 탈퇴 흐름을 연결한다.
-- `/mypage`는 로그인 사용자 전용 SSR 페이지이며 `_core/interceptor/LoginInterceptor`와 함께 봐야 한다.
-- `MypageController`는 `showMainPage`, `changePassword`, `withdrawAccount`, `showBookingDetailPage`를 모두 helper 기반으로 정리했고, 화면 렌더링은 `page` 루트 DTO 하나로 전달한다.
-- 비밀번호 변경 실패는 같은 요청에서 `pages/mypage`를 다시 렌더링해 모달 에러를 보여주고, 성공은 redirect 후 토스트형 1회성 메시지로 처리한다.
-- 회원 탈퇴 실패도 같은 요청에서 `pages/mypage`를 다시 렌더링해 모달 에러를 보여주고, 성공은 세션 종료 후 `/login-form` 으로 redirect 한다.
-- `MypageController`는 `renderMainPage(...)`, `renderPasswordFailure(...)`, `renderWithdrawFailure(...)`, `renderBookingDetailPage(...)` helper로 메인 화면과 placeholder 상세 진입을 정리했다.
-- 예약 섹션은 본인 예약 중 `checkIn >= 오늘` 조건을 만족하는 데이터만 체크인 오름차순으로 최대 2건 노출한다.
-- 여행 계획 섹션은 본인 계획 중 `startDate >= 오늘` 조건을 만족하는 데이터만 시작일 오름차순으로 최대 2건 노출한다.
-- 여행 계획 카드의 상세 링크는 기존 SSR 라우트 `/trip/detail?id={planId}` 계약을 따른다.
-- `MypageResponse.ProfileDTO.withdrawAllowed` 로 관리자 계정의 탈퇴 버튼 노출을 제어한다.
-- `MypageResponse.PageDTO`는 프로필/카드 리스트 외에도 `passwordError`, `passwordModalOpen`, `withdrawError`, `withdrawModalOpen`, `passwordSuccessMessage`를 함께 가진다.
-- `mypage.mustache`는 `page` 루트만 읽고, root model 속성을 직접 기대하지 않는다.
-- `/mypage/bookings/{bookingId}`는 현재 placeholder 상세 페이지이며, 컨트롤러도 로그인 세션을 명시적으로 요구한다.
-- `MypageResponse.BookingDetailPageDTO`는 `bookingId`, `backLink`, `placeholderNotice`만 가진 placeholder 전용 DTO다.
-- `booking-detail.mustache`는 예약 실데이터가 아니라 `page.bookingId`, `page.backLink`, `page.placeholderNotice`만 읽는다.
-- 예약 상세 실데이터 조회나 소유자 검증은 이번 리팩토링 범위가 아니므로 임의로 구현하지 않는다.
+- 마이페이지는 `user`, `booking`, `trip`에 모두 의존한다.
+- 메인 화면은 조회용 도메인이라 예약/여행 요약 구조는 별도 query repository로 분리하는 것이 우선이다.
+- 예약 상세 placeholder는 실제 정규화나 구현 대상이 아니라 현재 연결 상태만 유지한다.
 
 ## 테스트
 
-- `MypageControllerTest`에서 메인 화면, 비밀번호 변경 실패/성공, 탈퇴 실패/성공, 예약 상세 placeholder, 세션 없는 접근 차단을 직접 호출 방식으로 확인한다.
-- `MypageServiceTest`에서 다가오는 예약과 여행 계획 카드, 관리자 탈퇴 버튼 노출 규칙을 확인한다.
-- `MypageResponseTest`에서 `PageDTO`의 모달 상태 helper와 `BookingDetailPageDTO` placeholder 계약을 확인한다.
-- `MypageTemplateContractTest`에서 `mypage.mustache`, `booking-detail.mustache`가 `page` 루트 계약을 읽는지 확인한다.
-- `./gradlew.bat test`로 자동 테스트를 확인한다.
-- 현재 기준으로 자동 테스트는 완료됐고, 최신 예약 카드/상세 라우트 및 탈퇴 모달 상호작용에 대한 브라우저 수동 검증은 추가 확인이 필요하다.
+- `MypageControllerTest`
+- `MypageResponseTest`
+- `MypageServiceTest`
+- `MypageTemplateContractTest`
 
-## 의존성
-
-- 파일: `../user/UserRepository.java`, `../user/UserService.java`, `../booking/BookingRepository.java`, `../trip/TripRepository.java`, `src/main/resources/templates/pages/mypage.mustache`, `src/main/resources/templates/pages/booking-detail.mustache`
-- 기술: `Spring MVC`
+최종 검증은 `./gradlew.bat test --tests com.example.travel_platform.mypage.MypageControllerTest --tests com.example.travel_platform.mypage.MypageResponseTest --tests com.example.travel_platform.mypage.MypageServiceTest --tests com.example.travel_platform.mypage.MypageTemplateContractTest` 기준으로 맞춘다.

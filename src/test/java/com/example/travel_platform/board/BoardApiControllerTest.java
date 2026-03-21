@@ -24,7 +24,7 @@ class BoardApiControllerTest {
         MockHttpSession session = new MockHttpSession();
         SessionUsers.save(session, new SessionUser(5, "cos", "cos@nate.com", "010-1234-5678", "USER"));
         BoardApiController controller = new BoardApiController(boardService, session);
-        BoardResponse.LikeToggleDTO responseDTO = BoardResponse.LikeToggleDTO.of(true, 3);
+        BoardResponse.LikeToggleDTO responseDTO = BoardResponse.LikeToggleDTO.createLikeToggle(true, 3);
 
         when(boardService.toggleBoardLike(5, 9)).thenReturn(responseDTO);
 

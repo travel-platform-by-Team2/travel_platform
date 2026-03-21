@@ -45,10 +45,10 @@ class ChatbotControllerTest {
 
     @Test
     void ok() throws Exception {
-        ChatbotResponse.AskDTO response = ChatbotResponse.AskDTO.of(
+        ChatbotResponse.AskDTO response = ChatbotResponse.AskDTO.createAskResponse(
                 "DIRECT_LLM",
                 "ok",
-                ChatbotResponse.MetaDTO.direct());
+                ChatbotResponse.MetaDTO.createDirectMeta());
         given(chatbotOrchestrator.ask(any(ChatbotRequest.AskDTO.class))).willReturn(response);
 
         String requestBody = """
@@ -64,9 +64,10 @@ class ChatbotControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.processingType").value("DIRECT_LLM"))
-                .andExpect(jsonPath("$.answer").value("ok"))
-                .andExpect(jsonPath("$.meta.needsDb").value(false));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.body.processingType").value("DIRECT_LLM"))
+                .andExpect(jsonPath("$.body.answer").value("ok"))
+                .andExpect(jsonPath("$.body.meta.needsDb").value(false));
     }
 
     @Test
@@ -124,3 +125,4 @@ class ChatbotControllerTest {
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 }
+

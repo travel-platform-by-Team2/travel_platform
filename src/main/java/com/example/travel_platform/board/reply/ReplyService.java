@@ -25,31 +25,37 @@ public class ReplyService {
     public ReplyResponse.CreatedDTO createReply(Integer sessionUserId, Integer boardId, ReplyRequest.CreateDTO reqDTO) {
         ReplyActor actor = requireActor(sessionUserId);
         Board board = findBoard(boardId);
-        Reply savedReply = saveReply(board, actor, reqDTO);
-        return ReplyResponse.CreatedDTO.from(savedReply);
+        Reply savedReply = saveReply(createReply(board, actor, reqDTO));
+        return ReplyResponse.CreatedDTO.fromReply(savedReply);
     }
 
     @Transactional
     public ReplyResponse.UpdatedDTO updateReply(Integer sessionUserId, Integer boardId, Integer replyId,
             ReplyRequest.UpdateDTO reqDTO) {
-        Reply reply = findReplyInBoard(boardId, replyId);
-        ReplyActor actor = requireActor(sessionUserId);
-        validateReplyEditor(actor, reply);
+        Reply reply = findEditableReply(sessionUserId, boardId, replyId);
         reply.updateContent(reqDTO.getContent());
-        return ReplyResponse.UpdatedDTO.from(reply);
+        return ReplyResponse.UpdatedDTO.fromReply(reply);
     }
 
     @Transactional
     public void deleteReply(Integer sessionUserId, Integer boardId, Integer replyId) {
-        Reply reply = findReplyInBoard(boardId, replyId);
-        ReplyActor actor = requireActor(sessionUserId);
-        validateReplyEditor(actor, reply);
+        Reply reply = findEditableReply(sessionUserId, boardId, replyId);
         replyRepository.delete(reply);
     }
 
-    private Reply saveReply(Board board, ReplyActor actor, ReplyRequest.CreateDTO reqDTO) {
-        Reply reply = Reply.create(board, actor.requireUser(), reqDTO.getContent());
+    private Reply createReply(Board board, ReplyActor actor, ReplyRequest.CreateDTO reqDTO) {
+        return Reply.create(board, actor.requireUser(), reqDTO.getContent());
+    }
+
+    private Reply saveReply(Reply reply) {
         return replyRepository.save(reply);
+    }
+
+    private Reply findEditableReply(Integer sessionUserId, Integer boardId, Integer replyId) {
+        Reply reply = findReplyInBoard(boardId, replyId);
+        ReplyActor actor = requireActor(sessionUserId);
+        validateReplyEditor(actor, reply);
+        return reply;
     }
 
     private Reply findReplyInBoard(Integer boardId, Integer replyId) {

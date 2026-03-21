@@ -257,17 +257,17 @@ public class BookingController {
     }
 
     private String renderMapDetailPage(Model model) {
-        model.addAttribute("page", BookingResponse.MapDetailPageDTO.of(kakaoMapAppKey));
+        model.addAttribute("model", BookingResponse.MapDetailPageDTO.createMapDetailPage(kakaoMapAppKey));
         return MAP_DETAIL_VIEW;
     }
 
     private String renderCheckoutPage(Model model, BookingResponse.CheckoutPageDTO page) {
-        model.addAttribute("page", page);
+        model.addAttribute("model", page);
         return CHECKOUT_VIEW;
     }
 
     private String renderCompletePage(Model model, BookingResponse.CompletePageDTO page) {
-        model.addAttribute("page", page);
+        model.addAttribute("model", page);
         return COMPLETE_VIEW;
     }
 
@@ -290,7 +290,7 @@ public class BookingController {
         User booker = resolveBooker();
         SessionUser sessionUser = resolveSessionUser();
 
-        return BookingResponse.CheckoutPageDTO.of(
+        return BookingResponse.CheckoutPageDTO.createCheckoutPage(
                 lodgingName,
                 roomName,
                 address,
@@ -318,7 +318,7 @@ public class BookingController {
             String checkOut,
             String totalPriceText,
             String imageUrl) {
-        return BookingResponse.CompletePageDTO.of(
+        return BookingResponse.CompletePageDTO.createCompletePage(
                 buildBookingNumber(),
                 lodgingName,
                 roomName,

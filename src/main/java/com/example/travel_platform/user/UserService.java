@@ -15,6 +15,7 @@ import com.example.travel_platform.booking.BookingRepository;
 import com.example.travel_platform.calendar.CalendarRepository;
 import com.example.travel_platform.trip.TripPlaceRepository;
 import com.example.travel_platform.trip.TripRepository;
+
 import lombok.RequiredArgsConstructor;
 
 @Transactional(readOnly = true)
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserQueryRepository userQueryRepository;
     private final BoardRepository boardRepository;
     private final BoardLikeRepository boardLikeRepository;
     private final ReplyRepository replyRepository;
@@ -33,39 +35,44 @@ public class UserService {
 
     @Transactional
     public void join(UserRequest.JoinDTO reqDTO) {
-        validateUsernameAvailable(reqDTO.getUsername());
-        userRepository.save(createUser(reqDTO));
+        validateJoinUsername(reqDTO.getUsername());
+        userRepository.save(createUserFromJoinRequest(reqDTO));
     }
 
     public SessionUser login(UserRequest.LoginDTO reqDTO) {
-        User user = findUserByEmail(reqDTO.getEmail());
-        validateLogin(user, reqDTO.getPassword());
-        return SessionUser.from(user);
+        User user = findUserByLoginEmail(reqDTO.getEmail());
+        validateLoginUser(user, reqDTO.getPassword());
+        return createSessionUser(user);
+    }
+
+    @Transactional
+    public SessionUser loginWithSns(String email, String username, String provider, String providerId) {
+        User user = findOrCreateSnsUser(email, username, provider, providerId);
+        ensureActiveSnsUser(user);
+        return createSessionUser(user);
     }
 
     @Transactional
     public SessionUser snsLogin(String email, String username, String provider, String providerId) {
-        User user = findOrCreateSnsUser(email, username, provider, providerId);
-        activateSnsUser(user);
-        return SessionUser.from(user);
+        return loginWithSns(email, username, provider, providerId);
     }
 
     public void withdrawAccount(Integer sessionUserId, String currentPassword) {
-        User user = findUserById(sessionUserId);
+        User user = findUser(sessionUserId);
         validateWithdraw(user, currentPassword);
-        deleteBoardData(sessionUserId);
-        deleteTripData(sessionUserId);
+        deleteRelatedBoardData(sessionUserId);
+        deleteRelatedTripData(sessionUserId);
         userRepository.delete(user);
     }
 
-    private void validateUsernameAvailable(String username) {
-        Optional<User> optUser = userRepository.findByUsername(username);
-        if (optUser.isPresent()) {
-            throw new Exception400("유저 네임이 중복되었습니다!!!");
+    private void validateJoinUsername(String username) {
+        Optional<User> user = userQueryRepository.findUserByUsername(username);
+        if (user.isPresent()) {
+            throw new Exception400("유저 네임이 중복되었습니다!!");
         }
     }
 
-    private User createUser(UserRequest.JoinDTO reqDTO) {
+    private User createUserFromJoinRequest(UserRequest.JoinDTO reqDTO) {
         return User.create(
                 reqDTO.getUsername(),
                 reqDTO.getPassword(),
@@ -74,23 +81,23 @@ public class UserService {
                 "USER");
     }
 
-    private User findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+    private User findUserByLoginEmail(String email) {
+        return userQueryRepository.findUserByEmail(email)
                 .orElseThrow(() -> new Exception400("email을 찾을 수가 없어요"));
     }
 
-    private void validateLogin(User user, String password) {
+    private void validateLoginUser(User user, String password) {
         if (!user.isAdmin() && !user.isActive()) {
-            throw new Exception403("현재 로그인할 수 없는 계정입니다.");
+            throw new Exception403("현재 로그인할 수 없는 계정입니다");
         }
 
-        if (!user.getPassword().equals(password)) {
+        if (!normalize(user.getPassword()).equals(normalize(password))) {
             throw new Exception401("패스워드가 일치하지 않아요");
         }
     }
 
     private User findOrCreateSnsUser(String email, String username, String provider, String providerId) {
-        return userRepository.findByEmailAndProvider(email, provider)
+        return userQueryRepository.findSnsUser(email, provider)
                 .orElseGet(() -> userRepository.save(createSnsUser(email, username, provider, providerId)));
     }
 
@@ -102,13 +109,17 @@ public class UserService {
         return user;
     }
 
-    private void activateSnsUser(User user) {
+    private void ensureActiveSnsUser(User user) {
         if (!user.isActive()) {
             user.setActive(true);
         }
     }
 
-    private User findUserById(Integer userId) {
+    private SessionUser createSessionUser(User user) {
+        return SessionUser.fromUser(user);
+    }
+
+    private User findUser(Integer userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new Exception400("사용자 정보를 찾을 수 없습니다."));
     }
@@ -123,7 +134,7 @@ public class UserService {
         }
     }
 
-    private void deleteBoardData(Integer userId) {
+    private void deleteRelatedBoardData(Integer userId) {
         boardLikeRepository.deleteByUserId(userId);
         replyRepository.deleteByUserId(userId);
 
@@ -132,7 +143,7 @@ public class UserService {
         boardRepository.deleteByUserId(userId);
     }
 
-    private void deleteTripData(Integer userId) {
+    private void deleteRelatedTripData(Integer userId) {
         calendarRepository.deleteByUserId(userId);
         calendarRepository.deleteByTripPlanUserId(userId);
 

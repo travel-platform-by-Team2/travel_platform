@@ -11,7 +11,7 @@
 <body class="page-body-smooth">
   {{>partials/header}}
 
-  {{#page}}
+  {{#model}}
   <main class="page-main-compact">
     <div class="surface-panel">
       <form action="/boards/{{id}}/update" method="post">
@@ -82,7 +82,7 @@
       </form>
     </div>
   </main>
-  {{/page}}
+  {{/model}}
 
   {{>partials/chatbot}}
   {{>partials/footer}}

@@ -2,8 +2,8 @@ package com.example.travel_platform.trip;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +34,7 @@ class TripApiControllerTest {
         reqDTO.setWhoWith("친구");
         reqDTO.setStartDate(LocalDate.of(2026, 4, 1));
         reqDTO.setEndDate(LocalDate.of(2026, 4, 3));
-        TripResponse.CreatedDTO responseDTO = TripResponse.CreatedDTO.of(11);
+        TripResponse.CreatedDTO responseDTO = TripResponse.CreatedDTO.createCreatedPlan(11);
 
         when(tripService.createPlan(5, reqDTO)).thenReturn(responseDTO);
 
@@ -68,15 +68,15 @@ class TripApiControllerTest {
         MockHttpSession session = session(7);
         TripApiController controller = new TripApiController(tripService, session);
         TripRequest.AddPlaceDTO reqDTO = new TripRequest.AddPlaceDTO();
-        reqDTO.setPlaceName("협재 해수욕장");
-        reqDTO.setAddress("제주특별자치도 제주시 한림읍");
+        reqDTO.setPlaceName("성산 일출봉");
+        reqDTO.setAddress("제주도 제주시");
         reqDTO.setLatitude(new BigDecimal("33.3949"));
         reqDTO.setLongitude(new BigDecimal("126.2394"));
         reqDTO.setDayOrder(2);
         TripResponse.PlaceAddedDTO responseDTO = TripResponse.PlaceAddedDTO.builder()
                 .id(21)
                 .planId(9)
-                .placeName("협재 해수욕장")
+                .placeName("성산 일출봉")
                 .dayOrder(2)
                 .placeCount(4)
                 .build();

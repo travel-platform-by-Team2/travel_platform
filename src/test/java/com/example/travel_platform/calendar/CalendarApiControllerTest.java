@@ -58,11 +58,11 @@ class CalendarApiControllerTest {
         CalendarApiController controller = new CalendarApiController(calendarService, session(9));
         Map<String, Integer> dto = Map.of("eventId", 33);
 
-        when(calendarService.deleteEvent(33)).thenReturn(dto);
+        when(calendarService.deleteEvent(9, 33)).thenReturn(dto);
 
         ResponseEntity<?> response = controller.deleteEvent(33);
 
-        verify(calendarService).deleteEvent(33);
+        verify(calendarService).deleteEvent(9, 33);
         assertSame(dto, body(response));
     }
 
@@ -145,10 +145,6 @@ class CalendarApiControllerTest {
     }
 
     private CalendarResponse.DayNodeDTO day(LocalDate date, Integer eventCount) {
-        return CalendarResponse.DayNodeDTO.builder()
-                .date(date)
-                .eventCount(eventCount)
-                .events(List.of())
-                .build();
+        return CalendarResponse.DayNodeDTO.createDayNode(date, eventCount, List.of());
     }
 }

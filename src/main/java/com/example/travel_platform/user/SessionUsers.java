@@ -23,7 +23,7 @@ public final class SessionUsers {
         }
 
         if (sessionUser instanceof User value) {
-            SessionUser migrated = SessionUser.from(value);
+            SessionUser migrated = SessionUser.fromUser(value);
             save(session, migrated);
             return migrated;
         }
