@@ -29,8 +29,12 @@
       </section>
 
       <section class="mypage-section">
-        <div class="mypage-section__head">
+        <div class="mypage-section__head mypage-section__head--action">
           <h2 class="mypage-section__title">예약된 일정</h2>
+          <a class="mypage-inline-link" href="{{model.bookingSection.listLink}}">
+            전체보기
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
         </div>
 
         {{#model.bookingSection.hasItems}}

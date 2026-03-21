@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,6 +17,10 @@ import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception404;
+import com.example.travel_platform.booking.lodging.LodgingQueryRepository;
+import com.example.travel_platform.booking.mapPlaceImage.MapPlaceImageRepository;
 import com.example.travel_platform.trip.TripPlan;
 import com.example.travel_platform.trip.TripPlanQueryRepository;
 import com.example.travel_platform.trip.TripRepository;
@@ -29,6 +34,7 @@ import tools.jackson.databind.ObjectMapper;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+    private final BookingQueryRepository bookingQueryRepository;
     private final UserQueryRepository userQueryRepository;
     private final TripRepository tripRepository;
     private final TripPlanQueryRepository tripPlanQueryRepository;
@@ -39,12 +45,14 @@ public class BookingService {
     // 명시적 생성자 주입
     public BookingService(
             BookingRepository bookingRepository,
+            BookingQueryRepository bookingQueryRepository,
             UserQueryRepository userQueryRepository,
             TripRepository tripRepository,
             TripPlanQueryRepository tripPlanQueryRepository,
             LodgingQueryRepository lodgingQueryRepository,
             MapPlaceImageRepository mapPlaceImageRepository) {
         this.bookingRepository = bookingRepository;
+        this.bookingQueryRepository = bookingQueryRepository;
         this.userQueryRepository = userQueryRepository;
         this.tripRepository = tripRepository;
         this.tripPlanQueryRepository = tripPlanQueryRepository;
@@ -331,15 +339,19 @@ public class BookingService {
 
     @Transactional
     public void cancelBooking(Integer sessionUserId, Integer bookingId) {
-        keepPlaceholderCancel(sessionUserId, bookingId);
+        Booking booking = findOwnedBooking(sessionUserId, bookingId);
+        validateCancelableBooking(booking);
+        booking.cancel(LocalDateTime.now());
     }
 
     public List<BookingResponse.BookingSummaryDTO> getBookingList(Integer sessionUserId) {
-        return buildPlaceholderBookingList(sessionUserId);
+        return bookingQueryRepository.findOwnedBookingList(sessionUserId).stream()
+                .map(BookingResponse.BookingSummaryDTO::fromBooking)
+                .toList();
     }
 
     public BookingResponse.BookingDetailDTO getBookingDetail(Integer sessionUserId, Integer bookingId) {
-        return buildPlaceholderBookingDetail(sessionUserId, bookingId);
+        return BookingResponse.BookingDetailDTO.fromBooking(findOwnedBooking(sessionUserId, bookingId));
     }
 
     @Transactional
@@ -540,24 +552,15 @@ public class BookingService {
                 reqDTO.getImageUrl());
     }
 
-    private void keepPlaceholderCancel(Integer sessionUserId, Integer bookingId) {
-        if (sessionUserId == null || bookingId == null) {
-            return;
-        }
+    private Booking findOwnedBooking(Integer sessionUserId, Integer bookingId) {
+        return bookingQueryRepository.findOwnedBooking(sessionUserId, bookingId)
+                .orElseThrow(() -> new Exception404("예약 정보를 찾을 수 없습니다."));
     }
 
-    private List<BookingResponse.BookingSummaryDTO> buildPlaceholderBookingList(Integer sessionUserId) {
-        if (sessionUserId == null) {
-            return List.of();
+    private void validateCancelableBooking(Booking booking) {
+        if (booking.isCancelled()) {
+            throw new Exception400("이미 취소된 예약입니다.");
         }
-        return List.of();
-    }
-
-    private BookingResponse.BookingDetailDTO buildPlaceholderBookingDetail(Integer sessionUserId, Integer bookingId) {
-        if (sessionUserId == null || bookingId == null) {
-            return null;
-        }
-        return null;
     }
 
     private String normalizePlaceName(String name) {

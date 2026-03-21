@@ -13,6 +13,8 @@ import com.example.travel_platform.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -69,6 +71,13 @@ public class Booking {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private BookingStatus status;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -85,7 +94,9 @@ public class Booking {
             Integer pricePerNight,
             Integer taxAndServiceFee,
             TripRegion regionType,
-            String imageUrl) {
+            String imageUrl,
+            BookingStatus status,
+            LocalDateTime cancelledAt) {
         this.user = user;
         this.tripPlan = tripPlan;
         this.lodgingName = lodgingName;
@@ -97,6 +108,8 @@ public class Booking {
         this.taxAndServiceFee = taxAndServiceFee;
         this.regionType = regionType;
         this.imageUrl = normalizeImageUrl(imageUrl);
+        this.status = status == null ? BookingStatus.BOOKED : status;
+        this.cancelledAt = cancelledAt;
     }
 
     public static Booking create(
@@ -123,6 +136,8 @@ public class Booking {
                 .taxAndServiceFee(taxAndServiceFee)
                 .regionType(regionType)
                 .imageUrl(imageUrl)
+                .status(BookingStatus.BOOKED)
+                .cancelledAt(null)
                 .build();
     }
 
@@ -164,6 +179,29 @@ public class Booking {
             return BookVar.DEFAULT_LOCATION_NAME;
         }
         return regionType.getLabel();
+    }
+
+    public String getStatusCode() {
+        if (status == null) {
+            return BookingStatus.BOOKED.getCode();
+        }
+        return status.getCode();
+    }
+
+    public String getStatusLabel() {
+        if (status == null) {
+            return BookingStatus.BOOKED.getLabel();
+        }
+        return status.getLabel();
+    }
+
+    public boolean isCancelled() {
+        return status == BookingStatus.CANCELLED;
+    }
+
+    public void cancel(LocalDateTime cancelledAt) {
+        this.status = BookingStatus.CANCELLED;
+        this.cancelledAt = cancelledAt;
     }
 
     private static String normalizeRoomName(String roomName) {

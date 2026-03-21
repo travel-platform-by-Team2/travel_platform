@@ -1,4 +1,4 @@
-package com.example.travel_platform.booking;
+package com.example.travel_platform.booking.mapPlaceImage;
 
 import java.util.Optional;
 

@@ -1,7 +1,6 @@
 package com.example.travel_platform.calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -158,38 +157,6 @@ class CalendarServiceTest {
         assertEquals(1, response.size());
         assertEquals(101, response.get(0).getTripPlanId());
         assertEquals("제주 일정", response.get(0).getTitle());
-    }
-
-    @Test
-    void monthPh() {
-        CalendarRepository calendarRepository = mock(CalendarRepository.class);
-        CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
-        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
-        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(
-                calendarRepository,
-                calendarQueryRepository,
-                tripPlanQueryRepository,
-                userQueryRepository);
-
-        assertEquals(List.of(), service.getDayNodeList(9, 2026, 4));
-        verifyNoInteractions(calendarRepository, calendarQueryRepository, tripPlanQueryRepository, userQueryRepository);
-    }
-
-    @Test
-    void dayPh() {
-        CalendarRepository calendarRepository = mock(CalendarRepository.class);
-        CalendarQueryRepository calendarQueryRepository = mock(CalendarQueryRepository.class);
-        TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
-        UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
-        CalendarService service = new CalendarService(
-                calendarRepository,
-                calendarQueryRepository,
-                tripPlanQueryRepository,
-                userQueryRepository);
-
-        assertNull(service.getDayNode(9, LocalDate.of(2026, 4, 10)));
-        verifyNoInteractions(calendarRepository, calendarQueryRepository, tripPlanQueryRepository, userQueryRepository);
     }
 
     @Test

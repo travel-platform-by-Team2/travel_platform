@@ -14,6 +14,7 @@ class MypageTemplateContractTest {
     void mainPage() throws IOException {
         String template = template("mypage.mustache");
 
+        assertContains(template, "{{model.bookingSection.listLink}}");
         assertContains(template, "{{#model.passwordSuccessMessage}}");
         assertContains(template, "{{model.profile.username}}");
         assertContains(template, "{{#model.bookingSection.hasItems}}");
@@ -22,17 +23,36 @@ class MypageTemplateContractTest {
         assertContains(template, "{{^model.tripPlanSection.hasItems}}");
         assertContains(template, "{{#model.passwordError}}");
         assertContains(template, "{{#model.withdrawError}}");
-        assertContains(template, "{{^model.passwordModalOpen}}is-hidden{{/model.passwordModalOpen}}");
-        assertContains(template, "{{^model.withdrawModalOpen}}is-hidden{{/model.withdrawModalOpen}}");
+    }
+
+    @Test
+    void bookingList() throws IOException {
+        String template = template("booking-list.mustache");
+
+        assertContains(template, "{{#model.allSelected}}");
+        assertContains(template, "?category=upcoming");
+        assertContains(template, "?category=completed");
+        assertContains(template, "?category=cancelled");
+        assertContains(template, "{{#models}}");
+        assertContains(template, "{{#upcoming}}");
+        assertContains(template, "{{#completed}}");
+        assertContains(template, "{{#cancelled}}");
+        assertContains(template, "{{detailLink}}");
+        assertContains(template, "{{model.mypageLink}}");
     }
 
     @Test
     void bookingDetail() throws IOException {
         String template = template("booking-detail.mustache");
 
-        assertContains(template, "{{model.bookingId}}");
-        assertContains(template, "{{model.placeholderNotice}}");
-        assertContains(template, "href=\"{{model.backLink}}\"");
+        assertContains(template, "{{model.bookingNumberText}}");
+        assertContains(template, "{{model.bookingListLink}}");
+        assertContains(template, "{{model.mypageLink}}");
+        assertContains(template, "{{#model.cancelled}}");
+        assertContains(template, "{{^model.cancelled}}");
+        assertContains(template, "{{model.totalPriceText}}");
+        assertContains(template, "{{model.lodgingName}}");
+        assertContains(template, "data-cancel-url=\"{{model.cancelApiUrl}}\"");
     }
 
     private String template(String fileName) throws IOException {

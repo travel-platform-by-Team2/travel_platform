@@ -87,6 +87,10 @@ class BookingResponseTest {
         assertEquals("디럭스 룸", dto.getRoomName());
         assertEquals("busan", dto.getRegionKey());
         assertEquals("부산", dto.getLocation());
+        assertEquals("booked", dto.getStatusCode());
+        assertEquals("예약 확정", dto.getStatusLabel());
+        assertEquals(650000, dto.getTotalPrice());
+        assertEquals("650,000원", dto.getTotalPriceText());
     }
 
     @Test
@@ -100,6 +104,11 @@ class BookingResponseTest {
         assertEquals("디럭스 룸", dto.getRoomName());
         assertEquals("busan", dto.getRegionKey());
         assertEquals("부산", dto.getLocation());
+        assertEquals("https://image.test/hotel.jpg", dto.getImageUrl());
+        assertEquals("booked", dto.getStatusCode());
+        assertEquals("예약 확정", dto.getStatusLabel());
+        assertEquals(650000, dto.getTotalPrice());
+        assertEquals("650,000원", dto.getTotalPriceText());
     }
 
     private Booking booking() {

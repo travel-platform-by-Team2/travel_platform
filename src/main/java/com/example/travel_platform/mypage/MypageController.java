@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
@@ -23,7 +24,9 @@ import lombok.RequiredArgsConstructor;
 public class MypageController {
 
     private static final String MODEL = "model";
+    private static final String MODELS = "models";
     private static final String MAIN_PAGE_VIEW = "pages/mypage";
+    private static final String BOOKING_LIST_VIEW = "pages/booking-list";
     private static final String BOOKING_DETAIL_VIEW = "pages/booking-detail";
     private static final String REDIRECT_MAIN_PAGE = "redirect:/mypage";
     private static final String REDIRECT_LOGIN_FORM = "redirect:/login-form";
@@ -37,6 +40,13 @@ public class MypageController {
             @ModelAttribute(name = "passwordSuccessMessage") String passwordSuccessMessage,
             Model model) {
         return renderMainPage(model, requireSessionUserId(), passwordSuccessMessage);
+    }
+
+    @GetMapping("/bookings")
+    public String showBookingListPage(
+            @RequestParam(name = "category", required = false) String category,
+            Model model) {
+        return renderBookingListPage(model, requireSessionUserId(), category);
     }
 
     @PostMapping("/password")
@@ -98,6 +108,13 @@ public class MypageController {
     private String renderMainPage(Model model, MypageResponse.MainPageDTO page) {
         model.addAttribute(MODEL, page);
         return MAIN_PAGE_VIEW;
+    }
+
+    private String renderBookingListPage(Model model, Integer sessionUserId, String category) {
+        MypageResponse.BookingListViewDTO view = mypageService.getBookingListView(sessionUserId, category);
+        model.addAttribute(MODEL, view.getPage());
+        model.addAttribute(MODELS, view.getItems());
+        return BOOKING_LIST_VIEW;
     }
 
     private String renderBookingDetailPage(Model model, Integer sessionUserId, Integer bookingId) {

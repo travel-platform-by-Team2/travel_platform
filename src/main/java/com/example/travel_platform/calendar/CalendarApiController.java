@@ -53,35 +53,12 @@ public class CalendarApiController {
     @GetMapping
     public ResponseEntity<?> getCalendar(
             @RequestParam(name = "startDate", required = false) LocalDate startDate,
-            @RequestParam(name = "endDate", required = false) LocalDate endDate,
-            @RequestParam(name = "year", required = false) Integer year,
-            @RequestParam(name = "month", required = false) Integer month,
-            @RequestParam(name = "date", required = false) LocalDate date) {
+            @RequestParam(name = "endDate", required = false) LocalDate endDate) {
         Integer sessionUserId = resolveUserId();
-        return getCalendarResponse(sessionUserId, startDate, endDate, year, month, date);
+        return Resp.ok(calendarService.getEventList(sessionUserId, startDate, endDate));
     }
 
     private Integer resolveUserId() {
         return SessionUsers.requireUserId(session);
-    }
-
-    private ResponseEntity<?> getCalendarResponse(
-            Integer sessionUserId,
-            LocalDate startDate,
-            LocalDate endDate,
-            Integer year,
-            Integer month,
-            LocalDate date) {
-        if (date != null) {
-            return Resp.ok(calendarService.getDayNode(sessionUserId, date));
-        }
-        if (hasMonthQuery(year, month)) {
-            return Resp.ok(calendarService.getDayNodeList(sessionUserId, year, month));
-        }
-        return Resp.ok(calendarService.getEventList(sessionUserId, startDate, endDate));
-    }
-
-    private boolean hasMonthQuery(Integer year, Integer month) {
-        return year != null && month != null;
     }
 }

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{model.title}} | TravelMate</title>
+  {{>partials/head-assets}}
+  <link href="/css/account.css" rel="stylesheet">
+</head>
+<body class="page-body page-body-sans">
+  {{>partials/header}}
+
+  <main class="account-page">
+    <div class="booking-list-shell">
+      <div class="booking-list-header">
+        <h1 class="booking-list-header__title">{{model.title}}</h1>
+      </div>
+
+      <div class="booking-list-tabs">
+        <a class="booking-list-tabs__item {{#model.allSelected}}is-active{{/model.allSelected}}" href="/mypage/bookings">
+          전체
+        </a>
+        <a class="booking-list-tabs__item {{#model.upcomingSelected}}is-active{{/model.upcomingSelected}}" href="/mypage/bookings?category=upcoming">
+          이용전
+        </a>
+        <a class="booking-list-tabs__item {{#model.completedSelected}}is-active{{/model.completedSelected}}" href="/mypage/bookings?category=completed">
+          이용후
+        </a>
+        <a class="booking-list-tabs__item {{#model.cancelledSelected}}is-active{{/model.cancelledSelected}}" href="/mypage/bookings?category=cancelled">
+          취소
+        </a>
+      </div>
+
+      {{#model.hasItems}}
+      <div class="booking-list-card-group">
+        {{#models}}
+        <article class="booking-list-card {{#cancelled}}booking-list-card--cancelled{{/cancelled}}">
+          <div class="booking-list-card__media{{^hasImage}} booking-list-card__media--empty{{/hasImage}}"{{#hasImage}} style="background-image: url('{{imageUrl}}');"{{/hasImage}}>
+            {{^hasImage}}
+            <span class="material-symbols-outlined">hotel</span>
+            {{/hasImage}}
+          </div>
+
+          <div class="booking-list-card__body">
+            <div class="booking-list-card__content">
+              {{#upcoming}}
+              <span class="booking-status-badge booking-status-badge--upcoming">이용전</span>
+              {{/upcoming}}
+              {{#completed}}
+              <span class="booking-status-badge booking-status-badge--completed">이용후</span>
+              {{/completed}}
+              {{#cancelled}}
+              <span class="booking-status-badge booking-status-badge--cancelled">취소</span>
+              {{/cancelled}}
+              <h2 class="booking-list-card__title">{{lodgingName}}</h2>
+              <p class="booking-list-card__meta">{{locationDateLabel}}</p>
+              <p class="booking-list-card__number">예약번호 {{bookingNumberText}}</p>
+              <p class="booking-list-card__price{{#cancelled}} booking-list-card__price--cancelled{{/cancelled}}">
+                {{totalPriceText}}
+              </p>
+            </div>
+
+            <a class="booking-list-card__action" href="{{detailLink}}">상세보기</a>
+          </div>
+        </article>
+        {{/models}}
+      </div>
+      {{/model.hasItems}}
+
+      {{^model.hasItems}}
+      <div class="booking-list-empty-state">
+        <span class="material-symbols-outlined">event_busy</span>
+        {{#model.allSelected}}<p>예약 내역이 없습니다.</p>{{/model.allSelected}}
+        {{#model.upcomingSelected}}<p>이용 전 예약이 없습니다.</p>{{/model.upcomingSelected}}
+        {{#model.completedSelected}}<p>이용 후 예약이 없습니다.</p>{{/model.completedSelected}}
+        {{#model.cancelledSelected}}<p>취소한 예약이 없습니다.</p>{{/model.cancelledSelected}}
+      </div>
+      {{/model.hasItems}}
+
+      <div class="booking-list-footer-note">
+        <p>예약 상태별로 전체 일정을 확인할 수 있습니다.</p>
+        <a class="mypage-inline-link" href="{{model.mypageLink}}">
+          마이페이지로 돌아가기
+          <span class="material-symbols-outlined">chevron_right</span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>

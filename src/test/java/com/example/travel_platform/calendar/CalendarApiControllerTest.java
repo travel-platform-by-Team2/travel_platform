@@ -76,40 +76,9 @@ class CalendarApiControllerTest {
 
         ResponseEntity<?> response = controller.getCalendar(
                 LocalDate.of(2026, 4, 1),
-                LocalDate.of(2026, 4, 30),
-                null,
-                null,
-                null);
+                LocalDate.of(2026, 4, 30));
 
         verify(calendarService).getEventList(9, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30));
-        assertSame(dto, body(response));
-    }
-
-    @Test
-    void month() {
-        CalendarService calendarService = mock(CalendarService.class);
-        CalendarApiController controller = new CalendarApiController(calendarService, session(9));
-        List<CalendarResponse.DayNodeDTO> dto = List.of(day(LocalDate.of(2026, 4, 1), 2));
-
-        when(calendarService.getDayNodeList(9, 2026, 4)).thenReturn(dto);
-
-        ResponseEntity<?> response = controller.getCalendar(null, null, 2026, 4, null);
-
-        verify(calendarService).getDayNodeList(9, 2026, 4);
-        assertSame(dto, body(response));
-    }
-
-    @Test
-    void day() {
-        CalendarService calendarService = mock(CalendarService.class);
-        CalendarApiController controller = new CalendarApiController(calendarService, session(9));
-        CalendarResponse.DayNodeDTO dto = day(LocalDate.of(2026, 4, 10), 1);
-
-        when(calendarService.getDayNode(9, LocalDate.of(2026, 4, 10))).thenReturn(dto);
-
-        ResponseEntity<?> response = controller.getCalendar(null, null, null, null, LocalDate.of(2026, 4, 10));
-
-        verify(calendarService).getDayNode(9, LocalDate.of(2026, 4, 10));
         assertSame(dto, body(response));
     }
 
@@ -118,7 +87,7 @@ class CalendarApiControllerTest {
         CalendarService calendarService = mock(CalendarService.class);
         CalendarApiController controller = new CalendarApiController(calendarService, new MockHttpSession());
 
-        assertThrows(Exception401.class, () -> controller.getCalendar(null, null, null, null, null));
+        assertThrows(Exception401.class, () -> controller.getCalendar(null, null));
     }
 
     @SuppressWarnings("unchecked")
@@ -142,9 +111,5 @@ class CalendarApiControllerTest {
                 .eventType("TRIP")
                 .memo("memo")
                 .build();
-    }
-
-    private CalendarResponse.DayNodeDTO day(LocalDate date, Integer eventCount) {
-        return CalendarResponse.DayNodeDTO.createDayNode(date, eventCount, List.of());
     }
 }

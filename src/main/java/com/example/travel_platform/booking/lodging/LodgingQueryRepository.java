@@ -1,8 +1,10 @@
-package com.example.travel_platform.booking;
+package com.example.travel_platform.booking.lodging;
 
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
+
+import com.example.travel_platform.booking.BookingResponse;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;

@@ -8,8 +8,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpSession;
@@ -120,7 +123,11 @@ class BookingApiControllerTest {
     void list() {
         BookingService bookingService = mock(BookingService.class);
         BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
-        List<BookingResponse.BookingSummaryDTO> list = List.of();
+        List<BookingResponse.BookingSummaryDTO> list = List.of(BookingResponse.BookingSummaryDTO.builder()
+                .id(1)
+                .statusCode("booked")
+                .statusLabel("예약 확정")
+                .build());
 
         when(bookingService.getBookingList(1)).thenReturn(list);
 
@@ -134,8 +141,16 @@ class BookingApiControllerTest {
     void detail() {
         BookingService bookingService = mock(BookingService.class);
         BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingResponse.BookingDetailDTO detail = BookingResponse.BookingDetailDTO.builder()
+                .id(77)
+                .checkIn(LocalDate.of(2026, 4, 10))
+                .checkOut(LocalDate.of(2026, 4, 12))
+                .statusCode("booked")
+                .statusLabel("예약 확정")
+                .createdAt(LocalDateTime.of(2026, 3, 21, 10, 0))
+                .build();
 
-        when(bookingService.getBookingDetail(1, 77)).thenReturn(null);
+        when(bookingService.getBookingDetail(1, 77)).thenReturn(detail);
 
         ResponseEntity<?> response = controller.getBookingDetail(77);
 
@@ -147,7 +162,7 @@ class BookingApiControllerTest {
     void create401() {
         BookingApiController controller = new BookingApiController(mock(BookingService.class), "tour-key", new MockHttpSession());
 
-        org.junit.jupiter.api.Assertions.assertThrows(Exception401.class,
+        Assertions.assertThrows(Exception401.class,
                 () -> controller.createBooking(new BookingRequest.CreateBookingDTO()));
     }
 

@@ -1,8 +1,6 @@
 package com.example.travel_platform.calendar;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
@@ -45,19 +43,4 @@ public class CalendarResponse {
         }
     }
 
-    @Data
-    @Builder
-    public static class DayNodeDTO {
-        private LocalDate date;
-        private Integer eventCount;
-        private List<EventDTO> events;
-
-        public static DayNodeDTO createDayNode(LocalDate date, Integer eventCount, List<EventDTO> events) {
-            return DayNodeDTO.builder()
-                    .date(date)
-                    .eventCount(eventCount)
-                    .events(events == null ? List.of() : events)
-                    .build();
-        }
-    }
 }

@@ -120,6 +120,8 @@ create table booking_tb (
   tax_and_service_fee int not null,
   region_key varchar(30) not null,
   image_url text,
+  status varchar(20) not null default 'BOOKED',
+  cancelled_at datetime null,
   created_at datetime not null default current_timestamp,
   constraint fk_booking_user foreign key (user_id) references user_tb(id),
   constraint fk_booking_plan foreign key (trip_plan_id) references trip_plan_tb(id)
@@ -216,9 +218,9 @@ insert into board_reply_tb (board_id, user_id, content, created_at) values
 (1, 2, '좋은 정보 감사합니다. 다음 주에 가볼게요!', now()),
 (2, 1, '가능하지만 이동 동선은 미리 짜시면 좋아요.', now());
 
-insert into booking_tb (user_id, trip_plan_id, lodging_name, room_name, check_in, check_out, guest_count, price_per_night, tax_and_service_fee, region_key, image_url, created_at) values
-(1, 1, '제주 오션뷰 호텔', '오션뷰 스탠다드', '2026-04-10', '2026-04-12', 2, 280000, 50400, 'jeju', null, now()),
-(2, 2, '해운대 비치 호텔', '시티 더블', '2026-05-01', '2026-05-02', 1, 140000, 25200, 'busan', null, now());
+insert into booking_tb (user_id, trip_plan_id, lodging_name, room_name, check_in, check_out, guest_count, price_per_night, tax_and_service_fee, region_key, image_url, status, cancelled_at, created_at) values
+(1, 1, '제주 오션뷰 호텔', '오션뷰 스탠다드', '2026-04-10', '2026-04-12', 2, 280000, 50400, 'jeju', null, 'BOOKED', null, now()),
+(2, 2, '해운대 비치 호텔', '시티 더블', '2026-05-01', '2026-05-02', 1, 140000, 25200, 'busan', null, 'BOOKED', null, now());
 
 insert into calendar_event_tb (user_id, trip_plan_id, title, start_at, end_at, event_type, memo) values
 (1, 1, '제주 출발', '2026-04-10 08:00:00', '2026-04-10 10:00:00', 'TRIP', '공항 출발 일정'),

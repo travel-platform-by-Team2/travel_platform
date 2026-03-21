@@ -1,11 +1,9 @@
 package com.example.travel_platform.calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,19 +40,6 @@ class CalendarResponseTest {
         assertEquals(31, dto.getTripPlanId());
         assertEquals("BOOKING", dto.getEventType());
         assertEquals("숙소 체크인", dto.getMemo());
-    }
-
-    @Test
-    void dayNode() {
-        CalendarResponse.DayNodeDTO dto = CalendarResponse.DayNodeDTO.createDayNode(
-                LocalDate.of(2026, 4, 10),
-                0,
-                null);
-
-        assertEquals(LocalDate.of(2026, 4, 10), dto.getDate());
-        assertEquals(0, dto.getEventCount());
-        assertTrue(dto.getEvents().isEmpty());
-        assertEquals(List.of(), dto.getEvents());
     }
 
     private User user(Integer id) {

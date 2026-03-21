@@ -11,6 +11,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.ui.ExtendedModelMap;
@@ -21,6 +25,7 @@ import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
+import com.example.travel_platform.booking.BookingResponse;
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.SessionUsers;
 import com.example.travel_platform.user.UserService;
@@ -38,16 +43,45 @@ class MypageControllerTest {
 
         when(mypageService.getMainPage(3)).thenReturn(pageDTO);
 
-        String view = controller.showMainPage("鍮꾨?踰덊샇媛 蹂寃쎈릺?덉뒿?덈떎.", model);
+        String view = controller.showMainPage("비밀번호가 변경되었습니다.", model);
 
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, model.getAttribute("model"));
-        assertEquals("鍮꾨?踰덊샇媛 蹂寃쎈릺?덉뒿?덈떎.", pageDTO.getPasswordSuccessMessage());
+        assertEquals("비밀번호가 변경되었습니다.", pageDTO.getPasswordSuccessMessage());
         assertEquals(null, pageDTO.getPasswordError());
         assertEquals(null, pageDTO.getWithdrawError());
         assertFalse(pageDTO.isPasswordModalOpen());
         assertFalse(pageDTO.isWithdrawModalOpen());
         verify(mypageService).getMainPage(3);
+        verifyNoInteractions(userService);
+    }
+
+    @Test
+    void bookingList() {
+        MypageService mypageService = mock(MypageService.class);
+        UserService userService = mock(UserService.class);
+        MockHttpSession session = session(3, "USER");
+        MypageController controller = new MypageController(mypageService, userService, session);
+        Model model = new ExtendedModelMap();
+
+        MypageResponse.BookingListPageDTO page = MypageResponse.BookingListPageDTO.createBookingListPage(
+                BookingCategory.UPCOMING,
+                true);
+        List<MypageResponse.BookingListCardDTO> items = List.of(
+                MypageResponse.BookingListCardDTO.builder()
+                        .id(21)
+                        .detailLink("/mypage/bookings/21")
+                        .build());
+
+        when(mypageService.getBookingListView(3, "upcoming"))
+                .thenReturn(MypageResponse.BookingListViewDTO.createBookingListView(page, items));
+
+        String view = controller.showBookingListPage("upcoming", model);
+
+        assertEquals("pages/booking-list", view);
+        assertSame(page, model.getAttribute("model"));
+        assertSame(items, model.getAttribute("models"));
+        verify(mypageService).getBookingListView(3, "upcoming");
         verifyNoInteractions(userService);
     }
 
@@ -62,7 +96,7 @@ class MypageControllerTest {
         MypageRequest.ChangePasswordDTO reqDTO = new MypageRequest.ChangePasswordDTO();
         MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.builder().build();
 
-        doThrow(new Exception400("?꾩옱 鍮꾨?踰덊샇媛 ?쇱튂?섏? ?딆뒿?덈떎."))
+        doThrow(new Exception400("현재 비밀번호가 일치하지 않습니다."))
                 .when(mypageService)
                 .changePassword(5, reqDTO);
         when(mypageService.getMainPage(5)).thenReturn(pageDTO);
@@ -72,7 +106,7 @@ class MypageControllerTest {
         MypageResponse.MainPageDTO page = (MypageResponse.MainPageDTO) model.getAttribute("model");
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, page);
-        assertEquals("?꾩옱 鍮꾨?踰덊샇媛 ?쇱튂?섏? ?딆뒿?덈떎.", page.getPasswordError());
+        assertEquals("현재 비밀번호가 일치하지 않습니다.", page.getPasswordError());
         assertTrue(page.isPasswordModalOpen());
         assertFalse(page.isWithdrawModalOpen());
         verify(mypageService).changePassword(5, reqDTO);
@@ -93,9 +127,7 @@ class MypageControllerTest {
         String view = controller.changePassword(reqDTO, model, redirectAttributes);
 
         assertEquals("redirect:/mypage", view);
-        Object successMessage = redirectAttributes.getFlashAttributes().get("passwordSuccessMessage");
-        assertTrue(successMessage instanceof String);
-        assertFalse(((String) successMessage).isBlank());
+        assertEquals("비밀번호가 변경되었습니다.", redirectAttributes.getFlashAttributes().get("passwordSuccessMessage"));
         verify(mypageService).changePassword(7, reqDTO);
         verifyNoInteractions(userService);
     }
@@ -111,7 +143,7 @@ class MypageControllerTest {
         reqDTO.setCurrentPassword("1234");
         MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.builder().build();
 
-        doThrow(new Exception403("愿由ъ옄 怨꾩젙? ?덊눜?????놁뒿?덈떎."))
+        doThrow(new Exception403("관리자 계정은 탈퇴할 수 없습니다."))
                 .when(userService)
                 .withdrawAccount(9, "1234");
         when(mypageService.getMainPage(9)).thenReturn(pageDTO);
@@ -121,7 +153,7 @@ class MypageControllerTest {
         MypageResponse.MainPageDTO page = (MypageResponse.MainPageDTO) model.getAttribute("model");
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, page);
-        assertEquals("愿由ъ옄 怨꾩젙? ?덊눜?????놁뒿?덈떎.", page.getWithdrawError());
+        assertEquals("관리자 계정은 탈퇴할 수 없습니다.", page.getWithdrawError());
         assertTrue(page.isWithdrawModalOpen());
         assertFalse(page.isPasswordModalOpen());
         verify(userService).withdrawAccount(9, "1234");
@@ -154,19 +186,39 @@ class MypageControllerTest {
         MypageController controller = new MypageController(mypageService, userService, session);
         Model model = new ExtendedModelMap();
 
-        MypageResponse.BookingDetailPlaceholderPageDTO pageDTO = MypageResponse.BookingDetailPlaceholderPageDTO
-                .createBookingDetailPlaceholderPage(21);
+        MypageResponse.BookingDetailPageDTO pageDTO = MypageResponse.BookingDetailPageDTO.fromBookingDetail(
+                BookingResponse.BookingDetailDTO.builder()
+                        .id(21)
+                        .tripPlanId(3)
+                        .lodgingName("제주 오션뷰 호텔")
+                        .roomName("오션뷰 스탠다드")
+                        .location("제주")
+                        .imageUrl("https://example.com/room.jpg")
+                        .checkIn(LocalDate.of(2026, 4, 10))
+                        .checkOut(LocalDate.of(2026, 4, 12))
+                        .guestCount(2)
+                        .pricePerNight(280000)
+                        .taxAndServiceFee(50400)
+                        .totalPriceText("330,400원")
+                        .statusCode("booked")
+                        .statusLabel("예약 확정")
+                        .createdAt(LocalDateTime.of(2026, 3, 21, 10, 0))
+                        .canCancel(true)
+                        .build());
 
         when(mypageService.getBookingDetailPage(21, 21)).thenReturn(pageDTO);
 
         String view = controller.showBookingDetailPage(21, model);
 
-        MypageResponse.BookingDetailPlaceholderPageDTO page = (MypageResponse.BookingDetailPlaceholderPageDTO) model
-                .getAttribute("model");
+        MypageResponse.BookingDetailPageDTO page = (MypageResponse.BookingDetailPageDTO) model.getAttribute("model");
         assertEquals("pages/booking-detail", view);
         assertEquals(21, page.getBookingId());
-        assertEquals("/mypage", page.getBackLink());
-        assertEquals("?꾩옱 ?붾㈃? placeholder?대ŉ ?덉빟 ID留??곌껐???곹깭?낅땲??", page.getPlaceholderNotice());
+        assertEquals("/mypage/bookings", page.getBookingListLink());
+        assertEquals("/mypage", page.getMypageLink());
+        assertEquals("예약 확정", page.getStatusLabel());
+        assertEquals("330,400원", page.getTotalPriceText());
+        assertEquals("/api/bookings/21", page.getCancelApiUrl());
+        assertFalse(page.isCancelled());
         verify(mypageService).getBookingDetailPage(21, 21);
         verifyNoInteractions(userService);
     }
@@ -176,7 +228,7 @@ class MypageControllerTest {
         MypageService mypageService = mock(MypageService.class);
         MypageController controller = new MypageController(mypageService, mock(UserService.class), session(21, "USER"));
 
-        when(mypageService.getBookingDetailPage(21, 999)).thenThrow(new Exception404("?덉빟 ?뺣낫瑜?李얠쓣 ???놁뒿?덈떎."));
+        when(mypageService.getBookingDetailPage(21, 999)).thenThrow(new Exception404("예약 정보를 찾을 수 없습니다."));
 
         assertThrows(Exception404.class, () -> controller.showBookingDetailPage(999, new ExtendedModelMap()));
     }
@@ -186,6 +238,13 @@ class MypageControllerTest {
         MypageController controller = new MypageController(mock(MypageService.class), mock(UserService.class), new MockHttpSession());
 
         assertThrows(Exception401.class, () -> controller.showMainPage("", new ExtendedModelMap()));
+    }
+
+    @Test
+    void list401() {
+        MypageController controller = new MypageController(mock(MypageService.class), mock(UserService.class), new MockHttpSession());
+
+        assertThrows(Exception401.class, () -> controller.showBookingListPage(null, new ExtendedModelMap()));
     }
 
     @Test

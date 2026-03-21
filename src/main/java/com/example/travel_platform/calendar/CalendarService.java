@@ -67,14 +67,6 @@ public class CalendarService {
                 .toList();
     }
 
-    public List<CalendarResponse.DayNodeDTO> getDayNodeList(Integer sessionUserId, Integer year, Integer month) {
-        return buildPlaceholderDayNodeList(sessionUserId, year, month);
-    }
-
-    public CalendarResponse.DayNodeDTO getDayNode(Integer sessionUserId, LocalDate date) {
-        return buildPlaceholderDayNode(sessionUserId, date);
-    }
-
     private void validateEventRange(LocalDateTime startAt, LocalDateTime endAt) {
         if (startAt != null && endAt != null && startAt.isAfter(endAt)) {
             throw new Exception400("시작일은 종료일 보다 늦을 수 없습니다.");
@@ -145,22 +137,5 @@ public class CalendarService {
         } catch (IllegalArgumentException e) {
             throw new Exception400("지원하지 않는 일정 타입입니다.");
         }
-    }
-
-    private List<CalendarResponse.DayNodeDTO> buildPlaceholderDayNodeList(
-            Integer sessionUserId,
-            Integer year,
-            Integer month) {
-        if (sessionUserId == null || year == null || month == null) {
-            return List.of();
-        }
-        return List.of();
-    }
-
-    private CalendarResponse.DayNodeDTO buildPlaceholderDayNode(Integer sessionUserId, LocalDate date) {
-        if (sessionUserId == null || date == null) {
-            return null;
-        }
-        return null;
     }
 }

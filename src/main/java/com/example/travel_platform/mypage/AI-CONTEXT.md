@@ -4,39 +4,49 @@
 
 ## 목적
 
-마이페이지 메인 화면, 비밀번호 변경과 회원 탈퇴, 예약 상세 placeholder 화면을 담당한다.
+마이페이지 메인 화면, 예약 리스트, 예약 상세, 비밀번호 변경, 회원 탈퇴 화면을 담당한다.
 
 ## 주요 파일
 
 | 파일명 | 설명 |
 | --- | --- |
-| `MypageController.java` | 마이페이지 SSR 진입, 비밀번호 변경 제출, 회원 탈퇴 제출, 예약 상세 placeholder 화면 |
-| `MypageService.java` | 프로필 조회, 예약 요약 조회, 여행 요약 조회, 비밀번호 변경 |
-| `MypageResponse.java` | 마이페이지 화면 DTO |
-| `MypageBookingQueryRepository.java` | 다가오는 예약 요약과 예약 소유 확인 JPQL 조회 |
-| `MypageTripPlanQueryRepository.java` | 다가오는 여행 요약 JPQL 조회 |
+| `MypageController.java` | 마이페이지 메인, 예약 리스트, 예약 상세 SSR 진입과 비밀번호 변경/회원 탈퇴 제출 처리 |
+| `MypageService.java` | 프로필 조회, 예약/여행 요약 조회, 예약 리스트/상세 화면 DTO 조립, 비밀번호 변경 |
+| `MypageResponse.java` | 메인/예약 리스트/예약 상세 화면 DTO |
+| `BookingCategory.java` | 예약 리스트 카테고리(`전체`, `이용전`, `이용후`, `취소`) 분류 |
+| `MypageQueryRepository.java` | 메인 화면용 다가오는 예약/여행 계획 요약 JPQL 조회 |
 
 ## 현재 구조 기준
 
-- SSR 루트 모델은 `model`을 사용한다.
-- `mypage.mustache`는 `model.profile`, `model.bookingSection`, `model.tripPlanSection`처럼 화면 섹션 단위로 값을 나눠 사용한다.
-- `booking-detail.mustache`는 `model` 단건 계약을 사용한다.
-- `MypageController`는 세션 사용자 확인, 서비스 호출, 화면 렌더링만 담당한다.
-- `MypageService`는 프로필 조회, 예약 요약 조회, 여행 요약 조회, 비밀번호 변경 책임을 가진다.
-- 예약 상세는 placeholder 상태를 유지하되, `existsOwnedBooking(...)`으로 현재 사용자 소유 예약인지 먼저 확인한다.
-- `MypageResponse`의 정적 팩토리는 `createMainPage`, `fromUserEntity`, `createBookingSummaryCard`, `createTripPlanSummaryCard`, `createBookingDetailPlaceholderPage`처럼 역할이 드러나는 이름을 사용한다.
+- SSR 모델은 `model` 단건 규칙을 기본으로 사용한다.
+- 예약 리스트 화면만 `model` + `models` 계약을 사용한다.
+  - `model`: 선택 카테고리, 빈 상태, 이동 링크 같은 페이지 메타
+  - `models`: 예약 카드 목록
+- `mypage.mustache`는 메인 화면이다.
+- `booking-list.mustache`는 예약 리스트 화면이다.
+- `booking-detail.mustache`는 예약 상세 화면이다.
+- 예약 리스트/상세의 실제 데이터는 `bookingService.getBookingList(...)`, `bookingService.getBookingDetail(...)`를 사용한다.
+- 메인 화면 요약용 예약/여행 계획 조회는 `MypageQueryRepository` 하나로 모아둔다.
 
-## 정규화 메모
+## 책임 경계
 
-- 마이페이지는 `user`, `booking`, `trip`을 모두 참조한다.
-- 메인 화면 조회는 참조 도메인이 많아서 예약/여행 요약 구조를 별도 query repository로 분리하고, 엔티티 전체 대신 요약 row로 조립한다.
-- 예약 상세 placeholder는 실제 정규화나 구현 대상이 아니고 현재 연결 상태와 소유 확인만 유지한다.
+- `mypage`는 예약 도메인 규칙을 직접 갖지 않는다.
+- 예약 취소, 예약 목록, 예약 상세의 실제 데이터 규칙은 `booking` 도메인이 가진다.
+- `mypage`는 그 결과를 화면 DTO로 변환하고 SSR 계약만 맞춘다.
+- 표현 전용 상태 텍스트나 CSS 클래스는 가능한 한 템플릿에서 처리하고, 백엔드는 표시용 boolean과 핵심 값 위주로 내려준다.
+
+## 템플릿 규칙
+
+- 추가 HTML 시안은 현재 프로젝트 공용 헤더/푸터 partial에 맞춰 감싼다.
+- `mypage.mustache` 예약 섹션 헤더에는 `전체보기` 링크가 있다.
+- `booking-list.mustache`는 카테고리 탭과 예약 카드 목록을 렌더링한다.
+- `booking-detail.mustache`는 예약 목록으로 돌아가기 링크, 마이페이지로 돌아가기 버튼, 취소 버튼을 가진다.
 
 ## 테스트
 
 - `MypageControllerTest`
-- `MypageResponseTest`
 - `MypageServiceTest`
+- `MypageResponseTest`
 - `MypageTemplateContractTest`
 
-최종 검증은 `./gradlew.bat test --tests com.example.travel_platform.mypage.MypageControllerTest --tests com.example.travel_platform.mypage.MypageResponseTest --tests com.example.travel_platform.mypage.MypageServiceTest --tests com.example.travel_platform.mypage.MypageTemplateContractTest` 기준으로 맞춘다.
+최종 검증은 `./gradlew.bat test --tests com.example.travel_platform.mypage.MypageControllerTest --tests com.example.travel_platform.mypage.MypageServiceTest --tests com.example.travel_platform.mypage.MypageResponseTest --tests com.example.travel_platform.mypage.MypageTemplateContractTest` 와 `./gradlew.bat test` 기준으로 맞춘다.

@@ -143,22 +143,33 @@ public class BookingResponse {
         private String roomName;
         private String regionKey;
         private String location;
+        private String imageUrl;
         private LocalDate checkIn;
         private LocalDate checkOut;
+        private String statusCode;
+        private String statusLabel;
         private Integer pricePerNight;
         private Integer taxAndServiceFee;
+        private Integer totalPrice;
+        private String totalPriceText;
 
         public static BookingSummaryDTO fromBooking(Booking booking) {
+            int totalPrice = calculateTotalPrice(booking.getPricePerNight(), booking.getTaxAndServiceFee());
             return BookingSummaryDTO.builder()
                     .id(booking.getId())
                     .lodgingName(defaultText(booking.getLodgingName(), "숙소"))
                     .roomName(defaultText(booking.getRoomName(), BookVar.DEFAULT_ROOM_NAME))
                     .regionKey(defaultText(booking.getRegionKey(), BookVar.DEFAULT_REGION_KEY))
                     .location(defaultText(booking.getLocation(), BookVar.DEFAULT_LOCATION_NAME))
+                    .imageUrl(normalize(booking.getImageUrl()))
                     .checkIn(booking.getCheckIn())
                     .checkOut(booking.getCheckOut())
+                    .statusCode(defaultText(booking.getStatusCode(), BookingStatus.BOOKED.getCode()))
+                    .statusLabel(defaultText(booking.getStatusLabel(), BookingStatus.BOOKED.getLabel()))
                     .pricePerNight(booking.getPricePerNight())
                     .taxAndServiceFee(booking.getTaxAndServiceFee())
+                    .totalPrice(totalPrice)
+                    .totalPriceText(formatWon(totalPrice))
                     .build();
         }
     }
@@ -172,14 +183,22 @@ public class BookingResponse {
         private String roomName;
         private String regionKey;
         private String location;
+        private String imageUrl;
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
+        private String statusCode;
+        private String statusLabel;
+        private boolean canCancel;
         private Integer pricePerNight;
         private Integer taxAndServiceFee;
+        private Integer totalPrice;
+        private String totalPriceText;
         private LocalDateTime createdAt;
+        private LocalDateTime cancelledAt;
 
         public static BookingDetailDTO fromBooking(Booking booking) {
+            int totalPrice = calculateTotalPrice(booking.getPricePerNight(), booking.getTaxAndServiceFee());
             return BookingDetailDTO.builder()
                     .id(booking.getId())
                     .tripPlanId(booking.getTripPlan() == null ? null : booking.getTripPlan().getId())
@@ -187,12 +206,19 @@ public class BookingResponse {
                     .roomName(defaultText(booking.getRoomName(), BookVar.DEFAULT_ROOM_NAME))
                     .regionKey(defaultText(booking.getRegionKey(), BookVar.DEFAULT_REGION_KEY))
                     .location(defaultText(booking.getLocation(), BookVar.DEFAULT_LOCATION_NAME))
+                    .imageUrl(normalize(booking.getImageUrl()))
                     .checkIn(booking.getCheckIn())
                     .checkOut(booking.getCheckOut())
                     .guestCount(booking.getGuestCount())
+                    .statusCode(defaultText(booking.getStatusCode(), BookingStatus.BOOKED.getCode()))
+                    .statusLabel(defaultText(booking.getStatusLabel(), BookingStatus.BOOKED.getLabel()))
+                    .canCancel(booking.getStatus() != null && booking.getStatus().canCancel())
                     .pricePerNight(booking.getPricePerNight())
                     .taxAndServiceFee(booking.getTaxAndServiceFee())
+                    .totalPrice(totalPrice)
+                    .totalPriceText(formatWon(totalPrice))
                     .createdAt(booking.getCreatedAt())
+                    .cancelledAt(booking.getCancelledAt())
                     .build();
         }
     }
@@ -275,6 +301,12 @@ public class BookingResponse {
             return defaultValue;
         }
         return value;
+    }
+
+    private static int calculateTotalPrice(Integer pricePerNight, Integer taxAndServiceFee) {
+        int normalizedPricePerNight = pricePerNight == null ? 0 : pricePerNight;
+        int normalizedTaxAndServiceFee = taxAndServiceFee == null ? 0 : taxAndServiceFee;
+        return normalizedPricePerNight + normalizedTaxAndServiceFee;
     }
 
     public static String resolveLocationLabel(String regionKey) {
