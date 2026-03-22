@@ -149,13 +149,19 @@ public class BoardService {
     }
 
     private Map<Integer, Long> resolveLikeCounts(List<Board> boards) {
-        return boardLikeRepository.countByBoardIds(
-                boards.stream().map(Board::getId).toList());
+        return boardLikeRepository.countByBoardIds(createBoardIds(boards));
     }
 
     private Map<Integer, Long> resolveReplyCounts(List<Board> boards) {
-        return replyRepository.countByBoardIds(
-                boards.stream().map(Board::getId).toList());
+        return replyRepository.countByBoardIds(createBoardIds(boards));
+    }
+
+    private List<Integer> createBoardIds(List<Board> boards) {
+        List<Integer> boardIds = new ArrayList<>();
+        for (Board board : boards) {
+            boardIds.add(board.getId());
+        }
+        return boardIds;
     }
 
     private int resolveTotalPages(long totalCount) {

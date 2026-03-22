@@ -29,7 +29,7 @@ public class AdminQueryRepository {
     }
 
     public List<AdminUserSummaryRow> findAllUserSummaryRowsByCreatedAtDesc() {
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     u.id as userId,
                     u.username as username,
@@ -42,14 +42,12 @@ public class AdminQueryRepository {
                 group by u.id, u.username, u.email, u.createdAt, u.active
                 order by u.createdAt desc, u.id desc
                 """, Tuple.class)
-                .getResultList()
-                .stream()
-                .map(this::toAdminUserSummaryRow)
-                .toList();
+                .getResultList();
+        return toAdminUserSummaryRows(tuples);
     }
 
     public List<AdminUserSummaryRow> findUserSummaryRowsByActiveByCreatedAtDesc(boolean active) {
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     u.id as userId,
                     u.username as username,
@@ -64,15 +62,13 @@ public class AdminQueryRepository {
                 order by u.createdAt desc, u.id desc
                 """, Tuple.class)
                 .setParameter("active", active)
-                .getResultList()
-                .stream()
-                .map(this::toAdminUserSummaryRow)
-                .toList();
+                .getResultList();
+        return toAdminUserSummaryRows(tuples);
     }
 
     public List<AdminUserSummaryRow> findUserSummaryRowsByKeyword(String keyword) {
         String normalizedKeyword = keyword == null ? "" : keyword.toLowerCase();
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     u.id as userId,
                     u.username as username,
@@ -88,15 +84,13 @@ public class AdminQueryRepository {
                 order by u.createdAt desc, u.id desc
                 """, Tuple.class)
                 .setParameter("keyword", normalizedKeyword)
-                .getResultList()
-                .stream()
-                .map(this::toAdminUserSummaryRow)
-                .toList();
+                .getResultList();
+        return toAdminUserSummaryRows(tuples);
     }
 
     public List<AdminUserSummaryRow> findUserSummaryRowsByActiveAndKeyword(boolean active, String keyword) {
         String normalizedKeyword = keyword == null ? "" : keyword.toLowerCase();
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     u.id as userId,
                     u.username as username,
@@ -116,14 +110,12 @@ public class AdminQueryRepository {
                 """, Tuple.class)
                 .setParameter("active", active)
                 .setParameter("keyword", normalizedKeyword)
-                .getResultList()
-                .stream()
-                .map(this::toAdminUserSummaryRow)
-                .toList();
+                .getResultList();
+        return toAdminUserSummaryRows(tuples);
     }
 
     public List<AdminRecentUserRow> findRecentUserRows(int limit) {
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     u.username as username,
                     u.active as active,
@@ -132,10 +124,8 @@ public class AdminQueryRepository {
                 order by u.createdAt desc, u.id desc
                 """, Tuple.class)
                 .setMaxResults(limit)
-                .getResultList()
-                .stream()
-                .map(this::toAdminRecentUserRow)
-                .toList();
+                .getResultList();
+        return toAdminRecentUserRows(tuples);
     }
 
     public long countBoards() {
@@ -176,7 +166,7 @@ public class AdminQueryRepository {
     }
 
     public List<AdminRecentBoardRow> findRecentBoardRows(int size) {
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     b.id as boardId,
                     b.title as title,
@@ -187,10 +177,8 @@ public class AdminQueryRepository {
                 order by b.createdAt desc, b.id desc
                 """, Tuple.class)
                 .setMaxResults(size)
-                .getResultList()
-                .stream()
-                .map(this::toAdminRecentBoardRow)
-                .toList();
+                .getResultList();
+        return toAdminRecentBoardRows(tuples);
     }
 
     public List<AdminBoardSummaryRow> findBoardSummaryRows(
@@ -233,12 +221,10 @@ public class AdminQueryRepository {
         TypedQuery<Tuple> query = em.createQuery(jpql.toString(), Tuple.class);
         bindSearchParameters(query, category, words, hasCategory, hasKeyword);
 
-        return query.setFirstResult(offset)
+        List<Tuple> tuples = query.setFirstResult(offset)
                 .setMaxResults(size)
-                .getResultList()
-                .stream()
-                .map(this::toAdminBoardSummaryRow)
-                .toList();
+                .getResultList();
+        return toAdminBoardSummaryRows(tuples);
     }
 
     public long countBoardSummaryRows(BoardCategory category, String[] words) {
@@ -296,11 +282,27 @@ public class AdminQueryRepository {
                 tuple.get("boardCount", Long.class));
     }
 
+    private List<AdminUserSummaryRow> toAdminUserSummaryRows(List<Tuple> tuples) {
+        List<AdminUserSummaryRow> rows = new java.util.ArrayList<>();
+        for (Tuple tuple : tuples) {
+            rows.add(toAdminUserSummaryRow(tuple));
+        }
+        return rows;
+    }
+
     private AdminRecentUserRow toAdminRecentUserRow(Tuple tuple) {
         return new AdminRecentUserRow(
                 tuple.get("username", String.class),
                 tuple.get("active", Boolean.class),
                 tuple.get("createdAt", LocalDateTime.class));
+    }
+
+    private List<AdminRecentUserRow> toAdminRecentUserRows(List<Tuple> tuples) {
+        List<AdminRecentUserRow> rows = new java.util.ArrayList<>();
+        for (Tuple tuple : tuples) {
+            rows.add(toAdminRecentUserRow(tuple));
+        }
+        return rows;
     }
 
     private AdminBoardSummaryRow toAdminBoardSummaryRow(Tuple tuple) {
@@ -319,6 +321,22 @@ public class AdminQueryRepository {
                 tuple.get("title", String.class),
                 tuple.get("userName", String.class),
                 tuple.get("createdAt", LocalDateTime.class));
+    }
+
+    private List<AdminBoardSummaryRow> toAdminBoardSummaryRows(List<Tuple> tuples) {
+        List<AdminBoardSummaryRow> rows = new java.util.ArrayList<>();
+        for (Tuple tuple : tuples) {
+            rows.add(toAdminBoardSummaryRow(tuple));
+        }
+        return rows;
+    }
+
+    private List<AdminRecentBoardRow> toAdminRecentBoardRows(List<Tuple> tuples) {
+        List<AdminRecentBoardRow> rows = new java.util.ArrayList<>();
+        for (Tuple tuple : tuples) {
+            rows.add(toAdminRecentBoardRow(tuple));
+        }
+        return rows;
     }
 
     private String toOrderBy(String sort) {

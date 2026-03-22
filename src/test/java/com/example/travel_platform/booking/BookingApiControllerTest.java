@@ -102,7 +102,7 @@ class BookingApiControllerTest {
         BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
         BookingRequest.CreateBookingDTO reqDTO = new BookingRequest.CreateBookingDTO();
 
-        ResponseEntity<?> response = controller.createBooking(reqDTO);
+        ResponseEntity<Resp<Void>> response = controller.createBooking(reqDTO);
 
         verify(bookingService).createBooking(1, reqDTO);
         assertEquals(200, response.getStatusCode().value());
@@ -113,7 +113,7 @@ class BookingApiControllerTest {
         BookingService bookingService = mock(BookingService.class);
         BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
 
-        ResponseEntity<?> response = controller.cancelBooking(33);
+        ResponseEntity<Resp<Void>> response = controller.cancelBooking(33);
 
         verify(bookingService).cancelBooking(1, 33);
         assertEquals(200, response.getStatusCode().value());
@@ -131,7 +131,7 @@ class BookingApiControllerTest {
 
         when(bookingService.getBookingList(1)).thenReturn(list);
 
-        ResponseEntity<?> response = controller.getBookingList();
+        ResponseEntity<Resp<List<BookingResponse.BookingSummaryDTO>>> response = controller.getBookingList();
 
         verify(bookingService).getBookingList(1);
         assertEquals(200, response.getStatusCode().value());
@@ -152,7 +152,7 @@ class BookingApiControllerTest {
 
         when(bookingService.getBookingDetail(1, 77)).thenReturn(detail);
 
-        ResponseEntity<?> response = controller.getBookingDetail(77);
+        ResponseEntity<Resp<BookingResponse.BookingDetailDTO>> response = controller.getBookingDetail(77);
 
         verify(bookingService).getBookingDetail(1, 77);
         assertEquals(200, response.getStatusCode().value());

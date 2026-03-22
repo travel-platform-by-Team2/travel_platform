@@ -68,21 +68,27 @@ public class MypageService {
     }
 
     private List<MypageResponse.BookingSummaryCardDTO> loadUpcomingBookings(Integer sessionUserId) {
-        return mypageQueryRepository.findUpcomingBookingRows(
+        List<BookingSummaryRow> rows = mypageQueryRepository.findUpcomingBookingRows(
                 sessionUserId,
                 LocalDate.now(),
-                UPCOMING_BOOKING_LIMIT).stream()
-                .map(this::createBookingSummaryCard)
-                .toList();
+                UPCOMING_BOOKING_LIMIT);
+        List<MypageResponse.BookingSummaryCardDTO> cards = new java.util.ArrayList<>();
+        for (BookingSummaryRow row : rows) {
+            cards.add(createBookingSummaryCard(row));
+        }
+        return cards;
     }
 
     private List<MypageResponse.TripPlanSummaryCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
-        return mypageQueryRepository.findUpcomingTripPlanRows(
+        List<TripPlanSummaryRow> rows = mypageQueryRepository.findUpcomingTripPlanRows(
                 sessionUserId,
                 LocalDate.now().minusDays(1),
-                UPCOMING_TRIP_PLAN_LIMIT).stream()
-                .map(this::createTripPlanSummaryCard)
-                .toList();
+                UPCOMING_TRIP_PLAN_LIMIT);
+        List<MypageResponse.TripPlanSummaryCardDTO> cards = new java.util.ArrayList<>();
+        for (TripPlanSummaryRow row : rows) {
+            cards.add(createTripPlanSummaryCard(row));
+        }
+        return cards;
     }
 
     private MypageResponse.MainPageDTO createMainPage(

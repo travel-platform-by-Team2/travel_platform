@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +30,10 @@ class CalendarApiControllerTest {
 
         when(calendarService.createEvent(9, reqDTO)).thenReturn(dto);
 
-        ResponseEntity<?> response = controller.createEvent(reqDTO);
+        ResponseEntity<Resp<CalendarResponse.EventDTO>> response = controller.createEvent(reqDTO);
 
         verify(calendarService).createEvent(9, reqDTO);
-        assertSame(dto, body(response));
+        assertSame(dto, response.getBody().getBody());
     }
 
     @Test
@@ -46,24 +45,24 @@ class CalendarApiControllerTest {
 
         when(calendarService.updateEvent(9, 22, reqDTO)).thenReturn(dto);
 
-        ResponseEntity<?> response = controller.updateEvent(22, reqDTO);
+        ResponseEntity<Resp<CalendarResponse.EventDTO>> response = controller.updateEvent(22, reqDTO);
 
         verify(calendarService).updateEvent(9, 22, reqDTO);
-        assertSame(dto, body(response));
+        assertSame(dto, response.getBody().getBody());
     }
 
     @Test
     void del() {
         CalendarService calendarService = mock(CalendarService.class);
         CalendarApiController controller = new CalendarApiController(calendarService, session(9));
-        Map<String, Integer> dto = Map.of("eventId", 33);
+        CalendarResponse.DeleteResultDTO dto = CalendarResponse.DeleteResultDTO.createDeleteResult(33);
 
         when(calendarService.deleteEvent(9, 33)).thenReturn(dto);
 
-        ResponseEntity<?> response = controller.deleteEvent(33);
+        ResponseEntity<Resp<CalendarResponse.DeleteResultDTO>> response = controller.deleteEvent(33);
 
         verify(calendarService).deleteEvent(9, 33);
-        assertSame(dto, body(response));
+        assertSame(dto, response.getBody().getBody());
     }
 
     @Test
@@ -74,12 +73,12 @@ class CalendarApiControllerTest {
 
         when(calendarService.getEventList(9, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30))).thenReturn(dto);
 
-        ResponseEntity<?> response = controller.getCalendar(
+        ResponseEntity<Resp<List<CalendarResponse.EventDTO>>> response = controller.getCalendar(
                 LocalDate.of(2026, 4, 1),
                 LocalDate.of(2026, 4, 30));
 
         verify(calendarService).getEventList(9, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30));
-        assertSame(dto, body(response));
+        assertSame(dto, response.getBody().getBody());
     }
 
     @Test
@@ -88,12 +87,6 @@ class CalendarApiControllerTest {
         CalendarApiController controller = new CalendarApiController(calendarService, new MockHttpSession());
 
         assertThrows(Exception401.class, () -> controller.getCalendar(null, null));
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object body(ResponseEntity<?> response) {
-        Resp<Object> resp = (Resp<Object>) response.getBody();
-        return resp.getBody();
     }
 
     private MockHttpSession session(Integer userId) {

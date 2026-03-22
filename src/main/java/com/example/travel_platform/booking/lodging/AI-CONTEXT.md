@@ -16,4 +16,6 @@
 
 - `booking` 루트의 대표 흐름과 분리된 보조 엔티티라서 하위 폴더로 이동했다.
 - `LodgingQueryRepository`는 지도 bounds + `regionKey` 기준 JPQL 조회를 담당한다.
+- 조회 결과는 alias + `Tuple` 매핑으로 `LodgingPoiRow` 값 객체로 변환한다.
+- `BookingResponse.MapPoiDTO` 조립 책임은 `BookingService`가 가진다.
 - 예약 생성/완료/목록/상세/취소 흐름은 계속 `booking/` 루트의 `BookingService`가 담당한다.

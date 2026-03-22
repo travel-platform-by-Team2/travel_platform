@@ -4,30 +4,51 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-public interface TripPlaceRepository extends JpaRepository<TripPlace, Integer> {
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 
-    long countByTripPlanId(Integer tripPlanId);
+@Repository
+@RequiredArgsConstructor
+public class TripPlaceRepository {
 
-    @Query("""
-            select tp.tripPlan.id, count(tp)
-            from TripPlace tp
-            where tp.tripPlan.id in :tripPlanIds
-            group by tp.tripPlan.id
-            """)
-    List<Object[]> findCountRowsByTripPlanIds(@Param("tripPlanIds") List<Integer> tripPlanIds);
+    private final EntityManager em;
 
-    default Map<Integer, Long> countByTripPlanIds(List<Integer> tripPlanIds) {
+    public TripPlace save(TripPlace tripPlace) {
+        if (tripPlace.getId() == null) {
+            em.persist(tripPlace);
+            return tripPlace;
+        }
+        return em.merge(tripPlace);
+    }
+
+    public long countByTripPlanId(Integer tripPlanId) {
+        Long count = em.createQuery("""
+                select count(tp)
+                from TripPlace tp
+                where tp.tripPlan.id = :tripPlanId
+                """, Long.class)
+                .setParameter("tripPlanId", tripPlanId)
+                .getSingleResult();
+        return count == null ? 0L : count;
+    }
+
+    public Map<Integer, Long> countByTripPlanIds(List<Integer> tripPlanIds) {
         if (tripPlanIds == null || tripPlanIds.isEmpty()) {
             return Map.of();
         }
 
-        List<Object[]> rows = findCountRowsByTripPlanIds(tripPlanIds);
+        List<Object[]> rows = em.createQuery("""
+                select tp.tripPlan.id, count(tp)
+                from TripPlace tp
+                where tp.tripPlan.id in :tripPlanIds
+                group by tp.tripPlan.id
+                """, Object[].class)
+                .setParameter("tripPlanIds", tripPlanIds)
+                .getResultList();
+
         Map<Integer, Long> placeCounts = new HashMap<>();
         for (Object[] row : rows) {
             placeCounts.put((Integer) row[0], (Long) row[1]);
@@ -35,11 +56,13 @@ public interface TripPlaceRepository extends JpaRepository<TripPlace, Integer> {
         return placeCounts;
     }
 
-    @Modifying
     @Transactional
-    @Query("""
-            delete from TripPlace tp
-            where tp.tripPlan.user.id = :userId
-            """)
-    int deleteByTripPlanUserId(@Param("userId") Integer userId);
+    public int deleteByTripPlanUserId(Integer userId) {
+        return em.createQuery("""
+                delete from TripPlace tp
+                where tp.tripPlan.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
 }

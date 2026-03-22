@@ -2,7 +2,6 @@ package com.example.travel_platform.calendar;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,13 +44,14 @@ public class CalendarApiController {
     }
 
     @PostMapping("/delete/{eventId}")
-    public ResponseEntity<Resp<Map<String, Integer>>> deleteEvent(@PathVariable(name = "eventId") Integer eventId) {
-        Map<String, Integer> responseDTO = calendarService.deleteEvent(resolveUserId(), eventId);
+    public ResponseEntity<Resp<CalendarResponse.DeleteResultDTO>> deleteEvent(
+            @PathVariable(name = "eventId") Integer eventId) {
+        CalendarResponse.DeleteResultDTO responseDTO = calendarService.deleteEvent(resolveUserId(), eventId);
         return Resp.ok(responseDTO);
     }
 
     @GetMapping
-    public ResponseEntity<?> getCalendar(
+    public ResponseEntity<Resp<List<CalendarResponse.EventDTO>>> getCalendar(
             @RequestParam(name = "startDate", required = false) LocalDate startDate,
             @RequestParam(name = "endDate", required = false) LocalDate endDate) {
         Integer sessionUserId = resolveUserId();

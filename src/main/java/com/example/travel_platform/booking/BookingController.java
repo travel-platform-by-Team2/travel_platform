@@ -1,6 +1,7 @@
 package com.example.travel_platform.booking;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.SessionUsers;
 import com.example.travel_platform.user.User;
@@ -129,15 +131,17 @@ public class BookingController {
     }
 
     private long calculateNights(String checkIn, String checkOut) {
-        try {
-            if (checkIn != null && checkOut != null && !checkIn.isBlank() && !checkOut.isBlank()) {
-                LocalDate in = LocalDate.parse(checkIn);
-                LocalDate out = LocalDate.parse(checkOut);
-                return Math.max(1, ChronoUnit.DAYS.between(in, out));
-            }
-        } catch (Exception ignored) {
+        if (checkIn == null || checkOut == null || checkIn.isBlank() || checkOut.isBlank()) {
+            return 1L;
         }
-        return 1L;
+
+        try {
+            LocalDate in = LocalDate.parse(checkIn);
+            LocalDate out = LocalDate.parse(checkOut);
+            return Math.max(1, ChronoUnit.DAYS.between(in, out));
+        } catch (DateTimeParseException e) {
+            throw new Exception400("숙박 날짜 형식이 올바르지 않습니다.");
+        }
     }
 
     private String buildBookingNumber() {

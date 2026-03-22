@@ -69,7 +69,7 @@ public class UserService {
     private void validateJoinUsername(String username) {
         Optional<User> user = userQueryRepository.findUserByUsername(username);
         if (user.isPresent()) {
-            throw new Exception400("유저 네임이 중복되었습니다!!");
+            throw new Exception400("유저 네임이 중복되었습니다.");
         }
     }
 
@@ -166,7 +166,7 @@ public class UserService {
         try {
             return UserAuthProvider.fromCode(providerCode);
         } catch (IllegalArgumentException e) {
-            throw new Exception400("지원하지 않는 SNS 제공자입니다.");
+            throw new Exception401("지원하지 않는 SNS 제공자입니다.");
         }
     }
 }

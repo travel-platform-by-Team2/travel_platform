@@ -43,4 +43,16 @@ public class CalendarResponse {
         }
     }
 
+    @Data
+    @Builder
+    public static class DeleteResultDTO {
+        private Integer eventId;
+
+        public static DeleteResultDTO createDeleteResult(Integer eventId) {
+            return DeleteResultDTO.builder()
+                    .eventId(eventId)
+                    .build();
+        }
+    }
+
 }

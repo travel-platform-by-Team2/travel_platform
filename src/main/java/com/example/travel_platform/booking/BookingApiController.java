@@ -36,25 +36,26 @@ public class BookingApiController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createBooking(@RequestBody BookingRequest.CreateBookingDTO reqDTO) {
+    public ResponseEntity<Resp<Void>> createBooking(@RequestBody BookingRequest.CreateBookingDTO reqDTO) {
         bookingService.createBooking(requireSessionUserId(), reqDTO);
         return Resp.ok(null);
     }
 
     @DeleteMapping("/{bookingId}")
-    public ResponseEntity<?> cancelBooking(@PathVariable(name = "bookingId") Integer bookingId) {
+    public ResponseEntity<Resp<Void>> cancelBooking(@PathVariable(name = "bookingId") Integer bookingId) {
         bookingService.cancelBooking(requireSessionUserId(), bookingId);
         return Resp.ok(null);
     }
 
     @GetMapping
-    public ResponseEntity<?> getBookingList() {
+    public ResponseEntity<Resp<List<BookingResponse.BookingSummaryDTO>>> getBookingList() {
         List<BookingResponse.BookingSummaryDTO> bookingList = bookingService.getBookingList(requireSessionUserId());
         return Resp.ok(bookingList);
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<?> getBookingDetail(@PathVariable(name = "bookingId") Integer bookingId) {
+    public ResponseEntity<Resp<BookingResponse.BookingDetailDTO>> getBookingDetail(
+            @PathVariable(name = "bookingId") Integer bookingId) {
         BookingResponse.BookingDetailDTO detail = bookingService.getBookingDetail(requireSessionUserId(), bookingId);
         return Resp.ok(detail);
     }

@@ -27,6 +27,7 @@
 - `CalendarService`는 생성, 수정, 삭제, 범위 조회를 분리한다.
 - 일정 수정/삭제는 `sessionUser` 기준 소유자 검증을 통과해야 한다.
 - `CalendarResponse.EventDTO`는 `fromCalendarEvent(...)` 이름 규칙을 사용한다.
+- 삭제 API의 고정 응답은 `CalendarResponse.DeleteResultDTO`로 관리한다.
 - `CalendarApiController`의 조회 API는 `startDate`, `endDate` 범위 조회만 지원한다.
 - `CalendarEvent.eventType`은 `CalendarEventType` enum + converter 기준으로 저장하고, API/SSR 응답에서는 문자열 코드만 노출한다.
 - `CalendarRequest.CreateEventDTO`의 `tripPlanId`가 있으면 create 흐름에서 `TripPlan`을 연결한다.

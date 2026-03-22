@@ -16,7 +16,7 @@
 | `BoardApiController.java` | 좋아요 토글 JSON 응답 처리 |
 | `BoardRepository.java` | 게시글 저장, 단건 조회, 삭제 같은 기본 command repository |
 | `BoardQueryRepository.java` | 목록, 검색, 통계, 집계성 조회를 담당하는 query repository |
-| `BoardLikeRepository.java` | 좋아요 단건 조회, 집계, bulk 삭제를 담당하는 JPA repository |
+| `BoardLikeRepository.java` | 좋아요 저장, 단건 조회, 집계, bulk 삭제를 담당하는 repository |
 | `BoardRequest.java` | 게시글 입력 DTO |
 | `BoardResponse.java` | 게시글 SSR/API 출력 DTO |
 | `BoardService.java` | 게시글 도메인 규칙, 권한 검사, DTO 반환 처리 |

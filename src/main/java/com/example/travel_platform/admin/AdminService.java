@@ -170,15 +170,31 @@ public class AdminService {
     }
 
     private Comparator<AdminResponse.AdminUserDTO> buildUserSortComparator(String sortBy, String orderBy) {
-        Comparator<AdminResponse.AdminUserDTO> primaryComparator = USER_SORT_BY_POST_COUNT.equals(sortBy)
-                ? Comparator.comparingInt(AdminResponse.AdminUserDTO::getBoardCount)
-                : Comparator.comparing(AdminResponse.AdminUserDTO::getCreatedAt);
+        return (left, right) -> compareAdminUsers(left, right, sortBy, orderBy);
+    }
 
-        if (USER_ORDER_BY_DESC.equals(orderBy)) {
-            primaryComparator = primaryComparator.reversed();
+    private int compareAdminUsers(
+            AdminResponse.AdminUserDTO left,
+            AdminResponse.AdminUserDTO right,
+            String sortBy,
+            String orderBy) {
+        int compareResult;
+
+        if (USER_SORT_BY_POST_COUNT.equals(sortBy)) {
+            compareResult = Integer.compare(left.getBoardCount(), right.getBoardCount());
+        } else {
+            compareResult = left.getCreatedAt().compareTo(right.getCreatedAt());
         }
 
-        return primaryComparator.thenComparing(AdminResponse.AdminUserDTO::getUserId);
+        if (USER_ORDER_BY_DESC.equals(orderBy)) {
+            compareResult = compareResult * -1;
+        }
+
+        if (compareResult != 0) {
+            return compareResult;
+        }
+
+        return Integer.compare(left.getUserId(), right.getUserId());
     }
 
     private AdminResponse.BoardListPageDTO createBoardListPageModel(

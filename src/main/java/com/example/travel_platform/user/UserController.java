@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import com.example.travel_platform._core.handler.ex.Exception401;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -55,22 +57,17 @@ public class UserController {
             @PathVariable(name = "provider") String provider,
             UserRequest.SnsCallbackDTO reqDTO,
             HttpServletRequest request) {
-        try {
-            if (reqDTO.getProviderId() == null || reqDTO.getEmail() == null) {
-                return REDIRECT_LOGIN_FORM + "?error=sns";
-            }
-
-            SessionUser sessionUser = userService.loginWithSns(
-                    reqDTO.getEmail(),
-                    reqDTO.getNickname(),
-                    provider,
-                    reqDTO.getProviderId());
-            renewSession(request, sessionUser);
-            return REDIRECT_HOME;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return REDIRECT_LOGIN_FORM + "?error=sns";
+        if (reqDTO.getProviderId() == null || reqDTO.getEmail() == null) {
+            throw new Exception401("SNS 로그인 정보가 올바르지 않습니다.");
         }
+
+        SessionUser sessionUser = userService.loginWithSns(
+                reqDTO.getEmail(),
+                reqDTO.getNickname(),
+                provider,
+                reqDTO.getProviderId());
+        renewSession(request, sessionUser);
+        return REDIRECT_HOME;
     }
 
     @PostMapping("/join")

@@ -18,7 +18,7 @@ public class MypageQueryRepository {
     private final EntityManager em;
 
     public List<BookingSummaryRow> findUpcomingBookingRows(Integer userId, LocalDate today, int limit) {
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     b.id as bookingId,
                     b.lodgingName as lodgingName,
@@ -34,14 +34,12 @@ public class MypageQueryRepository {
                 .setParameter("today", today)
                 .setParameter("status", BookingStatus.BOOKED)
                 .setMaxResults(limit)
-                .getResultList()
-                .stream()
-                .map(this::toBookingSummaryRow)
-                .toList();
+                .getResultList();
+        return toBookingSummaryRows(tuples);
     }
 
     public List<TripPlanSummaryRow> findUpcomingTripPlanRows(Integer userId, LocalDate today, int limit) {
-        return em.createQuery("""
+        List<Tuple> tuples = em.createQuery("""
                 select
                     tp.id as planId,
                     tp.title as title,
@@ -55,10 +53,8 @@ public class MypageQueryRepository {
                 .setParameter("userId", userId)
                 .setParameter("today", today)
                 .setMaxResults(limit)
-                .getResultList()
-                .stream()
-                .map(this::toTripPlanSummaryRow)
-                .toList();
+                .getResultList();
+        return toTripPlanSummaryRows(tuples);
     }
 
     private BookingSummaryRow toBookingSummaryRow(Tuple tuple) {
@@ -69,11 +65,27 @@ public class MypageQueryRepository {
                 tuple.get("checkOut", LocalDate.class));
     }
 
+    private List<BookingSummaryRow> toBookingSummaryRows(List<Tuple> tuples) {
+        List<BookingSummaryRow> rows = new java.util.ArrayList<>();
+        for (Tuple tuple : tuples) {
+            rows.add(toBookingSummaryRow(tuple));
+        }
+        return rows;
+    }
+
     private TripPlanSummaryRow toTripPlanSummaryRow(Tuple tuple) {
         return new TripPlanSummaryRow(
                 tuple.get("planId", Integer.class),
                 tuple.get("title", String.class),
                 tuple.get("startDate", LocalDate.class),
                 tuple.get("endDate", LocalDate.class));
+    }
+
+    private List<TripPlanSummaryRow> toTripPlanSummaryRows(List<Tuple> tuples) {
+        List<TripPlanSummaryRow> rows = new java.util.ArrayList<>();
+        for (Tuple tuple : tuples) {
+            rows.add(toTripPlanSummaryRow(tuple));
+        }
+        return rows;
     }
 }

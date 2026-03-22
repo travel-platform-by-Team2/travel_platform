@@ -1,28 +1,48 @@
 package com.example.travel_platform.booking;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import java.util.Optional;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+
 @Repository
-public interface BookingRepository extends JpaRepository<Booking, Integer> {
+@RequiredArgsConstructor
+public class BookingRepository {
 
-    @Modifying
-    @Transactional
-    @Query("""
-            delete from Booking b
-            where b.user.id = :userId
-            """)
-    int deleteByUserId(@Param("userId") Integer userId);
+    private final EntityManager em;
 
-    @Modifying
+    public Booking save(Booking booking) {
+        if (booking.getId() == null) {
+            em.persist(booking);
+            return booking;
+        }
+        return em.merge(booking);
+    }
+
+    public Optional<Booking> findById(Integer bookingId) {
+        return Optional.ofNullable(em.find(Booking.class, bookingId));
+    }
+
     @Transactional
-    @Query("""
-            delete from Booking b
-            where b.tripPlan.user.id = :userId
-            """)
-    int deleteByTripPlanUserId(@Param("userId") Integer userId);
+    public int deleteByUserId(Integer userId) {
+        return em.createQuery("""
+                delete from Booking b
+                where b.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
+
+    @Transactional
+    public int deleteByTripPlanUserId(Integer userId) {
+        return em.createQuery("""
+                delete from Booking b
+                where b.tripPlan.user.id = :userId
+                """)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
 }

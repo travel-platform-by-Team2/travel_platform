@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -111,10 +110,10 @@ class CalendarServiceTest {
 
         when(calendarRepository.findById(31)).thenReturn(Optional.of(event));
 
-        Map<String, Integer> response = service.deleteEvent(9, 31);
+        CalendarResponse.DeleteResultDTO response = service.deleteEvent(9, 31);
 
         verify(calendarRepository).delete(event);
-        assertEquals(Map.of("eventId", 31), response);
+        assertEquals(31, response.getEventId());
     }
 
     @Test

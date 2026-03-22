@@ -1,11 +1,13 @@
 package com.example.travel_platform.booking;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception404;
+import com.example.travel_platform.booking.lodging.LodgingPoiRow;
 import com.example.travel_platform.booking.lodging.LodgingQueryRepository;
 import com.example.travel_platform.booking.mapPlaceImage.MapPlaceImageRepository;
 import com.example.travel_platform.trip.TripPlan;
@@ -345,9 +348,12 @@ public class BookingService {
     }
 
     public List<BookingResponse.BookingSummaryDTO> getBookingList(Integer sessionUserId) {
-        return bookingQueryRepository.findOwnedBookingList(sessionUserId).stream()
-                .map(BookingResponse.BookingSummaryDTO::fromBooking)
-                .toList();
+        List<Booking> bookings = bookingQueryRepository.findOwnedBookingList(sessionUserId);
+        List<BookingResponse.BookingSummaryDTO> bookingSummaries = new ArrayList<>();
+        for (Booking booking : bookings) {
+            bookingSummaries.add(BookingResponse.BookingSummaryDTO.fromBooking(booking));
+        }
+        return bookingSummaries;
     }
 
     public BookingResponse.BookingDetailDTO getBookingDetail(Integer sessionUserId, Integer bookingId) {
@@ -422,8 +428,9 @@ public class BookingService {
         String regionKey = reqDTO == null ? "" : blankToDefault(reqDTO.getRegionKey(), "");
         double[] bounds = resolveBounds(reqDTO == null ? null : reqDTO.getBounds());
 
-        List<BookingResponse.MapPoiDTO> dbPois = lodgingQueryRepository.findActiveLodgingsInBounds(
+        List<LodgingPoiRow> dbPoiRows = lodgingQueryRepository.findActiveLodgingsInBounds(
                 regionKey, bounds[0], bounds[1], bounds[2], bounds[3]);
+        List<BookingResponse.MapPoiDTO> dbPois = createDbMapPois(dbPoiRows);
 
         LinkedHashMap<String, BookingResponse.MapPoiDTO> merged = new LinkedHashMap<>();
         for (BookingResponse.MapPoiDTO item : kakaoPois) {
@@ -441,6 +448,30 @@ public class BookingService {
             }
         }
         return new ArrayList<>(merged.values());
+    }
+
+    private List<BookingResponse.MapPoiDTO> createDbMapPois(List<LodgingPoiRow> dbPoiRows) {
+        List<BookingResponse.MapPoiDTO> dbPois = new ArrayList<>();
+        for (LodgingPoiRow dbPoiRow : dbPoiRows) {
+            dbPois.add(createDbMapPoi(dbPoiRow));
+        }
+        return dbPois;
+    }
+
+    private BookingResponse.MapPoiDTO createDbMapPoi(LodgingPoiRow dbPoiRow) {
+        return new BookingResponse.MapPoiDTO(
+                dbPoiRow.externalPlaceId(),
+                dbPoiRow.name(),
+                dbPoiRow.phone(),
+                dbPoiRow.address(),
+                dbPoiRow.roadAddress(),
+                dbPoiRow.placeUrl(),
+                dbPoiRow.categoryName(),
+                dbPoiRow.categoryGroupCode(),
+                dbPoiRow.lat(),
+                dbPoiRow.lng(),
+                "hotel",
+                "DB");
     }
 
     private List<BookingResponse.MapPoiDTO> convertToResponsePois(List<BookingRequest.MapPoiDTO> requestPois) {

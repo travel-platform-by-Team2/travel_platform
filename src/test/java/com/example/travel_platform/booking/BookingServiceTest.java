@@ -21,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception404;
+import com.example.travel_platform.booking.lodging.LodgingPoiRow;
 import com.example.travel_platform.booking.lodging.LodgingQueryRepository;
 import com.example.travel_platform.booking.mapPlaceImage.MapPlaceImageRepository;
 import com.example.travel_platform.trip.TripPlan;
@@ -251,6 +252,36 @@ class BookingServiceTest {
         assertEquals("", dto.getName());
     }
 
+    @Test
+    void mergeDbPois() {
+        TestFixture fixture = fixture();
+        BookingRequest.MergeMapPoisDTO reqDTO = new BookingRequest.MergeMapPoisDTO();
+        reqDTO.setRegionKey("jeju");
+        reqDTO.setBounds(new BookingRequest.MapBoundsDTO(33.10, 126.10, 33.90, 126.90));
+        reqDTO.setKakaoPois(List.of());
+
+        when(fixture.lodgingQueryRepository.findActiveLodgingsInBounds("jeju", 33.10, 33.90, 126.10, 126.90))
+                .thenReturn(List.of(new LodgingPoiRow(
+                        "lodging-1",
+                        "제주 오션뷰 호텔",
+                        "064-111-2222",
+                        "제주 제주시",
+                        "제주 제주시 해안로",
+                        "https://lodging.test/1",
+                        "숙소",
+                        "AD5",
+                        33.50,
+                        126.50)));
+
+        List<BookingResponse.MapPoiDTO> result = fixture.service.mergeMapPois(reqDTO);
+
+        assertEquals(1, result.size());
+        assertEquals("lodging-1", result.get(0).getExternalPlaceId());
+        assertEquals("제주 오션뷰 호텔", result.get(0).getName());
+        assertEquals("hotel", result.get(0).getType());
+        assertEquals("DB", result.get(0).getSource());
+    }
+
     private TestFixture fixture() {
         BookingRepository bookingRepository = mock(BookingRepository.class);
         BookingQueryRepository bookingQueryRepository = mock(BookingQueryRepository.class);
@@ -273,6 +304,7 @@ class BookingServiceTest {
                 userQueryRepository,
                 tripRepository,
                 tripPlanQueryRepository,
+                lodgingQueryRepository,
                 service);
     }
 
@@ -316,6 +348,7 @@ class BookingServiceTest {
             UserQueryRepository userQueryRepository,
             TripRepository tripRepository,
             TripPlanQueryRepository tripPlanQueryRepository,
+            LodgingQueryRepository lodgingQueryRepository,
             BookingService service) {
     }
 }

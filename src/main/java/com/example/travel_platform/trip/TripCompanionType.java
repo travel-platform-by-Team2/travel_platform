@@ -1,6 +1,8 @@
 package com.example.travel_platform.trip;
 
-public enum TripCompanionType {
+import com.example.travel_platform._core.validation.EnumCode;
+
+public enum TripCompanionType implements EnumCode {
     SOLO("solo", "혼자"),
     FRIEND("friend", "친구와"),
     FAMILY("family", "가족과"),
@@ -14,6 +16,7 @@ public enum TripCompanionType {
         this.label = label;
     }
 
+    @Override
     public String getCode() {
         return code;
     }

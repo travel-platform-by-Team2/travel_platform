@@ -51,7 +51,7 @@ public class AdminController {
 
     @PostMapping("/users/{userId}/status")
     public String toggleUserStatus(
-            @PathVariable("userId") Integer userId,
+            @PathVariable(name = "userId") Integer userId,
             @RequestParam(name = "targetActive") boolean targetActive,
             @RequestParam(name = "active", required = false) Boolean active,
             @RequestParam(name = "keyword", required = false) String keyword,

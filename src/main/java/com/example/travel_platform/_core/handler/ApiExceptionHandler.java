@@ -48,10 +48,13 @@ public class ApiExceptionHandler {
     }
 
     private String resolveValidationMessage(MethodArgumentNotValidException e) {
-        return e.getBindingResult().getFieldErrors().stream()
+        FieldError fieldError = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
-                .map(FieldError::getDefaultMessage)
-                .orElse("잘못된 요청 값입니다.");
+                .orElse(null);
+        if (fieldError == null) {
+            return "잘못된 요청 값입니다.";
+        }
+        return fieldError.getDefaultMessage();
     }
 
     private HttpStatus resolveStatus(ApiException e) {

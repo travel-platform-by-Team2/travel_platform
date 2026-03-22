@@ -2,7 +2,9 @@ package com.example.travel_platform.board;
 
 import java.util.Arrays;
 
-public enum BoardCategory {
+import com.example.travel_platform._core.validation.EnumCode;
+
+public enum BoardCategory implements EnumCode {
 
     TIPS("tips", "여행 팁", "cat-tips"),
     PLAN("plan", "여행 계획", "cat-plan"),
@@ -20,6 +22,7 @@ public enum BoardCategory {
         this.cssClass = cssClass;
     }
 
+    @Override
     public String getCode() {
         return code;
     }
@@ -35,7 +38,7 @@ public enum BoardCategory {
     public static BoardCategory fromCode(String code) {
         BoardCategory boardCategory = fromCodeOrNull(code);
         if (boardCategory == null) {
-            throw new IllegalArgumentException("유효하지 않은 게시글 카테고리입니다. " + code);
+            throw new IllegalArgumentException("유효하지 않은 게시글 카테고리입니다: " + code);
         }
         return boardCategory;
     }

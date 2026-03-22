@@ -1,4 +1,4 @@
-﻿<!-- Parent: ../AI-CONTEXT.md -->
+<!-- Parent: ../AI-CONTEXT.md -->
 
 # application
 

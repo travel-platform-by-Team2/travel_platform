@@ -2,6 +2,7 @@ package com.example.travel_platform.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,8 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.ConcurrentModel;
 import org.springframework.ui.Model;
+
+import com.example.travel_platform._core.handler.ex.Exception401;
 
 class UserControllerTest {
 
@@ -66,8 +69,10 @@ class UserControllerTest {
         UserRequest.SnsCallbackDTO reqDTO = new UserRequest.SnsCallbackDTO();
         MockHttpServletRequest request = new MockHttpServletRequest();
 
-        String viewName = controller.snsCallback("kakao", reqDTO, request);
+        Exception401 exception = assertThrows(
+                Exception401.class,
+                () -> controller.snsCallback("kakao", reqDTO, request));
 
-        assertEquals("redirect:/login-form?error=sns", viewName);
+        assertEquals("SNS 로그인 정보가 올바르지 않습니다.", exception.getMessage());
     }
 }

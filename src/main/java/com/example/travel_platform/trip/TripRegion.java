@@ -1,6 +1,8 @@
 package com.example.travel_platform.trip;
 
-public enum TripRegion {
+import com.example.travel_platform._core.validation.EnumCode;
+
+public enum TripRegion implements EnumCode {
     SEOUL("seoul", "서울"),
     BUSAN("busan", "부산"),
     DAEGU("daegu", "대구"),
@@ -27,6 +29,7 @@ public enum TripRegion {
         this.label = label;
     }
 
+    @Override
     public String getCode() {
         return code;
     }

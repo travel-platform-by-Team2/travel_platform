@@ -140,12 +140,19 @@ public class TripService {
     }
 
     private List<TripResponse.SummaryDTO> createPlanSummaries(List<TripPlan> tripPlans, LocalDate today) {
-        Map<Integer, Long> placeCounts = tripPlaceRepository.countByTripPlanIds(
-                tripPlans.stream().map(TripPlan::getId).toList());
+        Map<Integer, Long> placeCounts = tripPlaceRepository.countByTripPlanIds(createTripPlanIds(tripPlans));
 
         return tripPlans.stream()
                 .map(tripPlan -> createPlanSummary(tripPlan, today, placeCounts))
                 .toList();
+    }
+
+    private List<Integer> createTripPlanIds(List<TripPlan> tripPlans) {
+        List<Integer> tripPlanIds = new java.util.ArrayList<>();
+        for (TripPlan tripPlan : tripPlans) {
+            tripPlanIds.add(tripPlan.getId());
+        }
+        return tripPlanIds;
     }
 
     private TripResponse.SummaryDTO createPlanSummary(
@@ -161,10 +168,14 @@ public class TripService {
             return List.of();
         }
 
-        return tripPlan.getPlaces().stream()
-                .sorted(this::compareTripPlaces)
-                .map(TripResponse.PlaceItemDTO::fromTripPlace)
-                .toList();
+        List<TripPlace> sortedPlaces = new java.util.ArrayList<>(tripPlan.getPlaces());
+        sortedPlaces.sort((left, right) -> compareTripPlaces(left, right));
+
+        List<TripResponse.PlaceItemDTO> placeItems = new java.util.ArrayList<>();
+        for (TripPlace sortedPlace : sortedPlaces) {
+            placeItems.add(TripResponse.PlaceItemDTO.fromTripPlace(sortedPlace));
+        }
+        return placeItems;
     }
 
     private int compareTripPlaces(TripPlace left, TripPlace right) {

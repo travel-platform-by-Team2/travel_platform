@@ -3,7 +3,6 @@ package com.example.travel_platform.calendar;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,21 +49,22 @@ public class CalendarService {
     }
 
     @Transactional
-    public Map<String, Integer> deleteEvent(Integer userId, Integer eventId) {
+    public CalendarResponse.DeleteResultDTO deleteEvent(Integer userId, Integer eventId) {
         CalendarEvent event = findEvent(eventId);
         attachUserIfMissing(userId, event);
         validateEventOwner(userId, event);
         calendarRepository.delete(event);
-        return Map.of("eventId", eventId);
+        return CalendarResponse.DeleteResultDTO.createDeleteResult(eventId);
     }
 
     public List<CalendarResponse.EventDTO> getEventList(Integer sessionUserId, LocalDate startDate, LocalDate endDate) {
         validateDateRange(startDate, endDate);
         List<CalendarEvent> events = calendarQueryRepository.findEventList(sessionUserId, startDate, endDate);
-
-        return events.stream()
-                .map(CalendarResponse.EventDTO::fromCalendarEvent)
-                .toList();
+        List<CalendarResponse.EventDTO> eventDTOs = new java.util.ArrayList<>();
+        for (CalendarEvent event : events) {
+            eventDTOs.add(CalendarResponse.EventDTO.fromCalendarEvent(event));
+        }
+        return eventDTOs;
     }
 
     private void validateEventRange(LocalDateTime startAt, LocalDateTime endAt) {
