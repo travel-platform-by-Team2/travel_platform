@@ -29,8 +29,6 @@ public class AdminController {
     private static final String DASHBOARD_VIEW = "pages/admin-dashboard";
     private static final String USERS_VIEW = "pages/admin-users";
     private static final String BOARDS_VIEW = "pages/admin-boards";
-    private static final String BOARDS_REDIRECT = "redirect:/admin/boards";
-
     private final AdminService adminService;
     private final HttpSession session;
 
@@ -89,9 +87,14 @@ public class AdminController {
     }
 
     @PostMapping("/boards/{boardId}/delete")
-    public String deleteBoard(@PathVariable(name = "boardId") Integer boardId) {
+    public String deleteBoard(
+            @PathVariable(name = "boardId") Integer boardId,
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "page", required = false) Integer page) {
         adminService.deleteBoardByAdmin(requiredSessionUser(), boardId);
-        return BOARDS_REDIRECT;
+        return "redirect:" + buildBoardsUrl(category, keyword, sort, page);
     }
 
     private String renderDashboardPage(Model model, AdminResponse.DashboardViewDTO page) {
@@ -135,6 +138,23 @@ public class AdminController {
         }
         if (orderBy != null && !orderBy.isBlank()) {
             builder.queryParam("orderBy", orderBy);
+        }
+        return builder.toUriString();
+    }
+
+    private String buildBoardsUrl(String category, String keyword, String sort, Integer page) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/boards");
+        if (category != null && !category.isBlank()) {
+            builder.queryParam("category", category);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.queryParam("keyword", keyword.trim());
+        }
+        if (sort != null && !sort.isBlank()) {
+            builder.queryParam("sort", sort);
+        }
+        if (page != null) {
+            builder.queryParam("page", page);
         }
         return builder.toUriString();
     }

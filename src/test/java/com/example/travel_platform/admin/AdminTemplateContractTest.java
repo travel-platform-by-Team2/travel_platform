@@ -45,8 +45,32 @@ class AdminTemplateContractTest {
         assertFalse(template.contains("{{page."), "{{page.");
     }
 
+    @Test
+    void boardMenu() throws IOException {
+        String template = partial("admin-board-action-menu.mustache");
+
+        assertContains(template, "name=\"category\"");
+        assertContains(template, "name=\"keyword\"");
+        assertContains(template, "name=\"sort\"");
+        assertContains(template, "name=\"page\"");
+    }
+
+    @Test
+    void sidebar() throws IOException {
+        String template = partial("admin-sidebar.mustache");
+
+        assertContains(template, "/admin/users");
+        assertContains(template, "/admin/boards");
+        assertFalse(template.contains("/admin/lodgings"), "/admin/lodgings");
+    }
+
     private String template(String fileName) throws IOException {
         Path path = Path.of("src/main/resources/templates/pages", fileName);
+        return Files.readString(path);
+    }
+
+    private String partial(String fileName) throws IOException {
+        Path path = Path.of("src/main/resources/templates/partials", fileName);
         return Files.readString(path);
     }
 

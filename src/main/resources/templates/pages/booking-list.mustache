@@ -21,10 +21,10 @@
           전체
         </a>
         <a class="booking-list-tabs__item {{#model.upcomingSelected}}is-active{{/model.upcomingSelected}}" href="/mypage/bookings?category=upcoming">
-          이용전
+          이용 예정
         </a>
         <a class="booking-list-tabs__item {{#model.completedSelected}}is-active{{/model.completedSelected}}" href="/mypage/bookings?category=completed">
-          이용후
+          이용 완료
         </a>
         <a class="booking-list-tabs__item {{#model.cancelledSelected}}is-active{{/model.cancelledSelected}}" href="/mypage/bookings?category=cancelled">
           취소
@@ -44,10 +44,10 @@
           <div class="booking-list-card__body">
             <div class="booking-list-card__content">
               {{#upcoming}}
-              <span class="booking-status-badge booking-status-badge--upcoming">이용전</span>
+              <span class="booking-status-badge booking-status-badge--upcoming">이용 예정</span>
               {{/upcoming}}
               {{#completed}}
-              <span class="booking-status-badge booking-status-badge--completed">이용후</span>
+              <span class="booking-status-badge booking-status-badge--completed">이용 완료</span>
               {{/completed}}
               {{#cancelled}}
               <span class="booking-status-badge booking-status-badge--cancelled">취소</span>
@@ -71,8 +71,8 @@
       <div class="booking-list-empty-state">
         <span class="material-symbols-outlined">event_busy</span>
         {{#model.allSelected}}<p>예약 내역이 없습니다.</p>{{/model.allSelected}}
-        {{#model.upcomingSelected}}<p>이용 전 예약이 없습니다.</p>{{/model.upcomingSelected}}
-        {{#model.completedSelected}}<p>이용 후 예약이 없습니다.</p>{{/model.completedSelected}}
+        {{#model.upcomingSelected}}<p>이용 예정 예약이 없습니다.</p>{{/model.upcomingSelected}}
+        {{#model.completedSelected}}<p>이용 완료 예약이 없습니다.</p>{{/model.completedSelected}}
         {{#model.cancelledSelected}}<p>취소한 예약이 없습니다.</p>{{/model.cancelledSelected}}
       </div>
       {{/model.hasItems}}

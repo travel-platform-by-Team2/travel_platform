@@ -30,6 +30,7 @@
 - `CalendarApiController`의 조회 API는 `startDate`, `endDate` 범위 조회만 지원한다.
 - `CalendarEvent.eventType`은 `CalendarEventType` enum + converter 기준으로 저장하고, API/SSR 응답에서는 문자열 코드만 노출한다.
 - `CalendarRequest.CreateEventDTO`의 `tripPlanId`가 있으면 create 흐름에서 `TripPlan`을 연결한다.
+- 일정 범위 조회는 `tripPlanId`를 함께 내려주기 위해 `CalendarQueryRepository`에서 `tripPlan`을 같이 조회한다.
 
 ## 정규화 메모
 

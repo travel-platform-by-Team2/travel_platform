@@ -31,6 +31,8 @@
 - `BookingService`는 예약 완료 저장, 예약 생성, 예약 목록/상세/취소, 이미지 조회, POI 병합을 helper 기준으로 분리한다.
 - `cancelBooking(...)`은 예약 삭제가 아니라 `BookingStatus`, `cancelledAt` 기준 상태 변경으로 처리한다.
 - `getBookingList(...)`, `getBookingDetail(...)`은 `BookingQueryRepository`의 JPQL 결과를 DTO로 조립한다.
+- 예약 목록 조회는 `Booking` 자체 필드만 사용하므로 `tripPlan`을 fetch 하지 않는다.
+- 예약 상세 조회는 `tripPlanId` 접근이 있어서 단건 조회에서만 `tripPlan` fetch를 유지한다.
 - `mergeMapPois(...)`는 `LodgingQueryRepository`의 JPQL 결과와 Kakao POI를 합친다.
 - 장소 이미지 캐시는 `MapPlaceImageRepository`를 통해 `캐시 조회 -> 외부 조회 -> 업서트` 순서로 처리한다.
 - 예약 완료 시 여행 계획이 없으면 `TripPlan.create(...)`로 최소 계획을 만들고 저장한다.

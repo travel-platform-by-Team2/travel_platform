@@ -2,6 +2,7 @@ package com.example.travel_platform.trip;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,13 +140,19 @@ public class TripService {
     }
 
     private List<TripResponse.SummaryDTO> createPlanSummaries(List<TripPlan> tripPlans, LocalDate today) {
+        Map<Integer, Long> placeCounts = tripPlaceRepository.countByTripPlanIds(
+                tripPlans.stream().map(TripPlan::getId).toList());
+
         return tripPlans.stream()
-                .map(tripPlan -> createPlanSummary(tripPlan, today))
+                .map(tripPlan -> createPlanSummary(tripPlan, today, placeCounts))
                 .toList();
     }
 
-    private TripResponse.SummaryDTO createPlanSummary(TripPlan tripPlan, LocalDate today) {
-        long placeCount = tripPlaceRepository.countByTripPlanId(tripPlan.getId());
+    private TripResponse.SummaryDTO createPlanSummary(
+            TripPlan tripPlan,
+            LocalDate today,
+            Map<Integer, Long> placeCounts) {
+        long placeCount = placeCounts.getOrDefault(tripPlan.getId(), 0L);
         return TripResponse.SummaryDTO.createPlanSummary(tripPlan, today, placeCount);
     }
 

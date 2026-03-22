@@ -50,6 +50,7 @@ class BoardServiceTest {
                 .thenReturn(List.of(board));
         when(boardQueryRepository.countSearch(eq(BoardCategory.TIPS), any(String[].class))).thenReturn(12L);
         when(boardLikeRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 2L));
+        when(replyRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 0L));
 
         BoardResponse.ListViewDTO response = boardService.getBoardList("tips", " busan trip ", "likes", 1);
 
@@ -61,6 +62,7 @@ class BoardServiceTest {
         assertTrue(response.getModel().isTips());
         assertTrue(response.getModel().isSortLikes());
         assertEquals(2, response.getModels().get(0).getLikeCount());
+        assertEquals(0, response.getModels().get(0).getReplyCount());
 
         ArgumentCaptor<String[]> wordsCaptor = ArgumentCaptor.forClass(String[].class);
         verify(boardQueryRepository).search(eq(BoardCategory.TIPS), wordsCaptor.capture(), eq("likes"), eq(10), eq(10));

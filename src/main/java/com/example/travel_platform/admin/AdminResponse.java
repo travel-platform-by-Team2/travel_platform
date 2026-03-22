@@ -275,8 +275,6 @@ public class AdminResponse {
         private LocalDate createdAt;
         private boolean active;
         private int boardCount;
-        private String statusText;
-        private String managementLabel;
 
         public static AdminUserDTO createAdminUser(
                 Integer userId,
@@ -284,9 +282,7 @@ public class AdminResponse {
                 String email,
                 LocalDate createdAt,
                 boolean active,
-                int boardCount,
-                String statusText,
-                String managementLabel) {
+                int boardCount) {
             AdminUserDTO dto = new AdminUserDTO();
             dto.setUserId(userId);
             dto.setUsername(username);
@@ -294,8 +290,6 @@ public class AdminResponse {
             dto.setCreatedAt(createdAt);
             dto.setActive(active);
             dto.setBoardCount(boardCount);
-            dto.setStatusText(statusText);
-            dto.setManagementLabel(managementLabel);
             return dto;
         }
     }

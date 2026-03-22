@@ -31,7 +31,7 @@ public class BoardResponse {
         private String createdAtDisplay;
         private String summary;
 
-        public static SummaryDTO fromBoard(Board board, int likeCount) {
+        public static SummaryDTO fromBoard(Board board, int likeCount, int replyCount) {
             String plainText = Jsoup.parse(board.getContent()).text();
             String summary = plainText.substring(0, Math.min(80, plainText.length()));
             LocalDateTime createdAt = board.getCreatedAt();
@@ -46,7 +46,7 @@ public class BoardResponse {
                     .categoryClass(category.getCssClass())
                     .viewCount(board.getViewCount())
                     .likeCount(likeCount)
-                    .replyCount(board.getReplies().size())
+                    .replyCount(replyCount)
                     .createdAt(createdAt)
                     .createdAtDisplay(formatDateTime(createdAt))
                     .summary(summary)

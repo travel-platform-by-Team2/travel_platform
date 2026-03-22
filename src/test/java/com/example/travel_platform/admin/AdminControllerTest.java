@@ -73,6 +73,23 @@ class AdminControllerTest {
     }
 
     @Test
+    void userStatusKeepQuery() {
+        AdminService adminService = mock(AdminService.class);
+        AdminController controller = new AdminController(adminService, new MockHttpSession());
+        org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap redirectAttributes =
+                new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap();
+
+        String view = controller.toggleUserStatus(3, false, true, " ssar ", "postCount", "asc", redirectAttributes);
+
+        assertEquals("redirect:/admin/users", view);
+        assertEquals("true", String.valueOf(redirectAttributes.getAttribute("active")));
+        assertEquals(" ssar ", redirectAttributes.getAttribute("keyword"));
+        assertEquals("postCount", redirectAttributes.getAttribute("sortBy"));
+        assertEquals("asc", redirectAttributes.getAttribute("orderBy"));
+        verify(adminService).updateUserActiveStatus(3, false);
+    }
+
+    @Test
     void boards() {
         AdminService adminService = mock(AdminService.class);
         AdminController controller = new AdminController(adminService, new MockHttpSession());
@@ -100,9 +117,22 @@ class AdminControllerTest {
         AdminController controller = new AdminController(adminService, session);
         SessionUser sessionUser = SessionUsers.require(session);
 
-        String view = controller.deleteBoard(17);
+        String view = controller.deleteBoard(17, null, null, null, null);
 
         assertEquals("redirect:/admin/boards", view);
+        verify(adminService).deleteBoardByAdmin(sessionUser, 17);
+    }
+
+    @Test
+    void delKeepQuery() {
+        AdminService adminService = mock(AdminService.class);
+        MockHttpSession session = session(3, "ADMIN");
+        AdminController controller = new AdminController(adminService, session);
+        SessionUser sessionUser = SessionUsers.require(session);
+
+        String view = controller.deleteBoard(17, "tips", " busan ", "view", 1);
+
+        assertEquals("redirect:/admin/boards?category=tips&keyword=busan&sort=view&page=1", view);
         verify(adminService).deleteBoardByAdmin(sessionUser, 17);
     }
 
@@ -110,7 +140,7 @@ class AdminControllerTest {
     void del401() {
         AdminController controller = new AdminController(mock(AdminService.class), new MockHttpSession());
 
-        assertThrows(Exception401.class, () -> controller.deleteBoard(17));
+        assertThrows(Exception401.class, () -> controller.deleteBoard(17, null, null, null, null));
     }
 
     private MockHttpSession session(Integer userId, String role) {

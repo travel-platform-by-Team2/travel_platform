@@ -36,6 +36,8 @@
 - `Board.category`는 `BoardCategory` enum을 사용하고, DB 저장은 `BoardCategoryConverter`가 문자열 코드로 처리한다.
 - `BoardRepository`는 command 중심, `BoardQueryRepository`는 검색/통계/목록 중심으로 역할을 분리한다.
 - 좋아요 bulk 삭제와 목록 좋아요 집계는 `BoardLikeRepository`가 담당한다.
+- 목록/검색 query는 작성자 이름을 함께 쓰므로 `BoardQueryRepository`에서 `b.user`를 같이 조회한다.
+- 목록 댓글 수는 `ReplyRepository.countByBoardIds(...)` 배치 집계로 가져와서 lazy collection 접근을 피한다.
 - 좋아요 수 단일 기준은 `board_like_tb` 집계다. `Board` 엔티티에 별도 `likeCount` 컬럼을 두지 않는다.
 - 좋아요 API는 `/api/boards/{boardId}/likes/toggle` 경로와 `Resp.ok(...)` 응답 패턴을 사용한다.
 - 템플릿 계약이 바뀌면 `BoardControllerTest`, `BoardTemplateContractTest`를 함께 확인한다.

@@ -23,6 +23,7 @@ public class CalendarQueryRepository {
             return em.createQuery("""
                     select e
                     from CalendarEvent e
+                    left join fetch e.tripPlan
                     where e.user.id = :userId
                       and e.startAt <= :endDateTime
                       and e.endAt >= :startDateTime
@@ -37,6 +38,7 @@ public class CalendarQueryRepository {
         return em.createQuery("""
                 select e
                 from CalendarEvent e
+                left join fetch e.tripPlan
                 where e.user.id = :userId
                 order by e.startAt asc
                 """, CalendarEvent.class)

@@ -94,7 +94,7 @@ class TripServiceTest {
 
         when(tripPlanQueryRepository.findPlanList(2, 0, 9)).thenReturn(List.of(tripPlan));
         when(tripPlanQueryRepository.countPlanList(2)).thenReturn(11L);
-        when(tripPlaceRepository.countByTripPlanId(7)).thenReturn(3L);
+        when(tripPlaceRepository.countByTripPlanIds(List.of(7))).thenReturn(java.util.Map.of(7, 3L));
 
         TripResponse.ListPageDTO response = tripService.getPlanList(2, "invalid", -1);
 
@@ -123,7 +123,7 @@ class TripServiceTest {
         when(tripPlanQueryRepository.findUpcomingPlanList(eq(2), any(LocalDate.class), eq(9), eq(9)))
                 .thenReturn(List.of(tripPlan));
         when(tripPlanQueryRepository.countUpcomingPlanList(eq(2), any(LocalDate.class))).thenReturn(1L);
-        when(tripPlaceRepository.countByTripPlanId(9)).thenReturn(2L);
+        when(tripPlaceRepository.countByTripPlanIds(List.of(9))).thenReturn(java.util.Map.of(9, 2L));
 
         TripResponse.ListPageDTO response = tripService.getPlanList(2, "upcoming", 1);
 

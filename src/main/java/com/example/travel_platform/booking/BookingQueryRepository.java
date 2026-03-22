@@ -18,7 +18,6 @@ public class BookingQueryRepository {
         return em.createQuery("""
                 select b
                 from Booking b
-                join fetch b.tripPlan tp
                 where b.user.id = :userId
                 order by b.createdAt desc, b.id desc
                 """, Booking.class)

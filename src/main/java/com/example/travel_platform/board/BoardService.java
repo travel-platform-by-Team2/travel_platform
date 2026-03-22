@@ -139,15 +139,22 @@ public class BoardService {
 
     private List<BoardResponse.SummaryDTO> toSummaryDTOs(List<Board> boards) {
         Map<Integer, Long> likeCounts = resolveLikeCounts(boards);
+        Map<Integer, Long> replyCounts = resolveReplyCounts(boards);
         return boards.stream()
                 .map(board -> BoardResponse.SummaryDTO.fromBoard(
                         board,
-                        Math.toIntExact(likeCounts.getOrDefault(board.getId(), 0L))))
+                        Math.toIntExact(likeCounts.getOrDefault(board.getId(), 0L)),
+                        Math.toIntExact(replyCounts.getOrDefault(board.getId(), 0L))))
                 .toList();
     }
 
     private Map<Integer, Long> resolveLikeCounts(List<Board> boards) {
         return boardLikeRepository.countByBoardIds(
+                boards.stream().map(Board::getId).toList());
+    }
+
+    private Map<Integer, Long> resolveReplyCounts(List<Board> boards) {
+        return replyRepository.countByBoardIds(
                 boards.stream().map(Board::getId).toList());
     }
 

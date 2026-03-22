@@ -14,6 +14,10 @@
     <span>보기</span>
   </a>
   <form action="/admin/boards/{{id}}/delete" method="post">
+    <input type="hidden" name="category" value="{{model.allCategory}}">
+    <input type="hidden" name="keyword" value="{{model.keyword}}">
+    <input type="hidden" name="sort" value="{{model.sort}}">
+    <input type="hidden" name="page" value="{{model.currentPage}}">
     <button class="admin-action-link is-danger" type="submit">
       <span class="material-symbols-outlined">delete</span>
       <span>삭제</span>

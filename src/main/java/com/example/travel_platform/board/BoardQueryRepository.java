@@ -48,6 +48,7 @@ public class BoardQueryRepository {
         String jpql = """
                 select b
                 from Board b
+                join fetch b.user
                 order by
                 """ + " " + toOrderBy(sort);
 
@@ -61,6 +62,7 @@ public class BoardQueryRepository {
         String jpql = """
                 select b
                 from Board b
+                join fetch b.user
                 where b.category = :category
                 order by
                 """ + " " + toOrderBy(sort);
@@ -116,7 +118,7 @@ public class BoardQueryRepository {
 
     public List<Board> search(BoardCategory category, String[] words, String sort, int offset, int size) {
         StringBuilder jpql = new StringBuilder();
-        jpql.append("select b from Board b where 1=1 ");
+        jpql.append("select b from Board b join fetch b.user where 1=1 ");
 
         boolean hasCategory = category != null;
         if (hasCategory) {
@@ -126,7 +128,7 @@ public class BoardQueryRepository {
         for (int i = 0; i < words.length; i++) {
             jpql.append("and (");
             jpql.append("lower(b.title) like :titleWord").append(i).append(" ");
-            jpql.append("or b.content like :contentWord").append(i).append(" ");
+            jpql.append("or lower(cast(b.content as string)) like :contentWord").append(i).append(" ");
             jpql.append(") ");
         }
 
@@ -140,7 +142,7 @@ public class BoardQueryRepository {
 
         for (int i = 0; i < words.length; i++) {
             query.setParameter("titleWord" + i, "%" + words[i].toLowerCase() + "%");
-            query.setParameter("contentWord" + i, "%" + words[i] + "%");
+            query.setParameter("contentWord" + i, "%" + words[i].toLowerCase() + "%");
         }
 
         return query.setFirstResult(offset)
@@ -160,7 +162,7 @@ public class BoardQueryRepository {
         for (int i = 0; i < words.length; i++) {
             jpql.append("and (");
             jpql.append("lower(b.title) like :titleWord").append(i).append(" ");
-            jpql.append("or b.content like :contentWord").append(i).append(" ");
+            jpql.append("or lower(cast(b.content as string)) like :contentWord").append(i).append(" ");
             jpql.append(") ");
         }
 
@@ -172,7 +174,7 @@ public class BoardQueryRepository {
 
         for (int i = 0; i < words.length; i++) {
             query.setParameter("titleWord" + i, "%" + words[i].toLowerCase() + "%");
-            query.setParameter("contentWord" + i, "%" + words[i] + "%");
+            query.setParameter("contentWord" + i, "%" + words[i].toLowerCase() + "%");
         }
 
         return query.getSingleResult();

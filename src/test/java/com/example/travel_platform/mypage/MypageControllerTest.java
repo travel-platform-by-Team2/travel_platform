@@ -13,7 +13,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
@@ -67,7 +66,7 @@ class MypageControllerTest {
         MypageResponse.BookingListPageDTO page = MypageResponse.BookingListPageDTO.createBookingListPage(
                 BookingCategory.UPCOMING,
                 true);
-        List<MypageResponse.BookingListCardDTO> items = List.of(
+        var items = java.util.List.of(
                 MypageResponse.BookingListCardDTO.builder()
                         .id(21)
                         .detailLink("/mypage/bookings/21")
