@@ -52,10 +52,11 @@ create table trip_plan_tb (
   id int auto_increment primary key,
   user_id int not null,
   title varchar(100) not null,
+  who_with varchar(20),
   start_date date not null,
   end_date date not null,
   created_at datetime not null default current_timestamp,
-  img_url varchar(500) not null,
+  img_url varchar(500),
   region varchar(30) not null,
   constraint fk_trip_plan_user foreign key (user_id) references user_tb(id)
 );
@@ -67,7 +68,7 @@ create table trip_place_tb (
   address varchar(255),
   latitude decimal(10,7),
   longitude decimal(10,7),
-  day_order int not null,
+  trip_day int not null,
   constraint fk_trip_place_plan foreign key (trip_plan_id) references trip_plan_tb(id)
 );
 
@@ -78,7 +79,6 @@ create table board_tb (
   title varchar(150) not null,
   content longtext not null,
   view_count int not null default 0,
-  like_count int not null default 0,
   created_at datetime not null default current_timestamp,
   constraint fk_board_user foreign key (user_id) references user_tb(id)
 );
@@ -112,13 +112,16 @@ create table booking_tb (
   user_id int not null,
   trip_plan_id int not null,
   lodging_name varchar(120) not null,
+  room_name varchar(120) not null,
   check_in date not null,
   check_out date not null,
   guest_count int not null,
   price_per_night int not null,
   tax_and_service_fee int not null,
-  location varchar(50) not null,
+  region_key varchar(30) not null,
   image_url text,
+  status varchar(20) not null default 'BOOKED',
+  cancelled_at datetime null,
   created_at datetime not null default current_timestamp,
   constraint fk_booking_user foreign key (user_id) references user_tb(id),
   constraint fk_booking_plan foreign key (trip_plan_id) references trip_plan_tb(id)
@@ -132,6 +135,7 @@ create table calendar_event_tb (
   start_at datetime not null,
   end_at datetime not null,
   event_type varchar(50) not null,
+  memo text null,
   constraint fk_calendar_event_user foreign key (user_id) references user_tb(id),
   constraint fk_calendar_event_plan foreign key (trip_plan_id) references trip_plan_tb(id)
 );
@@ -192,34 +196,35 @@ create table lodging_image_tb (
 -- -----------------------------
 -- 5) 시드 데이터 입력(data.sql 기준)
 -- -----------------------------
-insert into user_tb (username, password, email, created_at) values
-('ssar', '1234', 'ssar@nate.com', now()),
-('cos', '1234', 'cos@nate.com', now());
+insert into user_tb (username, password, email, tel, role, created_at, active) values
+('ssar', '1234', 'ssar@nate.com', '010-3333-4444', 'USER', now(), true),
+('cos', '1234', 'cos@nate.com', '010-5555-6666', 'USER', now(), false),
+('admin', '1234', 'admin@nate.com', '010-1111-2222', 'ADMIN', now(), true);
 
-insert into trip_plan_tb (user_id, title, start_date, end_date, created_at) values
-(1, '제주 2박 3일', '2026-04-10', '2026-04-12', now()),
-(2, '부산 1박 2일', '2026-05-01', '2026-05-02', now());
+insert into trip_plan_tb (user_id, title, start_date, end_date, created_at, img_url, region, who_with) values
+(1, '제주 2박 3일', '2026-04-10', '2026-04-12', now(), 'https://lh3.googleusercontent.com/aida-public/AB6AXuDN0kqyZcFwdNEc-a6CCMDKpnpzxbfAUmAPFkAX3RwNlNcepNzVGzu0LVVOJqUyOIdJjo_eqOl9wMEd9LP5VSNREoO0Lef-esqF_C4P1l2xhs2XTLnsXlXc0ZSRpU2CYjyFHxQlNI7wOE5w8C95e7U8g91UWwemD07rPGmwD2nZltMUw3z2kfSZRMdnMTxzPxCmLpPf9a17cMoP4KKqZOaOuQOrnx0cpP_nqWwIQw9GKkKEH1GiccYRRDnWFSMFaASs-ixCCJuNu10', 'jeju', 'friend'),
+(2, '부산 1박 2일', '2026-05-01', '2026-05-02', now(), null, 'busan', 'solo');
 
-insert into trip_place_tb (trip_plan_id, place_name, address, latitude, longitude, day_order) values
+insert into trip_place_tb (trip_plan_id, place_name, address, latitude, longitude, trip_day) values
 (1, '성산일출봉', '제주특별자치도 서귀포시 성산읍 성산리 1', 33.4588790, 126.9425580, 1),
 (1, '협재해수욕장', '제주특별자치도 제주시 한림읍 협재리', 33.3947600, 126.2393290, 2),
 (2, '해운대해수욕장', '부산광역시 해운대구 우동', 35.1586980, 129.1603840, 1);
 
-insert into board_tb (user_id, title, content, view_count, created_at) values
-(1, '제주 여행 코스 추천', '성산일출봉과 해안도로 코스를 추천합니다.', 12, now()),
-(2, '부산 뚜벅이 가능할까요?', '해운대 중심으로 일정 짜보는데 조언 부탁드립니다.', 5, now());
+insert into board_tb (user_id, category, title, content, view_count, created_at) values
+(1, 'plan', '제주 여행 코스 추천', '성산일출봉과 해안도로 코스를 추천합니다.', 12, now()),
+(2, 'qna', '부산 뚜벅이 가능할까요?', '해운대 중심으로 일정 짜보는데 조언 부탁드립니다.', 5, now());
 
 insert into board_reply_tb (board_id, user_id, content, created_at) values
 (1, 2, '좋은 정보 감사합니다. 다음 주에 가볼게요!', now()),
 (2, 1, '가능하지만 이동 동선은 미리 짜시면 좋아요.', now());
 
-insert into booking_tb (user_id, trip_plan_id, lodging_name, check_in, check_out, guest_count, price_per_night, tax_and_service_fee, location, created_at) values
-(1, 1, '제주 오션뷰 호텔', '2026-04-10', '2026-04-12', 2, 280000, 50400, '제주', now()),
-(2, 2, '해운대 비치 호텔', '2026-05-01', '2026-05-02', 1, 140000, 25200, '부산', now());
+insert into booking_tb (user_id, trip_plan_id, lodging_name, room_name, check_in, check_out, guest_count, price_per_night, tax_and_service_fee, region_key, image_url, status, cancelled_at, created_at) values
+(1, 1, '제주 오션뷰 호텔', '오션뷰 스탠다드', '2026-04-10', '2026-04-12', 2, 280000, 50400, 'jeju', null, 'BOOKED', null, now()),
+(2, 2, '해운대 비치 호텔', '시티 더블', '2026-05-01', '2026-05-02', 1, 140000, 25200, 'busan', null, 'BOOKED', null, now());
 
-insert into calendar_event_tb (user_id, trip_plan_id, title, start_at, end_at, event_type) values
-(1, 1, '제주 출발', '2026-04-10 08:00:00', '2026-04-10 10:00:00', 'TRIP'),
-(2, 2, '체크인', '2026-05-01 15:00:00', '2026-05-01 16:00:00', 'BOOKING');
+insert into calendar_event_tb (user_id, trip_plan_id, title, start_at, end_at, event_type, memo) values
+(1, 1, '제주 출발', '2026-04-10 08:00:00', '2026-04-10 10:00:00', 'TRIP', '공항 출발 일정'),
+(2, 2, '체크인', '2026-05-01 15:00:00', '2026-05-01 16:00:00', 'BOOKING', '숙소 체크인');
 
 -- -----------------------------
 -- 6) 시드 데이터 입력(mapdata.sql 기준, UTF-8 보정)

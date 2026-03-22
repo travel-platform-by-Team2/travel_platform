@@ -16,3 +16,4 @@ public record ChatbotLlmSearchReview(
         String sql,
         String decisionReason) {
 }
+

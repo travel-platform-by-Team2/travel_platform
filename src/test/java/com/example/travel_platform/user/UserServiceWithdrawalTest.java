@@ -24,7 +24,7 @@ class UserServiceWithdrawalTest {
     private EntityManager em;
 
     @Test
-    void withdrawAccount_deletesUserAndConnectedData() {
+    void withdraw() {
         userService.withdrawAccount(1, "1234");
 
         assertEquals(0L, count("select count(u) from User u where u.id = :userId", 1));
@@ -42,13 +42,13 @@ class UserServiceWithdrawalTest {
     }
 
     @Test
-    void withdrawAccount_rejectsWrongPassword() {
+    void wrongPw() {
         assertThrows(Exception400.class, () -> userService.withdrawAccount(1, "wrong-password"));
         assertEquals(1L, count("select count(u) from User u where u.id = :userId", 1));
     }
 
     @Test
-    void withdrawAccount_rejectsAdminUser() {
+    void admin() {
         assertThrows(Exception403.class, () -> userService.withdrawAccount(3, "1234"));
         assertEquals(1L, count("select count(u) from User u where u.id = :userId", 3));
     }

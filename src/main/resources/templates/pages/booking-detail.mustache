@@ -11,133 +11,165 @@
   {{>partials/header}}
 
   <main class="account-page account-page--detail">
-    <div class="booking-detail-shell">
+    <div class="booking-detail-shell booking-detail-shell--renewed">
       <div class="booking-detail-breadcrumb">
-        <a href="/mypage">마이페이지</a>
+        <a href="{{model.bookingListLink}}">예약 목록으로 돌아가기</a>
         <span class="material-symbols-outlined">chevron_right</span>
         <span>예약 상세 내역</span>
       </div>
 
-      <div class="booking-detail-header">
-        <div>
-          <p class="booking-detail-header__label">Reservation Overview</p>
-          <h1 class="booking-detail-header__title">예약 상세 내역</h1>
-          <p class="booking-detail-header__subtitle">예약 ID: {{page.bookingId}}</p>
-          <p class="booking-detail-header__subtitle">현재 화면은 placeholder이며 예약 ID만 연결된 상태입니다.</p>
+      <div class="booking-detail-hero">
+        <div class="booking-detail-hero__head">
+          <div class="booking-detail-hero__status">
+            <div class="booking-detail-hero__icon">
+              <span class="material-symbols-outlined">calendar_month</span>
+            </div>
+            <div>
+              <p class="booking-detail-hero__label">{{model.statusLabel}}</p>
+              <p class="booking-detail-hero__number">예약번호: {{model.bookingNumberText}}</p>
+            </div>
+          </div>
+
+          {{#model.cancelled}}
+          <span class="booking-payment-badge booking-payment-badge--cancelled">취소 완료</span>
+          {{/model.cancelled}}
+          {{^model.cancelled}}
+          <span class="booking-payment-badge booking-payment-badge--paid">결제 완료</span>
+          {{/model.cancelled}}
         </div>
-        <a class="account-button account-button--ghost" href="/mypage">
-          <span class="material-symbols-outlined">arrow_back</span>
+
+        <div class="booking-detail-hero__body">
+          <div class="booking-detail-hero__media{{^model.hasImage}} booking-detail-hero__media--empty{{/model.hasImage}}"{{#model.hasImage}} style="background-image: url('{{model.imageUrl}}');"{{/model.hasImage}}>
+            {{^model.hasImage}}
+            <span class="material-symbols-outlined">hotel</span>
+            {{/model.hasImage}}
+          </div>
+
+          <div class="booking-detail-hero__content">
+            <h1 class="booking-detail-hero__title">{{model.lodgingName}}</h1>
+            <p class="booking-detail-hero__location">
+              <span class="material-symbols-outlined">location_on</span>
+              {{model.location}}
+            </p>
+            <div class="booking-detail-hero__meta">
+              <div>
+                <span>일정</span>
+                <strong>{{model.stayScheduleLabel}}</strong>
+              </div>
+              <div>
+                <span>인원</span>
+                <strong>{{model.guestCountLabel}}</strong>
+              </div>
+            </div>
+            {{#model.hasTripPlanLink}}
+            <a class="booking-detail-hero__link" href="{{model.tripPlanLink}}">
+              여행 계획 보기
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            {{/model.hasTripPlanLink}}
+          </div>
+        </div>
+      </div>
+
+      <section class="booking-detail-info-card">
+        <div class="booking-detail-info-card__head">
+          <span class="material-symbols-outlined">receipt_long</span>
+          <h2>결제 정보 상세</h2>
+        </div>
+        <div class="booking-detail-info-card__body">
+          <div class="booking-detail-info-card__row">
+            <span>객실 요금</span>
+            <span>{{model.roomPriceText}}</span>
+          </div>
+          <div class="booking-detail-info-card__row">
+            <span>세금 및 수수료</span>
+            <span>{{model.feeText}}</span>
+          </div>
+          <div class="booking-detail-info-card__row booking-detail-info-card__row--total">
+            <span>최종 결제 금액</span>
+            <strong>{{model.totalPriceText}}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="booking-detail-info-card">
+        <div class="booking-detail-info-card__head">
+          <span class="material-symbols-outlined">info</span>
+          <h2>예약 처리 안내</h2>
+        </div>
+        <div class="booking-detail-info-card__body booking-detail-info-card__body--stack">
+          <div class="booking-detail-note">
+            <span>예약일시</span>
+            <strong>{{model.bookingDateLabel}}</strong>
+          </div>
+          {{#model.cancelledAtLabel}}
+          <div class="booking-detail-note">
+            <span>취소일시</span>
+            <strong>{{model.cancelledAtLabel}}</strong>
+          </div>
+          {{/model.cancelledAtLabel}}
+          <div class="booking-detail-guide">
+            <p>예약 취소는 삭제가 아니라 상태 변경으로 처리하고, 예약 이력은 계속 보관합니다.</p>
+            <p>취소된 예약은 예약 목록에서 상태 배지로 다시 확인할 수 있습니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="booking-detail-actions booking-detail-actions--renewed">
+        <a class="account-button account-button--primary" href="{{model.mypageLink}}">
+          <span class="material-symbols-outlined">home</span>
           마이페이지로 돌아가기
         </a>
-      </div>
-
-      <div class="booking-detail-summary-grid">
-        <article class="booking-detail-summary-card">
-          <p class="booking-detail-summary-card__label">예약 상태</p>
-          <div class="booking-detail-summary-card__value">
-            <span class="booking-detail-summary-card__dot"></span>
-            <strong>예약 확정</strong>
-          </div>
-        </article>
-
-        <article class="booking-detail-summary-card">
-          <p class="booking-detail-summary-card__label">예약 일자</p>
-          <div class="booking-detail-summary-card__value">
-            <span class="material-symbols-outlined">calendar_today</span>
-            <strong>2023년 10월 24일</strong>
-          </div>
-        </article>
-      </div>
-
-      <section class="booking-detail-panel">
-        <div class="booking-detail-panel__head">
-          <span class="material-symbols-outlined">hotel</span>
-          <h2>숙소 상세 정보</h2>
-        </div>
-
-        <div class="booking-detail-stay">
-          <div class="booking-detail-stay__media"></div>
-          <div class="booking-detail-stay__body">
-            <div>
-              <h3 class="booking-detail-stay__title">그랜드 하얏트 서울</h3>
-              <p class="booking-detail-stay__address">
-                <span class="material-symbols-outlined">location_on</span>
-                서울특별시 용산구 소월로 322
-              </p>
-            </div>
-
-            <div class="booking-detail-meta-grid">
-              <div class="booking-detail-meta-item">
-                <span class="booking-detail-meta-item__label">체크인</span>
-                <strong>2023.11.15 (수)</strong>
-                <span>15:00 이후</span>
-              </div>
-              <div class="booking-detail-meta-item">
-                <span class="booking-detail-meta-item__label">체크아웃</span>
-                <strong>2023.11.17 (금)</strong>
-                <span>11:00 이전</span>
-              </div>
-              <div class="booking-detail-meta-item">
-                <span class="booking-detail-meta-item__label">인원 구성</span>
-                <strong>성인 2명, 아동 1명</strong>
-              </div>
-              <div class="booking-detail-meta-item">
-                <span class="booking-detail-meta-item__label">객실 타입</span>
-                <strong>디럭스 킹 리버뷰</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="booking-detail-panel">
-        <div class="booking-detail-panel__head">
-          <span class="material-symbols-outlined">payments</span>
-          <h2>결제 정보</h2>
-        </div>
-
-        <div class="booking-detail-payment-list">
-          <div class="booking-detail-payment-row booking-detail-payment-row--total">
-            <span>총 결제 금액</span>
-            <strong>745,000원</strong>
-          </div>
-          <div class="booking-detail-payment-row">
-            <span>결제 수단</span>
-            <span>현대카드 (4412-****-****-0123) / 일시불</span>
-          </div>
-          <div class="booking-detail-payment-row">
-            <span>결제 일시</span>
-            <span>2023.10.24 14:32:15</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="booking-detail-policy">
-        <div class="booking-detail-policy__head">
-          <span class="material-symbols-outlined">info</span>
-          <h2>취소 및 환불 규정 안내</h2>
-        </div>
-        <ul class="booking-detail-policy__list">
-          <li><strong>2023년 11월 12일 23:59까지</strong>는 무료 취소가 가능합니다.</li>
-          <li>11월 13일 취소 시: 전체 금액의 50% 위약금 발생</li>
-          <li>체크인 당일 및 노쇼(No-show): 환불 불가</li>
-        </ul>
-      </section>
-
-      <div class="booking-detail-actions">
-        <a class="account-button account-button--primary" href="/mypage">
-          <span class="material-symbols-outlined">list</span>
-          마이 페이지로 돌아가기
-        </a>
-        <button class="account-button account-button--secondary" type="button">
+        {{#model.canCancel}}
+        <button
+          class="account-button account-button--secondary"
+          type="button"
+          data-booking-cancel-button
+          data-cancel-url="{{model.cancelApiUrl}}">
           <span class="material-symbols-outlined">cancel</span>
           예약 취소 요청
         </button>
+        {{/model.canCancel}}
       </div>
     </div>
   </main>
 
   {{>partials/footer}}
   {{>partials/scripts}}
+  {{#model.canCancel}}
+  <script>
+    (function () {
+      const button = document.querySelector("[data-booking-cancel-button]");
+      if (!button) return;
+
+      button.addEventListener("click", async function () {
+        if (!window.confirm("예약을 취소하시겠습니까?")) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          const response = await fetch(button.dataset.cancelUrl, {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json"
+            }
+          });
+          const payload = await response.json();
+
+          if (!response.ok || !payload || payload.status !== 200) {
+            throw new Error((payload && payload.msg) || "예약 취소에 실패했습니다.");
+          }
+
+          window.location.reload();
+        } catch (error) {
+          window.alert(error.message || "예약 취소에 실패했습니다.");
+          button.disabled = false;
+        }
+      });
+    })();
+  </script>
+  {{/model.canCancel}}
 </body>
 </html>

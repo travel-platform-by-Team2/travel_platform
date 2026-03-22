@@ -13,7 +13,7 @@ public class SessionUser {
     private String tel;
     private String role;
 
-    public static SessionUser from(User user) {
+    public static SessionUser fromUserEntity(User user) {
         return new SessionUser(
                 user.getId(),
                 user.getUsername(),

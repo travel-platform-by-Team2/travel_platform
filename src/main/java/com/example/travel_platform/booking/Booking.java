@@ -6,10 +6,15 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.trip.TripRegion;
+import com.example.travel_platform.trip.TripRegionConverter;
 import com.example.travel_platform.user.User;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,6 +46,9 @@ public class Booking {
     @Column(name = "lodging_name", nullable = false, length = 120)
     private String lodgingName;
 
+    @Column(name = "room_name", nullable = false, length = 120)
+    private String roomName;
+
     @Column(name = "check_in", nullable = false)
     private LocalDate checkIn;
 
@@ -56,44 +64,157 @@ public class Booking {
     @Column(name = "tax_and_service_fee", nullable = false)
     private Integer taxAndServiceFee;
 
-    @Column(name = "location", nullable = false, length = 50)
-    private String location;
+    @Convert(converter = TripRegionConverter.class)
+    @Column(name = "region_key", nullable = false, length = 30)
+    private TripRegion regionType;
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private BookingStatus status;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
 
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @lombok.Builder
-    private Booking(User user, TripPlan tripPlan, String lodgingName, LocalDate checkIn, LocalDate checkOut,
-            Integer guestCount, Integer pricePerNight, Integer taxAndServiceFee, String location, String imageUrl) {
+    private Booking(
+            User user,
+            TripPlan tripPlan,
+            String lodgingName,
+            String roomName,
+            LocalDate checkIn,
+            LocalDate checkOut,
+            Integer guestCount,
+            Integer pricePerNight,
+            Integer taxAndServiceFee,
+            TripRegion regionType,
+            String imageUrl,
+            BookingStatus status,
+            LocalDateTime cancelledAt) {
         this.user = user;
         this.tripPlan = tripPlan;
         this.lodgingName = lodgingName;
+        this.roomName = normalizeRoomName(roomName);
         this.checkIn = checkIn;
         this.checkOut = checkOut;
         this.guestCount = guestCount;
         this.pricePerNight = pricePerNight;
         this.taxAndServiceFee = taxAndServiceFee;
-        this.location = location;
-        this.imageUrl = imageUrl;
+        this.regionType = regionType;
+        this.imageUrl = normalizeImageUrl(imageUrl);
+        this.status = status == null ? BookingStatus.BOOKED : status;
+        this.cancelledAt = cancelledAt;
     }
 
-    public static Booking create(User user, TripPlan tripPlan, String lodgingName, LocalDate checkIn, LocalDate checkOut,
-            Integer guestCount, Integer pricePerNight, Integer taxAndServiceFee, String location, String imageUrl) {
+    public static Booking create(
+            User user,
+            TripPlan tripPlan,
+            String lodgingName,
+            String roomName,
+            LocalDate checkIn,
+            LocalDate checkOut,
+            Integer guestCount,
+            Integer pricePerNight,
+            Integer taxAndServiceFee,
+            TripRegion regionType,
+            String imageUrl) {
         return Booking.builder()
                 .user(user)
                 .tripPlan(tripPlan)
                 .lodgingName(lodgingName)
+                .roomName(roomName)
                 .checkIn(checkIn)
                 .checkOut(checkOut)
                 .guestCount(guestCount)
                 .pricePerNight(pricePerNight)
                 .taxAndServiceFee(taxAndServiceFee)
-                .location(location)
+                .regionType(regionType)
                 .imageUrl(imageUrl)
+                .status(BookingStatus.BOOKED)
+                .cancelledAt(null)
                 .build();
+    }
+
+    public static Booking create(
+            User user,
+            TripPlan tripPlan,
+            String lodgingName,
+            String roomName,
+            LocalDate checkIn,
+            LocalDate checkOut,
+            Integer guestCount,
+            Integer pricePerNight,
+            Integer taxAndServiceFee,
+            String regionKey,
+            String imageUrl) {
+        return create(
+                user,
+                tripPlan,
+                lodgingName,
+                roomName,
+                checkIn,
+                checkOut,
+                guestCount,
+                pricePerNight,
+                taxAndServiceFee,
+                TripRegion.fromCode(regionKey),
+                imageUrl);
+    }
+
+    public String getRegionKey() {
+        if (regionType == null) {
+            return BookVar.DEFAULT_REGION_KEY;
+        }
+        return regionType.getCode();
+    }
+
+    public String getLocation() {
+        if (regionType == null) {
+            return BookVar.DEFAULT_LOCATION_NAME;
+        }
+        return regionType.getLabel();
+    }
+
+    public String getStatusCode() {
+        if (status == null) {
+            return BookingStatus.BOOKED.getCode();
+        }
+        return status.getCode();
+    }
+
+    public String getStatusLabel() {
+        if (status == null) {
+            return BookingStatus.BOOKED.getLabel();
+        }
+        return status.getLabel();
+    }
+
+    public boolean isCancelled() {
+        return status == BookingStatus.CANCELLED;
+    }
+
+    public void cancel(LocalDateTime cancelledAt) {
+        this.status = BookingStatus.CANCELLED;
+        this.cancelledAt = cancelledAt;
+    }
+
+    private static String normalizeRoomName(String roomName) {
+        if (roomName == null || roomName.isBlank()) {
+            return BookVar.DEFAULT_ROOM_NAME;
+        }
+        return roomName;
+    }
+
+    private static String normalizeImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return null;
+        }
+        return imageUrl;
     }
 }

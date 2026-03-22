@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reservation Completion - TravelApp</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="page-body">
   {{>partials/header}}
 
+{{#model}}
 <main class="booking-complete-main-01">
 <div class="booking-complete-wrap">
 <div class="booking-complete-div-01">
@@ -110,9 +112,11 @@
 </div>
 </div>
 </main>
+{{/model}}
 
   {{>partials/chatbot}}
   {{>partials/footer}}
   {{>partials/scripts}}
 </body>
 </html>
+
