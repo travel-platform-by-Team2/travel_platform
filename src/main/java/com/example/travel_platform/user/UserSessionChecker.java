@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserSessionChecker {
 
-    private final UserRepository userRepository;
+    private final UserQueryRepository userQueryRepository;
 
     public boolean isBlocked(SessionUser sessionUser) {
         if (sessionUser == null) {
@@ -21,12 +21,11 @@ public class UserSessionChecker {
             return false;
         }
 
-        Optional<User> optUser = userRepository.findById(sessionUser.getId());
-
-        if (optUser.isEmpty()) {
+        Optional<User> user = userQueryRepository.findUser(sessionUser.getId());
+        if (user.isEmpty()) {
             return true;
         }
 
-        return !optUser.get().isActive();
+        return !user.get().isActive();
     }
 }

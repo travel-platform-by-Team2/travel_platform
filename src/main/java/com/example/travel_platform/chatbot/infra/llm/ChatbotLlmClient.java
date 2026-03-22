@@ -54,3 +54,4 @@ public interface ChatbotLlmClient {
             List<ChatbotSearchAttempt> searchAttempts,
             boolean exhausted);
 }
+

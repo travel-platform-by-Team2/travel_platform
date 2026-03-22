@@ -4,43 +4,45 @@
 
 ## 목적
 
-관리자 페이지의 SSR 진입 라우트, 대시보드 요약 데이터, 유저/게시글 관리 화면 연결을 담당한다.
+관리자 페이지의 SSR 진입 흐름과 대시보드, 사용자 관리, 게시글 관리 화면 조립을 담당한다.
 
 ## 주요 파일
 
 | 파일명 | 설명 |
 | --- | --- |
-| AdminController.java | `/admin`, `/admin/users`, `/admin/lodgings`, `/admin/boards` 요청을 받아 관리자 Mustache 페이지를 렌더링하고 사이드바 활성 상태를 세팅한다. |
-| AdminService.java | 관리자 대시보드, 유저 관리, 게시글 관리 3개 페이지 기준으로 서비스 메서드를 나눠 조회와 화면 DTO 조립을 담당한다. |
-| AdminRepository.java | 관리자 화면에서 재사용하는 사용자 조회와 집계 쿼리를 담당한다. |
-| AdminResponse.java | 대시보드, 유저 관리, 게시글 관리 화면 DTO를 정의한다. |
+| `AdminController.java` | `/admin`, `/admin/users`, `/admin/boards`, `/admin/boards/{boardId}/delete` 요청을 받아 관리자 Mustache 페이지를 렌더링하고 redirect query를 유지한다. |
+| `AdminService.java` | 관리자 화면에 필요한 조회 결과를 DTO로 조립한다. |
+| `AdminQueryRepository.java` | 관리자 화면에서 사용하는 사용자/게시글 조회와 대시보드 집계를 한 곳에서 담당한다. |
+| `AdminResponse.java` | 관리자 화면 DTO를 정의한다. |
 
-## 하위 디렉토리
+## 현재 구조 기준
 
-- 없음
-
-## AI 작업 지침
-
-- `admin` 패키지는 새 비즈니스 엔티티 도메인이 아니라 관리자 화면 진입과 관리자용 조회 조립 패키지로 유지한다.
-- 관리자 권한 검사는 컨트롤러 안에서 중복 구현하지 말고 `_core/interceptor/AdminInterceptor`의 `/admin`, `/admin/*` 보호를 재사용한다.
-- `admin`은 현재 페이지 3장(`/admin`, `/admin/users`, `/admin/boards`) 기준으로 유지하며, 파일을 과하게 쪼개기보다 `AdminService` 내부 메서드 책임을 페이지 단위로 읽기 쉽게 정리하는 방향을 우선한다.
-- `/admin` 대시보드는 현재 실데이터 기반 요약 화면이며, `AdminService.getDashboardPage()`가 유저/게시글 요약 카드, 그래프 2개, 최근 유저/최근 게시글 3건을 조립한다.
-- `/admin/users`는 `AdminService.getUsersPage(...)`가 목록, 카운트, 탭 상태를 한 번에 조립하고, 컨트롤러는 이를 기존 Mustache 모델 키로 풀어 넣는다.
-- `/admin/boards`는 `AdminService.getBoardsPage(...)`가 목록, 페이지네이션, 카테고리 선택 상태를 조립한다.
-- 대시보드 데이터는 현재 코드베이스에서 바로 구할 수 있는 유저/게시글 범위만 사용하며, 차트 라이브러리 없이 Mustache + CSS 기반 막대/비율형 시각화로 표현한다.
-- 공통 왼쪽 패널은 현재 `대시보드`, `유저 관리`, `게시글 관리` 3개 메뉴만 노출하며, `숙소 관리` 경로는 라우트는 남아 있어도 사이드바 메뉴에서는 제외된 상태다.
-- `admin-users`, `admin-boards` 페이지는 기존 화면 구조를 유지하고, 대시보드 작업 때문에 템플릿을 건드리지 않는 것을 기본 원칙으로 본다.
-- 유저/게시글 관리 페이지의 액션 패널은 더미 UI 인터랙션이며 실제 처리 로직과 분리해 유지한다.
+- `admin`은 자체 엔티티를 소유하는 패키지가 아니라 `user`, `board`를 엮어 관리자 화면을 조립하는 도메인이다.
+- 조회는 `AdminQueryRepository` 하나로 모아두고 JPQL 기반 row 조회를 사용한다.
+- `select new ...` 생성자 표현식 대신 `Tuple` alias 조회 후 row 매핑 방식으로 정리했다.
+- 사용자/게시글 keyword 검색은 `lower(...)` 기준으로 대소문자 처리를 통일했다.
+- 액션은 기존 도메인 repository를 사용한다.
+  - 사용자 상태 변경: `UserRepository`
+  - 게시글 삭제: `BoardRepository`, `BoardLikeRepository`
+- 게시글 삭제 후에는 현재 `category`, `keyword`, `sort`, `page` query를 유지한 채 `/admin/boards`로 redirect 한다.
+- `AdminController`는 `renderDashboardPage(...)`, `renderUsersPage(...)`, `renderBoardsPage(...)` helper로 화면 진입을 분리한다.
+- `/admin`은 `model` 단건 루트 계약을 사용한다.
+- `/admin/users`, `/admin/boards`는 `model + models` 루트 계약을 사용한다.
+- `AdminResponse` 정적 팩토리 메서드는 `createDashboardView`, `createUserListView`, `createBoardListView`, `createAdminUser`처럼 역할이 드러나는 이름을 사용한다.
+- `AdminUserDTO`에서 현재 화면에 쓰지 않는 `statusText`, `managementLabel`은 제거했다.
+- 숙소 관리 기능은 현재 범위에서 제외했고 `admin-lodgings.mustache`는 제거했다.
 
 ## 테스트
 
-- 관리자 로그인 상태에서 `/admin`, `/admin/users`, `/admin/lodgings`, `/admin/boards`가 각각 올바른 `pages/admin-*` 템플릿을 렌더링하는지 확인한다.
-- `/admin` 대시보드에서 요약 카드, 사용자 상태 그래프, 게시글 카테고리 그래프, 최근 유저/최근 게시글 3건이 실데이터로 렌더링되는지 확인한다.
-- 사이드바 활성 메뉴, 대시보드 `전체보기` 링크, 액션 패널 UI 동작을 함께 점검한다.
-- 비관리자 또는 비로그인 상태에서 `/admin*` 접근 시 관리자 필터가 차단하는지 함께 점검한다.
-- `./gradlew.bat test`로 자동 테스트를 확인한다.
+- `AdminControllerTest`: 관리자 페이지 진입, 사용자 상태 변경 redirect, 게시글 삭제 query 유지
+- `AdminServiceDashboardTest`: 대시보드/사용자/게시글 조립 결과
+- `AdminServiceTest`: 사용자 상태 변경, 게시글 삭제, 목록 조립, 오류 흐름
+- `AdminQueryRepositoryTest`: 사용자/게시글 keyword 검색의 대소문자 처리
+- `AdminTemplateContractTest`: `admin-dashboard`, `admin-users`, `admin-boards`, `admin-board-action-menu`, `admin-sidebar`
+- `./gradlew.bat test`: 전체 기준선 확인
 
-## 의존성
+## 의존
 
-- 내부: `_core/interceptor`, `../board/BoardRepository.java`, `../user/User.java`, `src/main/resources/templates/partials/admin-sidebar.mustache`, `src/main/resources/templates/partials/admin-page-scripts.mustache`, `src/main/resources/templates/pages/admin-dashboard.mustache`, `src/main/resources/templates/pages/admin-users.mustache`, `src/main/resources/templates/pages/admin-lodgings.mustache`, `src/main/resources/templates/pages/admin-boards.mustache`, `src/main/resources/static/css/admin.css`
-- 외부: `Spring MVC`, `Spring Data JPA`
+- 내부: `_core/interceptor`, `../board/BoardRepository.java`, `../board/BoardLikeRepository.java`, `../board/BoardCategory.java`, `../user/UserRepository.java`
+- 템플릿: `src/main/resources/templates/partials/admin-sidebar.mustache`, `src/main/resources/templates/partials/admin-page-scripts.mustache`, `src/main/resources/templates/pages/admin-dashboard.mustache`, `src/main/resources/templates/pages/admin-users.mustache`, `src/main/resources/templates/pages/admin-boards.mustache`
+- 정적 자산: `src/main/resources/static/css/admin.css`

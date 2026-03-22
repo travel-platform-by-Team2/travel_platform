@@ -8,14 +8,9 @@ import org.junit.jupiter.api.Test;
 class ChatbotDtoTest {
 
     @Test
-    void requestDto_setterGetter_works() {
-        ChatbotRequest.ContextDTO contextDTO = new ChatbotRequest.ContextDTO();
-        contextDTO.setPage("/bookings/checkout");
-        contextDTO.setTripPlanId(3);
-
-        ChatbotRequest.AskDTO askDTO = new ChatbotRequest.AskDTO();
-        askDTO.setMessage("booking list");
-        askDTO.setContext(contextDTO);
+    void req() {
+        ChatbotRequest.ContextDTO contextDTO = ChatbotRequest.ContextDTO.createContext("/bookings/checkout", 3);
+        ChatbotRequest.AskDTO askDTO = ChatbotRequest.AskDTO.createAskRequest("booking list", contextDTO);
 
         assertEquals("booking list", askDTO.getMessage());
         assertNotNull(askDTO.getContext());
@@ -24,18 +19,26 @@ class ChatbotDtoTest {
     }
 
     @Test
-    void responseDto_builder_works() {
-        ChatbotResponse.AskDTO response = ChatbotResponse.AskDTO.builder()
-                .processingType("DIRECT_LLM")
-                .answer("ok")
-                .meta(ChatbotResponse.MetaDTO.builder()
-                        .needsDb(false)
-                        .build())
-                .build();
+    void resp() {
+        ChatbotResponse.AskDTO response = ChatbotResponse.AskDTO.createAskResponse(
+                "DIRECT_LLM",
+                "ok",
+                ChatbotResponse.MetaDTO.createDirectMeta());
 
         assertEquals("DIRECT_LLM", response.getProcessingType());
         assertEquals("ok", response.getAnswer());
         assertNotNull(response.getMeta());
         assertEquals(false, response.getMeta().getNeedsDb());
     }
+
+    @Test
+    void db() {
+        ChatbotResponse.MetaDTO meta = ChatbotResponse.MetaDTO.createDbMeta("예약 조회", "select * from booking_tb limit 5", 3);
+
+        assertEquals(true, meta.getNeedsDb());
+        assertEquals("예약 조회", meta.getQuerySummary());
+        assertEquals("select * from booking_tb limit 5", meta.getGeneratedSql());
+        assertEquals(3, meta.getRowCount());
+    }
 }
+

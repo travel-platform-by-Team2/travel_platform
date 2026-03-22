@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unified Login Page Variant 1</title>
+  <title>TravelMate | 로그인</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="page-body">
   {{>partials/header}}
@@ -120,9 +121,9 @@
 
   <script>
     /* ===== 공통 설정 및 초기화 ===== */
-    const KAKAO_JS_KEY = '{{kakaoJsAppKey}}'.trim();
-    const NAVER_CLIENT_ID = '{{naverClientId}}'.trim();
-    const RAW_GOOGLE_ID = '{{googleClientId}}';
+    const KAKAO_JS_KEY = '{{model.kakaoJsAppKey}}'.trim();
+    const NAVER_CLIENT_ID = '{{model.naverClientId}}'.trim();
+    const RAW_GOOGLE_ID = '{{model.googleClientId}}';
     const GOOGLE_CLIENT_ID = RAW_GOOGLE_ID.trim();
 
     console.log('--- SNS SDK Config Debug ---');

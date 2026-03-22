@@ -16,3 +16,4 @@ public record ChatbotLlmPlan(
         String sql,
         String answer) {
 }
+

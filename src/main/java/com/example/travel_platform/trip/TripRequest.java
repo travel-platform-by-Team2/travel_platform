@@ -3,6 +3,8 @@ package com.example.travel_platform.trip;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.example.travel_platform._core.validation.ValidEnumCode;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -19,9 +21,11 @@ public class TripRequest {
         private String title;
 
         @NotBlank(message = "누구와 함께 가는 여행인지 선택해주세요.")
+        @ValidEnumCode(enumClass = TripCompanionType.class, message = "유효한 동행 유형을 선택해주세요.")
         private String whoWith;
 
         @NotBlank(message = "여행 지역을 선택해주세요.")
+        @ValidEnumCode(enumClass = TripRegion.class, message = "유효한 여행 지역을 선택해주세요.")
         private String region;
 
         @NotNull(message = "여행 시작일을 선택해주세요.")

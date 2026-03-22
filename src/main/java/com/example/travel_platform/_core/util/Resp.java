@@ -16,12 +16,16 @@ public class Resp<T> {
     }
 
     public static <B> ResponseEntity<Resp<B>> ok(B body) {
-        Resp<B> resp = new Resp<>(200, "성공", body);
-        return new ResponseEntity<>(resp, HttpStatus.OK); // body, header를 응답할 수 있는 클래스
+        Resp<B> responseBody = createBody(HttpStatus.OK.value(), "성공", body);
+        return ResponseEntity.status(HttpStatus.OK).body(responseBody);
     }
 
-    public static ResponseEntity<?> fail(HttpStatus status, String msg) {
-        Resp<?> resp = new Resp<>(status.value(), msg, null);
-        return new ResponseEntity<>(resp, status);
+    public static ResponseEntity<Resp<Void>> fail(HttpStatus status, String msg) {
+        Resp<Void> responseBody = createBody(status.value(), msg, null);
+        return ResponseEntity.status(status).body(responseBody);
+    }
+
+    private static <B> Resp<B> createBody(Integer status, String msg, B body) {
+        return new Resp<>(status, msg, body);
     }
 }

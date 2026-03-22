@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TripKorea - 커뮤니티</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="community-list-body-01">
   {{>partials/header}}
@@ -112,7 +113,7 @@
 </div>
 
 <div class="stack-gap-3">
-{{#model.boards}}
+{{#models}}
 <a class="place-card-row" href="/boards/{{id}}">
 <div class="community-list-div-04">
 <div class="inline-row-gap2-mb2">
@@ -146,10 +147,10 @@
 </div>
 </div>
 </a>
-{{/model.boards}}
-{{^model.boards}}
+{{/models}}
+{{^models}}
 <p class="text-muted-sm-truncate">아직 게시글이 없습니다.</p>
-{{/model.boards}}
+{{/models}}
 
 <div class="pagination-wrap">
   {{#model.prevPage}}

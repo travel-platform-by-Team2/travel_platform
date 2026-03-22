@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TravelKorea - 새 여행 계획 만들기</title>
+  <title>TravelKorea - 여행 계획 만들기</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="page-body">
   {{>partials/header}}
@@ -12,31 +13,37 @@
 <main class="page-main-wrap-960">
 <div class="trip-plan-create-div-01">
 <h1 class="trip-plan-create-h1-01">
-                새 여행 계획 만들기
+                여행 계획 만들기
             </h1>
 <p class="trip-plan-create-p-01">
-                나만의 특별한 여행을 시작해보세요. 모든 순간이 추억이 됩니다.
+                나만의 국내 여행을 시작해보세요. 모든 순간은 추억이 됩니다.
             </p>
 </div>
 <div class="community-detail-div-01">
-<form action="/trip/create" method="post"> <!-- form 태그 추가 (지윤)-->
-<!-- hidden input들 추가(지윤)-->
-   <input type="hidden" name="whoWith" id="whoWithInput">
-   <input type="hidden" name="startDate" id="startDateInput">
-   <input type="hidden" name="endDate" id="endDateInput">
+<form action="/trip/create" method="post">
+   <input type="hidden" name="whoWith" id="whoWithInput" value="{{model.whoWith}}">
+   <input type="hidden" name="startDate" id="startDateInput" value="{{model.startDateValue}}">
+   <input type="hidden" name="endDate" id="endDateInput" value="{{model.endDateValue}}">
 
   <div class="community-detail-div-02">
   <div class="trip-plan-create-div-02">
   <div class="col-span-2">
   <label class="block-title">여행 제목</label>
-  <!--name="title 추가 (지윤)-->
-  <input name="title" class="trip-plan-create-input-01" placeholder="여행 제목을 입력하세요 (예: 제주도 가족 여행)" type="text"/>
+  <input
+    name="title"
+    class="trip-plan-create-input-01"
+    placeholder="여행 제목을 입력하세요 (예: 제주도 가족 여행)"
+    type="text"
+    value="{{model.title}}"/>
+  {{#model.titleError}}
+  <p class="text-danger text-caption">{{.}}</p>
+  {{/model.titleError}}
   </div>
   <div class="col-span-2-md-1">
   <label class="block-title">여행 지역</label>
   <div class="is-relative">
-  <select name="region" class="trip-plan-create-select-01">
-  <option disabled="" selected="" value="">도시나 지역을 선택하세요</option>
+  <select name="region" class="trip-plan-create-select-01" data-selected-region="{{model.region}}">
+  <option disabled="" selected="" value="">가고 싶은 지역을 선택하세요</option>
   <option value="seoul">서울특별시</option>
   <option value="busan">부산광역시</option>
   <option value="daegu">대구광역시</option>
@@ -49,7 +56,7 @@
   <option value="gangwon">강원특별자치도</option>
   <option value="chungbuk">충청북도</option>
   <option value="chungnam">충청남도</option>
-  <option value="jeonbuk">전라북도</option>
+  <option value="jeonbuk">전북특별자치도</option>
   <option value="jeonnam">전라남도</option>
   <option value="gyeongbuk">경상북도</option>
   <option value="gyeongnam">경상남도</option>
@@ -59,27 +66,33 @@
   <span class="icon-ms-base">expand_more</span>
   </div>
   </div>
+  {{#model.regionError}}
+  <p class="text-danger text-caption">{{.}}</p>
+  {{/model.regionError}}
   </div>
   <div class="col-span-2-md-1">
-  <label class="block-title">누구와 함께하나요?</label>
+  <label class="block-title">누구와 함께 가나요?</label>
   <div class="trip-plan-create-div-04">
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="solo">
   <span class="icon-ms-2xl-hover-scale">person</span>
   <span class="trip-plan-create-span-01">혼자</span>
   </button>
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="friend">
   <span class="icon-ms-2xl-hover-scale">group</span>
   <span class="trip-plan-create-span-01">친구와</span>
   </button>
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="family">
   <span class="icon-ms-2xl-hover-scale">family_restroom</span>
   <span class="trip-plan-create-span-01">가족과</span>
   </button>
-  <button class="feature-tile">
+  <button class="feature-tile" type="button" data-who-with="couple">
   <span class="icon-ms-2xl-hover-scale">favorite</span>
   <span class="trip-plan-create-span-01">연인과</span>
   </button>
   </div>
+  {{#model.whoWithError}}
+  <p class="text-danger text-caption">{{.}}</p>
+  {{/model.whoWithError}}
   </div>
   </div>
   </div>
@@ -92,7 +105,7 @@
   <span class="icon-ms-lg">chevron_left</span>
   </button>
   <span class="text-main-lg-bold" id="leftMonthLabel" style="cursor: pointer;"></span>
-  <div class="w-8-fixed"></div> 
+  <div class="w-8-fixed"></div>
   </div>
   <div class="trip-plan-create-div-07">
   <div class="calendar-weekday">S</div>
@@ -103,9 +116,7 @@
   <div class="calendar-weekday">F</div>
   <div class="calendar-weekday">S</div>
   </div>
-  <div class="calendar-week-grid-body" id="leftCalendarGrid">
-  <!-- JS dynamic render -->
-  </div>
+  <div class="calendar-week-grid-body" id="leftCalendarGrid"></div>
   </div>
   <div class="calendar-preview-pane">
   <div class="row-between-center-mb4-px2">
@@ -124,58 +135,82 @@
   <div class="calendar-weekday">F</div>
   <div class="calendar-weekday">S</div>
   </div>
-  <div class="calendar-week-grid-body" id="rightCalendarGrid">
-  <!-- JS dynamic render -->
-  </div>
+  <div class="calendar-week-grid-body" id="rightCalendarGrid"></div>
   </div>
   </div>
   <input type="month" id="monthPicker" style="display:none; position:absolute;">
+  {{#model.startDateError}}
+  <p class="text-danger text-caption">{{.}}</p>
+  {{/model.startDateError}}
+  {{#model.endDateError}}
+  <p class="text-danger text-caption">{{.}}</p>
+  {{/model.endDateError}}
   </div>
   <div class="trip-plan-create-div-09">
-
-  <button class="trip-plan-create-button-05">
+  <button class="trip-plan-create-button-05" type="button" onclick="location.href='/trip'">
                       취소
                   </button>
-  <!-- type="submit" 추가 (지윤)-->                
   <button type="submit" class="trip-plan-create-button-06">
                       계획 생성하기
                   </button>
   </div>
 </div>
-</form> <!-- form 태그 끝끝(지윤)-->
+</form>
 </div>
 </main>
 
   {{>partials/chatbot}}
   {{>partials/footer}}
   <script>
-  // 1. '누구와 함께하나?' 버튼 클릭 이벤트 로직
   const whoWithButtons = document.querySelectorAll('.feature-tile, .trip-plan-create-button-01');
-  whoWithButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault(); 
-      
-      // 모든 버튼 스타일 초기화
-      whoWithButtons.forEach(btn => {
-          btn.style.border = '';
-          btn.style.backgroundColor = '';
-          btn.style.color = '';
-      });
-      
-      // 클릭된 버튼에 시각적 효과 (파란색 테두리와 연한 배경)
-      this.style.border = '2px solid #1152D4';
-      this.style.backgroundColor = '#f1f5f9';
-      this.style.color = '#1152D4';
+  const whoWithInput = document.getElementById('whoWithInput');
+  const startDateInput = document.getElementById('startDateInput');
+  const endDateInput = document.getElementById('endDateInput');
+  const regionSelect = document.querySelector('select[name="region"]');
 
-      const selection = this.querySelector('span:last-child').innerText;
-      document.getElementById('whoWithInput').value = selection;
+  function highlightWhoWithButton(button) {
+    whoWithButtons.forEach(btn => {
+      btn.style.border = '';
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+    });
+
+    button.style.border = '2px solid #1152D4';
+    button.style.backgroundColor = '#f1f5f9';
+    button.style.color = '#1152D4';
+  }
+
+  whoWithButtons.forEach(button => {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+      highlightWhoWithButton(this);
+
+      const selection = this.dataset.whoWith || '';
+      whoWithInput.value = selection;
     });
   });
 
-  // 2. 달력 데이터 및 동적 렌더링 로직
-  let startDate = null;
-  let endDate = null;
-  let viewDate = new Date(); // 현재 기준 월 (좌측 달력 기준)
+  if (regionSelect && regionSelect.dataset.selectedRegion) {
+    regionSelect.value = regionSelect.dataset.selectedRegion;
+  }
+
+  if (whoWithInput && whoWithInput.value) {
+    const initialButton = Array.from(whoWithButtons).find(button => {
+      return button.dataset.whoWith === whoWithInput.value;
+    });
+
+    if (initialButton) {
+      highlightWhoWithButton(initialButton);
+    }
+  }
+
+  let startDate = startDateInput.value || null;
+  let endDate = endDateInput.value || null;
+  let viewDate = new Date();
+
+  if (startDate) {
+    viewDate = new Date(startDate);
+  }
   viewDate.setDate(1);
 
   const leftMonthLabel = document.getElementById('leftMonthLabel');
@@ -184,32 +219,30 @@
   const rightGrid = document.getElementById('rightCalendarGrid');
   const monthPicker = document.getElementById('monthPicker');
 
-  // 달력 그리기 실행
   renderCalendars();
 
-  // 월 이동 버튼 이벤트
   document.getElementById('prevMonthBtn').addEventListener('click', () => {
     viewDate.setMonth(viewDate.getMonth() - 1);
     renderCalendars();
   });
+
   document.getElementById('nextMonthBtn').addEventListener('click', () => {
     viewDate.setMonth(viewDate.getMonth() + 1);
     renderCalendars();
   });
 
-  // 월 레이블 클릭 시 월 선택기 열기
   [leftMonthLabel, rightMonthLabel].forEach(label => {
-    label.addEventListener('click', (e) => {
+    label.addEventListener('click', e => {
       monthPicker.style.left = e.pageX + 'px';
       monthPicker.style.top = e.pageY + 'px';
       monthPicker.showPicker();
     });
   });
 
-  monthPicker.addEventListener('change', (e) => {
+  monthPicker.addEventListener('change', e => {
     if (e.target.value) {
       const [y, m] = e.target.value.split('-');
-      viewDate = new Date(parseInt(y), parseInt(m) - 1, 1);
+      viewDate = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
       renderCalendars();
     }
   });
@@ -220,105 +253,94 @@
 
     renderSingleMonth(viewDate, leftMonthLabel, leftGrid);
     renderSingleMonth(nextDate, rightMonthLabel, rightGrid);
-    
-    updateCalendarUI(); // 렌더링 후 선택된 범위 표시
+    updateCalendarUI();
   }
 
   function renderSingleMonth(date, labelElement, gridElement) {
     const year = date.getFullYear();
     const month = date.getMonth();
-    
-    labelElement.innerText = `${year}년 ${month + 1}월`;
-    gridElement.innerHTML = ''; // 기존 내용 삭제
 
-    // 1일의 요일 (0: 일요일 ~ 6: 토요일)
+    labelElement.innerText = year + '년 ' + (month + 1) + '월';
+    gridElement.innerHTML = '';
+
     const firstDay = new Date(year, month, 1).getDay();
-    // 해당 월의 마지막 날짜
     const lastDate = new Date(year, month + 1, 0).getDate();
 
-    // 시작 요일 맞추기 위한 빈 칸 추가
     for (let i = 0; i < firstDay; i++) {
       const empty = document.createElement('div');
       empty.className = 'h-10-fixed';
       gridElement.appendChild(empty);
     }
 
-    // 날짜 버튼 생성
     for (let day = 1; day <= lastDate; day++) {
       const btn = document.createElement('button');
       btn.className = 'calendar-chip-btn';
       btn.type = 'button';
       btn.innerText = day;
-      
-      const fullDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      const fullDate = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
       btn.setAttribute('data-date', fullDate);
-      
-      btn.addEventListener('click', function(e) {
+
+      btn.addEventListener('click', function (e) {
         e.preventDefault();
         const clickedDate = this.getAttribute('data-date');
-        
+
         if (!startDate || (startDate && endDate)) {
           startDate = clickedDate;
           endDate = null;
+        } else if (clickedDate < startDate) {
+          endDate = startDate;
+          startDate = clickedDate;
         } else {
-          if (clickedDate < startDate) {
-            endDate = startDate;
-            startDate = clickedDate;
-          } else {
-            endDate = clickedDate;
-          }
+          endDate = clickedDate;
         }
-        
-        document.getElementById('startDateInput').value = startDate;
-        document.getElementById('endDateInput').value = endDate || '';
+
+        startDateInput.value = startDate;
+        endDateInput.value = endDate || '';
         updateCalendarUI();
       });
-      
+
       gridElement.appendChild(btn);
     }
   }
 
-  // 달력 UI 갱신 함수 (선택된 날짜와 범위 색상 칠하기)
   function updateCalendarUI() {
-      const allButtons = Array.from(document.querySelectorAll('button[data-date]'));
+    const allButtons = Array.from(document.querySelectorAll('button[data-date]'));
 
-      const rangeButtons = allButtons.filter(btn => {
-          const d = btn.getAttribute('data-date');
-          return startDate && endDate && d > startDate && d < endDate;
-      });
+    const rangeButtons = allButtons.filter(btn => {
+      const date = btn.getAttribute('data-date');
+      return startDate && endDate && date > startDate && date < endDate;
+    });
 
-      rangeButtons.sort((a, b) => a.getAttribute('data-date').localeCompare(b.getAttribute('data-date')));
+    rangeButtons.sort((a, b) => a.getAttribute('data-date').localeCompare(b.getAttribute('data-date')));
 
-      allButtons.forEach(btn => {
-          const d = btn.getAttribute('data-date');
-          btn.style.backgroundColor = '';
-          btn.style.color = '';
-          btn.style.borderRadius = '45px'; 
-          
-          if (d === startDate || d === endDate) {
-              btn.style.backgroundColor = '#1152D4';
-              btn.style.color = 'white';
-              btn.style.borderRadius = '12px';
-          } 
-          else if (startDate && endDate && d > startDate && d < endDate) {
-              btn.style.backgroundColor = '#f1f5f9'; 
-              btn.style.color = '#333';
+    allButtons.forEach(btn => {
+      const date = btn.getAttribute('data-date');
+      btn.style.backgroundColor = '';
+      btn.style.color = '';
+      btn.style.borderRadius = '45px';
 
-              if (rangeButtons.length === 1) {
-                  btn.style.borderRadius = '12px';
-              } 
-              else if (btn === rangeButtons[0]) {
-                  btn.style.borderRadius = '12px 0 0 12px';
-              } 
-              else if (btn === rangeButtons[rangeButtons.length - 1]) {
-                  btn.style.borderRadius = '0 12px 12px 0';
-              } 
-              else {
-                  btn.style.borderRadius = '0'; 
-              }
-          }
-      });
-  }  </script>
+      if (date === startDate || date === endDate) {
+        btn.style.backgroundColor = '#1152D4';
+        btn.style.color = 'white';
+        btn.style.borderRadius = '12px';
+      } else if (startDate && endDate && date > startDate && date < endDate) {
+        btn.style.backgroundColor = '#f1f5f9';
+        btn.style.color = '#333';
+
+        if (rangeButtons.length === 1) {
+          btn.style.borderRadius = '12px';
+        } else if (btn === rangeButtons[0]) {
+          btn.style.borderRadius = '12px 0 0 12px';
+        } else if (btn === rangeButtons[rangeButtons.length - 1]) {
+          btn.style.borderRadius = '0 12px 12px 0';
+        } else {
+          btn.style.borderRadius = '0';
+        }
+      }
+    });
+  }
+  </script>
   {{>partials/scripts}}
 </body>
 </html>
