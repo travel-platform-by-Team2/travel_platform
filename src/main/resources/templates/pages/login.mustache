@@ -6,6 +6,8 @@
   <title>TravelMate | 로그인</title>
   {{>partials/head-assets}}
   {{>partials/chatbot-assets}}
+  <!-- 구글 로그인 Client ID 메타 태그 추가 (SDK 자동 인식용) -->
+  <meta name="google-client_id" content="{{model.googleClientId}}">
 </head>
 <body class="page-body">
   {{>partials/header}}
@@ -49,11 +51,6 @@
                                 비밀번호
                                 <span class="text-danger">*</span>
 </span>
-
-<!--<a class="login-a-01" href="#">비밀번호 찾기</a>-->
-
-
-
 </div>
 <div class="is-relative">
 <div class="login-div-05">
@@ -86,7 +83,12 @@
         <span style="font-weight: bold;">카카오 로그인</span>
     </a>
 
-    <!-- 구글 로그인 (White with Border - 완벽 커스텀 디자인) -->
+    <!-- 네이버 SDK 에러 방지용 표준 ID 요소 (보이지 않음) -->
+    <div id="naverIdLogin" style="display:none;">
+        <div id="naverIdLogin_loginButton" style="display:none;"></div>
+    </div>
+
+    <!-- 구글 로그인 (이중 방어: 투명 오버레이 + 백업 onclick) -->
     <a href="javascript:void(0)" onclick="loginWithGoogle(event)" class="login-button-01" style="position: relative; background-color: #FFFFFF; color: #191919; text-decoration: none; display: flex; align-items: center; justify-content: center; border: 1px solid #DADCE0; height: 50px; border-radius: 8px; width: 100%; overflow: hidden;">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" style="margin-right: 8px;">
             <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
@@ -95,9 +97,7 @@
             <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
         </svg>
         <span style="font-weight: bold;">구글 로그인</span>
-        
-        <!-- [동작 보장용 투명 오버레이 레이어] -->
-        <div id="googleLoginBtn" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.01; cursor: pointer; z-index: 10;"></div>
+        <div id="googleLoginBtn" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.02; cursor: pointer; z-index: 10;"></div>
     </a>
 </div>
 
@@ -120,179 +120,106 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
-    /* ===== 공통 설정 및 초기화 ===== */
     const KAKAO_JS_KEY = '{{model.kakaoJsAppKey}}'.trim();
     const NAVER_CLIENT_ID = '{{model.naverClientId}}'.trim();
-    const RAW_GOOGLE_ID = '{{model.googleClientId}}';
-    const GOOGLE_CLIENT_ID = RAW_GOOGLE_ID.trim();
+    const GOOGLE_CLIENT_ID = '{{model.googleClientId}}'.trim();
 
-    console.log('--- SNS SDK Config Debug ---');
-    console.log('Kakao Key:', KAKAO_JS_KEY ? 'Set' : 'Missing');
-    console.log('Naver ID:', NAVER_CLIENT_ID ? 'Set' : 'Missing');
-    console.log('Raw Google ID from Server:', "'" + RAW_GOOGLE_ID + "'");
-    console.log('Trimmed Google ID:', "'" + GOOGLE_CLIENT_ID + "'");
-    console.log('----------------------------');
+    /* ===== [1] 네이버 콜백 처리 (최우선 실행) ===== */
+    (function handleNaverCallback() {
+      if (window.location.hash.includes("access_token")) {
+        document.documentElement.style.display = 'none'; // 팝업 내 우리 사이트 노출 방지
+        
+        const process = () => {
+          if (typeof naver === 'undefined') { setTimeout(process, 50); return; }
+          const naverLogin = new naver.LoginWithNaverId({ clientId: NAVER_CLIENT_ID });
+          naverLogin.init();
+          naverLogin.getLoginStatus(function(status) {
+            if (status) {
+              const user = naverLogin.user;
+              const url = `/auth/naver/callback?providerId=${user.id}&nickname=${encodeURIComponent(user.nickname || 'Guest')}&email=${user.email || ''}`;
+              if (window.opener && window.opener !== window) {
+                window.opener.location.href = url;
+                window.close();
+              } else {
+                window.location.href = url;
+              }
+            }
+          });
+        };
+        process();
+      }
+    })();
 
     document.addEventListener('DOMContentLoaded', function() {
-      handleForcedLogoutAlert();
-
-      console.log('DOM Content Loaded. Origin:', window.location.origin);
-      
-      // 1. 카카오 초기화
-      if (typeof Kakao !== 'undefined' && KAKAO_JS_KEY) {
-        if (!Kakao.isInitialized()) {
-          Kakao.init(KAKAO_JS_KEY);
-          console.log('Kakao initialized');
-        }
+      // 카카오 SDK 초기화
+      if (typeof Kakao !== 'undefined' && KAKAO_JS_KEY && !Kakao.isInitialized()) {
+        Kakao.init(KAKAO_JS_KEY);
       }
 
-      // 2. 네이버 초기화
-      if (NAVER_CLIENT_ID) {
-        window.naverLogin = new naver.LoginWithNaverId({
-          clientId: NAVER_CLIENT_ID,
-          callbackUrl: window.location.origin + "/login-form",
-          isPopup: true,
-          loginButton: { color: "green", type: 3, height: 50 }
-        });
-        window.naverLogin.init();
-        console.log('Naver initialized');
-      }
-
-      // 3. 구글 SDK 로드 확인 및 초기화
-      const checkGoogleSDK = setInterval(() => {
+      // 구글 버튼 초기화 및 렌더링
+      const checkGoogle = setInterval(() => {
         if (typeof google !== 'undefined' && google.accounts) {
-          clearInterval(checkGoogleSDK);
-          initGoogleLogin();
+          clearInterval(checkGoogle);
+          const target = document.getElementById("googleLoginBtn");
+          if (target) {
+            google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID,
+              callback: handleGoogleResponse,
+              use_fedcm_for_prompt: false
+            });
+            google.accounts.id.renderButton(target, { theme: "outline", size: "large", width: target.offsetWidth });
+          }
         }
       }, 100);
 
-      function initGoogleLogin() {
-        if (!GOOGLE_CLIENT_ID) {
-          console.error('Google Client ID is EMPTY. Please check your .env file and restart the server.');
-          return;
-        }
-
-        try {
-          google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleGoogleResponse,
-            auto_select: false
-          });
-          
-          const targetBtn = document.getElementById("googleLoginBtn");
-          if (targetBtn) {
-            google.accounts.id.renderButton(
-              targetBtn,
-              { 
-                theme: "outline", 
-                size: "large", 
-                width: targetBtn.offsetWidth || 350,
-                type: "standard"
-              }
-            );
-            console.log('Google Button successfully rendered.');
-          }
-        } catch (e) {
-          console.error('Google SDK Init Error:', e);
-        }
-      }
-
-      // 네이버 콜백 처리 (토큰 감지 시)
-      if (window.location.hash.includes("access_token") && window.naverLogin) {
-        window.naverLogin.getLoginStatus(function(status) {
-          if (status) {
-            const { email, nickname, id } = window.naverLogin.user;
-            const url = `/auth/naver/callback?providerId=${id}&nickname=${encodeURIComponent(nickname)}&email=${email}`;
-            if (window.opener) {
-              window.opener.location.href = url;
-              window.close();
-            } else {
-              window.location.href = url;
-            }
-          }
-        });
-      }
+      // 중복 로그인 알림 처리
+      handleForcedLogoutAlert();
     });
 
-    function handleForcedLogoutAlert() {
-      const currentUrl = new URL(window.location.href);
-      const forcedLogout = currentUrl.searchParams.get('forcedLogout');
-
-      if (forcedLogout !== 'concurrent') {
-        return;
-      }
-
-      alert('다른 기기에서 로그인되어 로그아웃되었습니다.');
-      currentUrl.searchParams.delete('forcedLogout');
-      const nextSearch = currentUrl.searchParams.toString();
-      const nextUrl = currentUrl.pathname + (nextSearch ? `?${nextSearch}` : '');
-      window.history.replaceState({}, document.title, nextUrl);
+    /* ===== [2] 소셜 로그인 실행 함수들 ===== */
+    function loginWithNaver(event) {
+      if (event) event.preventDefault();
+      const state = Math.random().toString(36).substr(2, 11);
+      const url = `https://nid.naver.com/oauth2.0/authorize?response_type=token&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + "/login-form")}&state=${state}`;
+      window.open(url, "naverLogin", "width=500,height=600");
     }
 
-    /* ===== 카카오 로그인 호출 ===== */
     function loginWithKakao(event) {
       if (event) event.preventDefault();
-      if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
-        alert('카카오 SDK 초기화 실패 또는 키 미설정'); return;
-      }
+      if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return;
+
       Kakao.Auth.login({
+        throughTalk: false,
         success: function() {
           Kakao.API.request({
             url: '/v2/user/me',
             success: function(res) {
-              const url = `/auth/kakao/callback?providerId=${res.id}&nickname=${encodeURIComponent(res.properties.nickname)}&email=${res.kakao_account.email || ''}`;
-              window.location.href = url;
+              const id = res.id;
+              const nickname = (res.properties && res.properties.nickname) ? res.properties.nickname : 'Guest';
+              const email = (res.kakao_account && res.kakao_account.email) ? res.kakao_account.email : '';
+              window.location.href = `/auth/kakao/callback?providerId=${id}&nickname=${encodeURIComponent(nickname)}&email=${email}`;
             }
           });
         }
       });
     }
 
-    /* ===== 네이버 로그인 호출 ===== */
-    function loginWithNaver(event) {
-      if (event) event.preventDefault();
-      if (!NAVER_CLIENT_ID) { alert('네이버 Client ID가 설정되지 않았습니다.'); return; }
-      
-      const hiddenBtn = document.querySelector('#naverIdLogin_loginButton a') || document.getElementById('naver_id_login_anchor');
-      if (hiddenBtn) {
-        hiddenBtn.click();
-      } else {
-        const state = Math.random().toString(36).substr(2, 11);
-        const url = `https://nid.naver.com/oauth2.0/authorize?response_type=token&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + "/login-form")}&state=${state}`;
-        window.open(url, "naverloginpop", "titlebar=1, resizable=1, scrollbars=yes, width=500, height=550");
-      }
-    }
-
-    /* ===== 구글 로그인 호출 ===== */
     function loginWithGoogle(event) {
       if (event) event.preventDefault();
-      
-      if (typeof google === 'undefined' || !google.accounts) {
-        alert('구글 SDK가 아직 로드되지 않았습니다. 잠시 후 다시 시도해 주세요.');
-        return;
-      }
-
-      if (!GOOGLE_CLIENT_ID) { 
-        alert('구글 Client ID가 설정되지 않았습니다. .env 파일을 확인해 주세요.'); 
-        return; 
-      }
       google.accounts.id.prompt();
     }
 
-    /* ===== 구글 응답 처리 ===== */
     function handleGoogleResponse(response) {
-      const payload = parseJwt(response.credential);
-      const url = `/auth/google/callback?providerId=${payload.sub}&nickname=${encodeURIComponent(payload.name)}&email=${payload.email}`;
-      window.location.href = url;
+      const payload = JSON.parse(decodeURIComponent(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+      window.location.href = `/auth/google/callback?providerId=${payload.sub}&nickname=${encodeURIComponent(payload.name)}&email=${payload.email}`;
     }
 
-    function parseJwt(token) {
-      var base64Url = token.split('.')[1];
-      var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
+    function handleForcedLogoutAlert() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('forcedLogout') === 'concurrent') {
+        alert('다른 기기에서 로그인되어 로그아웃되었습니다.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
   </script>
   
