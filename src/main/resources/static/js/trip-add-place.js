@@ -59,26 +59,8 @@
   }
 
   function createFallbackImageDataUri(item) {
-    var seed = hashText(item.name || "place");
     var isHotel = item.type === "hotel" || item.category_group_code === "AD5";
-    
-    // map-detail.mustache 등에서 참조된 고품질 이미지 풀
-    var hotelImages = [
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuC-JAUxidY-8eAcp_IDpWDkgrUGMXIGAlPy1BJwza3o8VSKr55RAv9mLt9GMN6aPzSqUaGSwFoL74EWZKG0EtV9HzVx5i_KbnAraqlodDx-GlN53CzIIcHWdA6Ookubfk19r7qR7DWsq3neb-etxuMxfQnAjmDHvE9QnncbJ2VNnStRshVdPe9zBeLMiBxAsuQIkYIiMzR6gRiw9KI84TWahGVSWjxkaS9308j5YVRMy6BQS1lwXSpj13SwdZmAlCmkkIwlpo1W9rA",
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuC5HkQwgzyLa00qm4kJK8AntO2ohMwlggRjDKOLbAr-VuVZaW85t84Qg56mlYmwmNjAv9juzqcKjyymqjhbKRJF4YWTS6zPuGQs47NhHldI1a9kOEUWW9WRNwQxKJ3oPyAHrgmudLH2GDtU4wxGE34BYVcq161Lf1rmKY4x98zy3NaqZT9QJb8Maldzovyq4zCkxfgqycRYpIJ3RgFqvtONxkOrnspgSgW8rjDHtNC_mVCd_QtL2VID4YErblfOFPAaJDDo7-sPyok",
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop"
-    ];
-    
-    var attrImages = [
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCVgQdNeNWAKvF_XEmrvmeXZhDlZEkrsaT5L1HswoFEJqscQS4AFi3qZHQi23dm2ZJkqGyL2eLQGHruSaxy8w-VVD7ATptLBCOHPwnmn6ADoO2ih0ChSHfWp5oL88gqhBFdXzJH5GvXK6Jz4nvszn01k9ihI4LeOPRDKQxIqxS62edpm1n2UKy6XNlmYASt0mJo-Ehk7FmD9Ho8BjPIGseLR12D9G3rz118NEFOwx452_ocUKPMXRl_zfaNbMVYZPpzvET2mFTbii8",
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=400&fit=crop",
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=400&fit=crop"
-    ];
-
-    var pool = isHotel ? hotelImages : attrImages;
-    return pool[seed % pool.length];
+    return isHotel ? "/images/hotel.png" : "/images/place.png";
   }
 
   function normalizePlace(p, categoryCode) {
@@ -238,11 +220,19 @@
     if (!item) return;
     state.selectedPlaces.push(item);
     renderSelectedPlaces();
+    renderList(); // 리스트의 버튼 상태(체크 표시) 업데이트를 위해 호출
   }
 
   function removeSelectedPlace(itemId) {
     state.selectedPlaces = state.selectedPlaces.filter(function (v) { return String(v.id) !== String(itemId); });
     renderSelectedPlaces();
+    renderList(); // 리스트의 버튼 상태(더하기 표시) 복구를 위해 호출
+  }
+
+  function clearSelectedPlaces() {
+    state.selectedPlaces = [];
+    renderSelectedPlaces();
+    renderList();
   }
 
   function searchByCategory(cat) {
@@ -397,6 +387,12 @@
         var btn = e.target.closest("[data-action='remove-place']");
         if (btn) removeSelectedPlace(btn.dataset.id);
       };
+      var clearBtn = document.getElementById("clearSelectedPlaces");
+      if (clearBtn) {
+        clearBtn.onclick = function() {
+          clearSelectedPlaces();
+        };
+      }
       document.getElementById("categoryTabs").onclick = function(e) {
         if (e.target.tagName !== "BUTTON") return;
         this.querySelectorAll("button").forEach(function(b) { b.className = "category-tab-btn"; });
