@@ -22,7 +22,8 @@ public class AdminInterceptor implements HandlerInterceptor {
     private final UserSessionPolicyChecker userSessionPolicyChecker;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         HttpSession session = request.getSession();
         UserSessionPolicyChecker.SessionValidation validation = userSessionPolicyChecker.validate(session);
 
