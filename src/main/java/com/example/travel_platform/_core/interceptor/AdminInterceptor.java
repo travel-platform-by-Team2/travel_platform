@@ -38,7 +38,7 @@ public class AdminInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        SessionUser sessionUser = validation.sessionUser();
+        SessionUser sessionUser = validation.getSessionUser();
         if (sessionUser == null || !sessionUser.isAdmin()) {
             writeScriptResponse(response, Script.href("/", "관리자 권한이 필요합니다"));
             return false;

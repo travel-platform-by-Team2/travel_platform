@@ -17,7 +17,7 @@ class UserSessionPolicyCheckerTest {
 
         UserSessionPolicyChecker.SessionValidation validation = checker.validate(new MockHttpSession());
 
-        assertEquals(UserSessionPolicyChecker.SessionState.UNAUTHENTICATED, validation.state());
+        assertEquals(UserSessionPolicyChecker.SessionState.UNAUTHENTICATED, validation.getState());
     }
 
     @Test
@@ -32,7 +32,7 @@ class UserSessionPolicyCheckerTest {
 
         UserSessionPolicyChecker.SessionValidation validation = checker.validate(session);
 
-        assertEquals(UserSessionPolicyChecker.SessionState.BLOCKED, validation.state());
+        assertEquals(UserSessionPolicyChecker.SessionState.BLOCKED, validation.getState());
     }
 
     @Test
@@ -48,7 +48,7 @@ class UserSessionPolicyCheckerTest {
 
         UserSessionPolicyChecker.SessionValidation validation = checker.validate(session);
 
-        assertEquals(UserSessionPolicyChecker.SessionState.CONCURRENTLY_LOGGED_OUT, validation.state());
+        assertEquals(UserSessionPolicyChecker.SessionState.CONCURRENTLY_LOGGED_OUT, validation.getState());
     }
 
     @Test
@@ -64,6 +64,6 @@ class UserSessionPolicyCheckerTest {
 
         UserSessionPolicyChecker.SessionValidation validation = checker.validate(session);
 
-        assertEquals(UserSessionPolicyChecker.SessionState.AUTHENTICATED, validation.state());
+        assertEquals(UserSessionPolicyChecker.SessionState.AUTHENTICATED, validation.getState());
     }
 }
