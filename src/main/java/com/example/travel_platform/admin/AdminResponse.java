@@ -7,6 +7,10 @@ import lombok.Data;
 
 public class AdminResponse {
 
+    private static final String DASHBOARD_MENU = "dashboard";
+    private static final String USERS_MENU = "users";
+    private static final String BOARDS_MENU = "boards";
+
     private static String resolveActiveClass(String currentMenu, String targetMenu) {
         if (targetMenu.equals(currentMenu)) {
             return " is-active";
@@ -59,14 +63,10 @@ public class AdminResponse {
             dto.setRecentBoards(recentBoards);
             dto.setHasRecentUsers(!recentUsers.isEmpty());
             dto.setHasRecentBoards(!recentBoards.isEmpty());
+            dto.setDashboardActiveClass(resolveActiveClass(DASHBOARD_MENU, DASHBOARD_MENU));
+            dto.setUsersActiveClass(resolveActiveClass(DASHBOARD_MENU, USERS_MENU));
+            dto.setBoardsActiveClass(resolveActiveClass(DASHBOARD_MENU, BOARDS_MENU));
             return dto;
-        }
-
-        public DashboardViewDTO applyCurrentMenu(String currentMenu) {
-            this.dashboardActiveClass = resolveActiveClass(currentMenu, "dashboard");
-            this.usersActiveClass = resolveActiveClass(currentMenu, "users");
-            this.boardsActiveClass = resolveActiveClass(currentMenu, "boards");
-            return this;
         }
     }
 
@@ -101,7 +101,10 @@ public class AdminResponse {
                 boolean activeTab,
                 boolean inactiveTab,
                 String sortBy,
-                String orderBy) {
+                String orderBy,
+                String allTabHref,
+                String activeTabHref,
+                String inactiveTabHref) {
             UserListPageDTO dto = new UserListPageDTO();
             dto.setTotalUserCount(totalUserCount);
             dto.setInactiveUserCount(inactiveUserCount);
@@ -116,21 +119,13 @@ public class AdminResponse {
             dto.setSortByCreatedAt("createdAt".equals(sortBy));
             dto.setOrderByAsc("asc".equals(orderBy));
             dto.setOrderByDesc("desc".equals(orderBy));
+            dto.setAllTabHref(allTabHref);
+            dto.setActiveTabHref(activeTabHref);
+            dto.setInactiveTabHref(inactiveTabHref);
+            dto.setDashboardActiveClass(resolveActiveClass(USERS_MENU, DASHBOARD_MENU));
+            dto.setUsersActiveClass(resolveActiveClass(USERS_MENU, USERS_MENU));
+            dto.setBoardsActiveClass(resolveActiveClass(USERS_MENU, BOARDS_MENU));
             return dto;
-        }
-
-        public UserListPageDTO applyTabHrefs(String allTabHref, String activeTabHref, String inactiveTabHref) {
-            this.allTabHref = allTabHref;
-            this.activeTabHref = activeTabHref;
-            this.inactiveTabHref = inactiveTabHref;
-            return this;
-        }
-
-        public UserListPageDTO applyCurrentMenu(String currentMenu) {
-            this.dashboardActiveClass = resolveActiveClass(currentMenu, "dashboard");
-            this.usersActiveClass = resolveActiveClass(currentMenu, "users");
-            this.boardsActiveClass = resolveActiveClass(currentMenu, "boards");
-            return this;
         }
     }
 
@@ -374,14 +369,10 @@ public class AdminResponse {
             dto.setFood(isFood);
             dto.setReview(isReview);
             dto.setQna(isQna);
+            dto.setDashboardActiveClass(resolveActiveClass(BOARDS_MENU, DASHBOARD_MENU));
+            dto.setUsersActiveClass(resolveActiveClass(BOARDS_MENU, USERS_MENU));
+            dto.setBoardsActiveClass(resolveActiveClass(BOARDS_MENU, BOARDS_MENU));
             return dto;
-        }
-
-        public BoardListPageDTO applyCurrentMenu(String currentMenu) {
-            this.dashboardActiveClass = resolveActiveClass(currentMenu, "dashboard");
-            this.usersActiveClass = resolveActiveClass(currentMenu, "users");
-            this.boardsActiveClass = resolveActiveClass(currentMenu, "boards");
-            return this;
         }
     }
 

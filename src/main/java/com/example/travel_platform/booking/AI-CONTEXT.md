@@ -27,13 +27,13 @@
 - `map-detail.mustache`, `booking-checkout.mustache`, `booking-complete.mustache`는 모두 `model` 기준으로 렌더링한다.
 - `BookingController`는 파라미터 정리, 세션 사용 여부 확인, DTO 조립, 화면 렌더링만 담당한다.
 - `BookingApiController`는 `sessionUser` 기준으로 사용자 ID를 꺼내고, 와일드카드 없이 구체적인 `ResponseEntity<Resp<...>>` 타입을 반환한다.
-- `BookingResponse`의 정적 팩토리는 `createMapDetailPage`, `createCheckoutPage`, `createCompletePage`, `createRoom`, `createPlaceImage`처럼 역할이 드러나는 이름을 사용한다.
+- `BookingResponse`의 정적 팩토리는 `createMapDetailPage`, `createCheckoutPage`, `createCompletePage`, `createRoom`, `createPlaceImage`, `createMapPoi`처럼 역할이 드러나는 이름을 사용한다.
 - `BookingService`는 예약 완료 기반 예약 생성, 예약 목록/상세/취소, 이미지 조회, POI 병합을 helper 기준으로 분리한다.
 - `cancelBooking(...)`은 예약 삭제가 아니라 `BookingStatus`, `cancelledAt` 기준 상태 변경으로 처리한다.
 - `getBookingList(...)`, `getBookingDetail(...)`은 `BookingQueryRepository`의 JPQL 결과를 DTO로 조립한다.
 - 예약 목록 조회는 `Booking` 자체 필드만 사용하므로 `tripPlan`을 fetch 하지 않는다.
 - 예약 상세 조회는 `tripPlanId` 접근이 있으므로 단건 조회에서만 `tripPlan` fetch를 허용한다.
-- `mergeMapPois(...)`는 `LodgingQueryRepository`의 `LodgingPoiRow` 결과를 `MapPoiDTO`로 변환한 뒤 Kakao POI와 합친다.
+- `mergeMapPois(...)`는 `LodgingQueryRepository`의 `LodgingPoiRow` 결과를 `BookingResponse.MapPoiDTO` 팩토리로 변환한 뒤 Kakao POI와 합친다.
 - 장소 이미지 캐시는 `MapPlaceImageRepository`를 통해 `캐시 조회 -> 외부 조회 -> 업서트` 순서로 처리한다.
 - `MapPlaceImageRepository`가 단건 조회와 업서트를 함께 담당한다.
 - 예약 완료 시 여행 계획이 없으면 `TripPlan.create(...)`로 최소 계획을 만든다.
