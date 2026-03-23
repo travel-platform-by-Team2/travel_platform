@@ -71,23 +71,23 @@
           </summary>
 
           <div class="community-sort-menu community-board-sort-menu" aria-label="게시글 정렬">
-            <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
-            href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">{{model.sortLatestLabel}}</a>
+            <a class="community-sort-option{{model.latestClass}}"
+            href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 최신 순</a>
 
-            <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
-            href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">{{model.sortDateLabel}}</a>
+            <a class="community-sort-option{{model.dateClass}}"
+            href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 오래된 순</a>
 
-            <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
-            href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">{{model.sortViewsLabel}}</a>
+            <a class="community-sort-option{{model.viewClass}}"
+            href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 많은 순</a>
 
-            <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
-            href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">{{model.sortDownviewsLabel}}</a>
+            <a class="community-sort-option{{model.lowViewClass}}"
+            href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 적은 순</a>
 
-            <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
-            href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">{{model.sortLikesLabel}}</a>
+            <a class="community-sort-option{{model.likeClass}}"
+            href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 많은 순</a>
 
-            <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
-            href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">{{model.sortDownlikesLabel}}</a>
+            <a class="community-sort-option{{model.lowLikeClass}}"
+            href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 적은 순</a>
           </div>
         </details>
       </div>

@@ -60,7 +60,7 @@ class BoardServiceTest {
         assertEquals(2, response.getModel().getTotalPages());
         assertEquals(2, response.getModel().getPageItems().size());
         assertTrue(response.getModel().isTips());
-        assertTrue(response.getModel().isSortLikes());
+        assertEquals(" is-active", response.getModel().getLikeClass());
         assertEquals(2, response.getModels().get(0).getLikeCount());
         assertEquals(0, response.getModels().get(0).getReplyCount());
 
