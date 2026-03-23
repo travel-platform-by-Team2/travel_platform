@@ -44,9 +44,9 @@ class AdminControllerTest {
 
         assertEquals("pages/admin-dashboard", view);
         assertSame(viewDTO, model.getAttribute("model"));
-        assertEquals(" is-active", viewDTO.getDashboardActiveClass());
-        assertEquals("", viewDTO.getUsersActiveClass());
-        assertEquals("", viewDTO.getBoardsActiveClass());
+        assertEquals(" is-active", viewDTO.getDashboardClass());
+        assertEquals("", viewDTO.getUsersClass());
+        assertEquals("", viewDTO.getBoardsClass());
         verify(adminService).getDashboardView();
     }
 
@@ -77,9 +77,9 @@ class AdminControllerTest {
         assertEquals("pages/admin-users", view);
         assertSame(pageDTO, model.getAttribute("model"));
         assertSame(viewDTO.getModels(), model.getAttribute("models"));
-        assertEquals("", pageDTO.getDashboardActiveClass());
-        assertEquals(" is-active", pageDTO.getUsersActiveClass());
-        assertEquals("", pageDTO.getBoardsActiveClass());
+        assertEquals("", pageDTO.getDashboardClass());
+        assertEquals(" is-active", pageDTO.getUsersClass());
+        assertEquals("", pageDTO.getBoardsClass());
         assertEquals("/admin/users?keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getAllTabHref());
         assertEquals("/admin/users?active=true&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getActiveTabHref());
         assertEquals("/admin/users?active=false&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getInactiveTabHref());
@@ -116,15 +116,11 @@ class AdminControllerTest {
                 0L,
                 null,
                 null,
-                "tips",
                 "busan",
                 "latest",
                 "date",
                 "desc",
-                "date",
                 "latest",
-                "view",
-                "likes",
                 "tips",
                 false,
                 "tips",
@@ -142,9 +138,9 @@ class AdminControllerTest {
         assertEquals("pages/admin-boards", view);
         assertSame(pageDTO, model.getAttribute("model"));
         assertSame(viewDTO.getModels(), model.getAttribute("models"));
-        assertEquals("", pageDTO.getDashboardActiveClass());
-        assertEquals("", pageDTO.getUsersActiveClass());
-        assertEquals(" is-active", pageDTO.getBoardsActiveClass());
+        assertEquals("", pageDTO.getDashboardClass());
+        assertEquals("", pageDTO.getUsersClass());
+        assertEquals(" is-active", pageDTO.getBoardsClass());
         verify(adminService).getBoardListView("tips", "busan", "latest", 1);
     }
 

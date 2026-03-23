@@ -59,11 +59,8 @@ public class BoardService {
         List<BoardResponse.PageItemDTO> pageItems = createPageItems(query.page(), totalPages);
 
         BoardResponse.ListPageDTO model = BoardResponse.ListPageDTO.createListPage(
-                summaries,
                 pageItems,
                 query.page(),
-                PAGE_SIZE,
-                totalCount,
                 totalPages,
                 query.categoryCodeOrNull(),
                 query.keyword(),
