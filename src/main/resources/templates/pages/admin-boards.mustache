@@ -26,95 +26,79 @@
           </div>
 
           <section class="admin-panel">
-            <div class="admin-board-summary">
-              <div class="admin-board-summary__left">
-                <div class="admin-board-hero__count">
-                  <span class="admin-board-hero__count-label">전체 게시글</span>
-                  <strong class="admin-board-hero__count-value">{{model.allCount}}</strong>
-                </div>
-              </div>
+            <div class="admin-toolbar">
+              <h2 class="admin-table-title mb-0">게시글 목록</h2>
 
-              <div class="admin-board-summary__right">
-                <a class="admin-board-reset" href="/admin/boards">
-                  <span class="material-symbols-outlined">restart_alt</span>
-                  필터 초기화
-                </a>
-              </div>
-            </div>
-
-            <div class="admin-board-hero">
-              <div class="admin-board-hero__backdrop"></div>
-
-              <div class="admin-board-hero__tab-row">
-                <div class="admin-board-hero__tabs admin-tab-shell" aria-label="게시글 카테고리 필터">
-                  <a href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                     class="admin-tab-button cat-all {{#model.allCategoryTab}}is-active-tab{{/model.allCategoryTab}}"
-                     style="flex:1 1 0; min-width:120px; text-align:center;">
-                    전체
-                  </a>
-                  <a href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                     class="admin-tab-button cat-tips {{#model.isTips}}is-active-tab{{/model.isTips}}"
-                     style="flex:1 1 0; min-width:120px; text-align:center;">
-                    여행 팁
-                  </a>
-                  <a href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                     class="admin-tab-button cat-plan {{#model.isPlan}}is-active-tab{{/model.isPlan}}"
-                     style="flex:1 1 0; min-width:120px; text-align:center;">
-                    여행 계획
-                  </a>
-                  <a href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                     class="admin-tab-button cat-food {{#model.isFood}}is-active-tab{{/model.isFood}}"
-                     style="flex:1 1 0; min-width:120px; text-align:center;">
-                    맛집/카페
-                  </a>
-                  <a href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                     class="admin-tab-button cat-review {{#model.isReview}}is-active-tab{{/model.isReview}}"
-                     style="flex:1 1 0; min-width:120px; text-align:center;">
-                    숙소 후기
-                  </a>
-                  <a href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                     class="admin-tab-button cat-qna {{#model.isQna}}is-active-tab{{/model.isQna}}"
-                     style="flex:1 1 0; min-width:120px; text-align:center;">
-                    질문/답변
-                  </a>
-                </div>
-              </div>
-
-              <div class="admin-board-hero__controls">
-                <form action="/admin/boards" method="get" class="admin-search-wrap admin-board-search">
-                  <span class="material-symbols-outlined">search</span>
-                  <input type="hidden" name="category" value="{{model.allCategory}}">
-                  <input type="hidden" name="sort" value="{{model.sort}}">
-                  <input
-                    type="text"
-                    name="keyword"
-                    value="{{model.keyword}}"
-                    placeholder="게시글 검색"
-                    class="admin-board-search__input">
-                  <button type="submit" class="admin-search-submit admin-board-search__submit">검색</button>
-                </form>
-
-                <div class="admin-board-sort-group">
-                  <details class="admin-board-sort-dropdown">
-                    <summary class="admin-board-sort-button">
-                      {{model.sortFieldLabel}}
+              <div class="admin-search-group admin-board-toolbar-shell">
+                <form class="admin-search-wrap admin-board-toolbar-form" action="/admin/boards" method="get">
+                  <details class="admin-board-sort-dropdown admin-board-category-dropdown">
+                    <summary class="admin-board-sort-button admin-board-category-button{{#model.allCategoryTab}} cat-all{{/model.allCategoryTab}}{{#model.isTips}} cat-tips{{/model.isTips}}{{#model.isPlan}} cat-plan{{/model.isPlan}}{{#model.isFood}} cat-food{{/model.isFood}}{{#model.isReview}} cat-review{{/model.isReview}}{{#model.isQna}} cat-qna{{/model.isQna}}">
+                      {{#model.allCategoryTab}}전체{{/model.allCategoryTab}}
+                      {{#model.isTips}}여행 팁{{/model.isTips}}
+                      {{#model.isPlan}}여행 계획{{/model.isPlan}}
+                      {{#model.isFood}}맛집/카페{{/model.isFood}}
+                      {{#model.isReview}}숙소 후기{{/model.isReview}}
+                      {{#model.isQna}}질문/답변{{/model.isQna}}
                       <span class="material-symbols-outlined">expand_more</span>
                     </summary>
-                    <div class="community-sort-menu admin-board-sort-menu">
-                      <a class="community-sort-option"
-                         href="/admin/boards?sort={{model.viewField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수</a>
-                      <a class="community-sort-option"
-                         href="/admin/boards?sort={{model.likesField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요수</a>
-                      <a class="community-sort-option"
-                         href="/admin/boards?sort={{model.dateField}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순</a>
+                    <div class="admin-board-sort-menu">
+                      <a class="admin-board-sort-option cat-all{{#model.allCategoryTab}} is-active{{/model.allCategoryTab}}"
+                         href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">전체</a>
+                      <a class="admin-board-sort-option cat-tips{{#model.isTips}} is-active{{/model.isTips}}"
+                         href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 팁</a>
+                      <a class="admin-board-sort-option cat-plan{{#model.isPlan}} is-active{{/model.isPlan}}"
+                         href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 계획</a>
+                      <a class="admin-board-sort-option cat-food{{#model.isFood}} is-active{{/model.isFood}}"
+                         href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">맛집/카페</a>
+                      <a class="admin-board-sort-option cat-review{{#model.isReview}} is-active{{/model.isReview}}"
+                         href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">숙소 후기</a>
+                      <a class="admin-board-sort-option cat-qna{{#model.isQna}} is-active{{/model.isQna}}"
+                         href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">질문/답변</a>
                     </div>
                   </details>
 
-                  <a href="/admin/boards?sort={{model.toggleDirectionSort}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}"
-                     class="admin-filter-button admin-board-sort-toggle">
-                    {{model.sortDirectionLabel}}
-                  </a>
-                </div>
+                  <input type="hidden" name="category" value="{{model.allCategory}}">
+                  <input type="hidden" name="sort" value="{{model.sort}}">
+
+                  <div class="admin-search-row admin-board-toolbar-row">
+                    <span class="material-symbols-outlined">search</span>
+                    <input
+                      class="form-control admin-search-field"
+                      type="text"
+                      name="keyword"
+                      value="{{model.keyword}}"
+                      placeholder="게시글 검색">
+                    <button type="submit" class="admin-search-submit">검색</button>
+                  </div>
+
+                  <div class="admin-filter-controls admin-board-filter-controls">
+                    <details class="admin-board-sort-dropdown">
+                      <summary class="admin-board-sort-button">
+                        {{model.sortLabel}}
+                        <span class="material-symbols-outlined">expand_more</span>
+                      </summary>
+                      <div class="admin-board-sort-menu">
+                        <a class="admin-board-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
+                           href="/admin/boards?sort=latest{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 최신 순</a>
+                        <a class="admin-board-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
+                           href="/admin/boards?sort=date{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 오래된 순</a>
+                        <a class="admin-board-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
+                           href="/admin/boards?sort=view{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 많은 순</a>
+                        <a class="admin-board-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
+                           href="/admin/boards?sort=downview{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 적은 순</a>
+                        <a class="admin-board-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
+                           href="/admin/boards?sort=likes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 많은 순</a>
+                        <a class="admin-board-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
+                           href="/admin/boards?sort=downlikes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 적은 순</a>
+                      </div>
+                    </details>
+
+                    <a class="admin-board-reset" href="/admin/boards">
+                      <span class="material-symbols-outlined">restart_alt</span>
+                      초기화
+                    </a>
+                  </div>
+                </form>
               </div>
             </div>
 
