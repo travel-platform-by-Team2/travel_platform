@@ -51,11 +51,6 @@
                                 비밀번호
                                 <span class="text-danger">*</span>
 </span>
-
-<!--<a class="login-a-01" href="#">비밀번호 찾기</a>-->
-
-
-
 </div>
 <div class="is-relative">
 <div class="login-div-05">
@@ -102,8 +97,6 @@
             <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
         </svg>
         <span style="font-weight: bold;">구글 로그인</span>
-        
-        <!-- [핵심] 공식 버튼 레이어: opacity를 0.02로 주어 보안 정책을 통과하면서도 거의 보이지 않게 함 -->
         <div id="googleLoginBtn" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.02; cursor: pointer; z-index: 10;"></div>
     </a>
 </div>
@@ -131,20 +124,31 @@
     const NAVER_CLIENT_ID = '{{model.naverClientId}}'.trim();
     const GOOGLE_CLIENT_ID = '{{model.googleClientId}}'.trim();
 
-    /* ===== [1] 네이버 콜백 처리 (팝업 내부용) ===== */
-    if (window.location.hash.includes("access_token")) {
-      document.documentElement.style.display = 'none';
-      const naverLogin = new naver.LoginWithNaverId({ clientId: NAVER_CLIENT_ID });
-      naverLogin.init();
-      naverLogin.getLoginStatus(function(status) {
-        if (status) {
-          const user = naverLogin.user;
-          const url = `/auth/naver/callback?providerId=${user.id}&nickname=${encodeURIComponent(user.nickname || 'Guest')}&email=${user.email || ''}`;
-          if (window.opener) { window.opener.location.href = url; window.close(); }
-          else { window.location.href = url; }
-        }
-      });
-    }
+    /* ===== [1] 네이버 콜백 처리 (최우선 실행) ===== */
+    (function handleNaverCallback() {
+      if (window.location.hash.includes("access_token")) {
+        document.documentElement.style.display = 'none'; // 팝업 내 우리 사이트 노출 방지
+        
+        const process = () => {
+          if (typeof naver === 'undefined') { setTimeout(process, 50); return; }
+          const naverLogin = new naver.LoginWithNaverId({ clientId: NAVER_CLIENT_ID });
+          naverLogin.init();
+          naverLogin.getLoginStatus(function(status) {
+            if (status) {
+              const user = naverLogin.user;
+              const url = `/auth/naver/callback?providerId=${user.id}&nickname=${encodeURIComponent(user.nickname || 'Guest')}&email=${user.email || ''}`;
+              if (window.opener && window.opener !== window) {
+                window.opener.location.href = url;
+                window.close();
+              } else {
+                window.location.href = url;
+              }
+            }
+          });
+        };
+        process();
+      }
+    })();
 
     document.addEventListener('DOMContentLoaded', function() {
       // 카카오 SDK 초기화
@@ -152,31 +156,37 @@
         Kakao.init(KAKAO_JS_KEY);
       }
 
-      // 구글 버튼 렌더링 (디자인 유지용)
+      // 구글 버튼 초기화 및 렌더링
       const checkGoogle = setInterval(() => {
         if (typeof google !== 'undefined' && google.accounts) {
           clearInterval(checkGoogle);
           const target = document.getElementById("googleLoginBtn");
           if (target) {
-            google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogle, use_fedcm_for_prompt: false });
+            google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID,
+              callback: handleGoogleResponse,
+              use_fedcm_for_prompt: false
+            });
             google.accounts.id.renderButton(target, { theme: "outline", size: "large", width: target.offsetWidth });
           }
         }
       }, 100);
+
+      // 중복 로그인 알림 처리
+      handleForcedLogoutAlert();
     });
 
     /* ===== [2] 소셜 로그인 실행 함수들 ===== */
-    function loginWithNaver(e) {
-      if (e) e.preventDefault();
-      const url = `https://nid.naver.com/oauth2.0/authorize?response_type=token&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + "/login-form")}&state=${Math.random().toString(36).substr(2, 11)}`;
+    function loginWithNaver(event) {
+      if (event) event.preventDefault();
+      const state = Math.random().toString(36).substr(2, 11);
+      const url = `https://nid.naver.com/oauth2.0/authorize?response_type=token&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + "/login-form")}&state=${state}`;
       window.open(url, "naverLogin", "width=500,height=600");
     }
 
-    function loginWithKakao(e) {
-      if (e) e.preventDefault();
-      if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
-        alert('카카오 SDK가 준비되지 않았습니다.'); return;
-      }
+    function loginWithKakao(event) {
+      if (event) event.preventDefault();
+      if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) return;
 
       Kakao.Auth.login({
         throughTalk: false,
@@ -184,34 +194,32 @@
           Kakao.API.request({
             url: '/v2/user/me',
             success: function(res) {
-              console.log('[Kakao Success]', res);
               const id = res.id;
               const nickname = (res.properties && res.properties.nickname) ? res.properties.nickname : 'Guest';
               const email = (res.kakao_account && res.kakao_account.email) ? res.kakao_account.email : '';
-              
-              if (!id) { alert('카카오 회원 정보를 가져올 수 없습니다.'); return; }
               window.location.href = `/auth/kakao/callback?providerId=${id}&nickname=${encodeURIComponent(nickname)}&email=${email}`;
-            },
-            fail: function(err) {
-              console.error('카카오 정보 요청 실패:', err);
-              alert('회원 정보를 가져오는데 실패했습니다.');
             }
           });
-        },
-        fail: function(err) {
-          console.error('카카오 로그인 실패:', err);
         }
       });
     }
 
-    function loginWithGoogle(e) {
-      if (e) e.preventDefault();
+    function loginWithGoogle(event) {
+      if (event) event.preventDefault();
       google.accounts.id.prompt();
     }
 
-    function handleGoogle(res) {
-      const payload = JSON.parse(decodeURIComponent(atob(res.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+    function handleGoogleResponse(response) {
+      const payload = JSON.parse(decodeURIComponent(atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
       window.location.href = `/auth/google/callback?providerId=${payload.sub}&nickname=${encodeURIComponent(payload.name)}&email=${payload.email}`;
+    }
+
+    function handleForcedLogoutAlert() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('forcedLogout') === 'concurrent') {
+        alert('다른 기기에서 로그인되어 로그아웃되었습니다.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
   </script>
   

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import com.example.travel_platform.board.BoardCategory;
+import com.example.travel_platform.board.BoardSort;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
@@ -184,7 +185,7 @@ public class AdminQueryRepository {
     public List<AdminBoardSummaryRow> findBoardSummaryRows(
             BoardCategory category,
             String[] words,
-            String sort,
+            BoardSort sort,
             int offset,
             int size) {
         StringBuilder jpql = new StringBuilder("""
@@ -339,15 +340,7 @@ public class AdminQueryRepository {
         return rows;
     }
 
-    private String toOrderBy(String sort) {
-        return switch (sort) {
-            case "likes" -> "(select count(bl) from BoardLike bl where bl.board = b) desc, b.createdAt desc, b.id desc";
-            case "downlikes" ->
-                "(select count(bl) from BoardLike bl where bl.board = b) asc, b.createdAt asc, b.id asc";
-            case "view" -> "b.viewCount desc, b.createdAt desc, b.id desc";
-            case "downview" -> "b.viewCount asc, b.createdAt asc, b.id asc";
-            case "date" -> "b.createdAt asc, b.id asc";
-            default -> "b.createdAt desc, b.id desc";
-        };
+    private String toOrderBy(BoardSort sort) {
+        return sort.getOrderBy();
     }
 }

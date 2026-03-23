@@ -219,15 +219,8 @@ public class BoardService {
         return true;
     }
 
-    private static String normalizeSort(String sort) {
-        if (sort == null || sort.isBlank()) {
-            return "latest";
-        }
-
-        return switch (sort) {
-            case "likes", "downlikes", "view", "downview", "latest", "date" -> sort;
-            default -> "latest";
-        };
+    private static BoardSort normalizeSort(String sort) {
+        return BoardSort.fromCodeOrDefault(sort);
     }
 
     private static String normalizeKeyword(String keyword) {
@@ -293,12 +286,12 @@ public class BoardService {
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
     }
 
-    private record BoardListQuery(String category, String keyword, String sort, int page, int offset) {
+    private record BoardListQuery(String category, String keyword, BoardSort sort, int page, int offset) {
 
         private static BoardListQuery createQuery(String category, String keyword, String sort, int page, int pageSize) {
             String normalizedCategory = normalizeCategory(category);
             String normalizedKeyword = normalizeKeyword(keyword);
-            String normalizedSort = normalizeSort(sort);
+            BoardSort normalizedSort = normalizeSort(sort);
             int offset = page * pageSize;
             return new BoardListQuery(normalizedCategory, normalizedKeyword, normalizedSort, page, offset);
         }

@@ -46,7 +46,7 @@ class BoardServiceTest {
         User author = user(1, "ssar", "USER");
         Board board = board(10, author, "Busan route", "tips", "<p>Busan travel tips</p>");
 
-        when(boardQueryRepository.search(eq(BoardCategory.TIPS), any(String[].class), eq("likes"), eq(10), eq(10)))
+        when(boardQueryRepository.search(eq(BoardCategory.TIPS), any(String[].class), eq(BoardSort.LIKES), eq(10), eq(10)))
                 .thenReturn(List.of(board));
         when(boardQueryRepository.countSearch(eq(BoardCategory.TIPS), any(String[].class))).thenReturn(12L);
         when(boardLikeRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 2L));
@@ -65,7 +65,8 @@ class BoardServiceTest {
         assertEquals(0, response.getModels().get(0).getReplyCount());
 
         ArgumentCaptor<String[]> wordsCaptor = ArgumentCaptor.forClass(String[].class);
-        verify(boardQueryRepository).search(eq(BoardCategory.TIPS), wordsCaptor.capture(), eq("likes"), eq(10), eq(10));
+        verify(boardQueryRepository).search(eq(BoardCategory.TIPS), wordsCaptor.capture(), eq(BoardSort.LIKES), eq(10),
+                eq(10));
         assertArrayEquals(new String[] { "busan", "trip" }, wordsCaptor.getValue());
     }
 

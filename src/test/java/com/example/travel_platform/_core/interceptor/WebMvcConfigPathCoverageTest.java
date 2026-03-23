@@ -13,12 +13,17 @@ import org.springframework.web.servlet.handler.MappedInterceptor;
 import org.springframework.web.util.ServletRequestPathUtils;
 
 import com.example.travel_platform.user.UserSessionChecker;
+import com.example.travel_platform.user.UserSessionPolicyChecker;
+import com.example.travel_platform.user.UserSessionRegistry;
 
 class WebMvcConfigPathCoverageTest {
 
     private final UserSessionChecker userSessionChecker = new UserSessionChecker(null);
-    private final LoginInterceptor loginInterceptor = new LoginInterceptor(userSessionChecker);
-    private final AdminInterceptor adminInterceptor = new AdminInterceptor(userSessionChecker);
+    private final UserSessionRegistry userSessionRegistry = new UserSessionRegistry(null);
+    private final UserSessionPolicyChecker userSessionPolicyChecker =
+            new UserSessionPolicyChecker(userSessionChecker, userSessionRegistry);
+    private final LoginInterceptor loginInterceptor = new LoginInterceptor(userSessionPolicyChecker);
+    private final AdminInterceptor adminInterceptor = new AdminInterceptor(userSessionPolicyChecker);
     private final WebMvcConfig webMvcConfig = new WebMvcConfig(loginInterceptor, adminInterceptor);
 
     @Test

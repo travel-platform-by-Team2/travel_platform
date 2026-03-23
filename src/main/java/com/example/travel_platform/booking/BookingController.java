@@ -24,8 +24,7 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/bookings")
 public class BookingController {
 
-    private static final String DEFAULT_COMPLETE_IMAGE_URL =
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+    private static final String DEFAULT_COMPLETE_IMAGE_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
     private static final String MAP_DETAIL_VIEW = "pages/map-detail";
     private static final String CHECKOUT_VIEW = "pages/booking-checkout";
     private static final String COMPLETE_VIEW = "pages/booking-complete";
@@ -92,7 +91,8 @@ public class BookingController {
             @RequestParam(name = "imageUrl", required = false) String imageUrl,
             Model model) {
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
-        String safeRegionKey = (regionKey == null || regionKey.isBlank()) ? normalizeRegionKey(safeRegion) : normalizeRegionKey(regionKey);
+        String safeRegionKey = (regionKey == null || regionKey.isBlank()) ? normalizeRegionKey(safeRegion)
+                : normalizeRegionKey(regionKey);
         String locationName = toLocationName(safeRegionKey);
 
         SessionUser sessionUser = resolveSessionUser();
@@ -279,7 +279,7 @@ public class BookingController {
             String guests,
             Integer roomPrice,
             Integer fee) {
-            int safeRoomPrice = resolveRoomPrice(roomPrice);
+        int safeRoomPrice = resolveRoomPrice(roomPrice);
         int safeFee = resolveFee(fee);
         long nights = calculateNights(checkIn, checkOut);
         long roomSubtotal = (long) safeRoomPrice * nights;

@@ -18,6 +18,7 @@ import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardCategory;
 import com.example.travel_platform.board.BoardLikeRepository;
 import com.example.travel_platform.board.BoardRepository;
+import com.example.travel_platform.board.BoardSort;
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
@@ -33,7 +34,8 @@ public class AdminService {
     private static final int RECENT_BOARD_DAYS = 7;
     private static final int BOARD_PAGE_SIZE = 10;
     private static final int BOARD_PAGE_BLOCK_SIZE = 5;
-    private static final DateTimeFormatter DASHBOARD_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    private static final DateTimeFormatter DASHBOARD_DATE_TIME_FORMATTER = DateTimeFormatter
+            .ofPattern("yyyy.MM.dd HH:mm");
     private static final String USER_SORT_BY_CREATED_AT = "createdAt";
     private static final String USER_SORT_BY_POST_COUNT = "postCount";
     private static final String USER_ORDER_BY_ASC = "asc";
@@ -50,7 +52,8 @@ public class AdminService {
         long activeUserCount = totalUserCount - inactiveUserCount;
 
         long totalBoardCount = adminQueryRepository.countBoards();
-        long recentBoardCount = adminQueryRepository.countBoardsByCreatedAtAfter(LocalDateTime.now().minusDays(RECENT_BOARD_DAYS));
+        long recentBoardCount = adminQueryRepository
+                .countBoardsByCreatedAtAfter(LocalDateTime.now().minusDays(RECENT_BOARD_DAYS));
         long totalBoardViewCount = adminQueryRepository.sumBoardViewCount();
 
         return AdminResponse.DashboardViewDTO.createDashboardView(
@@ -60,7 +63,8 @@ public class AdminService {
                 totalBoardCount,
                 recentBoardCount,
                 totalBoardViewCount,
-                createDashboardMetrics(totalUserCount, activeUserCount, inactiveUserCount, totalBoardCount, recentBoardCount,
+                createDashboardMetrics(totalUserCount, activeUserCount, inactiveUserCount, totalBoardCount,
+                        recentBoardCount,
                         totalBoardViewCount),
                 createUserStatusItems(totalUserCount, activeUserCount, inactiveUserCount),
                 createBoardCategoryItems(totalBoardCount),
@@ -68,12 +72,14 @@ public class AdminService {
                 loadRecentBoards());
     }
 
-    public AdminResponse.UserListViewDTO getUserListView(Boolean active, String keyword, String sortBy, String orderBy) {
+    public AdminResponse.UserListViewDTO getUserListView(Boolean active, String keyword, String sortBy,
+            String orderBy) {
         String normalizedKeyword = normalizeKeyword(keyword);
         String normalizedSortBy = normalizeUserSortBy(sortBy);
         String normalizedOrderBy = normalizeUserOrderBy(orderBy);
         List<AdminUserSummaryRow> userRows = findUsersByFilter(active, normalizedKeyword);
-        List<AdminResponse.AdminUserDTO> userModels = createAdminUserModels(userRows, normalizedSortBy, normalizedOrderBy);
+        List<AdminResponse.AdminUserDTO> userModels = createAdminUserModels(userRows, normalizedSortBy,
+                normalizedOrderBy);
         AdminResponse.UserListPageDTO pageModel = createUserListPageModel(
                 normalizedKeyword,
                 active,
@@ -99,7 +105,7 @@ public class AdminService {
 
     public AdminResponse.BoardListViewDTO getBoardListView(String category, String keyword, String sort, int page) {
         String normalizedKeyword = normalizeKeyword(keyword);
-        String normalizedSort = normalizeBoardSort(sort);
+        BoardSort normalizedSort = normalizeBoardSort(sort);
         String selectedCategory = resolveSelectedCategory(category);
         boolean allCategoryTab = isAllCategory(selectedCategory);
         BoardCategory boardCategory = resolveBoardCategoryOrNull(selectedCategory);
@@ -204,7 +210,7 @@ public class AdminService {
     private AdminResponse.BoardListPageDTO createBoardListPageModel(
             String category,
             String normalizedKeyword,
-            String normalizedSort,
+            BoardSort normalizedSort,
             String selectedCategory,
             boolean allCategoryTab,
             long totalCount,
@@ -221,13 +227,13 @@ public class AdminService {
                 getNextPage(page, totalPages),
                 category,
                 normalizedKeyword,
-                normalizedSort,
-                toSortFieldLabel(normalizedSort),
-                toSortDirectionLabel(normalizedSort),
-                toToggleDirectionSort(normalizedSort),
-                toFieldSort(normalizedSort, "date"),
-                toFieldSort(normalizedSort, "view"),
-                toFieldSort(normalizedSort, "likes"),
+                normalizedSort.getCode(),
+                normalizedSort.getFieldLabel(),
+                normalizedSort.getDirectionLabel(),
+                normalizedSort.toggleDirection().getCode(),
+                BoardSort.forField("date", normalizedSort.isAscending()).getCode(),
+                BoardSort.forField("view", normalizedSort.isAscending()).getCode(),
+                BoardSort.forField("likes", normalizedSort.isAscending()).getCode(),
                 selectedCategory,
                 allCategoryTab,
                 allCategoryTab ? null : selectedCategory,
@@ -238,7 +244,8 @@ public class AdminService {
                 isCategory(category, "qna"));
     }
 
-    private List<AdminBoardSummaryRow> findBoards(BoardCategory selectedCategory, String keyword, String sort, int page) {
+    private List<AdminBoardSummaryRow> findBoards(BoardCategory selectedCategory, String keyword, BoardSort sort,
+            int page) {
         int offset = page * BOARD_PAGE_SIZE;
         String[] words = keyword.isBlank() ? new String[0] : splitKeywords(keyword);
         return adminQueryRepository.findBoardSummaryRows(selectedCategory, words, sort, offset, BOARD_PAGE_SIZE);
@@ -253,14 +260,16 @@ public class AdminService {
             int page,
             int totalPages,
             String keyword,
-            String sort,
+            BoardSort sort,
             String selectedCategory) {
         int startPage = (page / BOARD_PAGE_BLOCK_SIZE) * BOARD_PAGE_BLOCK_SIZE;
         int endPage = Math.min(startPage + BOARD_PAGE_BLOCK_SIZE - 1, totalPages - 1);
         List<AdminResponse.PageItemDTO> pageItems = new ArrayList<>();
 
         for (int i = startPage; i <= endPage; i++) {
-            pageItems.add(AdminResponse.PageItemDTO.createPageItem(i, i + 1, i == page, keyword, sort, selectedCategory));
+            pageItems.add(
+                    AdminResponse.PageItemDTO.createPageItem(i, i + 1, i == page, keyword, sort.getCode(),
+                            selectedCategory));
         }
 
         return pageItems;
@@ -470,15 +479,8 @@ public class AdminService {
         return USER_ORDER_BY_ASC.equals(orderBy) ? USER_ORDER_BY_ASC : USER_ORDER_BY_DESC;
     }
 
-    private String normalizeBoardSort(String sort) {
-        if (sort == null || sort.isBlank()) {
-            return "latest";
-        }
-
-        return switch (sort) {
-            case "likes", "downlikes", "view", "downview", "latest", "date" -> sort;
-            default -> "latest";
-        };
+    private BoardSort normalizeBoardSort(String sort) {
+        return BoardSort.fromCodeOrDefault(sort);
     }
 
     private String resolveSelectedCategory(String category) {
@@ -502,51 +504,6 @@ public class AdminService {
 
     private String[] splitKeywords(String keyword) {
         return keyword.split("\\s+");
-    }
-
-    private String toSortFieldLabel(String sort) {
-        return switch (sort) {
-            case "view", "downview" -> "조회수";
-            case "likes", "downlikes" -> "좋아요수";
-            default -> "날짜순";
-        };
-    }
-
-    private String toSortDirectionLabel(String sort) {
-        return switch (sort) {
-            case "downlikes", "downview", "date" -> "오름차순";
-            default -> "내림차순";
-        };
-    }
-
-    private String toToggleDirectionSort(String sort) {
-        return switch (sort) {
-            case "latest" -> "date";
-            case "date" -> "latest";
-            case "view" -> "downview";
-            case "downview" -> "view";
-            case "likes" -> "downlikes";
-            case "downlikes" -> "likes";
-            default -> "date";
-        };
-    }
-
-    private String toFieldSort(String sort, String field) {
-        boolean ascending = isAscendingSort(sort);
-
-        return switch (field) {
-            case "date" -> ascending ? "date" : "latest";
-            case "view" -> ascending ? "downview" : "view";
-            case "likes" -> ascending ? "downlikes" : "likes";
-            default -> "latest";
-        };
-    }
-
-    private boolean isAscendingSort(String sort) {
-        return switch (sort) {
-            case "downlikes", "downview", "date" -> true;
-            default -> false;
-        };
     }
 
     private boolean isCategory(String category, String targetCategory) {
