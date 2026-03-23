@@ -23,9 +23,6 @@ public class AdminController {
 
     private static final String MODEL = "model";
     private static final String MODELS = "models";
-    private static final String DASHBOARD_MENU = "dashboard";
-    private static final String USERS_MENU = "users";
-    private static final String BOARDS_MENU = "boards";
     private static final String DASHBOARD_VIEW = "pages/admin-dashboard";
     private static final String USERS_VIEW = "pages/admin-users";
     private static final String BOARDS_VIEW = "pages/admin-boards";
@@ -45,7 +42,6 @@ public class AdminController {
             @RequestParam(name = "orderBy", required = false) String orderBy,
             Model model) {
         AdminResponse.UserListViewDTO viewDTO = adminService.getUserListView(active, keyword, sortBy, orderBy);
-        applyUserTabHrefs(viewDTO.getModel());
         return renderUsersPage(model, viewDTO);
     }
 
@@ -98,48 +94,24 @@ public class AdminController {
     }
 
     private String renderDashboardPage(Model model, AdminResponse.DashboardViewDTO page) {
-        model.addAttribute(MODEL, page.applyCurrentMenu(DASHBOARD_MENU));
+        model.addAttribute(MODEL, page);
         return DASHBOARD_VIEW;
     }
 
     private String renderUsersPage(Model model, AdminResponse.UserListViewDTO viewDTO) {
-        model.addAttribute(MODEL, viewDTO.getModel().applyCurrentMenu(USERS_MENU));
+        model.addAttribute(MODEL, viewDTO.getModel());
         model.addAttribute(MODELS, viewDTO.getModels());
         return USERS_VIEW;
     }
 
     private String renderBoardsPage(Model model, AdminResponse.BoardListViewDTO viewDTO) {
-        model.addAttribute(MODEL, viewDTO.getModel().applyCurrentMenu(BOARDS_MENU));
+        model.addAttribute(MODEL, viewDTO.getModel());
         model.addAttribute(MODELS, viewDTO.getModels());
         return BOARDS_VIEW;
     }
 
-    private void applyUserTabHrefs(AdminResponse.UserListPageDTO pageModel) {
-        pageModel.applyTabHrefs(
-                buildUsersUrl(null, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()),
-                buildUsersUrl(true, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()),
-                buildUsersUrl(false, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()));
-    }
-
     private SessionUser requiredSessionUser() {
         return SessionUsers.require(session);
-    }
-
-    private String buildUsersUrl(Boolean active, String keyword, String sortBy, String orderBy) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/users");
-        if (active != null) {
-            builder.queryParam("active", active);
-        }
-        if (keyword != null && !keyword.isBlank()) {
-            builder.queryParam("keyword", keyword.trim());
-        }
-        if (sortBy != null && !sortBy.isBlank()) {
-            builder.queryParam("sortBy", sortBy);
-        }
-        if (orderBy != null && !orderBy.isBlank()) {
-            builder.queryParam("orderBy", orderBy);
-        }
-        return builder.toUriString();
     }
 
     private String buildBoardsUrl(String category, String keyword, String sort, Integer page) {

@@ -127,11 +127,12 @@ public class BookingService {
             }
 
             // 4. 기존 객실 정보가 있다면 각각에 추가 이미지 리스트를 넣어줌
+            List<BookingResponse.RoomDTO> enrichedRooms = new ArrayList<>();
             for (BookingResponse.RoomDTO room : rooms) {
-                room.setAllImages(extraImages);
+                enrichedRooms.add(room.withAllImages(extraImages));
             }
 
-            return rooms;
+            return enrichedRooms;
         } catch (Exception e) {
             return List.of();
         }
@@ -459,7 +460,7 @@ public class BookingService {
     }
 
     private BookingResponse.MapPoiDTO createDbMapPoi(LodgingPoiRow dbPoiRow) {
-        return new BookingResponse.MapPoiDTO(
+        return BookingResponse.MapPoiDTO.createMapPoi(
                 dbPoiRow.externalPlaceId(),
                 dbPoiRow.name(),
                 dbPoiRow.phone(),
@@ -477,7 +478,7 @@ public class BookingService {
     private List<BookingResponse.MapPoiDTO> convertToResponsePois(List<BookingRequest.MapPoiDTO> requestPois) {
         List<BookingResponse.MapPoiDTO> responsePois = new ArrayList<>();
         for (BookingRequest.MapPoiDTO req : requestPois) {
-            responsePois.add(new BookingResponse.MapPoiDTO(
+            responsePois.add(BookingResponse.MapPoiDTO.createMapPoi(
                     req.getExternalPlaceId(),
                     req.getName(),
                     req.getPhone(),
@@ -717,25 +718,7 @@ public class BookingService {
     }
 
     private BookingResponse.MapPoiDTO normalizePoi(BookingResponse.MapPoiDTO item, String defaultSource) {
-        if (item == null || !isValidCoordinate(item.getLat()) || !isValidCoordinate(item.getLng()))
-            return null;
-        BookingResponse.MapPoiDTO poi = new BookingResponse.MapPoiDTO();
-        poi.setExternalPlaceId(blankToDefault(item.getExternalPlaceId(), ""));
-        poi.setName(blankToDefault(item.getName(), "숙소"));
-        poi.setPhone(blankToDefault(item.getPhone(), ""));
-        poi.setAddress(blankToDefault(item.getAddress(), ""));
-        poi.setRoadAddress(blankToDefault(item.getRoadAddress(), ""));
-        poi.setPlaceUrl(blankToDefault(item.getPlaceUrl(), ""));
-        poi.setCategoryName(blankToDefault(item.getCategoryName(), ""));
-        poi.setCategoryGroupCode(blankToDefault(item.getCategoryGroupCode(), ""));
-        poi.setLat(item.getLat());
-        poi.setLng(item.getLng());
-        String type = blankToDefault(item.getType(), "");
-        if (type.isBlank())
-            type = "AD5".equalsIgnoreCase(poi.getCategoryGroupCode()) ? "hotel" : "attraction";
-        poi.setType(type);
-        poi.setSource(blankToDefault(item.getSource(), defaultSource));
-        return poi;
+        return BookingResponse.MapPoiDTO.createNormalizedMapPoi(item, defaultSource);
     }
 
     private String buildPoiKey(BookingResponse.MapPoiDTO item) {

@@ -25,7 +25,18 @@ class AdminControllerTest {
         AdminService adminService = mock(AdminService.class);
         AdminController controller = new AdminController(adminService, new MockHttpSession());
         Model model = new ExtendedModelMap();
-        AdminResponse.DashboardViewDTO viewDTO = new AdminResponse.DashboardViewDTO();
+        AdminResponse.DashboardViewDTO viewDTO = AdminResponse.DashboardViewDTO.createDashboardView(
+                0L,
+                0L,
+                0L,
+                0L,
+                0L,
+                0L,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of());
 
         when(adminService.getDashboardView()).thenReturn(viewDTO);
 
@@ -53,7 +64,10 @@ class AdminControllerTest {
                 true,
                 false,
                 "postCount",
-                "asc");
+                "asc",
+                "/admin/users?keyword=ssar&sortBy=postCount&orderBy=asc",
+                "/admin/users?active=true&keyword=ssar&sortBy=postCount&orderBy=asc",
+                "/admin/users?active=false&keyword=ssar&sortBy=postCount&orderBy=asc");
         AdminResponse.UserListViewDTO viewDTO = AdminResponse.UserListViewDTO.createUserListView(pageDTO, List.of());
 
         when(adminService.getUserListView(true, "ssar", "postCount", "asc")).thenReturn(viewDTO);
@@ -94,7 +108,31 @@ class AdminControllerTest {
         AdminService adminService = mock(AdminService.class);
         AdminController controller = new AdminController(adminService, new MockHttpSession());
         Model model = new ExtendedModelMap();
-        AdminResponse.BoardListPageDTO pageDTO = new AdminResponse.BoardListPageDTO();
+        AdminResponse.BoardListPageDTO pageDTO = AdminResponse.BoardListPageDTO.createBoardListPage(
+                List.of(),
+                1,
+                1,
+                0L,
+                0L,
+                null,
+                null,
+                "tips",
+                "busan",
+                "latest",
+                "date",
+                "desc",
+                "date",
+                "latest",
+                "view",
+                "likes",
+                "tips",
+                false,
+                "tips",
+                true,
+                false,
+                false,
+                false,
+                false);
         AdminResponse.BoardListViewDTO viewDTO = AdminResponse.BoardListViewDTO.createBoardListView(pageDTO, List.of());
 
         when(adminService.getBoardListView("tips", "busan", "latest", 1)).thenReturn(viewDTO);

@@ -33,37 +33,84 @@ public class MypageResponse {
                 ProfileViewDTO profile,
                 BookingSummarySectionDTO bookingSection,
                 TripPlanSummarySectionDTO tripPlanSection) {
+            return createMainPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    null,
+                    false,
+                    null,
+                    false,
+                    null);
+        }
+
+        public static MainPageDTO createPasswordFailurePage(
+                ProfileViewDTO profile,
+                BookingSummarySectionDTO bookingSection,
+                TripPlanSummarySectionDTO tripPlanSection,
+                String errorMessage) {
+            return createMainPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    errorMessage,
+                    true,
+                    null,
+                    false,
+                    null);
+        }
+
+        public static MainPageDTO createWithdrawFailurePage(
+                ProfileViewDTO profile,
+                BookingSummarySectionDTO bookingSection,
+                TripPlanSummarySectionDTO tripPlanSection,
+                String errorMessage) {
+            return createMainPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    null,
+                    false,
+                    errorMessage,
+                    true,
+                    null);
+        }
+
+        public static MainPageDTO createPasswordSuccessPage(
+                ProfileViewDTO profile,
+                BookingSummarySectionDTO bookingSection,
+                TripPlanSummarySectionDTO tripPlanSection,
+                String message) {
+            return createMainPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    null,
+                    false,
+                    null,
+                    false,
+                    message);
+        }
+
+        private static MainPageDTO createMainPage(
+                ProfileViewDTO profile,
+                BookingSummarySectionDTO bookingSection,
+                TripPlanSummarySectionDTO tripPlanSection,
+                String passwordError,
+                boolean passwordModalOpen,
+                String withdrawError,
+                boolean withdrawModalOpen,
+                String passwordSuccessMessage) {
             return MainPageDTO.builder()
                     .profile(profile)
                     .bookingSection(bookingSection)
                     .tripPlanSection(tripPlanSection)
-                    .passwordError(null)
-                    .passwordModalOpen(false)
-                    .withdrawError(null)
-                    .withdrawModalOpen(false)
-                    .passwordSuccessMessage(null)
+                    .passwordError(normalize(passwordError))
+                    .passwordModalOpen(passwordModalOpen)
+                    .withdrawError(normalize(withdrawError))
+                    .withdrawModalOpen(withdrawModalOpen)
+                    .passwordSuccessMessage(normalize(passwordSuccessMessage))
                     .build();
-        }
-
-        public MainPageDTO openPasswordModal(String errorMessage) {
-            this.passwordError = normalize(errorMessage);
-            this.passwordModalOpen = true;
-            this.withdrawError = null;
-            this.withdrawModalOpen = false;
-            return this;
-        }
-
-        public MainPageDTO openWithdrawModal(String errorMessage) {
-            this.passwordError = null;
-            this.passwordModalOpen = false;
-            this.withdrawError = normalize(errorMessage);
-            this.withdrawModalOpen = true;
-            return this;
-        }
-
-        public MainPageDTO withPasswordSuccess(String message) {
-            this.passwordSuccessMessage = normalize(message);
-            return this;
         }
     }
 
