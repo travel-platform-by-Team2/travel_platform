@@ -98,7 +98,7 @@ public class BoardResponse {
                 int totalPages,
                 String category,
                 String keyword,
-                String sort) {
+                BoardSort sort) {
             boolean first = currentPage == 0;
             boolean last = currentPage >= totalPages - 1;
 
@@ -116,20 +116,20 @@ public class BoardResponse {
                     .nextPage(last ? null : currentPage + 1)
                     .category(category)
                     .keyword(keyword)
-                    .sort(sort)
-                    .sortLabel(toSortLabel(sort))
-                    .sortLatestLabel(toSortLabel("latest"))
-                    .sortDateLabel(toSortLabel("date"))
-                    .sortViewsLabel(toSortLabel("view"))
-                    .sortDownviewsLabel(toSortLabel("downview"))
-                    .sortLikesLabel(toSortLabel("likes"))
-                    .sortDownlikesLabel(toSortLabel("downlikes"))
-                    .isSortLikes(isSort(sort, "likes"))
-                    .isSortDownlikes(isSort(sort, "downlikes"))
-                    .isSortViews(isSort(sort, "view"))
-                    .isSortDownviews(isSort(sort, "downview"))
-                    .isSortLatest(isSort(sort, "latest"))
-                    .isSortDate(isSort(sort, "date"))
+                    .sort(sort.getCode())
+                    .sortLabel(sort.getLabel())
+                    .sortLatestLabel(BoardSort.LATEST.getLabel())
+                    .sortDateLabel(BoardSort.DATE.getLabel())
+                    .sortViewsLabel(BoardSort.VIEW.getLabel())
+                    .sortDownviewsLabel(BoardSort.DOWNVIEW.getLabel())
+                    .sortLikesLabel(BoardSort.LIKES.getLabel())
+                    .sortDownlikesLabel(BoardSort.DOWNLIKES.getLabel())
+                    .isSortLikes(isSort(sort, BoardSort.LIKES))
+                    .isSortDownlikes(isSort(sort, BoardSort.DOWNLIKES))
+                    .isSortViews(isSort(sort, BoardSort.VIEW))
+                    .isSortDownviews(isSort(sort, BoardSort.DOWNVIEW))
+                    .isSortLatest(isSort(sort, BoardSort.LATEST))
+                    .isSortDate(isSort(sort, BoardSort.DATE))
                     .isTips(isCategory(category, "tips"))
                     .isPlan(isCategory(category, "plan"))
                     .isFood(isCategory(category, "food"))
@@ -343,19 +343,8 @@ public class BoardResponse {
         return dateTime.format(DATE_TIME_FORMATTER);
     }
 
-    private static String toSortLabel(String sort) {
-        return switch (sort) {
-            case "likes" -> "좋아요 많은 순";
-            case "downlikes" -> "좋아요 적은 순";
-            case "view" -> "조회수 많은 순";
-            case "downview" -> "조회수 적은 순";
-            case "date" -> "날짜 오래된 순";
-            default -> "날짜 최신 순";
-        };
-    }
-
-    private static boolean isSort(String actualSort, String expectedSort) {
-        return expectedSort.equals(actualSort);
+    private static boolean isSort(BoardSort actualSort, BoardSort expectedSort) {
+        return actualSort == expectedSort;
     }
 
     private static boolean isCategory(String actualCategory, String expectedCategory) {

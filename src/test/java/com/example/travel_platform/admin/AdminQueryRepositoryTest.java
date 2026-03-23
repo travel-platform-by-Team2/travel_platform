@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardRepository;
+import com.example.travel_platform.board.BoardSort;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
 
@@ -48,7 +49,7 @@ class AdminQueryRepositoryTest {
         List<AdminBoardSummaryRow> rows = adminQueryRepository.findBoardSummaryRows(
                 null,
                 new String[] { "busan" },
-                "latest",
+                BoardSort.LATEST,
                 0,
                 50);
 
