@@ -1,6 +1,7 @@
 package com.example.travel_platform.booking;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.SessionUsers;
 import com.example.travel_platform.user.User;
@@ -24,6 +26,9 @@ public class BookingController {
 
     private static final String DEFAULT_COMPLETE_IMAGE_URL =
             "https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw";
+    private static final String MAP_DETAIL_VIEW = "pages/map-detail";
+    private static final String CHECKOUT_VIEW = "pages/booking-checkout";
+    private static final String COMPLETE_VIEW = "pages/booking-complete";
 
     private final String kakaoMapAppKey;
     private final String tourApiServiceKey;
@@ -43,8 +48,7 @@ public class BookingController {
 
     @GetMapping("/map-detail")
     public String detailMap(Model model) {
-        model.addAttribute("kakaoMapAppKey", kakaoMapAppKey == null ? "" : kakaoMapAppKey);
-        return "pages/map-detail";
+        return renderMapDetailPage(model);
     }
 
     @GetMapping("/checkout")
@@ -59,49 +63,18 @@ public class BookingController {
             @RequestParam(name = "roomPrice", required = false, defaultValue = "350000") Integer roomPrice,
             @RequestParam(name = "fee", required = false, defaultValue = "105000") Integer fee,
             Model model) {
-
-        int safeRoomPrice = roomPrice == null || roomPrice < 0 ? 350000 : roomPrice;
-        int safeFee = fee == null || fee < 0 ? 105000 : fee;
-        long nights = calculateNights(checkIn, checkOut);
-        String nightsLabel = nights + "박";
-        long roomSubtotal = (long) safeRoomPrice * nights;
-        long feeSubtotal = (long) safeFee * nights;
-        long totalPrice = roomSubtotal + feeSubtotal;
-
-        model.addAttribute("lodgingName", lodgingName);
-        model.addAttribute("roomName", roomName);
-        model.addAttribute("address", address);
-        model.addAttribute("imageUrl", imageUrl == null || imageUrl.isBlank() ? "" : imageUrl);
-        model.addAttribute("checkIn", checkIn);
-        model.addAttribute("checkOut", checkOut);
-        model.addAttribute("nightsLabel", nightsLabel);
-        model.addAttribute("guests", guests);
-        model.addAttribute("roomPriceText", String.format("%,d원", safeRoomPrice));
-        model.addAttribute("roomSubtotalText", String.format("%,d원", roomSubtotal));
-        model.addAttribute("feeText", String.format("%,d원", feeSubtotal));
-        model.addAttribute("totalPriceText", String.format("%,d원", totalPrice));
-        model.addAttribute("roomPrice", safeRoomPrice);
-        model.addAttribute("totalFee", feeSubtotal);
-        model.addAttribute("totalPriceRaw", totalPrice);
-
-        SessionUser sessionUser = resolveSessionUser();
-        if (sessionUser != null) {
-            User user = bookingService.getUserById(sessionUser.getId());
-            if (user != null) {
-                model.addAttribute("bookerName", user.getUsername() == null ? "" : user.getUsername());
-                model.addAttribute("bookerEmail", user.getEmail() == null ? "" : user.getEmail());
-                model.addAttribute("bookerPhone", user.getTel() == null ? "" : user.getTel());
-            } else {
-                model.addAttribute("bookerName", sessionUser.getUsername() == null ? "" : sessionUser.getUsername());
-                model.addAttribute("bookerEmail", sessionUser.getEmail() == null ? "" : sessionUser.getEmail());
-                model.addAttribute("bookerPhone", sessionUser.getTel() == null ? "" : sessionUser.getTel());
-            }
-        } else {
-            model.addAttribute("bookerName", "");
-            model.addAttribute("bookerEmail", "");
-            model.addAttribute("bookerPhone", "");
-        }
-        return "pages/booking-checkout";
+        return renderCheckoutPage(
+                model,
+                buildCheckoutPage(
+                        lodgingName,
+                        roomName,
+                        address,
+                        imageUrl,
+                        checkIn,
+                        checkOut,
+                        guests,
+                        roomPrice,
+                        fee));
     }
 
     @GetMapping("/complete")
@@ -109,6 +82,7 @@ public class BookingController {
             @RequestParam(name = "lodgingName", required = false, defaultValue = "숙소") String lodgingName,
             @RequestParam(name = "roomName", required = false, defaultValue = "기본 객실") String roomName,
             @RequestParam(name = "region", required = false, defaultValue = "") String region,
+            @RequestParam(name = "regionKey", required = false, defaultValue = "") String regionKey,
             @RequestParam(name = "guests", required = false, defaultValue = "성인 2명") String guests,
             @RequestParam(name = "checkIn", required = false, defaultValue = "") String checkIn,
             @RequestParam(name = "checkOut", required = false, defaultValue = "") String checkOut,
@@ -117,55 +91,39 @@ public class BookingController {
             @RequestParam(name = "totalFee", required = false, defaultValue = "0") Integer totalFee,
             @RequestParam(name = "imageUrl", required = false) String imageUrl,
             Model model) {
-
         String safeRegion = (region == null || region.isBlank()) ? "지역 정보 없음" : region;
-        String regionKey = normalizeRegionKey(safeRegion);
-        String locationName = extractLocationName(safeRegion);
+        String safeRegionKey = (regionKey == null || regionKey.isBlank()) ? normalizeRegionKey(safeRegion) : normalizeRegionKey(regionKey);
+        String locationName = toLocationName(safeRegionKey);
 
         SessionUser sessionUser = resolveSessionUser();
         if (sessionUser != null) {
             bookingService.processBookingCompletion(
                     sessionUser.getId(),
-                    lodgingName + " (" + roomName + ")",
-                    regionKey,
-                    locationName,
-                    checkIn,
-                    checkOut,
-                    guests,
-                    pricePerNight,
-                    totalFee,
-                    imageUrl);
+                    BookingRequest.CompleteBookingDTO.builder()
+                            .lodgingName(lodgingName)
+                            .roomName(roomName)
+                            .regionKey(safeRegionKey)
+                            .location(locationName)
+                            .checkIn(checkIn)
+                            .checkOut(checkOut)
+                            .guests(guests)
+                            .pricePerNight(pricePerNight)
+                            .taxAndServiceFee(totalFee)
+                            .imageUrl(imageUrl)
+                            .build());
         }
-
-        String safeTotalPriceText = (totalPriceText == null || totalPriceText.isBlank()) ? "0원" : totalPriceText;
-
-        model.addAttribute("bookingNumber", buildBookingNumber());
-        model.addAttribute("lodgingName", lodgingName);
-        model.addAttribute("roomName", roomName);
-        model.addAttribute("region", safeRegion);
-        model.addAttribute("regionKey", regionKey);
-        model.addAttribute("guests", guests);
-        model.addAttribute("checkIn", checkIn);
-        model.addAttribute("checkOut", checkOut);
-        model.addAttribute("nightsLabel", calculateNightsLabel(checkIn, checkOut));
-        model.addAttribute("totalPriceText", safeTotalPriceText);
-        model.addAttribute("completeImageUrl", resolveCompleteImageUrl(imageUrl));
-        return "pages/booking-complete";
-    }
-
-    private String extractLocationName(String address) {
-        if (address == null || address.isBlank() || address.equals("지역 정보 없음")) {
-            return "부산";
-        }
-        String[] parts = address.split("\\s+");
-        if (parts.length > 0) {
-            String first = parts[0];
-            if (first.endsWith("시") || first.endsWith("도")) {
-                return first.substring(0, first.length() - 1);
-            }
-            return first;
-        }
-        return "부산";
+        return renderCompletePage(
+                model,
+                buildCompletePage(
+                        lodgingName,
+                        roomName,
+                        locationName,
+                        safeRegionKey,
+                        guests,
+                        checkIn,
+                        checkOut,
+                        totalPriceText,
+                        imageUrl));
     }
 
     private String calculateNightsLabel(String checkIn, String checkOut) {
@@ -173,15 +131,17 @@ public class BookingController {
     }
 
     private long calculateNights(String checkIn, String checkOut) {
-        try {
-            if (checkIn != null && checkOut != null && !checkIn.isBlank() && !checkOut.isBlank()) {
-                LocalDate in = LocalDate.parse(checkIn);
-                LocalDate out = LocalDate.parse(checkOut);
-                return Math.max(1, ChronoUnit.DAYS.between(in, out));
-            }
-        } catch (Exception ignored) {
+        if (checkIn == null || checkOut == null || checkIn.isBlank() || checkOut.isBlank()) {
+            return 1L;
         }
-        return 1L;
+
+        try {
+            LocalDate in = LocalDate.parse(checkIn);
+            LocalDate out = LocalDate.parse(checkOut);
+            return Math.max(1, ChronoUnit.DAYS.between(in, out));
+        } catch (DateTimeParseException e) {
+            throw new Exception400("숙박 날짜 형식이 올바르지 않습니다.");
+        }
     }
 
     private String buildBookingNumber() {
@@ -269,5 +229,167 @@ public class BookingController {
 
     private SessionUser resolveSessionUser() {
         return SessionUsers.getOrNull(session);
+    }
+
+    private String toLocationName(String regionKey) {
+        return switch (regionKey) {
+            case "seoul" -> "서울";
+            case "busan" -> "부산";
+            case "daegu" -> "대구";
+            case "incheon" -> "인천";
+            case "gwangju" -> "광주";
+            case "daejeon" -> "대전";
+            case "ulsan" -> "울산";
+            case "sejong" -> "세종";
+            case "gyeonggi" -> "경기";
+            case "gangwon" -> "강원";
+            case "chungbuk" -> "충북";
+            case "chungnam" -> "충남";
+            case "jeonbuk" -> "전북";
+            case "jeonnam" -> "전남";
+            case "gyeongbuk" -> "경북";
+            case "gyeongnam" -> "경남";
+            case "jeju" -> "제주";
+            default -> "부산";
+        };
+    }
+
+    private String renderMapDetailPage(Model model) {
+        model.addAttribute("model", BookingResponse.MapDetailPageDTO.createMapDetailPage(kakaoMapAppKey));
+        return MAP_DETAIL_VIEW;
+    }
+
+    private String renderCheckoutPage(Model model, BookingResponse.CheckoutPageDTO page) {
+        model.addAttribute("model", page);
+        return CHECKOUT_VIEW;
+    }
+
+    private String renderCompletePage(Model model, BookingResponse.CompletePageDTO page) {
+        model.addAttribute("model", page);
+        return COMPLETE_VIEW;
+    }
+
+    private BookingResponse.CheckoutPageDTO buildCheckoutPage(
+            String lodgingName,
+            String roomName,
+            String address,
+            String imageUrl,
+            String checkIn,
+            String checkOut,
+            String guests,
+            Integer roomPrice,
+            Integer fee) {
+            int safeRoomPrice = resolveRoomPrice(roomPrice);
+        int safeFee = resolveFee(fee);
+        long nights = calculateNights(checkIn, checkOut);
+        long roomSubtotal = (long) safeRoomPrice * nights;
+        long feeSubtotal = (long) safeFee * nights;
+        long totalPrice = roomSubtotal + feeSubtotal;
+        String regionKey = normalizeRegionKey(address);
+        String regionLabel = toLocationName(regionKey);
+        User booker = resolveBooker();
+        SessionUser sessionUser = resolveSessionUser();
+
+        return BookingResponse.CheckoutPageDTO.createCheckoutPage(
+                lodgingName,
+                roomName,
+                address,
+                regionKey,
+                regionLabel,
+                imageUrl,
+                checkIn,
+                checkOut,
+                nights + "박",
+                guests,
+                safeRoomPrice,
+                roomSubtotal,
+                feeSubtotal,
+                totalPrice,
+                resolveBookerName(booker, sessionUser),
+                resolveBookerEmail(booker, sessionUser),
+                resolveBookerPhone(booker, sessionUser));
+    }
+
+    private BookingResponse.CompletePageDTO buildCompletePage(
+            String lodgingName,
+            String roomName,
+            String region,
+            String regionKey,
+            String guests,
+            String checkIn,
+            String checkOut,
+            String totalPriceText,
+            String imageUrl) {
+        return BookingResponse.CompletePageDTO.createCompletePage(
+                buildBookingNumber(),
+                lodgingName,
+                roomName,
+                region,
+                regionKey,
+                guests,
+                checkIn,
+                checkOut,
+                calculateNightsLabel(checkIn, checkOut),
+                totalPriceText,
+                resolveCompleteImageUrl(imageUrl));
+    }
+
+    private int resolveRoomPrice(Integer roomPrice) {
+        if (roomPrice == null || roomPrice < 0) {
+            return 350000;
+        }
+        return roomPrice;
+    }
+
+    private int resolveFee(Integer fee) {
+        if (fee == null || fee < 0) {
+            return 105000;
+        }
+        return fee;
+    }
+
+    private User resolveBooker() {
+        SessionUser sessionUser = resolveSessionUser();
+        if (sessionUser == null) {
+            return null;
+        }
+        return bookingService.getUserById(sessionUser.getId());
+    }
+
+    private String resolveBookerName(User booker, SessionUser sessionUser) {
+        if (booker != null) {
+            return blankToEmpty(booker.getUsername());
+        }
+        if (sessionUser != null) {
+            return blankToEmpty(sessionUser.getUsername());
+        }
+        return "";
+    }
+
+    private String resolveBookerEmail(User booker, SessionUser sessionUser) {
+        if (booker != null) {
+            return blankToEmpty(booker.getEmail());
+        }
+        if (sessionUser != null) {
+            return blankToEmpty(sessionUser.getEmail());
+        }
+        return "";
+    }
+
+    private String resolveBookerPhone(User booker, SessionUser sessionUser) {
+        if (booker != null) {
+            return blankToEmpty(booker.getTel());
+        }
+        if (sessionUser != null) {
+            return blankToEmpty(sessionUser.getTel());
+        }
+        return "";
+    }
+
+    private String blankToEmpty(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        return value;
     }
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.board.reply.ReplyRepository;
@@ -20,179 +21,205 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BoardService {
 
+    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_BLOCK_SIZE = 5;
+
     private final BoardRepository boardRepository;
+    private final BoardQueryRepository boardQueryRepository;
     private final BoardLikeRepository boardLikeRepository;
     private final ReplyRepository replyRepository;
     private final UserRepository userRepository;
 
     @Transactional
     public void createBoard(Integer sessionUserId, BoardRequest.CreateDTO reqDTO) {
-        User sessionUser = findUser(sessionUserId);
-        Board board = Board.create(sessionUser, reqDTO.getTitle(), reqDTO.getCategory(), reqDTO.getContent());
+        BoardActor actor = requireActor(sessionUserId);
+        Board board = createBoard(actor, reqDTO);
         boardRepository.save(board);
     }
 
     @Transactional
     public void updateBoard(Integer sessionUserId, Integer boardId, BoardRequest.UpdateDTO reqDTO) {
-        Board board = findBoard(boardId);
-        validateOwner(sessionUserId, board);
-        board.update(reqDTO.getTitle(), reqDTO.getCategory(), reqDTO.getContent());
+        Board board = findEditableBoard(sessionUserId, boardId);
+        board.update(reqDTO.getTitle(), resolveBoardCategory(reqDTO.getCategory()), reqDTO.getContent());
     }
 
     @Transactional
     public void deleteBoard(Integer sessionUserId, Integer boardId) {
-        Board board = findBoard(boardId);
-        validateOwner(sessionUserId, board);
-        boardRepository.deleteLikesByBoard(boardId);
+        Board board = findEditableBoard(sessionUserId, boardId);
+        boardLikeRepository.deleteByBoardId(boardId);
         boardRepository.delete(board);
     }
 
-    public BoardResponse.ListPageDTO getBoardList(String category, String keyword, String sort, int page) {
-        int size = 10;
-        int offset = page * size;
-        String sortList = normalizeSort(sort);
-        keyword = normalizeKeyword(keyword);
-        boolean hasKeyword = !keyword.isBlank();
+    public BoardResponse.ListViewDTO getBoardList(String category, String keyword, String sort, int page) {
+        BoardListQuery query = BoardListQuery.createQuery(category, keyword, sort, page, PAGE_SIZE);
+        List<Board> boards = findBoardList(query);
+        long totalCount = countBoardList(query);
+        List<BoardResponse.SummaryDTO> summaries = toSummaryDTOs(boards);
+        int totalPages = resolveTotalPages(totalCount);
+        List<BoardResponse.PageItemDTO> pageItems = createPageItems(query.page(), totalPages);
 
-        List<Board> boards;
-        long totalCount;
+        BoardResponse.ListPageDTO model = BoardResponse.ListPageDTO.createListPage(
+                summaries,
+                pageItems,
+                query.page(),
+                PAGE_SIZE,
+                totalCount,
+                totalPages,
+                query.categoryCodeOrNull(),
+                query.keyword(),
+                query.sort());
 
-        if (hasKeyword) {
-            String[] words = keyword.split("\\s+");
-            if (category != null && !category.isBlank()) {
-                boards = boardRepository.search(category, words, sortList, offset, size);
-                totalCount = boardRepository.countSearch(category, words);
-            } else {
-                boards = boardRepository.search(null, words, sortList, offset, size);
-                totalCount = boardRepository.countSearch(null, words);
-            }
-        } else if (category != null && !category.isBlank()) {
-            boards = boardRepository.findAllPagingByCategory(category, sortList, offset, size);
-            totalCount = boardRepository.countByCategory(category);
-        } else {
-            boards = boardRepository.findAllPaging(sortList, offset, size);
-            totalCount = boardRepository.count();
+        return BoardResponse.ListViewDTO.createListView(model, summaries);
+    }
+
+    @Transactional
+    public BoardResponse.DetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
+        Board board = findBoard(boardId);
+        BoardActor actor = resolveActorOrGuest(sessionUserId);
+
+        increaseViewCount(board, actor);
+
+        return BoardResponse.DetailDTO.fromBoard(
+                board,
+                findReplyItems(boardId, actor.userIdOrNull()),
+                boardLikeRepository.countByBoard_Id(boardId),
+                isLikedByMe(actor, boardId),
+                actor.isOwner(board),
+                actor.isAdmin());
+    }
+
+    public BoardResponse.FormDTO getBoardForm(Integer sessionUserId, Integer boardId) {
+        Board board = findEditableBoard(sessionUserId, boardId);
+        return BoardResponse.FormDTO.fromBoard(board);
+    }
+
+    @Transactional
+    public BoardResponse.LikeToggleDTO toggleBoardLike(Integer sessionUserId, Integer boardId) {
+        BoardActor actor = requireActor(sessionUserId);
+        Board board = findLikeTargetBoard(actor, boardId);
+        BoardLike boardLike = findBoardLikeOrNull(boardId, actor.userId());
+        boolean liked = applyLikeToggle(actor, boardLike, board);
+
+        return BoardResponse.LikeToggleDTO.createLikeToggle(liked, boardLikeRepository.countByBoard_Id(boardId));
+    }
+
+    private Board createBoard(BoardActor actor, BoardRequest.CreateDTO reqDTO) {
+        return Board.create(
+                actor.requireUser(),
+                reqDTO.getTitle(),
+                resolveBoardCategory(reqDTO.getCategory()),
+                reqDTO.getContent());
+    }
+
+    private List<Board> findBoardList(BoardListQuery query) {
+        if (query.hasKeyword()) {
+            return boardQueryRepository.search(query.boardCategoryOrNull(), query.searchWords(), query.sort(), query.offset(),
+                    PAGE_SIZE);
         }
 
-        Map<Integer, Long> likeCounts = boardRepository.countLikesByBoardIds(
-                boards.stream().map(board -> board.getId()).toList());
+        if (query.hasCategory()) {
+            return boardQueryRepository.findAllPagingByCategory(query.boardCategoryOrNull(), query.sort(), query.offset(),
+                    PAGE_SIZE);
+        }
 
-        List<BoardResponse.SummaryDTO> boardDTOs = boards.stream()
-                .map(board -> BoardResponse.SummaryDTO.from(
+        return boardQueryRepository.findAllPaging(query.sort(), query.offset(), PAGE_SIZE);
+    }
+
+    private long countBoardList(BoardListQuery query) {
+        if (query.hasKeyword()) {
+            return boardQueryRepository.countSearch(query.boardCategoryOrNull(), query.searchWords());
+        }
+
+        if (query.hasCategory()) {
+            return boardQueryRepository.countByCategory(query.boardCategoryOrNull());
+        }
+
+        return boardQueryRepository.count();
+    }
+
+    private List<BoardResponse.SummaryDTO> toSummaryDTOs(List<Board> boards) {
+        Map<Integer, Long> likeCounts = resolveLikeCounts(boards);
+        Map<Integer, Long> replyCounts = resolveReplyCounts(boards);
+        return boards.stream()
+                .map(board -> BoardResponse.SummaryDTO.fromBoard(
                         board,
-                        Math.toIntExact(likeCounts.getOrDefault(board.getId(), 0L))))
+                        Math.toIntExact(likeCounts.getOrDefault(board.getId(), 0L)),
+                        Math.toIntExact(replyCounts.getOrDefault(board.getId(), 0L))))
                 .toList();
+    }
 
-        int totalPages = (int) Math.ceil((double) totalCount / size);
-        if (totalPages == 0) {
-            totalPages = 1;
+    private Map<Integer, Long> resolveLikeCounts(List<Board> boards) {
+        return boardLikeRepository.countByBoardIds(createBoardIds(boards));
+    }
+
+    private Map<Integer, Long> resolveReplyCounts(List<Board> boards) {
+        return replyRepository.countByBoardIds(createBoardIds(boards));
+    }
+
+    private List<Integer> createBoardIds(List<Board> boards) {
+        List<Integer> boardIds = new ArrayList<>();
+        for (Board board : boards) {
+            boardIds.add(board.getId());
         }
+        return boardIds;
+    }
 
-        boolean first = page == 0;
-        boolean last = page >= totalPages - 1;
+    private int resolveTotalPages(long totalCount) {
+        int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+        return totalPages == 0 ? 1 : totalPages;
+    }
 
-        Integer prevPage = first ? null : page - 1;
-        Integer nextPage = last ? null : page + 1;
-
-        int blockSize = 5;
-        int startPage = (page / blockSize) * blockSize;
-        int endPage = startPage + blockSize - 1;
+    private List<BoardResponse.PageItemDTO> createPageItems(int page, int totalPages) {
+        int startPage = (page / PAGE_BLOCK_SIZE) * PAGE_BLOCK_SIZE;
+        int endPage = startPage + PAGE_BLOCK_SIZE - 1;
         if (endPage >= totalPages) {
             endPage = totalPages - 1;
         }
 
         List<BoardResponse.PageItemDTO> pageItems = new ArrayList<>();
         for (int i = startPage; i <= endPage; i++) {
-            pageItems.add(BoardResponse.PageItemDTO.builder()
-                    .page(i)
-                    .displayNumber(i + 1)
-                    .current(i == page)
-                    .build());
+            pageItems.add(BoardResponse.PageItemDTO.createPageItem(i, i == page));
         }
-
-        return BoardResponse.ListPageDTO.builder()
-                .boards(boardDTOs)
-                .currentPage(page)
-                .pageNumber(page + 1)
-                .size(size)
-                .totalCount(totalCount)
-                .totalPages(totalPages)
-                .first(first)
-                .last(last)
-                .prevPage(prevPage)
-                .nextPage(nextPage)
-                .category(category)
-                .keyword(keyword)
-                .sort(sortList)
-                .sortLabel(toSortLabel(sortList))
-                .isSortLikes("likes".equals(sortList))
-                .isSortDownlikes("downlikes".equals(sortList))
-                .isSortViews("view".equals(sortList))
-                .isSortDownviews("downview".equals(sortList))
-                .isSortLatest("latest".equals(sortList))
-                .isSortDate("date".equals(sortList))
-                .isTips("tips".equals(category))
-                .isPlan("plan".equals(category))
-                .isFood("food".equals(category))
-                .isReview("review".equals(category))
-                .isQna("qna".equals(category))
-                .pageItems(pageItems)
-                .build();
+        return pageItems;
     }
 
-    @Transactional
-    public BoardResponse.DetailDTO getBoardDetail(Integer sessionUserId, Integer boardId) {
-        Board board = findBoard(boardId);
-        boolean isAdmin = sessionUserId != null && findUser(sessionUserId).isAdmin();
-
-        if (!isAdmin) {
-            board.increaseViewCount(sessionUserId);
+    private void increaseViewCount(Board board, BoardActor actor) {
+        if (!actor.isAdmin()) {
+            board.increaseViewCount(actor.userIdOrNull());
         }
+    }
 
-        List<BoardResponse.ReplyItemDTO> replies = replyRepository.findByBoardId(boardId).stream()
-                .map(reply -> BoardResponse.ReplyItemDTO.from(reply, sessionUserId))
+    private List<BoardResponse.ReplyItemDTO> findReplyItems(Integer boardId, Integer sessionUserId) {
+        return replyRepository.findByBoardId(boardId).stream()
+                .map(reply -> BoardResponse.ReplyItemDTO.fromReply(reply, sessionUserId))
                 .toList();
-
-        boolean likedByMe = sessionUserId != null && boardLikeRepository.existsByBoard_IdAndUser_Id(boardId, sessionUserId);
-        long likeCount = boardLikeRepository.countByBoard_Id(boardId);
-        boolean isOwner = sessionUserId != null && board.getUser().getId().equals(sessionUserId);
-
-        return BoardResponse.DetailDTO.of(board, replies, likeCount, likedByMe, isOwner, isAdmin);
     }
 
-    public BoardResponse.FormDTO getBoardForm(Integer sessionUserId, Integer boardId) {
-        Board board = findBoard(boardId);
-        validateOwner(sessionUserId, board);
-        return BoardResponse.FormDTO.fromBoard(board);
+    private boolean isLikedByMe(BoardActor actor, Integer boardId) {
+        return actor.hasUser() && boardLikeRepository.existsByBoard_IdAndUser_Id(boardId, actor.userId());
     }
 
-    @Transactional
-    public BoardResponse.LikeToggleDTO toggleBoardLike(Integer sessionUserId, Integer boardId) {
-        Board board = findBoard(boardId);
-
-        if (board.getUser().getId().equals(sessionUserId)) {
+    private void validateLikePermission(BoardActor actor, Board board) {
+        if (actor.isOwner(board)) {
             throw new Exception403("본인 게시글에는 좋아요를 누를 수 없습니다.");
         }
-
-        User sessionUser = findUser(sessionUserId);
-        BoardLike boardLike = boardLikeRepository.findByBoard_IdAndUser_Id(boardId, sessionUserId).orElse(null);
-        boolean liked;
-
-        if (boardLike != null) {
-            boardLikeRepository.delete(boardLike);
-            board.decreaseLikeCount();
-            liked = false;
-        } else {
-            boardLikeRepository.save(BoardLike.create(board, sessionUser));
-            board.increaseLikeCount();
-            liked = true;
-        }
-
-        long likeCount = boardLikeRepository.countByBoard_Id(boardId);
-        return BoardResponse.LikeToggleDTO.of(liked, likeCount);
     }
 
-    private String normalizeSort(String sort) {
+    private BoardLike findBoardLikeOrNull(Integer boardId, Integer sessionUserId) {
+        return boardLikeRepository.findByBoard_IdAndUser_Id(boardId, sessionUserId).orElse(null);
+    }
+
+    private boolean applyLikeToggle(BoardActor actor, BoardLike boardLike, Board board) {
+        if (boardLike != null) {
+            boardLikeRepository.delete(boardLike);
+            return false;
+        }
+
+        boardLikeRepository.save(BoardLike.create(board, actor.requireUser()));
+        return true;
+    }
+
+    private static String normalizeSort(String sort) {
         if (sort == null || sort.isBlank()) {
             return "latest";
         }
@@ -203,32 +230,57 @@ public class BoardService {
         };
     }
 
-    private String normalizeKeyword(String keyword) {
+    private static String normalizeKeyword(String keyword) {
         if (keyword == null) {
             return "";
         }
         return keyword.trim();
     }
 
-    private String toSortLabel(String sort) {
-        return switch (sort) {
-            case "likes" -> "좋아요순 ↑";
-            case "downlikes" -> "좋아요순 ↓";
-            case "view" -> "조회순 ↑";
-            case "downview" -> "조회순 ↓";
-            case "date" -> "날짜순 ↓";
-            default -> "날짜순 ↑";
-        };
+    private static String normalizeCategory(String category) {
+        BoardCategory boardCategory = BoardCategory.fromCodeOrNull(category);
+        if (boardCategory == null) {
+            return null;
+        }
+        return boardCategory.getCode();
     }
 
-    private void validateOwner(Integer sessionUserId, Board board) {
-        User sessionUser = findUser(sessionUserId);
-        boolean isOwner = board.getUser().getId().equals(sessionUser.getId());
-        boolean isAdmin = sessionUser.isAdmin();
-
-        if (!isOwner && !isAdmin) {
+    private void validateBoardEditor(BoardActor actor, Board board) {
+        if (!actor.canManage(board)) {
             throw new Exception403("본인 게시글만 수정/삭제할 수 있습니다.");
         }
+    }
+
+    private Board findEditableBoard(Integer sessionUserId, Integer boardId) {
+        Board board = findBoard(boardId);
+        BoardActor actor = requireActor(sessionUserId);
+        validateBoardEditor(actor, board);
+        return board;
+    }
+
+    private Board findLikeTargetBoard(BoardActor actor, Integer boardId) {
+        Board board = findBoard(boardId);
+        validateLikePermission(actor, board);
+        return board;
+    }
+
+    private BoardActor resolveActorOrGuest(Integer sessionUserId) {
+        if (sessionUserId == null) {
+            return BoardActor.guest();
+        }
+        return BoardActor.fromUser(findUser(sessionUserId));
+    }
+
+    private BoardActor requireActor(Integer sessionUserId) {
+        return BoardActor.fromUser(findUser(sessionUserId));
+    }
+
+    private BoardCategory resolveBoardCategory(String categoryCode) {
+        BoardCategory boardCategory = BoardCategory.fromCodeOrNull(categoryCode);
+        if (boardCategory == null) {
+            throw new Exception400("유효한 게시글 카테고리를 선택해주세요.");
+        }
+        return boardCategory;
     }
 
     private User findUser(Integer sessionUserId) {
@@ -239,5 +291,84 @@ public class BoardService {
     private Board findBoard(Integer boardId) {
         return boardRepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다."));
+    }
+
+    private record BoardListQuery(String category, String keyword, String sort, int page, int offset) {
+
+        private static BoardListQuery createQuery(String category, String keyword, String sort, int page, int pageSize) {
+            String normalizedCategory = normalizeCategory(category);
+            String normalizedKeyword = normalizeKeyword(keyword);
+            String normalizedSort = normalizeSort(sort);
+            int offset = page * pageSize;
+            return new BoardListQuery(normalizedCategory, normalizedKeyword, normalizedSort, page, offset);
+        }
+
+        private boolean hasKeyword() {
+            return !keyword.isBlank();
+        }
+
+        private boolean hasCategory() {
+            return category != null && !category.isBlank();
+        }
+
+        private String categoryCodeOrNull() {
+            return hasCategory() ? category : null;
+        }
+
+        private BoardCategory boardCategoryOrNull() {
+            return BoardCategory.fromCodeOrNull(categoryCodeOrNull());
+        }
+
+        private String[] searchWords() {
+            return keyword.split("\\s+");
+        }
+    }
+
+    private static final class BoardActor {
+
+        private final User user;
+
+        private BoardActor(User user) {
+            this.user = user;
+        }
+
+        private static BoardActor guest() {
+            return new BoardActor(null);
+        }
+
+        private static BoardActor fromUser(User user) {
+            return new BoardActor(user);
+        }
+
+        private boolean hasUser() {
+            return user != null;
+        }
+
+        private Integer userId() {
+            return requireUser().getId();
+        }
+
+        private Integer userIdOrNull() {
+            return hasUser() ? user.getId() : null;
+        }
+
+        private boolean isAdmin() {
+            return hasUser() && user.isAdmin();
+        }
+
+        private boolean isOwner(Board board) {
+            return hasUser() && board.getUser().getId().equals(user.getId());
+        }
+
+        private boolean canManage(Board board) {
+            return isOwner(board) || isAdmin();
+        }
+
+        private User requireUser() {
+            if (!hasUser()) {
+                throw new IllegalStateException("로그인 사용자가 필요합니다.");
+            }
+            return user;
+        }
     }
 }

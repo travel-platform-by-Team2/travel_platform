@@ -9,7 +9,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import com.example.travel_platform.board.reply.Reply;
 import com.example.travel_platform.user.User;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -43,8 +45,9 @@ public class Board {
     @Column(nullable = false, length = 150)
     private String title;
 
+    @Convert(converter = BoardCategoryConverter.class)
     @Column(nullable = false, length = 20)
-    private String category;
+    private BoardCategory category;
 
     @Lob
     @Column(nullable = false)
@@ -53,12 +56,9 @@ public class Board {
     @Column(name = "view_count", nullable = false)
     private Integer viewCount = 0;
 
-    @Column(name = "like_count", nullable = false)
-    private Integer likeCount = 0;
-
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "board", cascade = jakarta.persistence.CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Reply> replies = new ArrayList<>();
 
     @CreationTimestamp
@@ -66,30 +66,36 @@ public class Board {
     private LocalDateTime createdAt;
 
     @Builder
-    private Board(User user, String title, String category, String content, Integer viewCount, Integer likeCount) {
+    private Board(User user, String title, BoardCategory category, String content, Integer viewCount) {
         this.user = user;
         this.title = title;
         this.category = category;
         this.content = content;
         this.viewCount = viewCount == null ? 0 : viewCount;
-        this.likeCount = likeCount == null ? 0 : likeCount;
     }
 
-    public static Board create(User user, String title, String category, String content) {
+    public static Board create(User user, String title, BoardCategory category, String content) {
         return Board.builder()
                 .user(user)
                 .title(title)
                 .category(category)
                 .content(content)
                 .viewCount(0)
-                .likeCount(0)
                 .build();
     }
 
-    public void update(String title, String category, String content) {
+    public static Board create(User user, String title, String categoryCode, String content) {
+        return create(user, title, BoardCategory.fromCode(categoryCode), content);
+    }
+
+    public void update(String title, BoardCategory category, String content) {
         this.title = title;
         this.category = category;
         this.content = content;
+    }
+
+    public void update(String title, String categoryCode, String content) {
+        update(title, BoardCategory.fromCode(categoryCode), content);
     }
 
     public void increaseViewCount(Integer viewerUserId) {
@@ -101,14 +107,10 @@ public class Board {
         this.viewCount = this.viewCount + 1;
     }
 
-    public void increaseLikeCount() {
-        this.likeCount = this.likeCount + 1;
-    }
-
-    public void decreaseLikeCount() {
-        if (this.likeCount > 0) {
-            this.likeCount = this.likeCount - 1;
+    public String getCategoryCode() {
+        if (category == null) {
+            return null;
         }
+        return category.getCode();
     }
-
 }

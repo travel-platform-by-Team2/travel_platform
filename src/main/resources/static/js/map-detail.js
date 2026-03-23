@@ -365,6 +365,13 @@
     return createFallbackImageDataUri(item);
   }
 
+  function unwrapRespBody(data) {
+    if (data && typeof data === "object" && Object.prototype.hasOwnProperty.call(data, "body")) {
+      return data.body;
+    }
+    return data;
+  }
+
   function parseGuestCountLabel(rawValue) {
     var value = String(rawValue || "");
     var match = value.match(/\d+/);
@@ -483,7 +490,7 @@
         return "";
       }
 
-      var data = await response.json();
+      var data = unwrapRespBody(await response.json());
       var imageUrl = data && typeof data.imageUrl === "string" ? data.imageUrl : "";
       state.imageCache[cacheKey] = imageUrl;
       return imageUrl;
@@ -808,7 +815,7 @@
       
       var response = await fetch("/api/bookings/rooms?" + params.toString());
       if (response.ok) {
-        var data = await response.json();
+        var data = unwrapRespBody(await response.json());
         if (Array.isArray(data) && data.length > 0) {
           rooms = data.map(function(r) {
             return {
@@ -1484,7 +1491,7 @@
       if (!response.ok) {
         return kakaoItems;
       }
-      var data = await response.json();
+      var data = unwrapRespBody(await response.json());
       var items = Array.isArray(data) ? data.map(normalizeMergedPoi).filter(Boolean) : [];
       return items.length ? items : kakaoItems;
     } catch (error) {

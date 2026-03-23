@@ -3,119 +3,232 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{#page}}{{detail.formattedTitle}}{{/page}}{{^page}}여행 장소 추가{{/page}}</title>
+  <title>{{#model}}{{detail.formattedTitle}}{{/model}}{{^model}}여행 장소 추가{{/model}}</title>
   {{>partials/head-assets}}
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .trip-plan-add-place-main-01 {
+      display: flex;
+      height: calc(100vh - 160px);
+      overflow: hidden;
+    }
+
+    .trip-plan-add-place-div-04 {
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #e2e8f0;
+      background: #fff;
+    }
+
+    #placeListContainer {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .selected-place-tray {
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+      padding: 0.5rem;
+      flex-shrink: 0;
+      max-height: 150px;
+    }
+
+    .selected-place-horizontal-scroll {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.25rem 0;
+    }
+
+    .selected-item-card {
+      position: relative;
+      flex: 0 0 64px;
+      text-align: center;
+    }
+
+    .selected-item-card img {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      border: 2px solid #2563eb;
+    }
+
+    .selected-item-card .item-name {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      width: 56px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+      color: #1e293b;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: -4px;
+      right: 0;
+      width: 16px;
+      height: 16px;
+      background: #ef4444;
+      color: #fff;
+      border: 1.5px solid #fff;
+      border-radius: 50%;
+      font-size: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .day-tab-btn {
+      padding: 0.4rem 1rem;
+      border-radius: 0.5rem;
+      border: 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+
+    .day-tab-btn.active {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    }
+
+    .category-tab-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .category-tab-btn.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+
+    .stay-marker {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .stay-marker__pin {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .stay-marker--hotel .stay-marker__pin {
+      background: #2563eb;
+    }
+
+    .stay-marker--attraction .stay-marker__pin {
+      background: #ea580c;
+    }
+
+    .stay-marker__label {
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+  </style>
 </head>
-<body class="page-body-screen-sans-hidden">
+<body>
   {{>partials/header}}
 
-{{#page}}
+{{#model}}
 <div id="tripPlacePage"
      data-plan-id="{{detail.id}}"
-     data-existing-count="{{detail.placeCount}}"
+     data-existing-count="{{existingCount}}"
      data-save-url="{{saveUrl}}"
      data-detail-url="{{detailUrl}}">
-  <div class="trip-plan-add-place-div-01">
-    <div class="community-create-div-03">
-      <h2 class="trip-plan-add-place-h2-01">{{detail.formattedTitle}}</h2>
-      <div class="trip-plan-add-place-div-02"></div>
-      <div class="trip-plan-add-place-div-03">
-        <span class="icon-ms-base">calendar_month</span>
-        <span>{{detail.travelPeriodLabel}}</span>
+  <div class="trip-plan-add-place-div-01" style="padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; background: #fff; border-bottom: 1px solid #e2e8f0;">
+    <div style="display: flex; align-items: center; gap: 2rem;">
+      <div>
+        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 800;">{{detail.formattedTitle}}</h2>
+        <p style="margin: 4px 0 0; color: #64748b; font-size: 0.9rem;">{{detail.travelPeriodLabel}}</p>
+      </div>
+      <div id="dayTabContainer" style="display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.35rem; border-radius: 0.75rem;">
       </div>
     </div>
-    <div class="chatbot-demo-div-07">
-      <button class="trip-plan-add-place-button-01" id="cancelPlaceSelection" type="button">
-        취소
-      </button>
-      <button class="trip-plan-add-place-button-02" id="saveSelectedPlaces" type="button">
-        <span class="icon-ms-18">check</span>
-        완료
-      </button>
+    <div style="display: flex; gap: 0.5rem;">
+      <button class="trip-plan-add-place-button-01" id="cancelPlaceSelection" type="button">취소</button>
+      <button class="trip-plan-add-place-button-02" id="saveSelectedPlaces" type="button" style="background: #2563eb; color: #fff; border: 0; padding: 0.5rem 1.5rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">완료</button>
     </div>
   </div>
 
   <main class="trip-plan-add-place-main-01">
     <div class="trip-plan-add-place-div-04">
-      <div class="trip-plan-add-place-div-05">
-        <div class="is-relative">
-          <span class="trip-plan-add-place-span-01">
-            <span class="icon-ms-base">search</span>
-          </span>
-          <input id="placeSearchInput" class="trip-plan-add-place-input-01" placeholder="장소 검색 (예: 협재 해수욕장, 흑돼지 맛집)" type="text"/>
-        </div>
+      <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9;">
+        <input id="placeSearchInput" type="text" placeholder="장소 검색..." style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
       </div>
 
-      <div class="trip-plan-add-place-div-06">
-        <div class="strip-scroll-gap6" id="categoryTabs">
-          <button class="trip-plan-add-place-button-03 active" data-category="" type="button">추천</button>
-          <button class="tab-link-muted" data-category="AT4" type="button">명소</button>
-          <button class="tab-link-muted" data-category="AD5" type="button">숙소</button>
-        </div>
+      <div id="categoryTabs" style="display: flex; gap: 0.5rem; padding: 0.75rem 1rem;">
+        <button class="category-tab-btn active" data-category="" type="button">전체</button>
+        <button class="category-tab-btn" data-category="AT4" type="button">명소</button>
+        <button class="category-tab-btn" data-category="AD5" type="button">숙소</button>
       </div>
 
-      <div class="trip-plan-add-place-div-07" id="placeListContainer">
-        <div class="empty-state">지도를 움직이거나 검색해서 장소를 골라보세요.</div>
+      <div id="placeListContainer">
+        <div class="empty-state">지도를 움직여 장소를 찾아보세요.</div>
       </div>
 
-      <div class="trip-plan-add-place-div-08">
-        <div class="trip-plan-add-place-div-09">
-          <h4 class="trip-plan-add-place-h4-01">
-            담을 장소 <span class="text-primary" id="selectedPlaceCount">0</span>
-          </h4>
-          <button class="trip-plan-add-place-button-04" id="clearSelectedPlaces" type="button">전체 삭제</button>
+      <div class="selected-place-tray">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <h4 style="margin: 0; font-size: 0.9rem; font-weight: 800;">선택 장소 <span id="selectedPlaceCount" style="color: #2563eb;">0</span></h4>
+          <button id="clearSelectedPlaces" style="font-size: 0.75rem; color: #64748b; background: none; border: 0; cursor: pointer;">전체 해제</button>
         </div>
-
-        <div class="strip-scroll-gap3" id="selectedPlaceList">
-          <div class="empty-state">아직 담은 장소가 없습니다.</div>
+        <div id="selectedPlaceList" class="selected-place-horizontal-scroll">
+          <div class="empty-state" style="font-size: 0.8rem; color: #94a3b8;">장소를 추가해 보세요.</div>
         </div>
       </div>
-
-      {{#detail.hasPlaces}}
-      <div class="community-list-div-02">
-        <div class="row-between-center-mb2">
-          <h4 class="trip-plan-add-place-h4-01">현재 저장된 장소</h4>
-          <span class="text-primary">{{detail.placeCount}}개</span>
-        </div>
-        {{#detail.places}}
-        <div class="timeline-card">
-          <div class="row-between-center">
-            <strong>DAY {{dayOrder}}</strong>
-            <span class="trip-plan-detail-span-04">{{placeName}}</span>
-          </div>
-          <p class="trip-plan-detail-p-01">{{address}}</p>
-        </div>
-        {{/detail.places}}
-      </div>
-      {{/detail.hasPlaces}}
     </div>
 
-    <div class="trip-plan-add-place-div-13">
-      <div class="trip-plan-add-place-div-14" style="position: relative;">
-        <div id="tripMap" style="width:100%;height:100%;"></div>
-        <div class="trip-plan-add-place-div-15" style="z-index: 2;">
-          <button class="trip-plan-add-place-button-06" id="btnMyLocation" type="button">
-            <span class="icon-ms-xl">my_location</span>
-          </button>
-          <div class="trip-plan-add-place-div-16">
-            <button class="trip-plan-add-place-button-07" id="btnZoomIn" type="button">
-              <span class="icon-ms-xl">add</span>
-            </button>
-            <button class="trip-plan-add-place-button-08" id="btnZoomOut" type="button">
-              <span class="icon-ms-xl">remove</span>
-            </button>
-          </div>
-        </div>
+    <div style="flex: 1; position: relative;">
+      <div id="tripMap" style="width:100%; height:100%;"></div>
+      <div style="position: absolute; bottom: 20px; right: 20px; z-index: 10; display: flex; flex-direction: column; gap: 8px;">
+        <button id="btnMyLocation" style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"><span class="icon-ms-base">my_location</span></button>
+        <button id="btnZoomIn" style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"><span class="icon-ms-base">add</span></button>
+        <button id="btnZoomOut" style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"><span class="icon-ms-base">remove</span></button>
       </div>
     </div>
   </main>
 </div>
-{{/page}}
-
-  {{>partials/footer}}
-  {{#page.kakaoMapAppKey}}
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{page.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
-  {{/page.kakaoMapAppKey}}
+{{/model}}
+  {{#model.kakaoMapAppKey}}
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  {{/model.kakaoMapAppKey}}
   <script src="/js/trip-add-place.js"></script>
   {{>partials/scripts}}
 </body>

@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.SessionUsers;
@@ -18,67 +20,142 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminController {
+
+    private static final String MODEL = "model";
+    private static final String MODELS = "models";
+    private static final String DASHBOARD_MENU = "dashboard";
+    private static final String USERS_MENU = "users";
+    private static final String BOARDS_MENU = "boards";
+    private static final String DASHBOARD_VIEW = "pages/admin-dashboard";
+    private static final String USERS_VIEW = "pages/admin-users";
+    private static final String BOARDS_VIEW = "pages/admin-boards";
     private final AdminService adminService;
     private final HttpSession session;
 
     @GetMapping("")
     public String dashboard(Model model) {
-        applySidebarState(model, "dashboard");
-        model.addAttribute("page", adminService.getDashboardPage());
-        return "pages/admin-dashboard";
+        return renderDashboardPage(model, adminService.getDashboardView());
     }
 
     @GetMapping("/users")
     public String users(
             @RequestParam(name = "active", required = false) Boolean active,
             @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "orderBy", required = false) String orderBy,
             Model model) {
-        AdminResponse.UserListPageDTO page = adminService.getUsersPage(active, keyword);
+        AdminResponse.UserListViewDTO viewDTO = adminService.getUserListView(active, keyword, sortBy, orderBy);
+        applyUserTabHrefs(viewDTO.getModel());
+        return renderUsersPage(model, viewDTO);
+    }
 
-        applySidebarState(model, "users");
-        applyUsersPageModel(model, page);
-        return "pages/admin-users";
+    @PostMapping("/users/{userId}/status")
+    public String toggleUserStatus(
+            @PathVariable(name = "userId") Integer userId,
+            @RequestParam(name = "targetActive") boolean targetActive,
+            @RequestParam(name = "active", required = false) Boolean active,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "orderBy", required = false) String orderBy,
+            RedirectAttributes redirectAttributes) {
+        adminService.updateUserActiveStatus(userId, targetActive);
+
+        if (active != null) {
+            redirectAttributes.addAttribute("active", active);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            redirectAttributes.addAttribute("keyword", keyword);
+        }
+        if (sortBy != null && !sortBy.isBlank()) {
+            redirectAttributes.addAttribute("sortBy", sortBy);
+        }
+        if (orderBy != null && !orderBy.isBlank()) {
+            redirectAttributes.addAttribute("orderBy", orderBy);
+        }
+
+        return "redirect:/admin/users";
     }
 
     @GetMapping("/boards")
-    public String boards(@RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
-            @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "page", defaultValue = "0") int page,
+    public String boards(
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "page", defaultValue = "0") int page,
             Model model) {
-
-        AdminResponse.AdminBoardListDTO responseDTO = adminService.getBoardsPage(category, keyword, sort, page);
-        model.addAttribute("model", responseDTO);
-        applySidebarState(model, "boards");
-        return "pages/admin-boards";
+        return renderBoardsPage(model, adminService.getBoardListView(category, keyword, sort, page));
     }
 
     @PostMapping("/boards/{boardId}/delete")
-    public String deleteBoard(@PathVariable("boardId") Integer boardId) {
-        SessionUser sessionUser = SessionUsers.getOrNull(session);
-        adminService.deleteBoard(sessionUser, boardId);
-        return "redirect:/admin/boards";
+    public String deleteBoard(
+            @PathVariable(name = "boardId") Integer boardId,
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "page", required = false) Integer page) {
+        adminService.deleteBoardByAdmin(requiredSessionUser(), boardId);
+        return "redirect:" + buildBoardsUrl(category, keyword, sort, page);
     }
 
-    private void applySidebarState(Model model, String currentMenu) {
-        model.addAttribute("dashboardActiveClass", isCurrentMenu(currentMenu, "dashboard"));
-        model.addAttribute("usersActiveClass", isCurrentMenu(currentMenu, "users"));
-        model.addAttribute("lodgingsActiveClass", isCurrentMenu(currentMenu, "lodgings"));
-        model.addAttribute("boardsActiveClass", isCurrentMenu(currentMenu, "boards"));
+    private String renderDashboardPage(Model model, AdminResponse.DashboardViewDTO page) {
+        model.addAttribute(MODEL, page.applyCurrentMenu(DASHBOARD_MENU));
+        return DASHBOARD_VIEW;
     }
 
-    private void applyUsersPageModel(Model model, AdminResponse.UserListPageDTO page) {
-        model.addAttribute("users", page.getUsers());
-        model.addAttribute("totalUserCount", page.getTotalUserCount());
-        model.addAttribute("inactiveUserCount", page.getInactiveUserCount());
-        model.addAttribute("keyword", page.getKeyword());
-        model.addAttribute("currentActive", page.getCurrentActive());
-        model.addAttribute("isAllTab", page.isAllTab());
-        model.addAttribute("isActiveTab", page.isActiveTab());
-        model.addAttribute("isInactiveTab", page.isInactiveTab());
+    private String renderUsersPage(Model model, AdminResponse.UserListViewDTO viewDTO) {
+        model.addAttribute(MODEL, viewDTO.getModel().applyCurrentMenu(USERS_MENU));
+        model.addAttribute(MODELS, viewDTO.getModels());
+        return USERS_VIEW;
     }
 
-    private String isCurrentMenu(String currentMenu, String targetMenu) {
-        return targetMenu.equals(currentMenu) ? " is-active" : "";
+    private String renderBoardsPage(Model model, AdminResponse.BoardListViewDTO viewDTO) {
+        model.addAttribute(MODEL, viewDTO.getModel().applyCurrentMenu(BOARDS_MENU));
+        model.addAttribute(MODELS, viewDTO.getModels());
+        return BOARDS_VIEW;
+    }
+
+    private void applyUserTabHrefs(AdminResponse.UserListPageDTO pageModel) {
+        pageModel.applyTabHrefs(
+                buildUsersUrl(null, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()),
+                buildUsersUrl(true, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()),
+                buildUsersUrl(false, pageModel.getKeyword(), pageModel.getSortBy(), pageModel.getOrderBy()));
+    }
+
+    private SessionUser requiredSessionUser() {
+        return SessionUsers.require(session);
+    }
+
+    private String buildUsersUrl(Boolean active, String keyword, String sortBy, String orderBy) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/users");
+        if (active != null) {
+            builder.queryParam("active", active);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.queryParam("keyword", keyword.trim());
+        }
+        if (sortBy != null && !sortBy.isBlank()) {
+            builder.queryParam("sortBy", sortBy);
+        }
+        if (orderBy != null && !orderBy.isBlank()) {
+            builder.queryParam("orderBy", orderBy);
+        }
+        return builder.toUriString();
+    }
+
+    private String buildBoardsUrl(String category, String keyword, String sort, Integer page) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/boards");
+        if (category != null && !category.isBlank()) {
+            builder.queryParam("category", category);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.queryParam("keyword", keyword.trim());
+        }
+        if (sort != null && !sort.isBlank()) {
+            builder.queryParam("sort", sort);
+        }
+        if (page != null) {
+            builder.queryParam("page", page);
+        }
+        return builder.toUriString();
     }
 }

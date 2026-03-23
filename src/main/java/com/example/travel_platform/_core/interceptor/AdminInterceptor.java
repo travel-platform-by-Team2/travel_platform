@@ -28,17 +28,20 @@ public class AdminInterceptor implements HandlerInterceptor {
 
         if (userSessionChecker.isBlocked(sessionUser)) {
             session.invalidate();
-            response.setContentType("text/html; charset=utf-8");
-            response.getWriter().println(Script.href("/login-form", SESSION_BLOCKED_MESSAGE));
+            writeScriptResponse(response, Script.href("/login-form", SESSION_BLOCKED_MESSAGE));
             return false;
         }
 
         if (sessionUser == null || !sessionUser.isAdmin()) {
-            response.setContentType("text/html; charset=utf-8");
-            response.getWriter().println("<script>alert('관리자 권한이 필요합니다'); location.href='/';</script>");
+            writeScriptResponse(response, Script.href("/", "관리자 권한이 필요합니다"));
             return false;
         }
 
         return true;
+    }
+
+    private void writeScriptResponse(HttpServletResponse response, String script) throws Exception {
+        response.setContentType("text/html; charset=utf-8");
+        response.getWriter().println(script);
     }
 }

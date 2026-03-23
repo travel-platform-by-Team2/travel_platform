@@ -26,12 +26,16 @@
 
 - 페이지용 `@Controller`와 JSON용 `@RestController`를 분리하는 현재 구조를 유지한다.
 - 공통 예외, 필터, 응답 포맷은 `_core`에 두고 도메인 패키지에 중복시키지 않는다.
+- 공통 검증 어노테이션과 validator는 `_core/validation`에 두고, 도메인 request DTO에서 재사용한다.
 - `/admin`, `/admin/*` 접근 제어는 컨트롤러 안에서 중복 구현하지 말고 `_core/interceptor`의 관리자 인터셉터를 기준으로 맞춘다.
-- 일부 API와 서비스에는 `userId=1` 고정이나 TODO 구현이 남아 있으므로 인증/영속성 변경 시 영향 범위를 함께 확인한다.
+- 외부 연동 fallback, TODO 구현, 수동 QA 전제 기능은 각 도메인 `AI-CONTEXT.md`를 먼저 확인하고 수정한다.
+- 공통 head/script partial은 `src/main/resources/templates/partials/head-assets.mustache`, `chatbot-assets.mustache`, `scripts.mustache` 기준으로 유지하고, 페이지 전용 JS/CSS를 다시 전역 partial로 밀어넣지 않는다.
+- 현재 페이지 전용 JS는 `main-index.mustache -> /js/main-index.js`, `calendar.mustache -> /js/calendar-add-event.js`, `map-detail.mustache -> /js/map-detail.js`, `trip-add-place.mustache -> /js/trip-add-place.js`처럼 각 화면이 직접 로드한다.
 
 ## 테스트
 
 - PowerShell에서는 `./gradlew.bat test`로 전체 회귀 테스트를 실행한다.
+- 공통 템플릿/정적 자산 계약은 `StaticScriptContractTest`, `StaticStyleContractTest`, 각 도메인 `*TemplateContractTest`로 고정한다.
 
 ## 의존성
 
