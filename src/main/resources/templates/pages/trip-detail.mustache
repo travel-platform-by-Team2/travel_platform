@@ -60,10 +60,6 @@
 <p>{{#model}}{{travelPeriodLabel}}{{/model}}{{^model}}2023-10-15 - 2023-10-18 (3박 4일){{/model}}</p>
 </div>
 </div>
-<button class="trip-plan-detail-button-01">
-<span class="icon-ms-18">edit</span>
-<span>수정</span>
-</button>
 </div>
 <div class="trip-plan-detail-div-07">
 <h3 class="text-main-sm-bold">누구와 함께하나요?</h3>
@@ -172,14 +168,6 @@
 </div>
 <div class="trip-plan-detail-div-17">
 <h2 class="trip-plan-detail-h2-02">상세 일정</h2>
-<div class="calendar-add-event-div-06">
-<button class="text-muted-hover-primary">
-<span class="icon-ms-base">filter_list</span>
-</button>
-<button class="text-muted-hover-primary">
-<span class="icon-ms-base">map</span>
-</button>
-</div>
 </div>
 <div class="trip-plan-detail-div-18">
 {{#model.days}}
@@ -196,9 +184,9 @@
 <div class="timeline-card">
 <div class="trip-plan-detail-div-21">
 <div class="thumb-lg-optional">
-<img alt="{{placeName}}" class="media-cover" src="{{imgUrl}}">
-</div>
-<div class="flex-fill">
+  <img alt="{{placeName}}" class="media-cover" src="{{imgUrl}}" 
+       onerror="this.onerror=null; this.src='{{#isHotel}}/images/hotel.png{{/isHotel}}{{^isHotel}}/images/place.png{{/isHotel}}';">
+</div><div class="flex-fill">
 <div class="row-between-center">
 <h4 class="text-main-lg-bold-mb1">{{placeName}}</h4>
 </div>

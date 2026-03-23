@@ -151,6 +151,7 @@ public class TripResponse {
         private Double longitude;
         private Integer dayOrder;
         private String imgUrl;
+        private boolean isHotel;
 
         public static PlaceItemDTO fromTripPlace(TripPlace tripPlace) {
             return PlaceItemDTO.builder()
@@ -161,6 +162,7 @@ public class TripResponse {
                     .longitude(tripPlace.getLongitude() == null ? null : tripPlace.getLongitude().doubleValue())
                     .dayOrder(tripPlace.getTripDay())
                     .imgUrl(resolveImageUrl(tripPlace.getImgUrl(), tripPlace.getPlaceType(), tripPlace.getPlaceName()))
+                    .isHotel("hotel".equals(tripPlace.getPlaceType()))
                     .build();
         }
     }
