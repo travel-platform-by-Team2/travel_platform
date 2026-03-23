@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.example.travel_platform._core.handler.ex.Exception401;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +23,7 @@ public class UserController {
     private static final String REDIRECT_LOGIN_FORM = "redirect:/login-form";
 
     private final UserService userService;
-    private final HttpSession session;
+    private final UserSessionManager userSessionManager;
 
     @Value("${KAKAO_JS_APP_KEY:}")
     private String kakaoJsAppKey;
@@ -41,14 +40,14 @@ public class UserController {
     }
 
     @GetMapping("/logout")
-    public String logout() {
-        clearSession();
+    public String logout(HttpServletRequest request) {
+        userSessionManager.signOut(request.getSession(false));
         return REDIRECT_HOME;
     }
 
     @PostMapping("/login")
-    public String login(UserRequest.LoginDTO reqDTO) {
-        signIn(userService.login(reqDTO));
+    public String login(UserRequest.LoginDTO reqDTO, HttpServletRequest request) {
+        userSessionManager.signIn(request, userService.login(reqDTO));
         return REDIRECT_HOME;
     }
 
@@ -66,7 +65,7 @@ public class UserController {
                 reqDTO.getNickname(),
                 provider,
                 reqDTO.getProviderId());
-        renewSession(request, sessionUser);
+        userSessionManager.signIn(request, sessionUser);
         return REDIRECT_HOME;
     }
 
@@ -95,19 +94,5 @@ public class UserController {
                 kakaoJsAppKey,
                 naverClientId,
                 googleClientId);
-    }
-
-    private void signIn(SessionUser sessionUser) {
-        SessionUsers.save(session, sessionUser);
-    }
-
-    private void clearSession() {
-        session.invalidate();
-    }
-
-    private void renewSession(HttpServletRequest request, SessionUser sessionUser) {
-        clearSession();
-        HttpSession newSession = request.getSession(true);
-        SessionUsers.save(newSession, sessionUser);
     }
 }

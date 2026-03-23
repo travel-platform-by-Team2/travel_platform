@@ -108,4 +108,19 @@ public class TripPlanQueryRepository {
                 .setParameter("today", today)
                 .getSingleResult();
     }
+
+    public Optional<TripPlan> findByDates(Integer userId, LocalDate startDate, LocalDate endDate) {
+        return em.createQuery("""
+                select tp
+                from TripPlan tp
+                where tp.user.id = :userId
+                  and tp.startDate = :startDate
+                  and tp.endDate = :endDate
+                """, TripPlan.class)
+                .setParameter("userId", userId)
+                .setParameter("startDate", startDate)
+                .setParameter("endDate", endDate)
+                .getResultStream()
+                .findFirst();
+    }
 }

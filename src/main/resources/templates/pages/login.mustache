@@ -134,6 +134,8 @@
     console.log('----------------------------');
 
     document.addEventListener('DOMContentLoaded', function() {
+      handleForcedLogoutAlert();
+
       console.log('DOM Content Loaded. Origin:', window.location.origin);
       
       // 1. 카카오 초기화
@@ -211,6 +213,21 @@
         });
       }
     });
+
+    function handleForcedLogoutAlert() {
+      const currentUrl = new URL(window.location.href);
+      const forcedLogout = currentUrl.searchParams.get('forcedLogout');
+
+      if (forcedLogout !== 'concurrent') {
+        return;
+      }
+
+      alert('다른 기기에서 로그인되어 로그아웃되었습니다.');
+      currentUrl.searchParams.delete('forcedLogout');
+      const nextSearch = currentUrl.searchParams.toString();
+      const nextUrl = currentUrl.pathname + (nextSearch ? `?${nextSearch}` : '');
+      window.history.replaceState({}, document.title, nextUrl);
+    }
 
     /* ===== 카카오 로그인 호출 ===== */
     function loginWithKakao(event) {
