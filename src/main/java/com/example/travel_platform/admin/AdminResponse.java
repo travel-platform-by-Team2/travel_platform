@@ -3,6 +3,8 @@ package com.example.travel_platform.admin;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.travel_platform.board.BoardSort;
+
 import lombok.Data;
 
 public class AdminResponse {
@@ -16,6 +18,10 @@ public class AdminResponse {
             return " is-active";
         }
         return "";
+    }
+
+    private static boolean isBoardSort(BoardSort sort, BoardSort target) {
+        return sort == target;
     }
 
     @Data
@@ -301,12 +307,19 @@ public class AdminResponse {
         private String category;
         private String keyword;
         private String sort;
+        private String sortLabel;
         private String sortFieldLabel;
         private String sortDirectionLabel;
         private String toggleDirectionSort;
         private String dateField;
         private String viewField;
         private String likesField;
+        private boolean isSortLikes;
+        private boolean isSortDownlikes;
+        private boolean isSortViews;
+        private boolean isSortDownviews;
+        private boolean isSortLatest;
+        private boolean isSortDate;
         private String allCategory;
         private boolean allCategoryTab;
         private String selectCategory;
@@ -344,6 +357,7 @@ public class AdminResponse {
                 boolean isFood,
                 boolean isReview,
                 boolean isQna) {
+            BoardSort boardSort = BoardSort.fromCodeOrDefault(sort);
             BoardListPageDTO dto = new BoardListPageDTO();
             dto.setPageItems(pageItems);
             dto.setCurrentPage(currentPage);
@@ -354,13 +368,20 @@ public class AdminResponse {
             dto.setNextPage(nextPage);
             dto.setCategory(category);
             dto.setKeyword(keyword);
-            dto.setSort(sort);
+            dto.setSort(boardSort.getCode());
+            dto.setSortLabel(boardSort.getLabel());
             dto.setSortFieldLabel(sortFieldLabel);
             dto.setSortDirectionLabel(sortDirectionLabel);
             dto.setToggleDirectionSort(toggleDirectionSort);
             dto.setDateField(dateField);
             dto.setViewField(viewField);
             dto.setLikesField(likesField);
+            dto.setSortLikes(isBoardSort(boardSort, BoardSort.LIKES));
+            dto.setSortDownlikes(isBoardSort(boardSort, BoardSort.DOWNLIKES));
+            dto.setSortViews(isBoardSort(boardSort, BoardSort.VIEW));
+            dto.setSortDownviews(isBoardSort(boardSort, BoardSort.DOWNVIEW));
+            dto.setSortLatest(isBoardSort(boardSort, BoardSort.LATEST));
+            dto.setSortDate(isBoardSort(boardSort, BoardSort.DATE));
             dto.setAllCategory(allCategory);
             dto.setAllCategoryTab(allCategoryTab);
             dto.setSelectCategory(selectCategory);
