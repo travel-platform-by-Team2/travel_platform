@@ -23,7 +23,8 @@
     saveUrl: pageRoot.dataset.saveUrl || "",
     detailUrl: pageRoot.dataset.detailUrl || "/trip",
     existingCount: parseInt(pageRoot.dataset.existingCount || "0", 10) || 0,
-    currentDay: 1
+    currentDay: 1,
+    imageCache: {} // 이미지 캐시 초기화
   };
 
   function initDayTabs() {
@@ -65,12 +66,19 @@
 
   function normalizePlace(p, categoryCode) {
     var type = (categoryCode === "AD5" || p.category_group_code === "AD5") ? "hotel" : "attraction";
+    var name = p.place_name;
+    var placeUrl = p.place_url || "";
+    var cacheKey = placeUrl + "|" + normalizeNameKey(name);
+    
+    // 이미 캐시된 이미지가 있다면 즉시 사용 (깜빡임 방지)
+    var cachedImg = (state.imageCache && state.imageCache[cacheKey]) || null;
+
     return {
       id: p.id,
-      name: p.place_name,
+      name: name,
       address: p.road_address_name || p.address_name,
       lat: parseFloat(p.y), lng: parseFloat(p.x),
-      type: type, placeUrl: p.place_url || "", imgUrl: p.image_url || null,
+      type: type, placeUrl: placeUrl, imgUrl: cachedImg || p.image_url || null,
       rating: (4.0 + (hashText(p.id) % 10) / 10).toFixed(1), // 일관된 랜덤 평점
       reviewCount: Math.floor((hashText(p.id) % 1000) + 10)
     };
@@ -129,16 +137,24 @@
         if (!item) return;
         
         var serverImage = await fetchPlaceImageFromServer(item);
-        if (serverImage) {
+        var fallbackImg = createFallbackImageDataUri(item); // 미리 정의된 hotel.png 또는 place.png
+
+        if (serverImage && serverImage.trim() !== "") {
           imgEl.src = serverImage;
-          item.imgUrl = serverImage; // 실제 이미지 URL을 데이터 객체에 업데이트
+          item.imgUrl = serverImage;
           
-          // 선택된 목록에 있는 이미지와 데이터도 업데이트
           var selectedItem = state.selectedPlaces.find(function(v) { return String(v.id) === String(id); });
           if (selectedItem) selectedItem.imgUrl = serverImage;
 
           var selectedImg = document.querySelector("#selected-img-" + id);
           if (selectedImg) selectedImg.src = serverImage;
+        } else {
+          // 서버에서 이미지를 못 가져온 경우, 확실하게 기본 이미지로 세팅
+          imgEl.src = fallbackImg;
+          item.imgUrl = fallbackImg;
+          
+          var selectedImg = document.querySelector("#selected-img-" + id);
+          if (selectedImg) selectedImg.src = fallbackImg;
         }
       })
     );
@@ -157,11 +173,15 @@
       var selected = isSelected(item.id);
       var typeLabel = item.type === "hotel" ? "숙소" : "명소";
       var fallbackImg = createFallbackImageDataUri(item);
+      var imageUrl = item.imgUrl || fallbackImg;
       
       return '' +
         '<div class="place-option-card" id="place-card-' + item.id + '" style="display:flex; gap:1rem; padding:1rem; border:1px solid #e2e8f0; border-radius:1rem; background:#fff; margin-bottom:1rem; position:relative;">' +
         '  <div style="width:80px; height:80px; flex-shrink:0; overflow:hidden; border-radius:0.75rem;">' +
-        '    <img src="' + fallbackImg + '" data-place-image data-id="' + item.id + '" style="width:100%; height:100%; object-fit:cover;"/>' +
+        '    <img src="' + imageUrl + '" ' +
+        '         onerror="this.onerror=null; this.src=\'' + fallbackImg + '\';" ' +
+        '         data-place-image data-id="' + item.id + '" ' +
+        '         style="width:100%; height:100%; object-fit:cover;"/>' +
         '  </div>' +
         '  <div style="flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center;">' +
         '    <div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
@@ -204,7 +224,9 @@
       return '' +
         '<div class="selected-item-card">' +
         '  <div style="position:relative;">' +
-        '    <img src="' + cachedImg + '" id="selected-img-' + item.id + '" alt="Selected"/>' +
+        '    <img src="' + cachedImg + '" ' +
+        '         onerror="this.onerror=null; this.src=\'' + fallbackImg + '\';" ' +
+        '         id="selected-img-' + item.id + '" alt="Selected"/>' +
         '    <button class="remove-btn" data-action="remove-place" data-id="' + item.id + '">✕</button>' +
         '  </div>' +
         '  <span class="item-name">' + item.name + '</span>' +

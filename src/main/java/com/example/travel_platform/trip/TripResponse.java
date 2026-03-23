@@ -33,7 +33,7 @@ public class TripResponse {
             return SummaryDTO.builder()
                     .id(tripPlan.getId())
                     .title(tripPlan.getTitle())
-                    .imgUrl(resolveImageUrl(tripPlan.getImgUrl(), null))
+                    .imgUrl(resolveImageUrl(tripPlan.getImgUrl(), null, null))
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
@@ -160,7 +160,7 @@ public class TripResponse {
                     .latitude(tripPlace.getLatitude() == null ? null : tripPlace.getLatitude().doubleValue())
                     .longitude(tripPlace.getLongitude() == null ? null : tripPlace.getLongitude().doubleValue())
                     .dayOrder(tripPlace.getTripDay())
-                    .imgUrl(resolveImageUrl(tripPlace.getImgUrl(), tripPlace.getPlaceType()))
+                    .imgUrl(resolveImageUrl(tripPlace.getImgUrl(), tripPlace.getPlaceType(), tripPlace.getPlaceName()))
                     .build();
         }
     }
@@ -400,17 +400,28 @@ public class TripResponse {
         return value == null ? "" : value;
     }
 
-    private static String resolveImageUrl(String imageUrl, String type) {
+    private static String resolveImageUrl(String imageUrl, String type, String placeName) {
         if (imageUrl == null || imageUrl.isBlank() || imageUrl.startsWith("data:")) {
+            // 1. 타입을 우선 확인 (상세 페이지의 장소들)
             if ("hotel".equals(type)) {
                 return "/images/hotel.png";
             }
             if ("attraction".equals(type)) {
                 return "/images/place.png";
             }
+
+            // 2. 타입이 없는 경우(기존 데이터) 이름을 기반으로 판단
+            if (placeName != null) {
+                String name = placeName.toLowerCase();
+                if (name.contains("호텔") || name.contains("펜션") || name.contains("민박") || 
+                    name.contains("리조트") || name.contains("게스트하우스") || name.contains("숙소")) {
+                    return "/images/hotel.png";
+                }
+            }
+
+            // 3. 기본값은 기존 더미 이미지 (trip-list 등 유형이 없는 경우)
             return "/images/dumimg.jpg";
         }
         return imageUrl;
     }
-
 }
