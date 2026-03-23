@@ -26,10 +26,26 @@ public class MypageService {
     private final MypageQueryRepository mypageQueryRepository;
 
     public MypageResponse.MainPageDTO getMainPage(Integer sessionUserId) {
+        return createMainPage(sessionUserId, MainPageState.DEFAULT, null);
+    }
+
+    public MypageResponse.MainPageDTO getPasswordSuccessMainPage(Integer sessionUserId, String message) {
+        return createMainPage(sessionUserId, MainPageState.PASSWORD_SUCCESS, message);
+    }
+
+    public MypageResponse.MainPageDTO getPasswordFailureMainPage(Integer sessionUserId, String errorMessage) {
+        return createMainPage(sessionUserId, MainPageState.PASSWORD_FAILURE, errorMessage);
+    }
+
+    public MypageResponse.MainPageDTO getWithdrawFailureMainPage(Integer sessionUserId, String errorMessage) {
+        return createMainPage(sessionUserId, MainPageState.WITHDRAW_FAILURE, errorMessage);
+    }
+
+    private MypageResponse.MainPageDTO createMainPage(Integer sessionUserId, MainPageState state, String message) {
         User user = findUser(sessionUserId);
         List<MypageResponse.BookingSummaryCardDTO> bookings = loadUpcomingBookings(sessionUserId);
         List<MypageResponse.TripPlanSummaryCardDTO> tripPlans = loadUpcomingTripPlans(sessionUserId);
-        return createMainPage(user, bookings, tripPlans);
+        return createMainPage(user, bookings, tripPlans, state, message);
     }
 
     public MypageResponse.BookingListViewDTO getBookingListView(Integer sessionUserId, String categoryCode) {
@@ -94,11 +110,34 @@ public class MypageService {
     private MypageResponse.MainPageDTO createMainPage(
             User user,
             List<MypageResponse.BookingSummaryCardDTO> bookings,
-            List<MypageResponse.TripPlanSummaryCardDTO> tripPlans) {
-        return MypageResponse.MainPageDTO.createMainPage(
-                MypageResponse.ProfileViewDTO.fromUserEntity(user),
-                MypageResponse.BookingSummarySectionDTO.createBookingSection(bookings),
-                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(tripPlans));
+            List<MypageResponse.TripPlanSummaryCardDTO> tripPlans,
+            MainPageState state,
+            String message) {
+        MypageResponse.ProfileViewDTO profile = MypageResponse.ProfileViewDTO.fromUserEntity(user);
+        MypageResponse.BookingSummarySectionDTO bookingSection = MypageResponse.BookingSummarySectionDTO.createBookingSection(bookings);
+        MypageResponse.TripPlanSummarySectionDTO tripPlanSection = MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(tripPlans);
+
+        return switch (state) {
+            case PASSWORD_SUCCESS -> MypageResponse.MainPageDTO.createPasswordSuccessPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    message);
+            case PASSWORD_FAILURE -> MypageResponse.MainPageDTO.createPasswordFailurePage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    message);
+            case WITHDRAW_FAILURE -> MypageResponse.MainPageDTO.createWithdrawFailurePage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    message);
+            case DEFAULT -> MypageResponse.MainPageDTO.createMainPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection);
+        };
     }
 
     private MypageResponse.BookingSummaryCardDTO createBookingSummaryCard(BookingSummaryRow row) {
@@ -139,5 +178,12 @@ public class MypageService {
             return "";
         }
         return value;
+    }
+
+    private enum MainPageState {
+        DEFAULT,
+        PASSWORD_SUCCESS,
+        PASSWORD_FAILURE,
+        WITHDRAW_FAILURE
     }
 }

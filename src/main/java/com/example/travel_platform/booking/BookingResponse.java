@@ -249,6 +249,17 @@ public class BookingResponse {
                     .allImages(allImages == null ? List.of() : allImages)
                     .build();
         }
+
+        public RoomDTO withAllImages(List<String> allImages) {
+            return RoomDTO.builder()
+                    .name(defaultText(name, "기본 객실"))
+                    .content(normalize(content))
+                    .baseCount(normalize(baseCount))
+                    .maxCount(normalize(maxCount))
+                    .imageUrl(normalize(imageUrl))
+                    .allImages(allImages == null ? List.of() : allImages)
+                    .build();
+        }
     }
 
     @Data
@@ -269,9 +280,16 @@ public class BookingResponse {
     @Builder
     public static class MergeMapPoisResponseDTO {
         private List<MapPoiDTO> items;
+
+        public static MergeMapPoisResponseDTO createMergeMapPoisResponse(List<MapPoiDTO> items) {
+            return MergeMapPoisResponseDTO.builder()
+                    .items(items == null ? List.of() : items)
+                    .build();
+        }
     }
 
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MapPoiDTO {
@@ -287,6 +305,60 @@ public class BookingResponse {
         private Double lng;
         private String type;
         private String source;
+
+        public static MapPoiDTO createMapPoi(
+                String externalPlaceId,
+                String name,
+                String phone,
+                String address,
+                String roadAddress,
+                String placeUrl,
+                String categoryName,
+                String categoryGroupCode,
+                Double lat,
+                Double lng,
+                String type,
+                String source) {
+            return MapPoiDTO.builder()
+                    .externalPlaceId(normalize(externalPlaceId))
+                    .name(normalize(name))
+                    .phone(normalize(phone))
+                    .address(normalize(address))
+                    .roadAddress(normalize(roadAddress))
+                    .placeUrl(normalize(placeUrl))
+                    .categoryName(normalize(categoryName))
+                    .categoryGroupCode(normalize(categoryGroupCode))
+                    .lat(lat)
+                    .lng(lng)
+                    .type(normalize(type))
+                    .source(normalize(source))
+                    .build();
+        }
+
+        public static MapPoiDTO createNormalizedMapPoi(MapPoiDTO item, String defaultSource) {
+            if (item == null || !isValidCoordinate(item.getLat()) || !isValidCoordinate(item.getLng())) {
+                return null;
+            }
+
+            String normalizedType = normalize(item.getType());
+            if (normalizedType.isBlank()) {
+                normalizedType = "AD5".equalsIgnoreCase(item.getCategoryGroupCode()) ? "hotel" : "attraction";
+            }
+
+            return createMapPoi(
+                    blankToDefault(item.getExternalPlaceId(), ""),
+                    defaultText(item.getName(), "숙소"),
+                    blankToDefault(item.getPhone(), ""),
+                    blankToDefault(item.getAddress(), ""),
+                    blankToDefault(item.getRoadAddress(), ""),
+                    blankToDefault(item.getPlaceUrl(), ""),
+                    blankToDefault(item.getCategoryName(), ""),
+                    blankToDefault(item.getCategoryGroupCode(), ""),
+                    item.getLat(),
+                    item.getLng(),
+                    normalizedType,
+                    blankToDefault(item.getSource(), defaultSource));
+        }
     }
 
     private static String normalize(String value) {
@@ -301,6 +373,17 @@ public class BookingResponse {
             return defaultValue;
         }
         return value;
+    }
+
+    private static String blankToDefault(String value, String defaultValue) {
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    private static boolean isValidCoordinate(Double value) {
+        return value != null && Double.isFinite(value);
     }
 
     private static int calculateTotalPrice(Integer pricePerNight, Integer taxAndServiceFee) {

@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.handler.ex.Exception403;
@@ -136,7 +137,10 @@ public class AdminService {
                 Boolean.TRUE.equals(active),
                 Boolean.FALSE.equals(active),
                 normalizedSortBy,
-                normalizedOrderBy);
+                normalizedOrderBy,
+                buildUsersUrl(null, normalizedKeyword, normalizedSortBy, normalizedOrderBy),
+                buildUsersUrl(true, normalizedKeyword, normalizedSortBy, normalizedOrderBy),
+                buildUsersUrl(false, normalizedKeyword, normalizedSortBy, normalizedOrderBy));
     }
 
     private List<AdminUserSummaryRow> findUsersByFilter(Boolean active, String keyword) {
@@ -554,5 +558,22 @@ public class AdminService {
 
     private boolean isCategory(String category, String targetCategory) {
         return targetCategory.equals(category);
+    }
+
+    private String buildUsersUrl(Boolean active, String keyword, String sortBy, String orderBy) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/admin/users");
+        if (active != null) {
+            builder.queryParam("active", active);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.queryParam("keyword", keyword.trim());
+        }
+        if (sortBy != null && !sortBy.isBlank()) {
+            builder.queryParam("sortBy", sortBy);
+        }
+        if (orderBy != null && !orderBy.isBlank()) {
+            builder.queryParam("orderBy", orderBy);
+        }
+        return builder.toUriString();
     }
 }

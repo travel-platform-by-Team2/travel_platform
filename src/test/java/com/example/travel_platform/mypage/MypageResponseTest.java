@@ -32,56 +32,56 @@ class MypageResponseTest {
         assertFalse(page.getTripPlanSection().isHasItems());
         assertFalse(page.isPasswordModalOpen());
         assertFalse(page.isWithdrawModalOpen());
+        assertEquals("", page.getPasswordError());
+        assertEquals("", page.getWithdrawError());
+        assertEquals("", page.getPasswordSuccessMessage());
     }
 
     @Test
     void pwd() {
-        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createMainPage(
+        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createPasswordFailurePage(
                 MypageResponse.ProfileViewDTO.builder().build(),
                 MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
-                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()));
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()),
+                "wrong password");
 
-        page.openPasswordModal("현재 비밀번호가 일치하지 않습니다.");
-
-        assertEquals("현재 비밀번호가 일치하지 않습니다.", page.getPasswordError());
+        assertEquals("wrong password", page.getPasswordError());
         assertTrue(page.isPasswordModalOpen());
-        assertEquals(null, page.getWithdrawError());
+        assertEquals("", page.getWithdrawError());
         assertFalse(page.isWithdrawModalOpen());
     }
 
     @Test
     void wd() {
-        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createMainPage(
+        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createWithdrawFailurePage(
                 MypageResponse.ProfileViewDTO.builder().build(),
                 MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
-                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()));
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()),
+                "withdraw blocked");
 
-        page.openWithdrawModal("관리자 계정은 탈퇴할 수 없습니다.");
-
-        assertEquals("관리자 계정은 탈퇴할 수 없습니다.", page.getWithdrawError());
+        assertEquals("withdraw blocked", page.getWithdrawError());
         assertTrue(page.isWithdrawModalOpen());
-        assertEquals(null, page.getPasswordError());
+        assertEquals("", page.getPasswordError());
         assertFalse(page.isPasswordModalOpen());
     }
 
     @Test
     void ok() {
-        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createMainPage(
+        MypageResponse.MainPageDTO page = MypageResponse.MainPageDTO.createPasswordSuccessPage(
                 MypageResponse.ProfileViewDTO.builder().build(),
                 MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
-                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()));
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()),
+                "password changed");
 
-        page.withPasswordSuccess("비밀번호가 변경되었습니다.");
-
-        assertEquals("비밀번호가 변경되었습니다.", page.getPasswordSuccessMessage());
+        assertEquals("password changed", page.getPasswordSuccessMessage());
     }
 
     @Test
     void listView() {
         BookingResponse.BookingSummaryDTO booking = BookingResponse.BookingSummaryDTO.builder()
                 .id(21)
-                .lodgingName("제주 오션뷰 호텔")
-                .location("제주 제주시")
+                .lodgingName("Ocean View Hotel")
+                .location("Jeju")
                 .imageUrl("https://example.com/image.jpg")
                 .checkIn(LocalDate.of(2026, 4, 10))
                 .checkOut(LocalDate.of(2026, 4, 12))
@@ -111,9 +111,9 @@ class MypageResponseTest {
                 BookingResponse.BookingDetailDTO.builder()
                         .id(21)
                         .tripPlanId(7)
-                        .lodgingName("제주 오션뷰 호텔")
-                        .roomName("오션뷰 스탠다드")
-                        .location("제주")
+                        .lodgingName("Ocean View Hotel")
+                        .roomName("Standard")
+                        .location("Jeju")
                         .imageUrl("https://example.com/image.jpg")
                         .checkIn(LocalDate.of(2026, 4, 10))
                         .checkOut(LocalDate.of(2026, 4, 12))

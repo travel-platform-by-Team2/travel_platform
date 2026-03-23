@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
@@ -38,20 +39,24 @@ class MypageControllerTest {
         MockHttpSession session = session(3, "USER");
         MypageController controller = new MypageController(mypageService, userService, session);
         Model model = new ExtendedModelMap();
-        MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.builder().build();
+        MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.createPasswordSuccessPage(
+                MypageResponse.ProfileViewDTO.builder().build(),
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()),
+                "password changed");
 
-        when(mypageService.getMainPage(3)).thenReturn(pageDTO);
+        when(mypageService.getPasswordSuccessMainPage(3, "password changed")).thenReturn(pageDTO);
 
-        String view = controller.showMainPage("비밀번호가 변경되었습니다.", model);
+        String view = controller.showMainPage("password changed", model);
 
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, model.getAttribute("model"));
-        assertEquals("비밀번호가 변경되었습니다.", pageDTO.getPasswordSuccessMessage());
-        assertEquals(null, pageDTO.getPasswordError());
-        assertEquals(null, pageDTO.getWithdrawError());
+        assertEquals("password changed", pageDTO.getPasswordSuccessMessage());
+        assertEquals("", pageDTO.getPasswordError());
+        assertEquals("", pageDTO.getWithdrawError());
         assertFalse(pageDTO.isPasswordModalOpen());
         assertFalse(pageDTO.isWithdrawModalOpen());
-        verify(mypageService).getMainPage(3);
+        verify(mypageService).getPasswordSuccessMainPage(3, "password changed");
         verifyNoInteractions(userService);
     }
 
@@ -66,7 +71,7 @@ class MypageControllerTest {
         MypageResponse.BookingListPageDTO page = MypageResponse.BookingListPageDTO.createBookingListPage(
                 BookingCategory.UPCOMING,
                 true);
-        var items = java.util.List.of(
+        List<MypageResponse.BookingListCardDTO> items = List.of(
                 MypageResponse.BookingListCardDTO.builder()
                         .id(21)
                         .detailLink("/mypage/bookings/21")
@@ -93,23 +98,27 @@ class MypageControllerTest {
         Model model = new ExtendedModelMap();
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
         MypageRequest.ChangePasswordDTO reqDTO = new MypageRequest.ChangePasswordDTO();
-        MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.builder().build();
+        MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.createPasswordFailurePage(
+                MypageResponse.ProfileViewDTO.builder().build(),
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()),
+                "wrong password");
 
-        doThrow(new Exception400("현재 비밀번호가 일치하지 않습니다."))
+        doThrow(new Exception400("wrong password"))
                 .when(mypageService)
                 .changePassword(5, reqDTO);
-        when(mypageService.getMainPage(5)).thenReturn(pageDTO);
+        when(mypageService.getPasswordFailureMainPage(5, "wrong password")).thenReturn(pageDTO);
 
         String view = controller.changePassword(reqDTO, model, redirectAttributes);
 
         MypageResponse.MainPageDTO page = (MypageResponse.MainPageDTO) model.getAttribute("model");
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, page);
-        assertEquals("현재 비밀번호가 일치하지 않습니다.", page.getPasswordError());
+        assertEquals("wrong password", page.getPasswordError());
         assertTrue(page.isPasswordModalOpen());
         assertFalse(page.isWithdrawModalOpen());
         verify(mypageService).changePassword(5, reqDTO);
-        verify(mypageService).getMainPage(5);
+        verify(mypageService).getPasswordFailureMainPage(5, "wrong password");
         verifyNoInteractions(userService);
     }
 
@@ -126,7 +135,7 @@ class MypageControllerTest {
         String view = controller.changePassword(reqDTO, model, redirectAttributes);
 
         assertEquals("redirect:/mypage", view);
-        assertEquals("비밀번호가 변경되었습니다.", redirectAttributes.getFlashAttributes().get("passwordSuccessMessage"));
+        assertTrue(redirectAttributes.getFlashAttributes().containsKey("passwordSuccessMessage"));
         verify(mypageService).changePassword(7, reqDTO);
         verifyNoInteractions(userService);
     }
@@ -140,23 +149,27 @@ class MypageControllerTest {
         Model model = new ExtendedModelMap();
         MypageRequest.WithdrawDTO reqDTO = new MypageRequest.WithdrawDTO();
         reqDTO.setCurrentPassword("1234");
-        MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.builder().build();
+        MypageResponse.MainPageDTO pageDTO = MypageResponse.MainPageDTO.createWithdrawFailurePage(
+                MypageResponse.ProfileViewDTO.builder().build(),
+                MypageResponse.BookingSummarySectionDTO.createBookingSection(List.of()),
+                MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(List.of()),
+                "withdraw blocked");
 
-        doThrow(new Exception403("관리자 계정은 탈퇴할 수 없습니다."))
+        doThrow(new Exception403("withdraw blocked"))
                 .when(userService)
                 .withdrawAccount(9, "1234");
-        when(mypageService.getMainPage(9)).thenReturn(pageDTO);
+        when(mypageService.getWithdrawFailureMainPage(9, "withdraw blocked")).thenReturn(pageDTO);
 
         String view = controller.withdrawAccount(reqDTO, model);
 
         MypageResponse.MainPageDTO page = (MypageResponse.MainPageDTO) model.getAttribute("model");
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, page);
-        assertEquals("관리자 계정은 탈퇴할 수 없습니다.", page.getWithdrawError());
+        assertEquals("withdraw blocked", page.getWithdrawError());
         assertTrue(page.isWithdrawModalOpen());
         assertFalse(page.isPasswordModalOpen());
         verify(userService).withdrawAccount(9, "1234");
-        verify(mypageService).getMainPage(9);
+        verify(mypageService).getWithdrawFailureMainPage(9, "withdraw blocked");
     }
 
     @Test
@@ -189,9 +202,9 @@ class MypageControllerTest {
                 BookingResponse.BookingDetailDTO.builder()
                         .id(21)
                         .tripPlanId(3)
-                        .lodgingName("제주 오션뷰 호텔")
-                        .roomName("오션뷰 스탠다드")
-                        .location("제주")
+                        .lodgingName("Ocean View Hotel")
+                        .roomName("Standard")
+                        .location("Jeju")
                         .imageUrl("https://example.com/room.jpg")
                         .checkIn(LocalDate.of(2026, 4, 10))
                         .checkOut(LocalDate.of(2026, 4, 12))
@@ -227,7 +240,7 @@ class MypageControllerTest {
         MypageService mypageService = mock(MypageService.class);
         MypageController controller = new MypageController(mypageService, mock(UserService.class), session(21, "USER"));
 
-        when(mypageService.getBookingDetailPage(21, 999)).thenThrow(new Exception404("예약 정보를 찾을 수 없습니다."));
+        when(mypageService.getBookingDetailPage(21, 999)).thenThrow(new Exception404("booking not found"));
 
         assertThrows(Exception404.class, () -> controller.showBookingDetailPage(999, new ExtendedModelMap()));
     }

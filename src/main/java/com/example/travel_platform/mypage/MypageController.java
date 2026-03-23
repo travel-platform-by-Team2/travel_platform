@@ -94,15 +94,18 @@ public class MypageController {
     }
 
     private String renderMainPage(Model model, Integer sessionUserId, String passwordSuccessMessage) {
-        return renderMainPage(model, mypageService.getMainPage(sessionUserId).withPasswordSuccess(passwordSuccessMessage));
+        if (passwordSuccessMessage == null || passwordSuccessMessage.isBlank()) {
+            return renderMainPage(model, mypageService.getMainPage(sessionUserId));
+        }
+        return renderMainPage(model, mypageService.getPasswordSuccessMainPage(sessionUserId, passwordSuccessMessage));
     }
 
     private String renderPasswordFailure(Model model, Integer sessionUserId, String errorMessage) {
-        return renderMainPage(model, mypageService.getMainPage(sessionUserId).openPasswordModal(errorMessage));
+        return renderMainPage(model, mypageService.getPasswordFailureMainPage(sessionUserId, errorMessage));
     }
 
     private String renderWithdrawFailure(Model model, Integer sessionUserId, String errorMessage) {
-        return renderMainPage(model, mypageService.getMainPage(sessionUserId).openWithdrawModal(errorMessage));
+        return renderMainPage(model, mypageService.getWithdrawFailureMainPage(sessionUserId, errorMessage));
     }
 
     private String renderMainPage(Model model, MypageResponse.MainPageDTO page) {
