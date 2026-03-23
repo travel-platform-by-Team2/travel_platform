@@ -72,6 +72,12 @@ public class BoardResponse {
         private String keyword;
         private String sort;
         private String sortLabel;
+        private String sortLatestLabel;
+        private String sortDateLabel;
+        private String sortViewsLabel;
+        private String sortDownviewsLabel;
+        private String sortLikesLabel;
+        private String sortDownlikesLabel;
         private boolean isSortLikes;
         private boolean isSortDownlikes;
         private boolean isSortViews;
@@ -112,6 +118,12 @@ public class BoardResponse {
                     .keyword(keyword)
                     .sort(sort)
                     .sortLabel(toSortLabel(sort))
+                    .sortLatestLabel(toSortLabel("latest"))
+                    .sortDateLabel(toSortLabel("date"))
+                    .sortViewsLabel(toSortLabel("view"))
+                    .sortDownviewsLabel(toSortLabel("downview"))
+                    .sortLikesLabel(toSortLabel("likes"))
+                    .sortDownlikesLabel(toSortLabel("downlikes"))
                     .isSortLikes(isSort(sort, "likes"))
                     .isSortDownlikes(isSort(sort, "downlikes"))
                     .isSortViews(isSort(sort, "view"))

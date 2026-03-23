@@ -18,6 +18,21 @@ public class AdminResponse {
         return "";
     }
 
+    private static String toBoardSortLabel(String sort) {
+        return switch (sort) {
+            case "date" -> "날짜 오래된 순";
+            case "view" -> "조회수 많은 순";
+            case "downview" -> "조회수 적은 순";
+            case "likes" -> "좋아요 많은 순";
+            case "downlikes" -> "좋아요 적은 순";
+            default -> "날짜 최신 순";
+        };
+    }
+
+    private static boolean isBoardSort(String sort, String target) {
+        return target.equals(sort);
+    }
+
     @Data
     public static class DashboardViewDTO {
         private long totalUserCount;
@@ -301,12 +316,19 @@ public class AdminResponse {
         private String category;
         private String keyword;
         private String sort;
+        private String sortLabel;
         private String sortFieldLabel;
         private String sortDirectionLabel;
         private String toggleDirectionSort;
         private String dateField;
         private String viewField;
         private String likesField;
+        private boolean isSortLikes;
+        private boolean isSortDownlikes;
+        private boolean isSortViews;
+        private boolean isSortDownviews;
+        private boolean isSortLatest;
+        private boolean isSortDate;
         private String allCategory;
         private boolean allCategoryTab;
         private String selectCategory;
@@ -355,12 +377,19 @@ public class AdminResponse {
             dto.setCategory(category);
             dto.setKeyword(keyword);
             dto.setSort(sort);
+            dto.setSortLabel(toBoardSortLabel(sort));
             dto.setSortFieldLabel(sortFieldLabel);
             dto.setSortDirectionLabel(sortDirectionLabel);
             dto.setToggleDirectionSort(toggleDirectionSort);
             dto.setDateField(dateField);
             dto.setViewField(viewField);
             dto.setLikesField(likesField);
+            dto.setSortLikes(isBoardSort(sort, "likes"));
+            dto.setSortDownlikes(isBoardSort(sort, "downlikes"));
+            dto.setSortViews(isBoardSort(sort, "view"));
+            dto.setSortDownviews(isBoardSort(sort, "downview"));
+            dto.setSortLatest(isBoardSort(sort, "latest"));
+            dto.setSortDate(isBoardSort(sort, "date"));
             dto.setAllCategory(allCategory);
             dto.setAllCategoryTab(allCategoryTab);
             dto.setSelectCategory(selectCategory);
