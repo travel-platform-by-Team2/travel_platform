@@ -22,7 +22,8 @@ public class AdminInterceptor implements HandlerInterceptor {
     private final UserSessionPolicyChecker userSessionPolicyChecker;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         HttpSession session = request.getSession();
         UserSessionPolicyChecker.SessionValidation validation = userSessionPolicyChecker.validate(session);
 
@@ -38,7 +39,7 @@ public class AdminInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        SessionUser sessionUser = validation.sessionUser();
+        SessionUser sessionUser = validation.getSessionUser();
         if (sessionUser == null || !sessionUser.isAdmin()) {
             writeScriptResponse(response, Script.href("/", "관리자 권한이 필요합니다"));
             return false;
