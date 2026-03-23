@@ -149,40 +149,9 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
     @Override
     public ChatbotLlmPlan createPlan(String userMessage, ChatbotRequest.ContextDTO context, String schemaContext) {
         try {
-            String raw = callOpenAi(
+            return parsePlanResponse(callOpenAi(
                     PLAN_SYSTEM_PROMPT,
-                    buildPlanUserPrompt(userMessage, context, schemaContext));
-
-            JsonObject plan = parseJsonObject(raw, "LLM 계획");
-            boolean needsDb = readBoolean(plan.get("needsDb"), false);
-
-            String queryIntent = readText(plan.get("queryIntent"));
-            if (queryIntent.isBlank()) {
-                queryIntent = FALLBACK_INTENT;
-            }
-
-            String querySummary = readText(plan.get("querySummary"));
-            if (querySummary.isBlank()) {
-                querySummary = FALLBACK_QUERY_SUMMARY;
-            }
-
-            String sql = readText(plan.get("sql"));
-            String answer = readText(plan.get("answer"));
-
-            // DB 분기인데 SQL이 비어 있으면 실행 자체가 불가능하므로 즉시 오류 처리
-            if (needsDb && sql.isBlank()) {
-                throw new ApiException(
-                        "CHATBOT_INTERNAL_ERROR",
-                        "LLM 계획에 SQL이 포함되지 않았습니다.",
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-            // 비DB 분기인데 answer가 비어 있으면 일반 답변 프롬프트로 재생성 시도
-            if (!needsDb && answer.isBlank()) {
-                answer = callOpenAi(GENERAL_ANSWER_SYSTEM_PROMPT, userMessage);
-            }
-
-            return new ChatbotLlmPlan(needsDb, queryIntent, querySummary, sql, answer);
+                    buildPlanUserPrompt(userMessage, context, schemaContext)), userMessage);
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -203,7 +172,8 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
             int maxSearchAttempts,
             String schemaContext) {
         try {
-            String raw = callOpenAi(
+            return parseSearchReviewResponse(
+                    callOpenAi(
                     SEARCH_REVIEW_SYSTEM_PROMPT,
                     buildSearchReviewUserPrompt(
                             userMessage,
@@ -211,33 +181,8 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
                             queryIntent,
                             searchAttempts,
                             maxSearchAttempts,
-                            schemaContext));
-
-            JsonObject review = parseJsonObject(raw, "LLM 탐색 재평가");
-            boolean shouldContinue = readBoolean(review.get("shouldContinue"), false);
-
-            String nextQueryIntent = readText(review.get("queryIntent"));
-            if (nextQueryIntent.isBlank()) {
-                nextQueryIntent = queryIntent == null || queryIntent.isBlank() ? FALLBACK_INTENT : queryIntent;
-            }
-
-            String querySummary = readText(review.get("querySummary"));
-            String sql = readText(review.get("sql"));
-            String decisionReason = readText(review.get("decisionReason"));
-
-            if (shouldContinue && sql.isBlank()) {
-                throw new ApiException(
-                        "CHATBOT_INTERNAL_ERROR",
-                        "LLM 탐색 재평가 결과에 SQL이 포함되지 않았습니다.",
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-            return new ChatbotLlmSearchReview(
-                    shouldContinue,
-                    nextQueryIntent,
-                    querySummary,
-                    sql,
-                    decisionReason);
+                            schemaContext)),
+                    queryIntent);
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -259,19 +204,9 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
             String queryIntent,
             List<ChatbotSearchAttempt> searchAttempts,
             boolean exhausted) {
-        String raw = callOpenAi(
+        return parseDbAnswerResponse(callOpenAi(
                 DB_ANSWER_SYSTEM_PROMPT,
-                buildDbAnswerUserPrompt(userMessage, queryIntent, searchAttempts, exhausted));
-        JsonObject parsed = parseJsonObject(raw, "LLM DB 답변");
-        String answer = readText(parsed.get("answer"));
-
-        if (answer.isBlank()) {
-            throw new ApiException(
-                    "CHATBOT_INTERNAL_ERROR",
-                    "LLM DB 답변 JSON에 answer 필드가 없습니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return answer;
+                buildDbAnswerUserPrompt(userMessage, queryIntent, searchAttempts, exhausted)));
     }
 
     /**
@@ -501,6 +436,62 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         return parsed.getAsJsonObject();
     }
 
+    private ChatbotLlmPlan parsePlanResponse(String rawText, String userMessage) {
+        JsonObject plan = parseJsonObject(rawText, "LLM 계획");
+        boolean needsDb = readBoolean(plan.get("needsDb"), false);
+        String queryIntent = toQueryIntent(readText(plan.get("queryIntent")));
+        String querySummary = toQuerySummary(readText(plan.get("querySummary")));
+        String sql = readText(plan.get("sql"));
+        String answer = readText(plan.get("answer"));
+
+        if (needsDb && sql.isBlank()) {
+            throw new ApiException(
+                    "CHATBOT_INTERNAL_ERROR",
+                    "LLM 계획에 SQL이 포함되지 않았습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (!needsDb && answer.isBlank()) {
+            answer = callOpenAi(GENERAL_ANSWER_SYSTEM_PROMPT, userMessage);
+        }
+
+        return new ChatbotLlmPlan(needsDb, queryIntent, querySummary, sql, answer);
+    }
+
+    private ChatbotLlmSearchReview parseSearchReviewResponse(String rawText, String currentQueryIntent) {
+        JsonObject review = parseJsonObject(rawText, "LLM 탐색 재평가");
+        boolean shouldContinue = readBoolean(review.get("shouldContinue"), false);
+        String nextQueryIntent = toQueryIntent(readText(review.get("queryIntent")), currentQueryIntent);
+        String querySummary = readText(review.get("querySummary"));
+        String sql = readText(review.get("sql"));
+        String decisionReason = readText(review.get("decisionReason"));
+
+        if (shouldContinue && sql.isBlank()) {
+            throw new ApiException(
+                    "CHATBOT_INTERNAL_ERROR",
+                    "LLM 탐색 재평가 결과에 SQL이 포함되지 않았습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ChatbotLlmSearchReview(
+                shouldContinue,
+                nextQueryIntent,
+                querySummary,
+                sql,
+                decisionReason);
+    }
+
+    private String parseDbAnswerResponse(String rawText) {
+        JsonObject parsed = parseJsonObject(rawText, "LLM DB 답변");
+        String answer = readText(parsed.get("answer"));
+        if (answer.isBlank()) {
+            throw new ApiException(
+                    "CHATBOT_INTERNAL_ERROR",
+                    "LLM DB 답변 JSON에 answer 필드가 없습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return answer;
+    }
+
     /**
      * markdown code fence를 제거한다.
      */
@@ -582,4 +573,26 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         }
         return node.getAsString();
     }
+
+    private String toQueryIntent(String queryIntent) {
+        if (queryIntent == null || queryIntent.isBlank()) {
+            return FALLBACK_INTENT;
+        }
+        return queryIntent;
+    }
+
+    private String toQueryIntent(String queryIntent, String currentQueryIntent) {
+        if (queryIntent == null || queryIntent.isBlank()) {
+            return toQueryIntent(currentQueryIntent);
+        }
+        return queryIntent;
+    }
+
+    private String toQuerySummary(String querySummary) {
+        if (querySummary == null || querySummary.isBlank()) {
+            return FALLBACK_QUERY_SUMMARY;
+        }
+        return querySummary;
+    }
 }
+

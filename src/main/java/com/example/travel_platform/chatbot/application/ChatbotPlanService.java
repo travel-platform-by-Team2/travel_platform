@@ -23,7 +23,7 @@ public class ChatbotPlanService {
 
     public ChatbotLlmPlan createPlan(String message, ChatbotRequest.ContextDTO context) {
         try {
-            return chatbotLlmClient.createPlan(message, context, chatSchemaProvider.getSchemaContext());
+            return chatbotLlmClient.createPlan(message, context, schemaContext());
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public class ChatbotPlanService {
                     queryIntent,
                     searchAttempts,
                     maxSearchAttempts,
-                    chatSchemaProvider.getSchemaContext());
+                    schemaContext());
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -59,4 +59,9 @@ public class ChatbotPlanService {
                     e);
         }
     }
+
+    private String schemaContext() {
+        return chatSchemaProvider.getSchemaContext();
+    }
 }
+

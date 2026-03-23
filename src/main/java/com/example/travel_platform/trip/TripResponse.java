@@ -26,7 +26,7 @@ public class TripResponse {
         private boolean disabled;
         private long placeCount;
 
-        public static SummaryDTO of(TripPlan tripPlan, LocalDate today, long placeCount) {
+        public static SummaryDTO createPlanSummary(TripPlan tripPlan, LocalDate today, long placeCount) {
             long diff = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
             boolean disabled = diff <= 0;
 
@@ -37,7 +37,7 @@ public class TripResponse {
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
-                    .regionLabel(toRegionLabel(tripPlan.getRegion()))
+                    .regionLabel(tripPlan.getRegionLabel())
                     .dDay(disabled ? "비활성화" : "D-" + diff)
                     .disabled(disabled)
                     .placeCount(placeCount)
@@ -62,11 +62,12 @@ public class TripResponse {
         private int endPage;
         private List<PageNumberDTO> pageNumbers;
         private String category;
-        private boolean isResult;
-        private boolean isUpcoming;
-        private boolean isPast;
+        private boolean result;
+        private boolean upcoming;
+        private boolean past;
 
-        public static ListPageDTO of(List<SummaryDTO> plans,
+        public static ListPageDTO createListPage(
+                List<SummaryDTO> plans,
                 int currentPage,
                 long totalCount,
                 String category,
@@ -88,9 +89,9 @@ public class TripResponse {
                     .endPage(pagination.endPage())
                     .pageNumbers(pagination.pageNumbers())
                     .category(category)
-                    .isResult("result".equals(category))
-                    .isUpcoming("upcoming".equals(category))
-                    .isPast("past".equals(category))
+                    .result("result".equals(category))
+                    .upcoming("upcoming".equals(category))
+                    .past("past".equals(category))
                     .build();
         }
 
@@ -101,7 +102,7 @@ public class TripResponse {
 
             List<PageNumberDTO> pageNumbers = new ArrayList<>();
             for (int page = startPage; page <= endPage; page++) {
-                pageNumbers.add(new PageNumberDTO(page, page + 1, page == currentPage));
+                pageNumbers.add(PageNumberDTO.createPageNumber(page, page + 1, page == currentPage));
             }
 
             return new PaginationMeta(
@@ -115,7 +116,8 @@ public class TripResponse {
                     pageNumbers);
         }
 
-        private record PaginationMeta(int totalPage,
+        private record PaginationMeta(
+                int totalPage,
                 int startPage,
                 int endPage,
                 boolean hasPrev,
@@ -133,6 +135,10 @@ public class TripResponse {
         private int page;
         private int displayPage;
         private boolean current;
+
+        public static PageNumberDTO createPageNumber(int page, int displayPage, boolean current) {
+            return new PageNumberDTO(page, displayPage, current);
+        }
     }
 
     @Data
@@ -145,14 +151,14 @@ public class TripResponse {
         private Double longitude;
         private Integer dayOrder;
 
-        public static PlaceItemDTO from(TripPlace tripPlace) {
+        public static PlaceItemDTO fromTripPlace(TripPlace tripPlace) {
             return PlaceItemDTO.builder()
                     .id(tripPlace.getId())
                     .placeName(tripPlace.getPlaceName())
                     .address(tripPlace.getAddress())
                     .latitude(tripPlace.getLatitude() == null ? null : tripPlace.getLatitude().doubleValue())
                     .longitude(tripPlace.getLongitude() == null ? null : tripPlace.getLongitude().doubleValue())
-                    .dayOrder(tripPlace.getDayOrder())
+                    .dayOrder(tripPlace.getTripDay())
                     .build();
         }
     }
@@ -177,10 +183,10 @@ public class TripResponse {
         private boolean hasPlaces;
         private List<PlaceItemDTO> places;
 
-        public static DetailDTO of(TripPlan tripPlan, List<PlaceItemDTO> places) {
+        public static DetailDTO createPlanDetail(TripPlan tripPlan, List<PlaceItemDTO> places) {
             long nightCount = calculateNightCount(tripPlan.getStartDate(), tripPlan.getEndDate());
             long dayCount = nightCount + 1;
-            String regionLabel = toRegionLabel(tripPlan.getRegion());
+            String regionLabel = tripPlan.getRegionLabel();
 
             return DetailDTO.builder()
                     .id(tripPlan.getId())
@@ -189,7 +195,7 @@ public class TripResponse {
                     .region(tripPlan.getRegion())
                     .regionLabel(regionLabel)
                     .whoWith(tripPlan.getWhoWith())
-                    .whoWithLabel(toWhoWithLabel(tripPlan.getWhoWith()))
+                    .whoWithLabel(tripPlan.getWhoWithLabel())
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
@@ -205,30 +211,20 @@ public class TripResponse {
 
     @Data
     @Builder
-    public static class DetailPageDTO {
-        private DetailDTO detail;
-
-        public static DetailPageDTO of(DetailDTO detail) {
-            return DetailPageDTO.builder()
-                    .detail(detail)
-                    .build();
-        }
-    }
-
-    @Data
-    @Builder
     public static class PlacePageDTO {
         private DetailDTO detail;
         private String kakaoMapAppKey;
         private String detailUrl;
         private String saveUrl;
+        private long existingCount;
 
-        public static PlacePageDTO of(DetailDTO detail, String kakaoMapAppKey) {
+        public static PlacePageDTO createPlacePage(DetailDTO detail, String kakaoMapAppKey) {
             return PlacePageDTO.builder()
                     .detail(detail)
                     .kakaoMapAppKey(kakaoMapAppKey == null ? "" : kakaoMapAppKey)
                     .detailUrl("/trip/detail?id=" + detail.getId())
                     .saveUrl("/api/trips/" + detail.getId() + "/places")
+                    .existingCount(detail.getPlaceCount())
                     .build();
         }
     }
@@ -247,7 +243,7 @@ public class TripResponse {
         private String startDateError;
         private String endDateError;
 
-        public static CreateFormDTO empty() {
+        public static CreateFormDTO createEmptyForm() {
             return CreateFormDTO.builder()
                     .title("")
                     .region("")
@@ -255,7 +251,8 @@ public class TripResponse {
                     .build();
         }
 
-        public static CreateFormDTO from(String title,
+        public static CreateFormDTO createCreateForm(
+                String title,
                 String region,
                 String whoWith,
                 LocalDate startDate,
@@ -278,6 +275,20 @@ public class TripResponse {
                     .endDateError(endDateError)
                     .build();
         }
+
+        public String getStartDateValue() {
+            if (startDate == null) {
+                return "";
+            }
+            return startDate.toString();
+        }
+
+        public String getEndDateValue() {
+            if (endDate == null) {
+                return "";
+            }
+            return endDate.toString();
+        }
     }
 
     @Data
@@ -286,7 +297,11 @@ public class TripResponse {
         private Integer id;
         private String redirectUrl;
 
-        public static CreatedDTO of(Integer id) {
+        public static CreatedDTO createCreatedPlan(TripPlan tripPlan) {
+            return createCreatedPlan(tripPlan.getId());
+        }
+
+        public static CreatedDTO createCreatedPlan(Integer id) {
             return CreatedDTO.builder()
                     .id(id)
                     .redirectUrl("/trip/detail?id=" + id)
@@ -303,15 +318,18 @@ public class TripResponse {
         private String address;
         private Integer dayOrder;
         private long placeCount;
+        private String detailUrl;
 
-        public static PlaceAddedDTO of(TripPlace tripPlace, long placeCount) {
+        public static PlaceAddedDTO createAddedPlace(TripPlace tripPlace, long placeCount) {
+            Integer planId = tripPlace.getTripPlan().getId();
             return PlaceAddedDTO.builder()
                     .id(tripPlace.getId())
-                    .planId(tripPlace.getTripPlan().getId())
+                    .planId(planId)
                     .placeName(tripPlace.getPlaceName())
                     .address(tripPlace.getAddress())
-                    .dayOrder(tripPlace.getDayOrder())
+                    .dayOrder(tripPlace.getTripDay())
                     .placeCount(placeCount)
+                    .detailUrl("/trip/detail?id=" + planId)
                     .build();
         }
     }
@@ -361,37 +379,4 @@ public class TripResponse {
         return imageUrl;
     }
 
-    private static String toRegionLabel(String region) {
-        if (region == null || region.isBlank()) {
-            return "지역 정보 없음";
-        }
-
-        return switch (region) {
-            case "seoul" -> "서울";
-            case "busan" -> "부산";
-            case "daegu" -> "대구";
-            case "incheon" -> "인천";
-            case "gwangju" -> "광주";
-            case "daejeon" -> "대전";
-            case "ulsan" -> "울산";
-            case "sejong" -> "세종";
-            case "gyeonggi" -> "경기도";
-            case "gangwon" -> "강원도";
-            case "chungbuk" -> "충청북도";
-            case "chungnam" -> "충청남도";
-            case "jeonbuk" -> "전라북도";
-            case "jeonnam" -> "전라남도";
-            case "gyeongbuk" -> "경상북도";
-            case "gyeongnam" -> "경상남도";
-            case "jeju" -> "제주도";
-            default -> region;
-        };
-    }
-
-    private static String toWhoWithLabel(String whoWith) {
-        if (whoWith == null || whoWith.isBlank()) {
-            return "동행 정보 없음";
-        }
-        return whoWith;
-    }
 }

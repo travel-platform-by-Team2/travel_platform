@@ -25,42 +25,61 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession();
         SessionUser sessionUser = SessionUsers.getOrNull(session);
-        String uri = request.getRequestURI();
 
-        if (isPublicBoardDetailRequest(request, uri)) {
+        if (isPublicBoardDetailRequest(request)) {
             return true;
         }
 
         if (sessionUser == null) {
-            if (uri.startsWith("/api/")) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return false;
-            }
-
-            response.sendRedirect("/login-form");
+            handleUnauthenticatedRequest(request, response);
             return false;
         }
 
         if (userSessionChecker.isBlocked(sessionUser)) {
             session.invalidate();
-            handleBlockedUserResponse(request, response);
+            handleBlockedUserRequest(request, response);
             return false;
         }
 
         return true;
     }
 
-    private boolean isPublicBoardDetailRequest(HttpServletRequest request, String uri) {
-        return "GET".equals(request.getMethod()) && uri.matches(".*/boards/\\d+$");
+    private boolean isPublicBoardDetailRequest(HttpServletRequest request) {
+        return isGetRequest(request) && request.getRequestURI().matches(".*/boards/\\d+$");
     }
 
-    private void handleBlockedUserResponse(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        if (request.getRequestURI().startsWith("/api/")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    private boolean isGetRequest(HttpServletRequest request) {
+        return "GET".equals(request.getMethod());
+    }
+
+    private void handleUnauthenticatedRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        if (isApiRequest(request)) {
+            writeStatus(response, HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
+        response.sendRedirect("/login-form");
+    }
+
+    private void handleBlockedUserRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        if (isApiRequest(request)) {
+            writeStatus(response, HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        writeScriptResponse(response, Script.href("/login-form", SESSION_BLOCKED_MESSAGE));
+    }
+
+    private boolean isApiRequest(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/api/");
+    }
+
+    private void writeStatus(HttpServletResponse response, int status) {
+        response.setStatus(status);
+    }
+
+    private void writeScriptResponse(HttpServletResponse response, String script) throws Exception {
         response.setContentType("text/html; charset=utf-8");
-        response.getWriter().println(Script.href("/login-form", SESSION_BLOCKED_MESSAGE));
+        response.getWriter().println(script);
     }
 }

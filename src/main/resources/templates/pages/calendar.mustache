@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Simplified Personal Calendar with Memo</title>
+  <title>{{model.pageTitle}}</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="page-body-overflow-hidden-shell">
   {{>partials/header}}
@@ -151,6 +152,7 @@
 
   {{>partials/chatbot}}
   {{>partials/footer}}
+  <script src="/js/calendar-add-event.js"></script>
   {{>partials/scripts}}
 </body>
 </html>

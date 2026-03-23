@@ -2,17 +2,14 @@ package com.example.travel_platform.mypage;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
-import com.example.travel_platform.booking.BookingRepository;
-import com.example.travel_platform.trip.TripRepository;
+import com.example.travel_platform.booking.BookingService;
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserRepository;
+import com.example.travel_platform.user.UserQueryRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,39 +21,52 @@ public class MypageService {
     private static final int UPCOMING_BOOKING_LIMIT = 2;
     private static final int UPCOMING_TRIP_PLAN_LIMIT = 2;
 
-    private final UserRepository userRepository;
-    private final BookingRepository bookingRepository;
-    private final TripRepository tripRepository;
+    private final BookingService bookingService;
+    private final UserQueryRepository userQueryRepository;
+    private final MypageQueryRepository mypageQueryRepository;
 
-    public MypageResponse.PageDTO getMainPage(Integer sessionUserId) {
-        MypageResponse.ProfileDTO user = loadProfile(sessionUserId);
-        List<MypageResponse.BookingCardDTO> bookings = loadUpcomingBookings(sessionUserId);
-        List<MypageResponse.PlanCardDTO> tripPlans = loadUpcomingTripPlans(sessionUserId);
-
-        return MypageResponse.PageDTO.of(user, bookings, tripPlans);
+    public MypageResponse.MainPageDTO getMainPage(Integer sessionUserId) {
+        return createMainPage(sessionUserId, MainPageState.DEFAULT, null);
     }
 
-    private List<MypageResponse.BookingCardDTO> loadUpcomingBookings(Integer sessionUserId) {
-        LocalDate today = LocalDate.now();
-
-        return bookingRepository.findByUser_IdAndCheckInGreaterThanEqualOrderByCheckInAscIdAsc(
-                        sessionUserId,
-                        today,
-                        PageRequest.of(0, UPCOMING_BOOKING_LIMIT))
-                .stream()
-                .map(booking -> MypageResponse.BookingCardDTO.from(booking))
-                .collect(Collectors.toList());
+    public MypageResponse.MainPageDTO getPasswordSuccessMainPage(Integer sessionUserId, String message) {
+        return createMainPage(sessionUserId, MainPageState.PASSWORD_SUCCESS, message);
     }
 
-    private List<MypageResponse.PlanCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
-        LocalDate today = LocalDate.now();
-        LocalDate inclusiveToday = today.minusDays(1);
+    public MypageResponse.MainPageDTO getPasswordFailureMainPage(Integer sessionUserId, String errorMessage) {
+        return createMainPage(sessionUserId, MainPageState.PASSWORD_FAILURE, errorMessage);
+    }
 
-        // TripRepository 조회 조건이 startDate > 기준일이므로 오늘 출발 계획도 포함되게 하루를 보정한다.
-        return tripRepository.findUpcomingPlanListByUserId(sessionUserId, inclusiveToday, 0, UPCOMING_TRIP_PLAN_LIMIT)
-                .stream()
-                .map(tripPlan -> MypageResponse.PlanCardDTO.from(tripPlan))
-                .collect(Collectors.toList());
+    public MypageResponse.MainPageDTO getWithdrawFailureMainPage(Integer sessionUserId, String errorMessage) {
+        return createMainPage(sessionUserId, MainPageState.WITHDRAW_FAILURE, errorMessage);
+    }
+
+    private MypageResponse.MainPageDTO createMainPage(Integer sessionUserId, MainPageState state, String message) {
+        User user = findUser(sessionUserId);
+        List<MypageResponse.BookingSummaryCardDTO> bookings = loadUpcomingBookings(sessionUserId);
+        List<MypageResponse.TripPlanSummaryCardDTO> tripPlans = loadUpcomingTripPlans(sessionUserId);
+        return createMainPage(user, bookings, tripPlans, state, message);
+    }
+
+    public MypageResponse.BookingListViewDTO getBookingListView(Integer sessionUserId, String categoryCode) {
+        findUser(sessionUserId);
+
+        LocalDate today = LocalDate.now();
+        BookingCategory selectedCategory = BookingCategory.fromCode(categoryCode);
+        List<MypageResponse.BookingListCardDTO> items = bookingService.getBookingList(sessionUserId).stream()
+                .filter(booking -> selectedCategory.matches(booking, today))
+                .map(booking -> MypageResponse.BookingListCardDTO.fromBookingSummary(booking, today))
+                .toList();
+
+        return MypageResponse.BookingListViewDTO.createBookingListView(
+                MypageResponse.BookingListPageDTO.createBookingListPage(selectedCategory, !items.isEmpty()),
+                items);
+    }
+
+    public MypageResponse.BookingDetailPageDTO getBookingDetailPage(Integer sessionUserId, Integer bookingId) {
+        findUser(sessionUserId);
+        return MypageResponse.BookingDetailPageDTO.fromBookingDetail(
+                bookingService.getBookingDetail(sessionUserId, bookingId));
     }
 
     @Transactional
@@ -67,23 +77,99 @@ public class MypageService {
         String newPassword = normalize(reqDTO.getNewPassword());
         String newPasswordConfirm = normalize(reqDTO.getNewPasswordConfirm());
 
-        if (!normalize(user.getPassword()).equals(currentPassword)) {
-            throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
-        }
-
-        if (!newPassword.equals(newPasswordConfirm)) {
-            throw new Exception400("새 비밀번호와 확인값이 일치하지 않습니다.");
-        }
+        validateCurrentPassword(user, currentPassword);
+        validateNewPasswordConfirm(newPassword, newPasswordConfirm);
 
         user.changePassword(newPassword);
     }
 
-    private MypageResponse.ProfileDTO loadProfile(Integer sessionUserId) {
-        return MypageResponse.ProfileDTO.from(findUser(sessionUserId));
+    private List<MypageResponse.BookingSummaryCardDTO> loadUpcomingBookings(Integer sessionUserId) {
+        List<BookingSummaryRow> rows = mypageQueryRepository.findUpcomingBookingRows(
+                sessionUserId,
+                LocalDate.now(),
+                UPCOMING_BOOKING_LIMIT);
+        List<MypageResponse.BookingSummaryCardDTO> cards = new java.util.ArrayList<>();
+        for (BookingSummaryRow row : rows) {
+            cards.add(createBookingSummaryCard(row));
+        }
+        return cards;
+    }
+
+    private List<MypageResponse.TripPlanSummaryCardDTO> loadUpcomingTripPlans(Integer sessionUserId) {
+        List<TripPlanSummaryRow> rows = mypageQueryRepository.findUpcomingTripPlanRows(
+                sessionUserId,
+                LocalDate.now().minusDays(1),
+                UPCOMING_TRIP_PLAN_LIMIT);
+        List<MypageResponse.TripPlanSummaryCardDTO> cards = new java.util.ArrayList<>();
+        for (TripPlanSummaryRow row : rows) {
+            cards.add(createTripPlanSummaryCard(row));
+        }
+        return cards;
+    }
+
+    private MypageResponse.MainPageDTO createMainPage(
+            User user,
+            List<MypageResponse.BookingSummaryCardDTO> bookings,
+            List<MypageResponse.TripPlanSummaryCardDTO> tripPlans,
+            MainPageState state,
+            String message) {
+        MypageResponse.ProfileViewDTO profile = MypageResponse.ProfileViewDTO.fromUserEntity(user);
+        MypageResponse.BookingSummarySectionDTO bookingSection = MypageResponse.BookingSummarySectionDTO.createBookingSection(bookings);
+        MypageResponse.TripPlanSummarySectionDTO tripPlanSection = MypageResponse.TripPlanSummarySectionDTO.createTripPlanSection(tripPlans);
+
+        return switch (state) {
+            case PASSWORD_SUCCESS -> MypageResponse.MainPageDTO.createPasswordSuccessPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    message);
+            case PASSWORD_FAILURE -> MypageResponse.MainPageDTO.createPasswordFailurePage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    message);
+            case WITHDRAW_FAILURE -> MypageResponse.MainPageDTO.createWithdrawFailurePage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection,
+                    message);
+            case DEFAULT -> MypageResponse.MainPageDTO.createMainPage(
+                    profile,
+                    bookingSection,
+                    tripPlanSection);
+        };
+    }
+
+    private MypageResponse.BookingSummaryCardDTO createBookingSummaryCard(BookingSummaryRow row) {
+        return MypageResponse.BookingSummaryCardDTO.createBookingSummaryCard(
+                row.bookingId(),
+                row.lodgingName(),
+                row.checkIn(),
+                row.checkOut());
+    }
+
+    private MypageResponse.TripPlanSummaryCardDTO createTripPlanSummaryCard(TripPlanSummaryRow row) {
+        return MypageResponse.TripPlanSummaryCardDTO.createTripPlanSummaryCard(
+                row.planId(),
+                row.title(),
+                row.startDate(),
+                row.endDate());
+    }
+
+    private void validateCurrentPassword(User user, String currentPassword) {
+        if (!normalize(user.getPassword()).equals(currentPassword)) {
+            throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    private void validateNewPasswordConfirm(String newPassword, String newPasswordConfirm) {
+        if (!newPassword.equals(newPasswordConfirm)) {
+            throw new Exception400("새 비밀번호와 확인값이 일치하지 않습니다.");
+        }
     }
 
     private User findUser(Integer sessionUserId) {
-        return userRepository.findById(sessionUserId)
+        return userQueryRepository.findUser(sessionUserId)
                 .orElseThrow(() -> new Exception400("사용자 정보를 찾을 수 없습니다."));
     }
 
@@ -92,5 +178,12 @@ public class MypageService {
             return "";
         }
         return value;
+    }
+
+    private enum MainPageState {
+        DEFAULT,
+        PASSWORD_SUCCESS,
+        PASSWORD_FAILURE,
+        WITHDRAW_FAILURE
     }
 }

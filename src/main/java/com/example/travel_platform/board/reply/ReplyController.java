@@ -15,23 +15,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReplyController {
 
+    private static final String REDIRECT_BOARD_PREFIX = "redirect:/boards/";
+
     private final ReplyService replyService;
     private final HttpSession session;
 
     @PostMapping("")
     public String create(@PathVariable(name = "boardId") Integer boardId, ReplyRequest.CreateDTO reqDTO) {
-        replyService.createReply(requireSessionUserId(), boardId, reqDTO);
-        return "redirect:/boards/" + boardId;
+        replyService.createReply(requiredSessionUserId(), boardId, reqDTO);
+        return redirectBoard(boardId);
     }
 
     @PostMapping("/{replyId}/delete")
     public String delete(@PathVariable(name = "boardId") Integer boardId,
             @PathVariable(name = "replyId") Integer replyId) {
-        replyService.deleteReply(requireSessionUserId(), boardId, replyId);
-        return "redirect:/boards/" + boardId;
+        replyService.deleteReply(requiredSessionUserId(), boardId, replyId);
+        return redirectBoard(boardId);
     }
 
-    private Integer requireSessionUserId() {
+    private String redirectBoard(Integer boardId) {
+        return REDIRECT_BOARD_PREFIX + boardId;
+    }
+
+    private Integer requiredSessionUserId() {
         return SessionUsers.requireUserId(session);
     }
 }

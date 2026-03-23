@@ -1,62 +1,25 @@
 package com.example.travel_platform.admin;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Data;
 
 public class AdminResponse {
 
-    @Data
-    public static class UserListPageDTO {
-        private List<AdminUserDTO> users;
-        private long totalUserCount;
-        private long inactiveUserCount;
-        private String keyword;
-        private Boolean currentActive;
-        private boolean allTab;
-        private boolean activeTab;
-        private boolean inactiveTab;
-        private String sortBy;
-        private String orderBy;
-        private boolean sortByPostCount;
-        private boolean sortByCreatedAt;
-        private boolean orderByAsc;
-        private boolean orderByDesc;
+    private static final String DASHBOARD_MENU = "dashboard";
+    private static final String USERS_MENU = "users";
+    private static final String BOARDS_MENU = "boards";
 
-        public static UserListPageDTO of(
-                List<AdminUserDTO> users,
-                long totalUserCount,
-                long inactiveUserCount,
-                String keyword,
-                Boolean currentActive,
-                boolean allTab,
-                boolean activeTab,
-                boolean inactiveTab,
-                String sortBy,
-                String orderBy) {
-            UserListPageDTO dto = new UserListPageDTO();
-            dto.setUsers(users);
-            dto.setTotalUserCount(totalUserCount);
-            dto.setInactiveUserCount(inactiveUserCount);
-            dto.setKeyword(keyword);
-            dto.setCurrentActive(currentActive);
-            dto.setAllTab(allTab);
-            dto.setActiveTab(activeTab);
-            dto.setInactiveTab(inactiveTab);
-            dto.setSortBy(sortBy);
-            dto.setOrderBy(orderBy);
-            dto.setSortByPostCount("postCount".equals(sortBy));
-            dto.setSortByCreatedAt("createdAt".equals(sortBy));
-            dto.setOrderByAsc("asc".equals(orderBy));
-            dto.setOrderByDesc("desc".equals(orderBy));
-            return dto;
+    private static String resolveActiveClass(String currentMenu, String targetMenu) {
+        if (targetMenu.equals(currentMenu)) {
+            return " is-active";
         }
+        return "";
     }
 
     @Data
-    public static class DashboardPageDTO {
+    public static class DashboardViewDTO {
         private long totalUserCount;
         private long activeUserCount;
         private long inactiveUserCount;
@@ -70,8 +33,11 @@ public class AdminResponse {
         private List<RecentBoardDTO> recentBoards;
         private boolean hasRecentUsers;
         private boolean hasRecentBoards;
+        private String dashboardActiveClass;
+        private String usersActiveClass;
+        private String boardsActiveClass;
 
-        public static DashboardPageDTO of(
+        public static DashboardViewDTO createDashboardView(
                 long totalUserCount,
                 long activeUserCount,
                 long inactiveUserCount,
@@ -83,7 +49,7 @@ public class AdminResponse {
                 List<CategoryChartItemDTO> boardCategoryItems,
                 List<RecentUserDTO> recentUsers,
                 List<RecentBoardDTO> recentBoards) {
-            DashboardPageDTO dto = new DashboardPageDTO();
+            DashboardViewDTO dto = new DashboardViewDTO();
             dto.setTotalUserCount(totalUserCount);
             dto.setActiveUserCount(activeUserCount);
             dto.setInactiveUserCount(inactiveUserCount);
@@ -97,6 +63,81 @@ public class AdminResponse {
             dto.setRecentBoards(recentBoards);
             dto.setHasRecentUsers(!recentUsers.isEmpty());
             dto.setHasRecentBoards(!recentBoards.isEmpty());
+            dto.setDashboardActiveClass(resolveActiveClass(DASHBOARD_MENU, DASHBOARD_MENU));
+            dto.setUsersActiveClass(resolveActiveClass(DASHBOARD_MENU, USERS_MENU));
+            dto.setBoardsActiveClass(resolveActiveClass(DASHBOARD_MENU, BOARDS_MENU));
+            return dto;
+        }
+    }
+
+    @Data
+    public static class UserListPageDTO {
+        private long totalUserCount;
+        private long inactiveUserCount;
+        private String keyword;
+        private Boolean currentActive;
+        private boolean allTab;
+        private boolean activeTab;
+        private boolean inactiveTab;
+        private String dashboardActiveClass;
+        private String usersActiveClass;
+        private String boardsActiveClass;
+        private String sortBy;
+        private String orderBy;
+        private boolean sortByPostCount;
+        private boolean sortByCreatedAt;
+        private boolean orderByAsc;
+        private boolean orderByDesc;
+        private String allTabHref;
+        private String activeTabHref;
+        private String inactiveTabHref;
+
+        public static UserListPageDTO createUserListPage(
+                long totalUserCount,
+                long inactiveUserCount,
+                String keyword,
+                Boolean currentActive,
+                boolean allTab,
+                boolean activeTab,
+                boolean inactiveTab,
+                String sortBy,
+                String orderBy,
+                String allTabHref,
+                String activeTabHref,
+                String inactiveTabHref) {
+            UserListPageDTO dto = new UserListPageDTO();
+            dto.setTotalUserCount(totalUserCount);
+            dto.setInactiveUserCount(inactiveUserCount);
+            dto.setKeyword(keyword);
+            dto.setCurrentActive(currentActive);
+            dto.setAllTab(allTab);
+            dto.setActiveTab(activeTab);
+            dto.setInactiveTab(inactiveTab);
+            dto.setSortBy(sortBy);
+            dto.setOrderBy(orderBy);
+            dto.setSortByPostCount("postCount".equals(sortBy));
+            dto.setSortByCreatedAt("createdAt".equals(sortBy));
+            dto.setOrderByAsc("asc".equals(orderBy));
+            dto.setOrderByDesc("desc".equals(orderBy));
+            dto.setAllTabHref(allTabHref);
+            dto.setActiveTabHref(activeTabHref);
+            dto.setInactiveTabHref(inactiveTabHref);
+            dto.setDashboardActiveClass(resolveActiveClass(USERS_MENU, DASHBOARD_MENU));
+            dto.setUsersActiveClass(resolveActiveClass(USERS_MENU, USERS_MENU));
+            dto.setBoardsActiveClass(resolveActiveClass(USERS_MENU, BOARDS_MENU));
+            return dto;
+        }
+    }
+
+    @Data
+    public static class UserListViewDTO {
+        private UserListPageDTO model;
+        private List<AdminUserDTO> models;
+
+        public static UserListViewDTO createUserListView(UserListPageDTO model, List<AdminUserDTO> models) {
+            UserListViewDTO dto = new UserListViewDTO();
+            dto.setModel(model);
+            dto.setModels(models);
             return dto;
         }
     }
@@ -109,7 +150,7 @@ public class AdminResponse {
         private String icon;
         private String iconClass;
 
-        public static DashboardMetricDTO of(
+        public static DashboardMetricDTO createMetric(
                 String label,
                 String valueLabel,
                 String helperLabel,
@@ -134,7 +175,7 @@ public class AdminResponse {
         private String badgeClass;
         private String barClass;
 
-        public static StatusChartItemDTO of(
+        public static StatusChartItemDTO createStatusItem(
                 String label,
                 String countLabel,
                 String percentLabel,
@@ -161,7 +202,7 @@ public class AdminResponse {
         private String badgeClass;
         private String barClass;
 
-        public static CategoryChartItemDTO of(
+        public static CategoryChartItemDTO createCategoryItem(
                 String label,
                 String countLabel,
                 String percentLabel,
@@ -186,7 +227,7 @@ public class AdminResponse {
         private String statusClass;
         private String createdAtLabel;
 
-        public static RecentUserDTO of(
+        public static RecentUserDTO createRecentUser(
                 String username,
                 String statusText,
                 String statusClass,
@@ -207,7 +248,7 @@ public class AdminResponse {
         private String userName;
         private String createdAtLabel;
 
-        public static RecentBoardDTO of(
+        public static RecentBoardDTO createRecentBoard(
                 Integer id,
                 String title,
                 String userName,
@@ -226,21 +267,17 @@ public class AdminResponse {
         private Integer userId;
         private String username;
         private String email;
-        private LocalDateTime createdAt;
+        private LocalDate createdAt;
         private boolean active;
         private int boardCount;
-        private String statusText;
-        private String managementLabel;
 
-        public static AdminUserDTO of(
+        public static AdminUserDTO createAdminUser(
                 Integer userId,
                 String username,
                 String email,
-                LocalDateTime createdAt,
+                LocalDate createdAt,
                 boolean active,
-                int boardCount,
-                String statusText,
-                String managementLabel) {
+                int boardCount) {
             AdminUserDTO dto = new AdminUserDTO();
             dto.setUserId(userId);
             dto.setUsername(username);
@@ -248,45 +285,12 @@ public class AdminResponse {
             dto.setCreatedAt(createdAt);
             dto.setActive(active);
             dto.setBoardCount(boardCount);
-            dto.setStatusText(statusText);
-            dto.setManagementLabel(managementLabel);
             return dto;
         }
     }
 
     @Data
-    public static class AdminBoardDTO {
-        private Integer id;
-        private String title;
-        private String userName;
-        private LocalDate startDate;
-        private Integer viewCount;
-        private String category;
-        private String categoryClass;
-
-        public static AdminBoardDTO of(
-                Integer id,
-                String title,
-                String userName,
-                LocalDate startDate,
-                Integer viewCount,
-                String category,
-                String categoryClass) {
-            AdminBoardDTO dto = new AdminBoardDTO();
-            dto.setId(id);
-            dto.setTitle(title);
-            dto.setUserName(userName);
-            dto.setStartDate(startDate);
-            dto.setViewCount(viewCount);
-            dto.setCategory(category);
-            dto.setCategoryClass(categoryClass);
-            return dto;
-        }
-    }
-
-    @Data
-    public static class AdminBoardListDTO {
-        private List<AdminBoardDTO> boards;
+    public static class BoardListPageDTO {
         private List<PageItemDTO> pageItems;
         private int currentPage;
         private int totalPages;
@@ -311,9 +315,11 @@ public class AdminResponse {
         private boolean isFood;
         private boolean isReview;
         private boolean isQna;
+        private String dashboardActiveClass;
+        private String usersActiveClass;
+        private String boardsActiveClass;
 
-        public static AdminBoardListDTO of(
-                List<AdminBoardDTO> boards,
+        public static BoardListPageDTO createBoardListPage(
                 List<PageItemDTO> pageItems,
                 int currentPage,
                 int totalPages,
@@ -338,8 +344,7 @@ public class AdminResponse {
                 boolean isFood,
                 boolean isReview,
                 boolean isQna) {
-            AdminBoardListDTO dto = new AdminBoardListDTO();
-            dto.setBoards(boards);
+            BoardListPageDTO dto = new BoardListPageDTO();
             dto.setPageItems(pageItems);
             dto.setCurrentPage(currentPage);
             dto.setTotalPages(totalPages);
@@ -364,6 +369,52 @@ public class AdminResponse {
             dto.setFood(isFood);
             dto.setReview(isReview);
             dto.setQna(isQna);
+            dto.setDashboardActiveClass(resolveActiveClass(BOARDS_MENU, DASHBOARD_MENU));
+            dto.setUsersActiveClass(resolveActiveClass(BOARDS_MENU, USERS_MENU));
+            dto.setBoardsActiveClass(resolveActiveClass(BOARDS_MENU, BOARDS_MENU));
+            return dto;
+        }
+    }
+
+    @Data
+    public static class BoardListViewDTO {
+        private BoardListPageDTO model;
+        private List<AdminBoardDTO> models;
+
+        public static BoardListViewDTO createBoardListView(BoardListPageDTO model, List<AdminBoardDTO> models) {
+            BoardListViewDTO dto = new BoardListViewDTO();
+            dto.setModel(model);
+            dto.setModels(models);
+            return dto;
+        }
+    }
+
+    @Data
+    public static class AdminBoardDTO {
+        private Integer id;
+        private String title;
+        private String userName;
+        private LocalDate createdDate;
+        private Integer viewCount;
+        private String category;
+        private String categoryClass;
+
+        public static AdminBoardDTO createAdminBoard(
+                Integer id,
+                String title,
+                String userName,
+                LocalDate createdDate,
+                Integer viewCount,
+                String category,
+                String categoryClass) {
+            AdminBoardDTO dto = new AdminBoardDTO();
+            dto.setId(id);
+            dto.setTitle(title);
+            dto.setUserName(userName);
+            dto.setCreatedDate(createdDate);
+            dto.setViewCount(viewCount);
+            dto.setCategory(category);
+            dto.setCategoryClass(categoryClass);
             return dto;
         }
     }
@@ -377,7 +428,7 @@ public class AdminResponse {
         private String sort;
         private String selectCategory;
 
-        public static PageItemDTO of(
+        public static PageItemDTO createPageItem(
                 int page,
                 int displayNumber,
                 boolean current,

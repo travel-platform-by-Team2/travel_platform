@@ -45,8 +45,8 @@ public class TripPlace {
     @Column(precision = 10, scale = 7)
     private BigDecimal longitude;
 
-    @Column(name = "day_order", nullable = false)
-    private Integer dayOrder;
+    @Column(name = "trip_day", nullable = false)
+    private Integer tripDay;
 
     @Builder
     private TripPlace(TripPlan tripPlan,
@@ -54,13 +54,13 @@ public class TripPlace {
             String address,
             BigDecimal latitude,
             BigDecimal longitude,
-            Integer dayOrder) {
+            Integer tripDay) {
         this.tripPlan = tripPlan;
         this.placeName = placeName;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.dayOrder = dayOrder;
+        this.tripDay = tripDay;
     }
 
     public static TripPlace create(TripPlan tripPlan,
@@ -68,14 +68,18 @@ public class TripPlace {
             String address,
             BigDecimal latitude,
             BigDecimal longitude,
-            Integer dayOrder) {
+            Integer tripDay) {
         return TripPlace.builder()
                 .tripPlan(tripPlan)
                 .placeName(placeName)
                 .address(address)
                 .latitude(latitude)
                 .longitude(longitude)
-                .dayOrder(dayOrder)
+                .tripDay(tripDay)
                 .build();
+    }
+
+    public Integer getDayOrder() {
+        return tripDay;
     }
 }

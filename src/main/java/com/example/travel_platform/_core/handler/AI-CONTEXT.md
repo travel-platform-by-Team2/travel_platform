@@ -22,10 +22,14 @@
 
 - MVC 화면용 예외 처리와 JSON API용 예외 처리가 섞이지 않도록 현재 분리를 유지한다.
 - 오류 응답 필드 이름을 바꾸면 API 소비 코드와 테스트를 같이 갱신한다.
+- `ApiExceptionHandler`는 `ApiException`, `StatusException`, validation 예외를 JSON 응답으로 변환한다.
+- `GlobalExceptionHandler`는 MVC 스크립트 응답과 `NoResourceFoundException` 처리만 담당한다.
+- `ApiErrorResponse`는 `createErrorResponse(...)` 정적 팩토리로 공통 에러 응답을 만든다.
 
 ## 테스트
 
 - 예외 응답 형태를 바꾼 경우 실패 케이스에 대한 API/MVC 동작을 모두 확인한다.
+- `ExceptionHandlerTest`, `ChatbotControllerTest`로 API/MVC 경계와 API handler 적용을 같이 확인한다.
 
 ## 의존성
 

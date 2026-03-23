@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,13 +16,51 @@ public class BookingRequest {
     public static class CreateBookingDTO {
         private Integer tripPlanId;
         private String lodgingName;
+        private String roomName;
         private LocalDate checkIn;
         private LocalDate checkOut;
         private Integer guestCount;
         private Integer pricePerNight;
         private Integer taxAndServiceFee;
+        private String regionKey;
         private String location;
         private String imageUrl;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompleteBookingDTO {
+        private String lodgingName;
+        private String roomName;
+        private String regionKey;
+        private String location;
+        private String checkIn;
+        private String checkOut;
+        private String guests;
+        private Integer pricePerNight;
+        private Integer taxAndServiceFee;
+        private String imageUrl;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RoomQueryDTO {
+        private String lodgingName;
+        private String address;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlaceImageQueryDTO {
+        private String placeUrl;
+        private String name;
+        private String address;
     }
 
     @Data
@@ -45,7 +84,7 @@ public class BookingRequest {
 
     @Data
     @NoArgsConstructor
-    @AllArgsConstructor // JPQL 'new' 키워드 사용을 위해 추가
+    @AllArgsConstructor
     public static class MapPoiDTO {
         private String externalPlaceId;
         private String name;
