@@ -334,6 +334,21 @@ public class BookingService {
         }
 
         TripPlan plan = findTripPlanOrNull(reqDTO.getTripPlanId());
+        if (plan == null && reqDTO.getCheckIn() != null && reqDTO.getCheckOut() != null) {
+            plan = tripPlanQueryRepository.findByDates(user.getId(), reqDTO.getCheckIn(), reqDTO.getCheckOut())
+                    .orElseGet(() -> {
+                        TripRegion region = resolveBookingRegion(reqDTO.getRegionKey(), reqDTO.getLocation());
+                        return tripRepository.savePlan(TripPlan.create(
+                                user,
+                                "나의 여행 계획",
+                                region,
+                                null,
+                                reqDTO.getCheckIn(),
+                                reqDTO.getCheckOut(),
+                                reqDTO.getImageUrl()));
+                    });
+        }
+
         if (plan == null) {
             return;
         }
@@ -535,11 +550,8 @@ public class BookingService {
     }
 
     private TripPlan resolveCompletionPlan(User user, BookingCompletionDraft draft) {
-        List<TripPlan> plans = tripPlanQueryRepository.findPlanList(user.getId(), 0, 1);
-        if (!plans.isEmpty()) {
-            return plans.get(0);
-        }
-        return tripRepository.savePlan(createCompletionPlan(user, draft));
+        return tripPlanQueryRepository.findByDates(user.getId(), draft.checkInDate(), draft.checkOutDate())
+                .orElseGet(() -> tripRepository.savePlan(createCompletionPlan(user, draft)));
     }
 
     private TripPlan createCompletionPlan(User user, BookingCompletionDraft draft) {
