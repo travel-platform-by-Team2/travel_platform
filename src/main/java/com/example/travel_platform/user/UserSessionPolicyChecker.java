@@ -3,6 +3,7 @@ package com.example.travel_platform.user;
 import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -36,7 +37,16 @@ public class UserSessionPolicyChecker {
         CONCURRENTLY_LOGGED_OUT
     }
 
-    public record SessionValidation(SessionState state, SessionUser sessionUser) {
+    @Getter
+    public static final class SessionValidation {
+
+        private final SessionState state;
+        private final SessionUser sessionUser;
+
+        private SessionValidation(SessionState state, SessionUser sessionUser) {
+            this.state = state;
+            this.sessionUser = sessionUser;
+        }
 
         public static SessionValidation unauthenticated() {
             return new SessionValidation(SessionState.UNAUTHENTICATED, null);
