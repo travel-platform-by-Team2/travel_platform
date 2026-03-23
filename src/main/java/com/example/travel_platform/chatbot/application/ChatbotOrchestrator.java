@@ -31,6 +31,8 @@ public class ChatbotOrchestrator {
 
     private static final int MAX_DB_SEARCH_ATTEMPTS = 5;
     private static final String DEFAULT_QUERY_INTENT = "GENERAL_CHAT";
+    private static final String PROCESSING_TYPE_DIRECT_LLM = "DIRECT_LLM";
+    private static final String PROCESSING_TYPE_DB_QUERY = "DB_QUERY";
 
     private final ChatbotPlanService chatbotPlanService;
     private final ChatbotQueryService chatbotQueryService;
@@ -47,30 +49,11 @@ public class ChatbotOrchestrator {
         ChatbotRequest.ContextDTO context = reqDTO.getContext();
         ChatbotLlmPlan llmPlan = chatbotPlanService.createPlan(message, context);
 
-        // DB가 필요 없으면 1차 계획의 answer를 그대로 최종 응답으로 사용한다.
         if (!llmPlan.needsDb()) {
-            return ChatbotResponse.AskDTO.builder()
-                    .processingType("DIRECT_LLM")
-                    .answer(chatbotAnswerService.resolveDirectAnswer(llmPlan))
-                    .meta(ChatbotResponse.MetaDTO.builder()
-                            .needsDb(false)
-                            .build())
-                    .build();
+            return buildDirectResponse(llmPlan);
         }
 
-        DbSearchResult dbSearchResult = resolveDbAnswer(message, context, llmPlan);
-        ChatbotQueryService.QueryResult queryResult = dbSearchResult.queryResult();
-
-        return ChatbotResponse.AskDTO.builder()
-                .processingType("DB_QUERY")
-                .answer(dbSearchResult.answer())
-                .meta(ChatbotResponse.MetaDTO.builder()
-                        .needsDb(true)
-                        .querySummary(queryResult.querySummary())
-                        .generatedSql(queryResult.sql())
-                        .rowCount(queryResult.rows().size())
-                        .build())
-                .build();
+        return buildDbResponse(message, context, llmPlan);
     }
 
     /**
@@ -81,54 +64,93 @@ public class ChatbotOrchestrator {
         return message == null ? "" : message.trim();
     }
 
+    private ChatbotResponse.AskDTO buildDirectResponse(ChatbotLlmPlan llmPlan) {
+        return ChatbotResponse.AskDTO.createAskResponse(
+                PROCESSING_TYPE_DIRECT_LLM,
+                chatbotAnswerService.resolveDirectAnswer(llmPlan),
+                ChatbotResponse.MetaDTO.createDirectMeta());
+    }
+
+    private ChatbotResponse.AskDTO buildDbResponse(
+            String message,
+            ChatbotRequest.ContextDTO context,
+            ChatbotLlmPlan initialPlan) {
+        DbSearchResult dbSearchResult = resolveDbAnswer(message, context, initialPlan);
+        ChatbotQueryService.QueryResult queryResult = dbSearchResult.queryResult();
+
+        return ChatbotResponse.AskDTO.createAskResponse(
+                PROCESSING_TYPE_DB_QUERY,
+                dbSearchResult.answer(),
+                ChatbotResponse.MetaDTO.createDbMeta(
+                        queryResult.querySummary(),
+                        queryResult.sql(),
+                        queryResult.rows().size()));
+    }
+
     private DbSearchResult resolveDbAnswer(
             String message,
             ChatbotRequest.ContextDTO context,
             ChatbotLlmPlan initialPlan) {
-        String currentQueryIntent = toTextOrDefault(initialPlan.queryIntent(), DEFAULT_QUERY_INTENT);
-        String currentQuerySummary = initialPlan.querySummary();
-        String currentSql = requireSql(initialPlan.sql(), "LLM 계획에 DB 조회 SQL이 없습니다.");
+        DbSearchState searchState = createSearchState(initialPlan);
         List<ChatbotSearchAttempt> searchAttempts = new ArrayList<>();
         ChatbotQueryService.QueryResult lastQueryResult = null;
 
         for (int attempt = 1; attempt <= MAX_DB_SEARCH_ATTEMPTS; attempt++) {
-            lastQueryResult = chatbotQueryService.execute(currentSql, currentQuerySummary);
-            searchAttempts.add(new ChatbotSearchAttempt(
-                    attempt,
-                    currentQueryIntent,
-                    lastQueryResult.querySummary(),
-                    lastQueryResult.sql(),
-                    lastQueryResult.rows(),
-                    ""));
+            lastQueryResult = executeSearch(searchState);
+            searchAttempts.add(createSearchAttempt(attempt, searchState.queryIntent(), lastQueryResult));
 
             ChatbotLlmSearchReview review = chatbotPlanService.reviewSearch(
                     message,
                     context,
-                    currentQueryIntent,
+                    searchState.queryIntent(),
                     searchAttempts,
                     MAX_DB_SEARCH_ATTEMPTS);
             updateLastAttemptReason(searchAttempts, review.decisionReason());
-            currentQueryIntent = toTextOrDefault(review.queryIntent(), currentQueryIntent);
 
             if (!review.shouldContinue()) {
-                String answer = chatbotAnswerService.createDbAnswer(
-                        message,
-                        currentQueryIntent,
-                        searchAttempts,
-                        false);
+                String answer = createDbAnswer(message, searchState.queryIntent(), searchAttempts, false);
                 return new DbSearchResult(answer, lastQueryResult);
             }
 
-            currentQuerySummary = toTextOrDefault(review.querySummary(), lastQueryResult.querySummary());
-            currentSql = requireSql(review.sql(), "LLM 재탐색 계획에 DB 조회 SQL이 없습니다.");
+            searchState = nextSearchState(searchState, review, lastQueryResult);
         }
 
-        String answer = chatbotAnswerService.createDbAnswer(
-                message,
-                currentQueryIntent,
-                searchAttempts,
-                true);
+        String answer = createDbAnswer(message, searchState.queryIntent(), searchAttempts, true);
         return new DbSearchResult(answer, lastQueryResult);
+    }
+
+    private DbSearchState createSearchState(ChatbotLlmPlan initialPlan) {
+        return new DbSearchState(
+                toTextOrDefault(initialPlan.queryIntent(), DEFAULT_QUERY_INTENT),
+                initialPlan.querySummary(),
+                requireSql(initialPlan.sql(), "LLM 계획에 DB 조회 SQL이 없습니다."));
+    }
+
+    private ChatbotQueryService.QueryResult executeSearch(DbSearchState searchState) {
+        return chatbotQueryService.execute(searchState.sql(), searchState.querySummary());
+    }
+
+    private ChatbotSearchAttempt createSearchAttempt(
+            int attempt,
+            String queryIntent,
+            ChatbotQueryService.QueryResult queryResult) {
+        return new ChatbotSearchAttempt(
+                attempt,
+                queryIntent,
+                queryResult.querySummary(),
+                queryResult.sql(),
+                queryResult.rows(),
+                "");
+    }
+
+    private DbSearchState nextSearchState(
+            DbSearchState currentState,
+            ChatbotLlmSearchReview review,
+            ChatbotQueryService.QueryResult lastQueryResult) {
+        return new DbSearchState(
+                toTextOrDefault(review.queryIntent(), currentState.queryIntent()),
+                toTextOrDefault(review.querySummary(), lastQueryResult.querySummary()),
+                requireSql(review.sql(), "LLM 재탐색 계획에 DB 조회 SQL이 없습니다."));
     }
 
     private void updateLastAttemptReason(List<ChatbotSearchAttempt> searchAttempts, String decisionReason) {
@@ -136,6 +158,18 @@ public class ChatbotOrchestrator {
         ChatbotSearchAttempt updatedAttempt = searchAttempts.get(lastIndex)
                 .withEvaluationReason(toTextOrDefault(decisionReason, ""));
         searchAttempts.set(lastIndex, updatedAttempt);
+    }
+
+    private String createDbAnswer(
+            String message,
+            String queryIntent,
+            List<ChatbotSearchAttempt> searchAttempts,
+            boolean exhausted) {
+        return chatbotAnswerService.createDbAnswer(
+                message,
+                queryIntent,
+                searchAttempts,
+                exhausted);
     }
 
     private String requireSql(String sql, String errorMessage) {
@@ -155,6 +189,10 @@ public class ChatbotOrchestrator {
         return value;
     }
 
+    private record DbSearchState(String queryIntent, String querySummary, String sql) {
+    }
+
     private record DbSearchResult(String answer, ChatbotQueryService.QueryResult queryResult) {
     }
 }
+

@@ -31,3 +31,4 @@ public record ChatbotSearchAttempt(
                 nextEvaluationReason == null ? "" : nextEvaluationReason);
     }
 }
+

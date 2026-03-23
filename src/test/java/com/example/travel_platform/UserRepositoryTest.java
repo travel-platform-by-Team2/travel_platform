@@ -4,12 +4,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
 
 @Import(UserRepository.class)
 @DataJpaTest
+@TestPropertySource(properties = "spring.sql.init.mode=never")
 public class UserRepositoryTest {
 
     @Autowired
@@ -18,10 +20,7 @@ public class UserRepositoryTest {
     @Test
     public void save_test() {
         // given
-        User user = new User();
-        user.setUsername("user1");
-        user.setPassword("1234");
-        user.setEmail("user1@metacoding.com");
+        User user = User.createSNS("user1", "user1@metacoding.com", "kakao", "provider-1");
 
         // when
         userRepository.save(user);

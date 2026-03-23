@@ -27,7 +27,7 @@ public class ReplyApiController {
     public ResponseEntity<Resp<ReplyResponse.CreatedDTO>> create(
             @PathVariable(name = "boardId") Integer boardId,
             @Valid @RequestBody ReplyRequest.CreateDTO reqDTO) {
-        return Resp.ok(replyService.createReply(requireSessionUserId(), boardId, reqDTO));
+        return Resp.ok(replyService.createReply(requiredSessionUserId(), boardId, reqDTO));
     }
 
     @PutMapping("/{replyId}")
@@ -35,10 +35,10 @@ public class ReplyApiController {
             @PathVariable(name = "boardId") Integer boardId,
             @PathVariable(name = "replyId") Integer replyId,
             @Valid @RequestBody ReplyRequest.UpdateDTO reqDTO) {
-        return Resp.ok(replyService.updateReply(requireSessionUserId(), boardId, replyId, reqDTO));
+        return Resp.ok(replyService.updateReply(requiredSessionUserId(), boardId, replyId, reqDTO));
     }
 
-    private Integer requireSessionUserId() {
+    private Integer requiredSessionUserId() {
         return SessionUsers.requireUserId(session);
     }
 }

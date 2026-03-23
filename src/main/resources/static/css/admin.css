@@ -812,6 +812,14 @@
   border-bottom: 1px solid #edf2f7;
 }
 
+.page-admin .admin-table thead th.admin-manage-cell {
+  padding-right: 4.2rem;
+}
+
+.page-admin .admin-table tbody td.admin-manage-cell {
+  padding-right: 1rem;
+}
+
 .page-admin .admin-table tbody tr:last-child td {
   border-bottom: 0;
 }
@@ -887,7 +895,8 @@
 }
 
 .page-admin .admin-status-actions {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   justify-content: flex-end;
   align-items: center;
   gap: 0.5rem;

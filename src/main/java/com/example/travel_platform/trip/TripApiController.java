@@ -27,24 +27,27 @@ public class TripApiController {
     @PostMapping
     public ResponseEntity<Resp<TripResponse.CreatedDTO>> createPlan(
             @Valid @RequestBody TripRequest.CreatePlanDTO reqDTO) {
-        return Resp.ok(tripService.createPlan(requireSessionUserId(), reqDTO));
+        Integer sessionUserId = requiredSessionUserId();
+        return Resp.ok(tripService.createPlan(sessionUserId, reqDTO));
     }
 
     @GetMapping
     public ResponseEntity<Resp<TripResponse.ListPageDTO>> getPlanList(
             @RequestParam(name = "category", defaultValue = "result") String category,
             @RequestParam(name = "page", defaultValue = "0") int page) {
-        return Resp.ok(tripService.getPlanList(requireSessionUserId(), category, page));
+        Integer sessionUserId = requiredSessionUserId();
+        return Resp.ok(tripService.getPlanList(sessionUserId, category, page));
     }
 
     @PostMapping("/{planId}/places")
     public ResponseEntity<Resp<TripResponse.PlaceAddedDTO>> addPlace(
             @PathVariable(name = "planId") Integer planId,
             @Valid @RequestBody TripRequest.AddPlaceDTO reqDTO) {
-        return Resp.ok(tripService.addPlace(requireSessionUserId(), planId, reqDTO));
+        Integer sessionUserId = requiredSessionUserId();
+        return Resp.ok(tripService.addPlace(sessionUserId, planId, reqDTO));
     }
 
-    private Integer requireSessionUserId() {
+    private Integer requiredSessionUserId() {
         return SessionUsers.requireUserId(session);
     }
 }

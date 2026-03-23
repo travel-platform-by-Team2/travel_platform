@@ -21,4 +21,11 @@ public class UserRequest {
         private String email;
         private String password;
     }
+
+    @Data
+    public static class SnsCallbackDTO {
+        private String email;
+        private String nickname;
+        private String providerId;
+    }
 }
