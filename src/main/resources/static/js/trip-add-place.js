@@ -61,16 +61,24 @@
   function createFallbackImageDataUri(item) {
     var seed = hashText(item.name || "place");
     var isHotel = item.type === "hotel" || item.category_group_code === "AD5";
-    var images = isHotel ? [
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop"
-    ] : [
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop"
+    
+    // map-detail.mustache 등에서 참조된 고품질 이미지 풀
+    var hotelImages = [
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuC-JAUxidY-8eAcp_IDpWDkgrUGMXIGAlPy1BJwza3o8VSKr55RAv9mLt9GMN6aPzSqUaGSwFoL74EWZKG0EtV9HzVx5i_KbnAraqlodDx-GlN53CzIIcHWdA6Ookubfk19r7qR7DWsq3neb-etxuMxfQnAjmDHvE9QnncbJ2VNnStRshVdPe9zBeLMiBxAsuQIkYIiMzR6gRiw9KI84TWahGVSWjxkaS9308j5YVRMy6BQS1lwXSpj13SwdZmAlCmkkIwlpo1W9rA",
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuC5HkQwgzyLa00qm4kJK8AntO2ohMwlggRjDKOLbAr-VuVZaW85t84Qg56mlYmwmNjAv9juzqcKjyymqjhbKRJF4YWTS6zPuGQs47NhHldI1a9kOEUWW9WRNwQxKJ3oPyAHrgmudLH2GDtU4wxGE34BYVcq161Lf1rmKY4x98zy3NaqZT9QJb8Maldzovyq4zCkxfgqycRYpIJ3RgFqvtONxkOrnspgSgW8rjDHtNC_mVCd_QtL2VID4YErblfOFPAaJDDo7-sPyok",
+        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop"
     ];
-    return images[seed % images.length];
+    
+    var attrImages = [
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuCVgQdNeNWAKvF_XEmrvmeXZhDlZEkrsaT5L1HswoFEJqscQS4AFi3qZHQi23dm2ZJkqGyL2eLQGHruSaxy8w-VVD7ATptLBCOHPwnmn6ADoO2ih0ChSHfWp5oL88gqhBFdXzJH5GvXK6Jz4nvszn01k9ihI4LeOPRDKQxIqxS62edpm1n2UKy6XNlmYASt0mJo-Ehk7FmD9Ho8BjPIGseLR12D9G3rz118NEFOwx452_ocUKPMXRl_zfaNbMVYZPpzvET2mFTbii8",
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=400&fit=crop"
+    ];
+
+    var pool = isHotel ? hotelImages : attrImages;
+    return pool[seed % pool.length];
   }
 
   function normalizePlace(p, categoryCode) {
@@ -81,13 +89,77 @@
       address: p.road_address_name || p.address_name,
       lat: parseFloat(p.y), lng: parseFloat(p.x),
       type: type, placeUrl: p.place_url || "", imgUrl: p.image_url || null,
-      rating: (4.0 + Math.random()).toFixed(1),
-      reviewCount: Math.floor(Math.random() * 5000)
+      rating: (4.0 + (hashText(p.id) % 10) / 10).toFixed(1), // 일관된 랜덤 평점
+      reviewCount: Math.floor((hashText(p.id) % 1000) + 10)
     };
   }
 
   function isSelected(itemId) {
     return state.selectedPlaces.some(function (item) { return String(item.id) === String(itemId); });
+  }
+
+  function unwrapRespBody(data) {
+    if (data && typeof data === "object" && Object.prototype.hasOwnProperty.call(data, "body")) {
+      return data.body;
+    }
+    return data;
+  }
+
+  function normalizeNameKey(name) {
+    return String(name || "").replace(/\s+/g, "").toLowerCase();
+  }
+
+  async function fetchPlaceImageFromServer(item) {
+    var cacheKey = (item.placeUrl || "") + "|" + normalizeNameKey(item.name);
+    if (state.imageCache && cacheKey in state.imageCache) {
+      return state.imageCache[cacheKey];
+    }
+    if (!state.imageCache) state.imageCache = {};
+
+    try {
+      var params = new URLSearchParams();
+      if (item.placeUrl) params.set("placeUrl", item.placeUrl);
+      if (item.name) params.set("name", item.name);
+      if (item.address) params.set("address", item.address);
+
+      var response = await fetch("/api/bookings/place-image?" + params.toString(), {
+        method: "GET",
+        headers: { Accept: "application/json" }
+      });
+
+      if (!response.ok) return "";
+
+      var data = unwrapRespBody(await response.json());
+      var imageUrl = data && typeof data.imageUrl === "string" ? data.imageUrl : "";
+      state.imageCache[cacheKey] = imageUrl;
+      return imageUrl;
+    } catch (error) {
+      return "";
+    }
+  }
+
+  async function hydrateListImages() {
+    var images = document.querySelectorAll("[data-place-image]");
+    await Promise.all(
+      Array.from(images).map(async function (imgEl) {
+        var id = imgEl.getAttribute("data-id");
+        var item = state.items.find(function(v) { return String(v.id) === String(id); });
+        if (!item) return;
+        
+        var serverImage = await fetchPlaceImageFromServer(item);
+        if (serverImage) {
+          imgEl.src = serverImage;
+          item.imgUrl = serverImage; // 실제 이미지 URL을 데이터 객체에 업데이트
+          
+          // 선택된 목록에 있는 이미지와 데이터도 업데이트
+          var selectedItem = state.selectedPlaces.find(function(v) { return String(v.id) === String(id); });
+          if (selectedItem) selectedItem.imgUrl = serverImage;
+
+          var selectedImg = document.querySelector("#selected-img-" + id);
+          if (selectedImg) selectedImg.src = serverImage;
+        }
+      })
+    );
   }
 
   function renderList() {
@@ -102,10 +174,12 @@
     container.innerHTML = state.items.map(function (item) {
       var selected = isSelected(item.id);
       var typeLabel = item.type === "hotel" ? "숙소" : "명소";
+      var fallbackImg = createFallbackImageDataUri(item);
+      
       return '' +
         '<div class="place-option-card" id="place-card-' + item.id + '" style="display:flex; gap:1rem; padding:1rem; border:1px solid #e2e8f0; border-radius:1rem; background:#fff; margin-bottom:1rem; position:relative;">' +
         '  <div style="width:80px; height:80px; flex-shrink:0; overflow:hidden; border-radius:0.75rem;">' +
-        '    <img src="' + (item.imgUrl || createFallbackImageDataUri(item)) + '" style="width:100%; height:100%; object-fit:cover;"/>' +
+        '    <img src="' + fallbackImg + '" data-place-image data-id="' + item.id + '" style="width:100%; height:100%; object-fit:cover;"/>' +
         '  </div>' +
         '  <div style="flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center;">' +
         '    <div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
@@ -124,6 +198,9 @@
         '  </button>' +
         '</div>';
     }).join("");
+    
+    // 비동기적으로 실제 이미지 로드
+    hydrateListImages();
   }
 
   function renderSelectedPlaces() {
@@ -133,16 +210,19 @@
     if (!state.selectedPlaces.length) {
       container.innerHTML = '<div class="empty-state" style="font-size:0.8rem; color:#94a3b8;">장소를 추가해 보세요.</div>';
       document.getElementById("selectedPlaceCount").textContent = "0";
-      renderList();
       return;
     }
 
     document.getElementById("selectedPlaceCount").textContent = state.selectedPlaces.length;
     container.innerHTML = state.selectedPlaces.map(function (item) {
+      var fallbackImg = createFallbackImageDataUri(item);
+      // 캐시된 이미지가 있으면 사용
+      var cachedImg = (state.imageCache && state.imageCache[(item.placeUrl || "") + "|" + normalizeNameKey(item.name)]) || fallbackImg;
+      
       return '' +
         '<div class="selected-item-card">' +
         '  <div style="position:relative;">' +
-        '    <img src="' + (item.imgUrl || createFallbackImageDataUri(item)) + '" alt="Selected"/>' +
+        '    <img src="' + cachedImg + '" id="selected-img-' + item.id + '" alt="Selected"/>' +
         '    <button class="remove-btn" data-action="remove-place" data-id="' + item.id + '">✕</button>' +
         '  </div>' +
         '  <span class="item-name">' + item.name + '</span>' +
@@ -150,7 +230,6 @@
     }).join("");
 
     container.scrollLeft = container.scrollWidth;
-    renderList();
   }
 
   function addSelectedPlace(itemId) {
@@ -346,7 +425,8 @@
                 latitude: p.lat,
                 longitude: p.lng,
                 placeUrl: p.placeUrl,
-                imgUrl: p.imgUrl
+                imgUrl: p.imgUrl,
+                type: p.type
               };
             })
           };

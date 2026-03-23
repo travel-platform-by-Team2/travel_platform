@@ -116,7 +116,8 @@ public class TripService {
                     p.getLatitude() == null ? null : java.math.BigDecimal.valueOf(p.getLatitude()),
                     p.getLongitude() == null ? null : java.math.BigDecimal.valueOf(p.getLongitude()),
                     reqDTO.getTripDay(),
-                    p.getImgUrl());
+                    p.getImgUrl(),
+                    p.getType());
             tripPlaceRepository.save(tripPlace);
         }
     }

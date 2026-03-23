@@ -73,5 +73,6 @@ public class TripRequest {
         private Double longitude;
         private String placeUrl;
         private String imgUrl;
+        private String type;
     }
 }

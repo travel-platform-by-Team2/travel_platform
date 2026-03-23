@@ -33,7 +33,7 @@ public class TripResponse {
             return SummaryDTO.builder()
                     .id(tripPlan.getId())
                     .title(tripPlan.getTitle())
-                    .imgUrl(resolveImageUrl(tripPlan.getImgUrl()))
+                    .imgUrl(resolveImageUrl(tripPlan.getImgUrl(), null))
                     .startDate(tripPlan.getStartDate())
                     .endDate(tripPlan.getEndDate())
                     .dateRangeLabel(formatDateRange(tripPlan.getStartDate(), tripPlan.getEndDate()))
@@ -160,7 +160,7 @@ public class TripResponse {
                     .latitude(tripPlace.getLatitude() == null ? null : tripPlace.getLatitude().doubleValue())
                     .longitude(tripPlace.getLongitude() == null ? null : tripPlace.getLongitude().doubleValue())
                     .dayOrder(tripPlace.getTripDay())
-                    .imgUrl(resolveImageUrl(tripPlace.getImgUrl()))
+                    .imgUrl(resolveImageUrl(tripPlace.getImgUrl(), tripPlace.getPlaceType()))
                     .build();
         }
     }
@@ -400,8 +400,14 @@ public class TripResponse {
         return value == null ? "" : value;
     }
 
-    private static String resolveImageUrl(String imageUrl) {
-        if (imageUrl == null || imageUrl.isBlank()) {
+    private static String resolveImageUrl(String imageUrl, String type) {
+        if (imageUrl == null || imageUrl.isBlank() || imageUrl.startsWith("data:")) {
+            if ("hotel".equals(type)) {
+                return "/images/hotel.png";
+            }
+            if ("attraction".equals(type)) {
+                return "/images/place.png";
+            }
             return "/images/dumimg.jpg";
         }
         return imageUrl;

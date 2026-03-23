@@ -51,6 +51,9 @@ public class TripPlace {
     @Column(length = 511)
     private String imgUrl;
 
+    @Column(name = "place_type", length = 20)
+    private String placeType;
+
     @Builder
     private TripPlace(TripPlan tripPlan,
             String placeName,
@@ -58,7 +61,8 @@ public class TripPlace {
             BigDecimal latitude,
             BigDecimal longitude,
             Integer tripDay,
-            String imgUrl) {
+            String imgUrl,
+            String placeType) {
         this.tripPlan = tripPlan;
         this.placeName = placeName;
         this.address = address;
@@ -66,15 +70,16 @@ public class TripPlace {
         this.longitude = longitude;
         this.tripDay = tripDay;
         this.imgUrl = imgUrl;
+        this.placeType = placeType;
     }
 
     public static TripPlace create(TripPlan tripPlan, String placeName, String address, BigDecimal latitude,
             BigDecimal longitude, Integer tripDay) {
-        return create(tripPlan, placeName, address, latitude, longitude, tripDay, null);
+        return create(tripPlan, placeName, address, latitude, longitude, tripDay, null, null);
     }
 
     public static TripPlace create(TripPlan tripPlan, String placeName, String address, BigDecimal latitude,
-            BigDecimal longitude, Integer tripDay, String imgUrl) {
+            BigDecimal longitude, Integer tripDay, String imgUrl, String placeType) {
         return TripPlace.builder()
                 .tripPlan(tripPlan)
                 .placeName(placeName)
@@ -83,6 +88,7 @@ public class TripPlace {
                 .longitude(longitude)
                 .tripDay(tripDay)
                 .imgUrl(imgUrl)
+                .placeType(placeType)
                 .build();
     }
 
