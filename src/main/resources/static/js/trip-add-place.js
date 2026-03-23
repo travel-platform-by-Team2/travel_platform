@@ -7,10 +7,14 @@
   var state = {
     map: null,
     places: null,
+    hotelClusterer: null,
+    attrClusterer: null,
     overlays: [],
+    markers: [],
     items: [],
     selectedPlaces: [],
     currentRegionKey: null,
+    regionLabel: pageRoot.dataset.region || "",
     currentCategory: "",
     currentKeyword: "",
     idleTimer: null,
@@ -162,26 +166,45 @@
     renderSelectedPlaces();
   }
 
+  function searchByCategory(cat) {
+    return new Promise(function(resolve) {
+      state.places.categorySearch(cat, function(data, status) {
+        resolve(status === kakao.maps.services.Status.OK ? data.map(function(p) { return normalizePlace(p, cat); }) : []);
+      }, { useMapBounds: true });
+    });
+  }
+
   async function fetchAndRenderPois() {
     if (state.loading) return;
     state.loading = true;
     try {
       var results = [];
-      var cat = state.currentCategory || "AT4";
       if (state.currentKeyword) {
         results = await new Promise(function(resolve) {
           state.places.keywordSearch(state.currentKeyword, function(data, status) {
             resolve(status === kakao.maps.services.Status.OK ? data.map(function(p) { return normalizePlace(p, p.category_group_code); }) : []);
           }, { useMapBounds: true });
         });
+      } else if (state.currentCategory) {
+        results = await searchByCategory(state.currentCategory);
       } else {
-        results = await new Promise(function(resolve) {
-          state.places.categorySearch(cat, function(data, status) {
-            resolve(status === kakao.maps.services.Status.OK ? data.map(function(p) { return normalizePlace(p, cat); }) : []);
-          }, { useMapBounds: true });
-        });
+        // "전체"인 경우 명소(AT4)와 숙소(AD5) 병렬 검색
+        var [resAt4, resAd5] = await Promise.all([
+          searchByCategory("AT4"),
+          searchByCategory("AD5")
+        ]);
+        results = resAt4.concat(resAd5);
       }
       state.items = results;
+      
+      // 지역 필터링: 설정된 지역명(예: 부산, 서울)이 주소에 포함된 경우만 남김
+      if (state.regionLabel && state.regionLabel !== "전국" && state.regionLabel !== "지역 정보 없음") {
+        state.items = state.items.filter(function(item) {
+          // 주소(address)에 지역명(regionLabel)이 포함되어 있는지 확인
+          return item.address && item.address.indexOf(state.regionLabel) !== -1;
+        });
+      }
+
       renderList();
       renderOverlays();
     } finally { state.loading = false; }
@@ -190,21 +213,101 @@
   function renderOverlays() {
     state.overlays.forEach(function(o) { o.setMap(null); });
     state.overlays = [];
+    
+    // 줌 레벨에 따라 동적으로 gridSize 계산
+    var zoomLevel = state.map.getLevel();
+    var dynamicGridSize = 60;
+    if (zoomLevel >= 10) dynamicGridSize = 120;
+    else if (zoomLevel >= 8) dynamicGridSize = 90;
+    else if (zoomLevel >= 6) dynamicGridSize = 70;
+
+    // 클러스터러 초기화/재설정 함수
+    function createClusterer(color) {
+      return new kakao.maps.MarkerClusterer({
+        map: state.map,
+        averageCenter: true,
+        minLevel: 5,
+        gridSize: dynamicGridSize,
+        styles: [{
+          width: '40px', height: '40px',
+          background: color,
+          borderRadius: '20px',
+          color: '#fff',
+          textAlign: 'center',
+          fontWeight: '800',
+          lineHeight: '41px',
+          fontSize: '14px',
+          border: '2px solid #fff',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+        }]
+      });
+    }
+
+    // 클러스터러가 없거나 gridSize가 변경되었다면 재설정
+    if (!state.hotelClusterer || state.lastGridSize !== dynamicGridSize) {
+      if (state.hotelClusterer) state.hotelClusterer.clear();
+      if (state.attrClusterer) state.attrClusterer.clear();
+      
+      state.hotelClusterer = createClusterer('rgba(37, 99, 235, 0.9)'); // 숙소: Blue
+      state.attrClusterer = createClusterer('rgba(234, 88, 12, 0.9)');  // 명소: Orange
+      state.lastGridSize = dynamicGridSize;
+    } else {
+      state.hotelClusterer.clear();
+      state.attrClusterer.clear();
+    }
+    
+    var hotelMarkers = [];
+    var attrMarkers = [];
+
     state.items.forEach(function(item) {
       var node = document.createElement("div");
       node.className = "stay-marker stay-marker--" + (item.type === "hotel" ? "hotel" : "attraction");
       node.innerHTML = '<div class="stay-marker__pin"><span class="icon-ms-16">' + (item.type === "hotel" ? "hotel" : "attractions") + '</span></div><div class="stay-marker__label">' + item.name + '</div>';
-      var overlay = new kakao.maps.CustomOverlay({ position: new kakao.maps.LatLng(item.lat, item.lng), content: node, yAnchor: 1 });
+      
+      var position = new kakao.maps.LatLng(item.lat, item.lng);
+      var overlay = new kakao.maps.CustomOverlay({ position: position, content: node, yAnchor: 1 });
       overlay.setMap(state.map);
       state.overlays.push(overlay);
+      
       node.onclick = function() { addSelectedPlace(item.id); };
+
+      // 투명 마커 생성
+      var marker = new kakao.maps.Marker({
+        position: position,
+        image: new kakao.maps.MarkerImage(
+          'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+          new kakao.maps.Size(1, 1)
+        )
+      });
+
+      if (item.type === "hotel") {
+        hotelMarkers.push(marker);
+      } else {
+        attrMarkers.push(marker);
+      }
     });
+
+    if (state.hotelClusterer) state.hotelClusterer.addMarkers(hotelMarkers);
+    if (state.attrClusterer) state.attrClusterer.addMarkers(attrMarkers);
   }
 
   function initMap() {
     kakao.maps.load(function () {
       state.map = new kakao.maps.Map(document.getElementById("tripMap"), { center: new kakao.maps.LatLng(33.4996, 126.5312), level: 8, scrollwheel: true });
       state.places = new kakao.maps.services.Places(state.map);
+      
+      // 초기 렌더링을 호출하여 클러스터러 생성
+      renderOverlays();
+
+      if (state.regionLabel) {
+        state.places.keywordSearch(state.regionLabel, function(data, status) {
+          if (status === kakao.maps.services.Status.OK && data.length > 0) {
+            var first = data[0];
+            state.map.setCenter(new kakao.maps.LatLng(first.y, first.x));
+          }
+        });
+      }
+
       kakao.maps.event.addListener(state.map, "idle", function() { if (state.idleTimer) clearTimeout(state.idleTimer); state.idleTimer = setTimeout(fetchAndRenderPois, 200); });
 
       document.getElementById("placeListContainer").onclick = function(e) {
@@ -223,9 +326,53 @@
         fetchAndRenderPois();
       };
       
-      document.getElementById("clearSelectedPlaces").onclick = function() { state.selectedPlaces = []; renderSelectedPlaces(); };
-      document.getElementById("saveSelectedPlaces").onclick = function() { /* 저장 로직 */ };
-      document.getElementById("cancelPlaceSelection").onclick = function() { location.href = state.detailUrl; };
+      document.getElementById("saveSelectedPlaces").onclick = async function() {
+        if (state.saving || state.selectedPlaces.length === 0) {
+          if (state.selectedPlaces.length === 0) alert("장소를 하나 이상 선택해주세요.");
+          return;
+        }
+
+        state.saving = true;
+        this.disabled = true;
+        this.textContent = "저장 중...";
+
+        try {
+          var payload = {
+            tripDay: state.currentDay,
+            places: state.selectedPlaces.map(function(p) {
+              return {
+                placeName: p.name,
+                address: p.address,
+                latitude: p.lat,
+                longitude: p.lng,
+                placeUrl: p.placeUrl,
+                imgUrl: p.imgUrl
+              };
+            })
+          };
+
+          var response = await fetch(state.saveUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            location.href = state.detailUrl;
+          } else {
+            alert("저장에 실패했습니다.");
+            state.saving = false;
+            this.disabled = false;
+            this.textContent = "완료";
+          }
+        } catch (e) {
+          console.error(e);
+          alert("에러가 발생했습니다.");
+          state.saving = false;
+          this.disabled = false;
+          this.textContent = "완료";
+        }
+      };
 
       var searchInput = document.getElementById("placeSearchInput");
       if (searchInput) { searchInput.onkeypress = function(e) { if (e.key === "Enter") { state.currentKeyword = this.value.trim(); fetchAndRenderPois(); } }; }

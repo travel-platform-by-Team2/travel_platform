@@ -101,6 +101,26 @@ public class TripService {
                 null);
     }
 
+    @Transactional
+    public void addPlacesToPlan(Integer sessionUserId, Integer planId, TripRequest.AddPlacesDTO reqDTO) {
+        TripPlan tripPlan = findOwnedPlan(sessionUserId, planId);
+        if (reqDTO.getPlaces() == null) {
+            return;
+        }
+
+        for (TripRequest.PlaceDTO p : reqDTO.getPlaces()) {
+            TripPlace tripPlace = TripPlace.create(
+                    tripPlan,
+                    p.getPlaceName(),
+                    p.getAddress(),
+                    p.getLatitude() == null ? null : java.math.BigDecimal.valueOf(p.getLatitude()),
+                    p.getLongitude() == null ? null : java.math.BigDecimal.valueOf(p.getLongitude()),
+                    reqDTO.getTripDay(),
+                    p.getImgUrl());
+            tripPlaceRepository.save(tripPlace);
+        }
+    }
+
     private TripPlace createTripPlace(TripPlan tripPlan, TripRequest.AddPlaceDTO reqDTO) {
         Integer tripDay = reqDTO.getDayOrder();
         return TripPlace.create(

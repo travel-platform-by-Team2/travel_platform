@@ -54,4 +54,24 @@ public class TripRequest {
         @NotNull(message = "여행 일차 정보가 필요합니다.")
         private Integer dayOrder;
     }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AddPlacesDTO {
+        private Integer tripDay;
+        private java.util.List<PlaceDTO> places;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlaceDTO {
+        private String placeName;
+        private String address;
+        private Double latitude;
+        private Double longitude;
+        private String placeUrl;
+        private String imgUrl;
+    }
 }

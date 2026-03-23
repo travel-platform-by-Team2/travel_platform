@@ -164,6 +164,7 @@
 {{#model}}
 <div id="tripPlacePage"
      data-plan-id="{{detail.id}}"
+     data-region="{{detail.regionLabel}}"
      data-existing-count="{{existingCount}}"
      data-save-url="{{saveUrl}}"
      data-detail-url="{{detailUrl}}">
@@ -221,7 +222,7 @@
 </div>
 {{/model}}
   {{#model.kakaoMapAppKey}}
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services,clusterer&autoload=false"></script>
   {{/model.kakaoMapAppKey}}
   <script src="/js/trip-add-place.js"></script>
   {{>partials/scripts}}

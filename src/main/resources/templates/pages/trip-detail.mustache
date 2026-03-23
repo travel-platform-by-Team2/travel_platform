@@ -155,109 +155,45 @@
 </div>
 </div>
 <div class="trip-plan-detail-div-18">
+{{#model.days}}
 <div class="community-list-div-02">
 <div class="chatbot-demo-div-07">
-<div class="trip-plan-detail-div-19">1</div>
-<h3 class="text-main-lg-bold">1일차 - 도착 및 체크인</h3>
-<span class="trip-plan-detail-span-05">10.15 (화)</span>
+<div class="trip-plan-detail-div-19">{{tripDay}}</div>
+<h3 class="text-main-lg-bold">{{tripDay}}일차</h3>
+<span class="trip-plan-detail-span-05">{{dateLabel}}</span>
 </div>
 <div class="trip-plan-detail-div-20">
+{{#items}}
 <div class="fx-group-rel-pl8">
 <div class="timeline-dot"></div>
 <div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">10:30</span>
-<span class="trip-plan-detail-span-06">AM</span>
+<div class="trip-plan-detail-div-21">
+<div class="thumb-lg-optional">
+<img alt="{{placeName}}" class="media-cover" src="{{imgUrl}}">
 </div>
 <div class="flex-fill">
 <div class="row-between-center">
-<h4 class="text-main-lg-bold-mb1">제주 공항 도착</h4>
-<span class="trip-plan-detail-span-07">
-                                                    예약 확정
-                                                </span>
+<h4 class="text-main-lg-bold-mb1">{{placeName}}</h4>
 </div>
-<p class="trip-plan-detail-p-01">KE1203편으로 김포에서 출발</p>
 <div class="inline-meta-xs">
 <span class="icon-ms-16">location_on</span>
-                                                제주특별자치도 제주시 공항로 2
-                                            </div>
+{{address}}
 </div>
 </div>
 </div>
+</div>
+</div>
+{{/items}}
+{{^items}}
 <div class="fx-group-rel-pl8">
-<div class="timeline-dot"></div>
 <div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">12:00</span>
-<span class="trip-plan-detail-span-06">PM</span>
-</div>
-<div class="trip-plan-detail-div-21">
-<div class="thumb-lg-optional">
-<img alt="Noodle Soup" class="media-cover" data-alt="Delicious bowl of Jeju noodle soup" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1gaOUiqMTUco68MfeR4xHXKDsx161fPjEkP-vgpvqHUJKmZXBQuZ5zlfJNzV5pbDf2aYAJlVWGcv2d4y98t7Qr277FdASZeox-o91KVAOTen8MNxL903k-ZvKE3eG4hFb6Xc6GKSnG7YT8Hs2c4djbC1AN3caPGR_Ibfry5EFwGXyJUcM0-TWrjYvym3s6blEpmNSfwuVfdiT3hHFFjIg73hO1-kE1ltcY_E07WsrwWDZAga5MenYiJQbiah9Yu9_kKSTKDSPJaQ"/>
-</div>
-<div class="flex-fill">
-<h4 class="text-main-lg-bold-mb1">고기국수</h4>
-<p class="trip-plan-detail-p-01">제주 대표 메뉴로 첫 끼에 잘 어울립니다.</p>
-<div class="trip-plan-detail-div-22">
-<button class="trip-plan-detail-button-02">길찾기</button>
-<span class="text-body-tertiary">|</span>
-<button class="trip-plan-detail-button-02">리뷰 보기</button>
+<p class="text-muted-xs">일정이 없습니다. 장소를 추가해보세요.</p>
 </div>
 </div>
+{{/items}}
 </div>
 </div>
-</div>
-<div class="fx-group-rel-pl8">
-<div class="timeline-dot"></div>
-<div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">14:00</span>
-<span class="trip-plan-detail-span-06">PM</span>
-</div>
-<div class="trip-plan-detail-div-21">
-<div class="thumb-lg-optional">
-<img alt="Hotel" class="media-cover" data-alt="Grand Hyatt Jeju hotel exterior view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe5dcjeaPyFuDsZYXr92SvPd8hn9RdE99L8T5KmSfKRPdBpRFjxMpK8SkucugjViG84untsLPUBzgC3FZO5oIzRvTTqL4mNDPDG7j4iFDBDi1WNdFVMYhAW0nszR0MXbu2yTmz1pfWvyQqT24vUxZD0ZW6dql4NaigsViNQIEEvCu5YAP-pFuuMru1UM654jW1SnsUiGnuZsHL8Up5zHD4E8clHk3J1zBLHHff1YHmZdM0MD7WFHG2MKSuK7T75Ymt4elmLl1cbWQ"/>
-</div>
-<div class="flex-fill">
-<div class="row-between-center">
-<h4 class="text-main-lg-bold-mb1">그랜드 하얏트 제주</h4>
-<span class="trip-plan-detail-span-08">
-                                                        체크인
-                                                    </span>
-</div>
-<p class="trip-plan-detail-p-01">오션뷰</p>
-<div class="inline-meta-xs">
-<span class="icon-ms-16">location_on</span>
-                                                    제주도 노형동
-                                                </div>
-</div>
-</div>
-</div>
-</div>
-<div class="fx-group-rel-pl8">
-<div class="timeline-dot"></div>
-<div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">16:30</span>
-<span class="trip-plan-detail-span-06">PM</span>
-</div>
-<div class="trip-plan-detail-div-21">
-<div class="thumb-lg-optional">
-<img alt="Jeju Sunset" class="media-cover" data-alt="Jeju coast sunset view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1egG5_diAAZROQ5Kl9WcV4qDpgGl47hBgJ3o4Sw-HNtZd9cpLcoF_WnXTPCpEOqA9bM0SAeLBO5BIlWge1o4Uew0HMNDTLm_SJAolt8QymQFsXdT9WPZ8jbEbjkiAWY0nCnNnpLGNlcIaa58qgCSfIXCHy2w5ekIwpcRnW22htcvSMvqUZo04-q7YNJGUhwLk-IBMbGVTioLvEBagcObU8X1_vsz98n-UdLyBQkg2-_hwXc6UnAg-mCtGFvkaM-g9c-8KpPtGeWc"/>
-</div>
-<div class="flex-fill">
-<h4 class="text-main-lg-bold-mb1">협재 해변 산책</h4>
-<p class="trip-plan-detail-p-01">노을 감상 포인트</p>
-<div class="inline-meta-xs">
-<span class="icon-ms-16">photo_camera</span>
-                                                    사진 촬영 추천
-                                                </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+{{/model.days}}
 <button class="fx-dashed-add-btn" type="button" onclick="location.href='/trip/place?id={{#model}}{{id}}{{/model}}'">
 <span class="icon-ms-hover-scale">add_circle</span>
                             장소 추가하기

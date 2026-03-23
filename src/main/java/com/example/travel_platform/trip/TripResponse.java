@@ -150,6 +150,7 @@ public class TripResponse {
         private Double latitude;
         private Double longitude;
         private Integer dayOrder;
+        private String imgUrl;
 
         public static PlaceItemDTO fromTripPlace(TripPlace tripPlace) {
             return PlaceItemDTO.builder()
@@ -159,8 +160,17 @@ public class TripResponse {
                     .latitude(tripPlace.getLatitude() == null ? null : tripPlace.getLatitude().doubleValue())
                     .longitude(tripPlace.getLongitude() == null ? null : tripPlace.getLongitude().doubleValue())
                     .dayOrder(tripPlace.getTripDay())
+                    .imgUrl(resolveImageUrl(tripPlace.getImgUrl()))
                     .build();
         }
+    }
+
+    @Data
+    @Builder
+    public static class DayGroupDTO {
+        private Integer tripDay;
+        private String dateLabel;
+        private List<PlaceItemDTO> items;
     }
 
     @Data
@@ -181,12 +191,30 @@ public class TripResponse {
         private String dayCountLabel;
         private long placeCount;
         private boolean hasPlaces;
-        private List<PlaceItemDTO> places;
+        private List<DayGroupDTO> days;
 
         public static DetailDTO createPlanDetail(TripPlan tripPlan, List<PlaceItemDTO> places) {
             long nightCount = calculateNightCount(tripPlan.getStartDate(), tripPlan.getEndDate());
             long dayCount = nightCount + 1;
             String regionLabel = tripPlan.getRegionLabel();
+
+            // 일차별 그룹화
+            java.util.Map<Integer, List<PlaceItemDTO>> grouped = new java.util.TreeMap<>();
+            for (PlaceItemDTO p : places) {
+                if (p.getDayOrder() != null) {
+                    grouped.computeIfAbsent(p.getDayOrder(), k -> new java.util.ArrayList<>()).add(p);
+                }
+            }
+
+            List<DayGroupDTO> dayGroups = new java.util.ArrayList<>();
+            for (int i = 1; i <= dayCount; i++) {
+                LocalDate currentDate = tripPlan.getStartDate().plusDays(i - 1);
+                dayGroups.add(DayGroupDTO.builder()
+                        .tripDay(i)
+                        .dateLabel(currentDate.toString()) // 추후 포맷팅 가능
+                        .items(grouped.getOrDefault(i, List.of()))
+                        .build());
+            }
 
             return DetailDTO.builder()
                     .id(tripPlan.getId())
@@ -204,7 +232,7 @@ public class TripResponse {
                     .dayCountLabel(dayCount + "일")
                     .placeCount(places.size())
                     .hasPlaces(!places.isEmpty())
-                    .places(places)
+                    .days(dayGroups)
                     .build();
         }
     }
@@ -223,7 +251,7 @@ public class TripResponse {
                     .detail(detail)
                     .kakaoMapAppKey(kakaoMapAppKey == null ? "" : kakaoMapAppKey)
                     .detailUrl("/trip/detail?id=" + detail.getId())
-                    .saveUrl("/api/trips/" + detail.getId() + "/places")
+                    .saveUrl("/api/trips/" + detail.getId() + "/places/bulk")
                     .existingCount(detail.getPlaceCount())
                     .build();
         }

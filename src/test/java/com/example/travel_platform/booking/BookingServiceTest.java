@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -46,7 +47,8 @@ class BookingServiceTest {
                 "");
 
         when(fixture.userQueryRepository.findUser(3)).thenReturn(Optional.of(user));
-        when(fixture.tripPlanQueryRepository.findPlanList(3, 0, 1)).thenReturn(List.of(plan));
+        when(fixture.tripPlanQueryRepository.findByDates(eq(3), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(Optional.of(plan));
 
         fixture.service.processBookingCompletion(3, BookingRequest.CompleteBookingDTO.builder()
                 .lodgingName("시그니엘 부산")

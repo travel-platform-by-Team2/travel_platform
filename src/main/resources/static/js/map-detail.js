@@ -795,6 +795,10 @@
 
   async function renderRoomList(state, item, container) {
     if (!container) return;
+    
+    var bookBtn = document.getElementById("unifiedBookBtn");
+    if (bookBtn) bookBtn.style.display = "none"; // Reset button visibility
+
     if (item.type !== "hotel") {
       container.innerHTML = "";
       return;
@@ -808,7 +812,6 @@
     var rooms = [];
 
     try {
-      // 서버 API 호출 (이름과 주소 전달)
       var params = new URLSearchParams();
       params.set("lodgingName", item.name);
       params.set("address", item.roadAddress || item.address || "");
@@ -831,20 +834,17 @@
       console.error("TourAPI fetch error:", error);
     }
 
-    // 데이터가 없으면 가상 데이터 사용 (폴백) - 숙소 이름을 기반으로 다양하게 생성
     if (rooms.length === 0) {
       var seed = hashText(item.name);
       var themes = ["모던 ", "클래식 ", "우드톤 ", "미니멀 ", "럭셔리 "];
       var theme = themes[seed % themes.length];
-      
-      var roomCount = 2 + (seed % 3); // 2~4개 객실 생성
+      var roomCount = 2 + (seed % 3);
       for (var i = 0; i < roomCount; i++) {
         var roomType = (i === 0) ? "스탠다드" : (i === 1) ? "디럭스" : (i === 2) ? "프리미엄" : "스위트";
         var viewType = (seed + i) % 2 === 0 ? " 시티뷰" : " 마운틴뷰";
         if (item.address && (item.address.indexOf("부산") >= 0 || item.address.indexOf("제주") >= 0)) {
             viewType = (seed + i) % 2 === 0 ? " 오션뷰" : " 비치뷰";
         }
-
         rooms.push({
           name: theme + roomType + viewType,
           price: basePrice + (i * 35000) + (seed % 5 * 5000),
@@ -856,29 +856,72 @@
       }
     }
 
-    var html = '<div class="map-poi-panel-div-16"><h3 class="map-poi-panel-h3-01">객실 선택</h3>';
-    html += '<div class="room-list-group" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">';
+    var html = '<div class="map-poi-panel-div-16"><h3 class="map-poi-panel-h3-01">객실 선택 (1개 선택 가능)</h3>';
+    html += '<div class="room-list-group" id="roomListGroup" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">';
     
-    rooms.forEach(function(room) {
-      html += '<div class="room-card" style="border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; background: #fff;">' +
-              '<img src="' + room.img + '" style="width: 100%; height: 160px; object-fit: cover;" alt="' + room.name + '">' +
+    rooms.forEach(function(room, idx) {
+      html += '<div class="room-card-selectable" data-idx="' + idx + '" style="cursor: pointer; border: 2px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; background: #fff; transition: all 0.2s;">' +
+              '<img src="' + room.img + '" style="width: 100%; height: 140px; object-fit: cover;" alt="' + room.name + '">' +
               '<div style="padding: 1rem;">' +
-              '<h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">' + room.name + '</h4>' +
-              '<p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">' + (room.desc || "최대 인원 2명 · 금연") + '</p>' +
-              '<div style="display: flex; justify-content: space-between; align-items: flex-end;">' +
-              '<div><span style="font-size: 1.125rem; font-weight: 800; color: #1152d4;">' + formatWon(room.price) + '</span><span style="font-size: 0.75rem; color: #94a3b8;"> / 1박</span></div>' +
-              '<button class="fx-group-cta-primary room-book-btn" data-room-name="' + room.name + '" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto; min-width: 0; width: auto;">예약하기</button>' +
-              '</div></div></div>';
+              '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">' +
+              '<h4 style="font-size: 1rem; font-weight: 700; color: #0f172a;">' + room.name + '</h4>' +
+              '<span class="select-indicator icon-ms-20" style="color: #cbd5e1;">radio_button_unchecked</span>' +
+              '</div>' +
+              '<p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.75rem;">' + (room.desc || "최대 인원 2명 · 금연") + '</p>' +
+              '<div><span style="font-size: 1.05rem; font-weight: 800; color: #1152d4;">' + formatWon(room.price) + '</span><span style="font-size: 0.75rem; color: #94a3b8;"> / 1박</span></div>' +
+              '</div></div>';
     });
     
     html += '</div></div>';
     container.innerHTML = html;
 
-    // 예약 버튼 이벤트 바인딩
-    container.querySelectorAll(".room-book-btn").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        var roomName = btn.getAttribute("data-room-name");
-        goToBookingCheckout(state, item, roomName);
+    var selectedRoom = null;
+    var cards = container.querySelectorAll(".room-card-selectable");
+    
+    if (bookBtn) {
+        bookBtn.style.display = "flex";
+        bookBtn.disabled = true;
+        bookBtn.style.opacity = "0.5";
+        bookBtn.style.cursor = "not-allowed";
+        bookBtn.innerHTML = '<span class="icon-ms-20">touch_app</span> 객실을 선택해주세요';
+    }
+
+    cards.forEach(function(card) {
+      card.addEventListener("click", function() {
+        var idx = parseInt(this.getAttribute("data-idx"));
+        selectedRoom = rooms[idx];
+
+        // UI 업데이트
+        cards.forEach(function(c) {
+          c.style.borderColor = "#e2e8f0";
+          c.style.background = "#fff";
+          c.querySelector(".select-indicator").textContent = "radio_button_unchecked";
+          c.querySelector(".select-indicator").style.color = "#cbd5e1";
+        });
+
+        this.style.borderColor = "#1152d4";
+        this.style.background = "#f0f7ff";
+        this.querySelector(".select-indicator").textContent = "check_circle";
+        this.querySelector(".select-indicator").style.color = "#1152d4";
+
+        // 하단 버튼 활성화
+        if (bookBtn) {
+            bookBtn.disabled = false;
+            bookBtn.style.opacity = "1";
+            bookBtn.style.cursor = "pointer";
+            bookBtn.innerHTML = '<span class="icon-ms-20">check_circle</span> ' + selectedRoom.name + ' 예약하기';
+            
+            // 기존 이벤트 제거 및 새 이벤트 할당
+            var newBtn = bookBtn.cloneNode(true);
+            bookBtn.parentNode.replaceChild(newBtn, bookBtn);
+            bookBtn = newBtn;
+            
+            bookBtn.addEventListener("click", function() {
+                if (selectedRoom) {
+                    goToBookingCheckout(state, item, selectedRoom.name);
+                }
+            });
+        }
       });
     });
   }
