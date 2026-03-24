@@ -405,7 +405,8 @@ function escapeHtml(str) {
 }
 
 function createReplyItemHtml(reply) {
-  const ownerActions = reply.isOwner ? `
+  const isOwner = reply.isOwner === true || reply.owner === true;
+  const ownerActions = isOwner ? `
           <div class="inline-items-gap-2">
             <button class="link-inline-xs" type="button" onclick="showReplyEdit(${reply.boardId}, ${reply.id})">
               <span class="icon-ms-sm">edit</span> 수정

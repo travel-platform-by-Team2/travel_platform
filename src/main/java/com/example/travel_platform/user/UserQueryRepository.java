@@ -63,4 +63,18 @@ public class UserQueryRepository {
                 .getResultStream()
                 .findFirst();
     }
+
+    public Optional<User> findSnsUserByProvider(UserAuthProvider provider, String providerId) {
+        return em.createQuery("""
+                select u
+                from User u
+                where u.provider = :provider
+                  and u.providerId = :providerId
+                """, User.class)
+                .setParameter("provider", provider)
+                .setParameter("providerId", providerId)
+                .setMaxResults(1)
+                .getResultStream()
+                .findFirst();
+    }
 }

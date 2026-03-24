@@ -98,14 +98,27 @@ public class UserService {
     }
 
     private User findOrCreateSnsUser(String email, String username, UserAuthProvider provider, String providerId) {
-        return userQueryRepository.findSnsUser(email, provider)
+        // 1. provider + providerId로 먼저 찾기 (가장 정확한 식별 방법)
+        return userQueryRepository.findSnsUserByProvider(provider, providerId)
+                // 2. 없으면 email + provider로 찾기 (기존 연동 계정이 있을 경우)
+                .or(() -> userQueryRepository.findSnsUser(email, provider))
+                // 3. 그래도 없으면 새로 생성
                 .orElseGet(() -> userRepository.save(createSnsUser(email, username, provider, providerId)));
     }
 
     private User createSnsUser(String email, String username, UserAuthProvider provider, String providerId) {
         String safeBaseName = (username == null || username.isBlank()) ? provider.getCode() : username;
         String suffix = providerId.length() > 4 ? providerId.substring(providerId.length() - 4) : providerId;
-        User user = User.createSNS(safeBaseName + "_" + suffix, email, provider.getCode(), providerId);
+        String baseUsername = safeBaseName + "_" + suffix;
+
+        // username 중복 체크 및 고유 이름 생성
+        String uniqueUsername = baseUsername;
+        int count = 1;
+        while (userQueryRepository.findUserByUsername(uniqueUsername).isPresent()) {
+            uniqueUsername = baseUsername + count++;
+        }
+
+        User user = User.createSNS(uniqueUsername, email, provider.getCode(), providerId);
         user.setActive(true);
         return user;
     }
