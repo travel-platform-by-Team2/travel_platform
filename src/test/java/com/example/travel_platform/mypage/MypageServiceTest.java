@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.booking.BookingService;
 
@@ -108,5 +109,17 @@ class MypageServiceTest {
     @Test
     void booking404() {
         assertThrows(Exception404.class, () -> mypageService.getBookingDetailPage(1, 999));
+    }
+
+    @Test
+    void changePasswordSameAsCurrent() {
+        MypageRequest.ChangePasswordDTO reqDTO = new MypageRequest.ChangePasswordDTO();
+        reqDTO.setCurrentPassword("1234");
+        reqDTO.setNewPassword("1234");
+        reqDTO.setNewPasswordConfirm("1234");
+
+        Exception400 exception = assertThrows(Exception400.class, () -> mypageService.changePassword(1, reqDTO));
+
+        assertEquals("새 비밀번호는 현재 비밀번호와 같을 수 없습니다.", exception.getMessage());
     }
 }

@@ -2,6 +2,7 @@ package com.example.travel_platform.mypage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,8 +53,8 @@ class MypageControllerTest {
         assertEquals("pages/mypage", view);
         assertSame(pageDTO, model.getAttribute("model"));
         assertEquals("password changed", pageDTO.getPasswordSuccessMessage());
-        assertEquals("", pageDTO.getPasswordError());
-        assertEquals("", pageDTO.getWithdrawError());
+        assertNull(pageDTO.getPasswordError());
+        assertNull(pageDTO.getWithdrawError());
         assertFalse(pageDTO.isPasswordModalOpen());
         assertFalse(pageDTO.isWithdrawModalOpen());
         verify(mypageService).getPasswordSuccessMainPage(3, "password changed");
