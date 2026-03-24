@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -178,13 +180,22 @@ public class TripResponse {
     @Data
     @Builder
     public static class WeatherDTO {
-        private String date;        // "10/15"
-        private String dayLabel;    // "첫째 날"
-        private String icon;        // "sunny", "cloudy", "rainy", "cloudy_snowing"
-        private String colorClass;  // "orange", "blue", "gray" 등
-        private String temp;        // "22도"
+        private String date; // "10/15"
+        private String dayLabel; // "첫째 날"
+        private String icon; // "sunny", "cloudy", "rainy", "cloudy_snowing"
+        private String colorClass; // "orange", "blue", "gray" 등
+        private String temp; // "22도"
         private String description; // "맑음"
-        private boolean hasData;    // 데이터 존재 여부
+        private boolean hasData; // 데이터 존재 여부
+    }
+
+    @Data
+    @Builder
+    public static class RecommendationDTO {
+        private String icon; // "apparel", "umbrella", "check_circle" 등
+        private String title; // "가벼운 아우터"
+        private String description; // "얇은 셔츠나 니트"
+        private boolean isLast; // UI 구조 유지를 위한 플래그
     }
 
     @Data
@@ -203,30 +214,58 @@ public class TripResponse {
         private String travelPeriodLabel;
         private String nightCountLabel;
         private String dayCountLabel;
+        private String dDayLabel;
+        private String avgTempLabel; // "평균 20도 기준"
+        private List<RecommendationDTO> recommendations;
         private long placeCount;
         private boolean hasPlaces;
         private List<DayGroupDTO> days;
         private List<WeatherDTO> weatherForecast;
 
-        public static DetailDTO createPlanDetail(TripPlan tripPlan, List<PlaceItemDTO> places, List<WeatherDTO> weatherForecast) {
+        public static DetailDTO createPlanDetail(TripPlan tripPlan, List<PlaceItemDTO> places,
+                List<WeatherDTO> weatherForecast) {
+            LocalDate today = LocalDate.now();
+            long dDay = ChronoUnit.DAYS.between(today, tripPlan.getStartDate());
+            String dDayLabel = dDay == 0 ? "D-Day" : (dDay > 0 ? "D-" + dDay : "D+" + Math.abs(dDay));
+
             long nightCount = calculateNightCount(tripPlan.getStartDate(), tripPlan.getEndDate());
             long dayCount = nightCount + 1;
             String regionLabel = tripPlan.getRegionLabel();
 
-            // 일차별 그룹화
-            java.util.Map<Integer, List<PlaceItemDTO>> grouped = new java.util.TreeMap<>();
-            for (PlaceItemDTO p : places) {
-                if (p.getDayOrder() != null) {
-                    grouped.computeIfAbsent(p.getDayOrder(), k -> new java.util.ArrayList<>()).add(p);
+            // 평균 기온 및 준비물 계산
+            int totalTemp = 0;
+            int tempCount = 0;
+            boolean hasRain = false;
+            for (WeatherDTO w : weatherForecast) {
+                if (w.isHasData()) {
+                    try {
+                        String tempStr = w.getTemp().replace("도", "");
+                        totalTemp += Integer.parseInt(tempStr);
+                        tempCount++;
+                        if ("rainy".equals(w.getIcon()))
+                            hasRain = true;
+                    } catch (Exception ignored) {
+                    }
                 }
             }
 
-            List<DayGroupDTO> dayGroups = new java.util.ArrayList<>();
+            int avgTemp = tempCount > 0 ? totalTemp / tempCount : 20; // 데이터 없으면 기본 20도
+            List<RecommendationDTO> recommendations = generateRecommendations(avgTemp, hasRain);
+
+            // 일차별 그룹화
+            Map<Integer, List<PlaceItemDTO>> grouped = new TreeMap<>();
+            for (PlaceItemDTO p : places) {
+                if (p.getDayOrder() != null) {
+                    grouped.computeIfAbsent(p.getDayOrder(), k -> new ArrayList<>()).add(p);
+                }
+            }
+
+            List<DayGroupDTO> dayGroups = new ArrayList<>();
             for (int i = 1; i <= dayCount; i++) {
                 LocalDate currentDate = tripPlan.getStartDate().plusDays(i - 1);
                 dayGroups.add(DayGroupDTO.builder()
                         .tripDay(i)
-                        .dateLabel(currentDate.toString()) // 추후 포맷팅 가능
+                        .dateLabel(currentDate.toString())
                         .items(grouped.getOrDefault(i, List.of()))
                         .build());
             }
@@ -245,11 +284,51 @@ public class TripResponse {
                     .travelPeriodLabel(formatTravelPeriod(tripPlan.getStartDate(), tripPlan.getEndDate()))
                     .nightCountLabel(nightCount + "박")
                     .dayCountLabel(dayCount + "일")
+                    .dDayLabel(dDayLabel)
+                    .avgTempLabel("평균 " + avgTemp + "도 기준")
+                    .recommendations(recommendations)
                     .placeCount(places.size())
                     .hasPlaces(!places.isEmpty())
                     .days(dayGroups)
                     .weatherForecast(weatherForecast)
                     .build();
+        }
+
+        private static List<RecommendationDTO> generateRecommendations(int avgTemp, boolean hasRain) {
+            List<RecommendationDTO> list = new ArrayList<>();
+
+            // 1. 온도별 의류 추천
+            if (avgTemp <= 5) {
+                list.add(
+                        RecommendationDTO.builder().icon("apparel").title("두꺼운 외투").description("패딩이나 두꺼운 코트").build());
+            } else if (avgTemp <= 10) {
+                list.add(RecommendationDTO.builder().icon("apparel").title("코트와 니트").description("가을/겨울용 외투와 니트")
+                        .build());
+            } else if (avgTemp <= 17) {
+                list.add(RecommendationDTO.builder().icon("apparel").title("가벼운 아우터").description("자켓이나 트렌치 코트")
+                        .build());
+            } else if (avgTemp <= 22) {
+                list.add(RecommendationDTO.builder().icon("apparel").title("긴팔 상의").description("셔츠나 가벼운 가디건").build());
+            } else if (avgTemp <= 27) {
+                list.add(RecommendationDTO.builder().icon("apparel").title("반팔과 얇은 셔츠").description("통기성 좋은 여름 옷")
+                        .build());
+            } else {
+                list.add(RecommendationDTO.builder().icon("apparel").title("시원한 민소매").description("얇은 소재의 여름 옷")
+                        .build());
+            }
+
+            // 2. 날씨별 추천 (비 소식 등)
+            if (hasRain) {
+                list.add(RecommendationDTO.builder().icon("umbrella").title("우산").description("비 소식 대비").build());
+            } else {
+                list.add(RecommendationDTO.builder().icon("wb_sunny").title("자외선 차단제").description("맑은 날씨 대비").build());
+            }
+
+            // 3. 고정 필수템
+            list.add(RecommendationDTO.builder().icon("check_circle").title("챙김 목록").description("보조배터리, 편한 신발")
+                    .isLast(true).build());
+
+            return list;
         }
     }
 
@@ -429,8 +508,8 @@ public class TripResponse {
             // 2. 타입이 없는 경우(기존 데이터) 이름을 기반으로 판단
             if (placeName != null) {
                 String name = placeName.toLowerCase();
-                if (name.contains("호텔") || name.contains("펜션") || name.contains("민박") || 
-                    name.contains("리조트") || name.contains("게스트하우스") || name.contains("숙소")) {
+                if (name.contains("호텔") || name.contains("펜션") || name.contains("민박") ||
+                        name.contains("리조트") || name.contains("게스트하우스") || name.contains("숙소")) {
                     return "/images/hotel.png";
                 }
             }
