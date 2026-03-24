@@ -9,6 +9,8 @@
 
   // 서버에서 가져온 현재 월 일정 캐시
   var cachedEvents = [];
+  // Current-page session memory for monthly lane placement.
+  var monthLayoutCache = {};
   
   // 현재 보고 있는 달
   var currentMonthDate = new Date();
@@ -243,8 +245,197 @@
       });
     }
 
+    function getMonthKey(date) {
+      if (!date) return "";
+      return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
+    }
+
+    function getEventStartDateKey(event) {
+      if (!event || !event.startAt) return "";
+      return event.startAt.split("T")[0];
+    }
+
+    function getEventEndDateKey(event) {
+      if (!event || !event.startAt) return "";
+      return event.endAt ? event.endAt.split("T")[0] : getEventStartDateKey(event);
+    }
+
+    function getEventStartTimeValue(event) {
+      if (!event || !event.startAt || event.startAt.indexOf("T") === -1) return 0;
+      var timeText = event.startAt.split("T")[1] || "";
+      var parts = timeText.split(":");
+      var hour = parseInt(parts[0], 10);
+      var minute = parseInt(parts[1], 10);
+      if (Number.isNaN(hour)) hour = 0;
+      if (Number.isNaN(minute)) minute = 0;
+      return hour * 60 + minute;
+    }
+
+    function getDateRangeKeys(startDateText, endDateText) {
+      var startDate = dateFromYmd(startDateText);
+      var endDate = dateFromYmd(endDateText || startDateText);
+      if (!startDate || !endDate) return [];
+
+      // Expand a multi-day event into each occupied calendar date.
+      var dateRangeKeys = [];
+      var cursor = new Date(startDate);
+      while (cursor.getTime() <= endDate.getTime()) {
+        dateRangeKeys.push(ymdFromDate(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return dateRangeKeys;
+    }
+
+    function canUseLaneForRange(dateRangeKeys, laneIndex, occupiedByDate) {
+      for (var i = 0; i < dateRangeKeys.length; i += 1) {
+        var dateKey = dateRangeKeys[i];
+        var usedLaneMap = occupiedByDate[dateKey];
+        if (usedLaneMap && usedLaneMap[laneIndex]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function reserveLaneForRange(dateRangeKeys, laneIndex, occupiedByDate) {
+      dateRangeKeys.forEach(function (dateKey) {
+        if (!occupiedByDate[dateKey]) {
+          occupiedByDate[dateKey] = {};
+        }
+        occupiedByDate[dateKey][laneIndex] = true;
+      });
+    }
+
+    function findAvailableLaneForRange(dateRangeKeys, occupiedByDate) {
+      var laneIndex = 0;
+      while (!canUseLaneForRange(dateRangeKeys, laneIndex, occupiedByDate)) {
+        laneIndex += 1;
+      }
+      return laneIndex;
+    }
+
+    function compareEventsForGridLayout(a, b, previousLaneByEventId) {
+      var aStartDateKey = getEventStartDateKey(a);
+      var bStartDateKey = getEventStartDateKey(b);
+      if (aStartDateKey !== bStartDateKey) {
+        return aStartDateKey < bStartDateKey ? -1 : 1;
+      }
+
+      var aStartTime = getEventStartTimeValue(a);
+      var bStartTime = getEventStartTimeValue(b);
+      if (aStartTime !== bStartTime) {
+        return aStartTime - bStartTime;
+      }
+
+      var aIsMultiDay = getEventStartDateKey(a) !== getEventEndDateKey(a);
+      var bIsMultiDay = getEventStartDateKey(b) !== getEventEndDateKey(b);
+      if (aIsMultiDay !== bIsMultiDay) {
+        return aIsMultiDay ? -1 : 1;
+      }
+
+      var aHasPreviousLane = Object.prototype.hasOwnProperty.call(previousLaneByEventId, a.id);
+      var bHasPreviousLane = Object.prototype.hasOwnProperty.call(previousLaneByEventId, b.id);
+      if (aHasPreviousLane !== bHasPreviousLane) {
+        return aHasPreviousLane ? -1 : 1;
+      }
+
+      return (a.id || 0) - (b.id || 0);
+    }
+
+    function createEventChip(event, dateKey) {
+      var chip = document.createElement("div");
+      var categoryKey = getCategoryKey(event.eventType);
+      var startDateText = getEventStartDateKey(event);
+      var endDateText = getEventEndDateKey(event);
+      var singleDay = startDateText === endDateText;
+
+      chip.setAttribute("data-calendar-chip", "true");
+      if (singleDay) {
+        chip.className = "event-chip event-chip--" + categoryKey;
+        chip.textContent = event.title || "일정";
+        return chip;
+      }
+
+      var isStart = dateKey === startDateText;
+      var isEnd = dateKey === endDateText;
+      var position = isStart ? "start" : isEnd ? "end" : "mid";
+      chip.className = "event-range event-range-" + position + " event-range--" + categoryKey;
+      chip.textContent = isStart ? (event.title || "일정") : "";
+      return chip;
+    }
+
+    function computeStableMonthLayout(events) {
+      var monthKey = getMonthKey(currentMonthDate);
+      var previousState = monthLayoutCache[monthKey] || { laneByEventId: {} };
+      var previousLaneByEventId = previousState.laneByEventId || {};
+      var sortedEvents = (events || []).filter(function (event) {
+        return event && event.startAt;
+      }).slice().sort(function (a, b) {
+        return compareEventsForGridLayout(a, b, previousLaneByEventId);
+      });
+
+      var assignedItems = [];
+      var laneByEventId = {};
+      var occupiedByDate = {};
+      var dateBuckets = {};
+
+      sortedEvents.forEach(function (event) {
+        var startDateText = getEventStartDateKey(event);
+        var endDateText = getEventEndDateKey(event);
+        var dateRangeKeys = getDateRangeKeys(startDateText, endDateText);
+        if (!dateRangeKeys.length) return;
+
+        var preferredLane = Object.prototype.hasOwnProperty.call(previousLaneByEventId, event.id)
+          ? previousLaneByEventId[event.id]
+          : null;
+        var laneIndex = preferredLane !== null && canUseLaneForRange(dateRangeKeys, preferredLane, occupiedByDate)
+          ? preferredLane
+          : findAvailableLaneForRange(dateRangeKeys, occupiedByDate);
+
+        reserveLaneForRange(dateRangeKeys, laneIndex, occupiedByDate);
+        assignedItems.push({
+          event: event,
+          dateRangeKeys: dateRangeKeys,
+          laneIndex: laneIndex
+        });
+      });
+
+      // Re-pack downward after deletes so surviving events can reclaim empty upper lanes.
+      laneByEventId = {};
+      occupiedByDate = {};
+      dateBuckets = {};
+
+      assignedItems.forEach(function (item) {
+        var compactedLaneIndex = findAvailableLaneForRange(item.dateRangeKeys, occupiedByDate);
+        laneByEventId[item.event.id] = compactedLaneIndex;
+        reserveLaneForRange(item.dateRangeKeys, compactedLaneIndex, occupiedByDate);
+
+        item.dateRangeKeys.forEach(function (dateKey) {
+          if (!dateBuckets[dateKey]) {
+            dateBuckets[dateKey] = [];
+          }
+          dateBuckets[dateKey].push({
+            laneIndex: compactedLaneIndex,
+            event: item.event
+          });
+        });
+      });
+
+      Object.keys(dateBuckets).forEach(function (dateKey) {
+        dateBuckets[dateKey].sort(function (a, b) {
+          return a.laneIndex - b.laneIndex;
+        });
+      });
+
+      monthLayoutCache[monthKey] = {
+        laneByEventId: laneByEventId
+      };
+
+      return dateBuckets;
+    }
+
     // 달력 칸 안에 일정 표시를 그리는 핵심 함수
-    function renderEventsOnGrid(events) {
+    function renderEventsOnGridLegacy(events) {
       var grid = document.querySelector("[data-calendar-grid]");
       if (!grid) return;
       clearGridChips();
@@ -311,6 +502,53 @@
         overflowChip.className = "event-chip";
         overflowChip.textContent = "...";
         dayNode.appendChild(overflowChip);
+      });
+    }
+
+    function renderEventsOnGrid(events) {
+      var grid = document.querySelector("[data-calendar-grid]");
+      if (!grid) return;
+      clearGridChips();
+      if (!events || !events.length) return;
+
+      var dateBuckets = computeStableMonthLayout(events);
+      Object.keys(dateBuckets).forEach(function (dateKey) {
+        var dayNode = findDayCardByDate(dateKey);
+        if (!dayNode) return;
+
+        var laneMap = {};
+        dateBuckets[dateKey].forEach(function (layoutItem) {
+          laneMap[layoutItem.laneIndex] = layoutItem;
+        });
+
+        var renderedCount = 0;
+        for (var laneIndex = 0; laneIndex < MAX_VISIBLE_DAY_CHIPS; laneIndex += 1) {
+          var layoutItem = laneMap[laneIndex];
+          if (layoutItem) {
+            dayNode.appendChild(createEventChip(layoutItem.event, dateKey));
+            renderedCount += 1;
+            continue;
+          }
+
+          // Keep empty upper rows visible so a lower-lane multi-day event does not jump upward mid-span.
+          var spacer = document.createElement("div");
+          spacer.className = "event-chip";
+          spacer.setAttribute("data-calendar-chip", "true");
+          spacer.setAttribute("aria-hidden", "true");
+          spacer.style.visibility = "hidden";
+          spacer.style.pointerEvents = "none";
+          spacer.textContent = ".";
+          dayNode.appendChild(spacer);
+        }
+
+        var overflowCount = dateBuckets[dateKey].length - renderedCount;
+        if (overflowCount > 0) {
+          var overflowChip = document.createElement("div");
+          overflowChip.setAttribute("data-calendar-chip-overflow", "true");
+          overflowChip.className = "event-chip";
+          overflowChip.textContent = "...";
+          dayNode.appendChild(overflowChip);
+        }
       });
     }
 
