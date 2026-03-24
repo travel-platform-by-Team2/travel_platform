@@ -277,6 +277,30 @@ class BoardServiceTest {
     }
 
     @Test
+    void likeAdminForbidden() {
+        BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
+        BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
+        ReplyRepository replyRepository = mock(ReplyRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
+
+        User author = user(1, "author", "USER");
+        User admin = user(9, "admin", "ADMIN");
+        Board board = board(9, author, "title", "tips", "<p>body</p>");
+
+        when(boardRepository.findById(9)).thenReturn(Optional.of(board));
+        when(userRepository.findById(9)).thenReturn(Optional.of(admin));
+
+        assertThrows(Exception403.class, () -> boardService.toggleBoardLike(9, 9));
+    }
+
+    @Test
     void listPageOverflowUsesLastPage() {
         BoardRepository boardRepository = mock(BoardRepository.class);
         BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);

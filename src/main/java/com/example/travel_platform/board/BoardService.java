@@ -208,6 +208,9 @@ public class BoardService {
     }
 
     private void validateLikePermission(BoardActor actor, Board board) {
+        if (actor.isAdmin()) {
+            throw new Exception403("관리자 계정은 게시글 좋아요를 누를 수 없습니다.");
+        }
         if (actor.isOwner(board)) {
             throw new Exception403("본인 게시글에는 좋아요를 누를 수 없습니다.");
         }
