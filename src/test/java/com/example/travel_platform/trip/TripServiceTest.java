@@ -161,7 +161,7 @@ class TripServiceTest {
         TripPlace first = place(40, tripPlan, "museum", 2);
         TripPlace second = place(10, tripPlan, "beach", 1);
         TripPlace third = place(30, tripPlan, "cafe", 1);
-        TripPlace fourth = place(5, tripPlan, "hotel", null);
+        TripPlace fourth = place(5, tripPlan, "hotel", 3);
         setField(tripPlan, "places", List.of(first, second, third, fourth));
 
         when(tripPlanQueryRepository.findPlanWithPlaces(21)).thenReturn(Optional.of(tripPlan));
@@ -170,8 +170,12 @@ class TripServiceTest {
 
         assertTrue(response.isHasPlaces());
         assertEquals(4L, response.getPlaceCount());
-        assertEquals(List.of(10, 30, 40, 5),
-                response.getPlaces().stream().map(TripResponse.PlaceItemDTO::getId).toList());
+        
+        List<Integer> actualIds = response.getDays().stream()
+                .flatMap(day -> day.getItems().stream())
+                .map(TripResponse.PlaceItemDTO::getId)
+                .toList();
+        assertEquals(List.of(10, 30, 40, 5), actualIds);
     }
 
     @Test
@@ -208,9 +212,9 @@ class TripServiceTest {
 
         assertEquals(2L, response.getExistingCount());
         assertEquals("/trip/detail?id=9", response.getDetailUrl());
-        assertEquals("/api/trips/9/places", response.getSaveUrl());
+        assertEquals("/api/trips/9/places/bulk", response.getSaveUrl());
         assertEquals("kakao-key", response.getKakaoMapAppKey());
-        assertEquals(2, response.getDetail().getPlaces().size());
+        assertEquals(2L, response.getDetail().getPlaceCount());
     }
 
     @Test

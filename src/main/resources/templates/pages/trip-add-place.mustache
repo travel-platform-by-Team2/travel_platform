@@ -164,6 +164,7 @@
 {{#model}}
 <div id="tripPlacePage"
      data-plan-id="{{detail.id}}"
+     data-region="{{detail.regionLabel}}"
      data-existing-count="{{existingCount}}"
      data-save-url="{{saveUrl}}"
      data-detail-url="{{detailUrl}}">
@@ -216,12 +217,13 @@
         <button id="btnZoomIn" style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"><span class="icon-ms-base">add</span></button>
         <button id="btnZoomOut" style="width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"><span class="icon-ms-base">remove</span></button>
       </div>
+      {{>partials/trip-poi-side-sheet}}
     </div>
   </main>
 </div>
 {{/model}}
   {{#model.kakaoMapAppKey}}
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services,clusterer&autoload=false"></script>
   {{/model.kakaoMapAppKey}}
   <script src="/js/trip-add-place.js"></script>
   {{>partials/scripts}}

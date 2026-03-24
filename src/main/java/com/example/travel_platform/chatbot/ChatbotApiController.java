@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot.api;
+package com.example.travel_platform.chatbot;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -7,9 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.travel_platform._core.util.Resp;
-import com.example.travel_platform.chatbot.api.dto.ChatbotRequest;
-import com.example.travel_platform.chatbot.api.dto.ChatbotResponse;
-import com.example.travel_platform.chatbot.application.ChatbotService;
 import com.example.travel_platform.user.SessionUsers;
 
 import jakarta.servlet.http.HttpSession;
