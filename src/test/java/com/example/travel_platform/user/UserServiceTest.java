@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception401;
@@ -26,6 +27,9 @@ class UserServiceTest {
 
     @Autowired
     private UserQueryRepository userQueryRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void snsJoin() {
@@ -51,7 +55,12 @@ class UserServiceTest {
         String provider = "google";
         String providerId = "87654321";
 
-        User existingUser = User.createSNS(username, email, provider, providerId);
+        User existingUser = User.createSNS(
+                username,
+                passwordEncoder.encode("temporary-password"),
+                email,
+                provider,
+                providerId);
         userRepository.save(existingUser);
 
         SessionUser result = userService.loginWithSns(email, username, provider, providerId);

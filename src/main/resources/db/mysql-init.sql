@@ -202,13 +202,13 @@ create table lodging_image_tb (
 -- -----------------------------
 -- H2 seed data for core domain tables
 insert into user_tb (username, password, email, tel, role, created_at, active)
-values ('ssar', '1234', 'ssar@nate.com', '010-3333-4444', 'USER', now(), true);
+values ('ssar', '$2a$10$SWiZoNR9n3KgG8usU4HgYOqSuzJDsUm32nkFHm3UgsBRx6wLQCqIS', 'ssar@nate.com', '010-3333-4444', 'USER', now(), true);
 
 insert into user_tb (username, password, email, tel, role, created_at, active)
-values ('cos', '1234', 'cos@nate.com', '010-5555-6666', 'USER', now(), false);
+values ('cos', '$2a$10$SWiZoNR9n3KgG8usU4HgYOqSuzJDsUm32nkFHm3UgsBRx6wLQCqIS', 'cos@nate.com', '010-5555-6666', 'USER', now(), false);
 
 insert into user_tb (username, password, email, tel, role, created_at, active)
-values ('admin', '1234', 'admin@nate.com', '010-1111-2222', 'ADMIN', now(), true);
+values ('admin', '$2a$10$SWiZoNR9n3KgG8usU4HgYOqSuzJDsUm32nkFHm3UgsBRx6wLQCqIS', 'admin@nate.com', '010-1111-2222', 'ADMIN', now(), true);
 
 
 -- 여행 계획
