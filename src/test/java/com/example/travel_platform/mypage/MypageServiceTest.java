@@ -8,11 +8,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.booking.BookingService;
+import com.example.travel_platform.user.User;
+import com.example.travel_platform.user.UserQueryRepository;
+
+import jakarta.persistence.EntityManager;
 
 @SpringBootTest
 class MypageServiceTest {
@@ -22,6 +27,15 @@ class MypageServiceTest {
 
     @Autowired
     private BookingService bookingService;
+
+    @Autowired
+    private UserQueryRepository userQueryRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EntityManager em;
 
     @Test
     void main() {
@@ -112,7 +126,10 @@ class MypageServiceTest {
     }
 
     @Test
+    @Transactional
     void changePasswordSameAsCurrent() {
+        encodePassword(1, "1234");
+
         MypageRequest.ChangePasswordDTO reqDTO = new MypageRequest.ChangePasswordDTO();
         reqDTO.setCurrentPassword("1234");
         reqDTO.setNewPassword("1234");
@@ -121,5 +138,31 @@ class MypageServiceTest {
         Exception400 exception = assertThrows(Exception400.class, () -> mypageService.changePassword(1, reqDTO));
 
         assertEquals("새 비밀번호는 현재 비밀번호와 같을 수 없습니다.", exception.getMessage());
+    }
+
+    @Test
+    @Transactional
+    void changePasswordStoresEncodedPassword() {
+        encodePassword(1, "1234");
+
+        MypageRequest.ChangePasswordDTO reqDTO = new MypageRequest.ChangePasswordDTO();
+        reqDTO.setCurrentPassword("1234");
+        reqDTO.setNewPassword("4321");
+        reqDTO.setNewPasswordConfirm("4321");
+
+        mypageService.changePassword(1, reqDTO);
+
+        String changedPassword = userQueryRepository.findUser(1)
+                .orElseThrow()
+                .getPassword();
+
+        assertTrue(passwordEncoder.matches("4321", changedPassword));
+    }
+
+    private void encodePassword(Integer userId, String rawPassword) {
+        User user = userQueryRepository.findUser(userId).orElseThrow();
+        user.changePassword(passwordEncoder.encode(rawPassword));
+        em.flush();
+        em.clear();
     }
 }

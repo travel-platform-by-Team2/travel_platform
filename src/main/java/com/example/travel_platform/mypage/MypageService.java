@@ -3,6 +3,7 @@ package com.example.travel_platform.mypage;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class MypageService {
     private final BookingService bookingService;
     private final UserQueryRepository userQueryRepository;
     private final MypageQueryRepository mypageQueryRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public MypageResponse.MainPageDTO getMainPage(Integer sessionUserId) {
         return createMainPage(sessionUserId, MainPageState.DEFAULT, null);
@@ -81,7 +83,7 @@ public class MypageService {
         validateNewPasswordChanged(currentPassword, newPassword);
         validateNewPasswordConfirm(newPassword, newPasswordConfirm);
 
-        user.changePassword(newPassword);
+        user.changePassword(passwordEncoder.encode(newPassword));
     }
 
     private List<MypageResponse.BookingSummaryCardDTO> loadUpcomingBookings(Integer sessionUserId) {
@@ -158,7 +160,7 @@ public class MypageService {
     }
 
     private void validateCurrentPassword(User user, String currentPassword) {
-        if (!normalize(user.getPassword()).equals(currentPassword)) {
+        if (!passwordEncoder.matches(currentPassword, normalize(user.getPassword()))) {
             throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
         }
     }
