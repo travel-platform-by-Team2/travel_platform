@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot.api.dto;
+package com.example.travel_platform.chatbot;
 
 import java.util.ArrayList;
 import java.util.List;

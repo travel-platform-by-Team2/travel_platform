@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot.infra.llm;
+package com.example.travel_platform.chatbot;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,8 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.example.travel_platform._core.handler.ex.ApiException;
-import com.example.travel_platform.chatbot.api.dto.ChatbotRequest;
-import com.example.travel_platform.chatbot.application.ChatbotService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -26,20 +24,34 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @Component
-public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
+public class ChatbotLlmClient {
 
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
 
     private static final String INTERPRET_SYSTEM_PROMPT = """
             당신은 여행 플랫폼 챗봇의 질문 해석기다.
-            SQL을 만들지 말고, 어떤 처리 모드와 어떤 조회 도메인을 써야 하는지만 JSON으로 반환하라.
-            응답 형식:
+            SQL은 생성하지 말고, 현재 질문과 history를 바탕으로 어떤 처리 모드와 어떤 조회 계획이 필요한지만 JSON으로 판단한다.
+            반드시 아래 JSON 객체 형식으로만 응답하라.
+
             {
               "mode": "DB_QA" | "GENERAL_CHAT",
+              "resolvedContext": {
+                "domain": "BOOKING" | "TRIP" | "CALENDAR" | "BOARD" | "WEATHER" | null,
+                "intent": string | null,
+                "region": string | null,
+                "targetDate": "YYYY-MM-DD" | null,
+                "endDate": "YYYY-MM-DD" | null,
+                "keyword": string | null,
+                "category": string | null,
+                "tripPlanId": number | null,
+                "limit": number | null,
+                "isFollowUp": boolean,
+                "missingFields": [string]
+              },
               "queryPlans": [
                 {
-                  "domain": "BOOKING" | "TRIP" | "CALENDAR" | "BOARD",
+                  "domain": "BOOKING" | "TRIP" | "CALENDAR" | "BOARD" | "WEATHER",
                   "intent": string,
                   "keyword": string,
                   "startDate": "YYYY-MM-DD",
@@ -49,25 +61,28 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
                 }
               ]
             }
+
             규칙:
-            - DB 조회가 필요하면 mode는 DB_QA로 둔다.
-            - 일반 대화, 잡담, 인사, 설명 요청은 GENERAL_CHAT으로 둔다.
+            - 내부 데이터 조회나 날씨 조회가 필요하면 mode는 DB_QA로 둔다.
+            - 인사, 잡담, 일반 설명은 GENERAL_CHAT으로 둔다.
+            - resolvedContext는 현재 질문과 history를 종합한 공통 슬롯 결과다.
+            - 이전 대화의 정보를 이어받는 후속 질문이면 isFollowUp을 true로 둔다.
+            - 현재 답변이나 조회를 위해 아직 부족한 값이 있으면 missingFields에 넣는다.
             - queryPlans는 최대 3개까지만 반환한다.
-            - BOOKING, TRIP, CALENDAR, BOARD 외의 domain은 쓰지 않는다.
-            - SQL, markdown, 코드 블록을 절대 출력하지 않는다.
-            - page, tripPlanId 같은 context는 보조 정보로만 사용한다.
+            - WEATHER는 intent를 DATE_FORECAST로 두고, keyword에는 지역, startDate에는 기준 날짜를 넣는다.
+            - markdown, 코드 블록, 설명 문장은 출력하지 않는다.
             """;
 
     private static final String GENERAL_CHAT_SYSTEM_PROMPT = """
             당신은 여행 플랫폼의 친절한 챗봇이다.
-            사용자의 질문에 자연스럽고 간결한 한국어로 답변하라.
-            내부 시스템 정보나 SQL, 검증 과정은 드러내지 않는다.
+            사용자의 질문에 자연스럽고 간결한 한국어로 답변한다.
+            내부 처리 과정, SQL, 검증 규칙은 드러내지 않는다.
             """;
 
     private static final String DB_ANSWER_SYSTEM_PROMPT = """
-            당신은 여행 플랫폼의 DB 기반 챗봇이다.
-            사용자 질문, 질문 해석 결과, 도메인별 조회 결과 블록을 보고 자연스럽고 간결한 한국어 답변만 작성하라.
-            내부 도메인 이름, SQL, 시스템 규칙은 노출하지 않는다.
+            당신은 여행 플랫폼의 챗봇이다.
+            사용자의 질문, 질문 해석 결과, 조회 결과 블록을 바탕으로 자연스럽고 간결한 한국어 답변을 만든다.
+            조회 도구 이름, SQL, 내부 처리 과정은 드러내지 않는다.
             """;
 
     private static final Gson GSON = new Gson();
@@ -76,7 +91,7 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
     private final String model;
     private final String endpoint;
 
-    public OpenAiChatbotLlmClient(
+    public ChatbotLlmClient(
             @Value("${OPENAI_API_KEY:}") String apiKey,
             @Value("${OPENAI_MODEL:gpt-4.1-mini}") String model,
             @Value("${OPENAI_ENDPOINT:https://api.openai.com/v1/responses}") String endpoint) {
@@ -85,12 +100,19 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         this.endpoint = endpoint;
     }
 
-    @Override
     public ChatbotService.Interpretation interpret(String userMessage, ChatbotRequest.ContextDTO context, String toolContext) {
+        return interpret(userMessage, context, List.of(), toolContext);
+    }
+
+    public ChatbotService.Interpretation interpret(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            List<ChatbotRequest.HistoryItemDTO> history,
+            String toolContext) {
         try {
             String response = callOpenAi(
                     INTERPRET_SYSTEM_PROMPT,
-                    buildInterpretUserPrompt(userMessage, context, toolContext));
+                    buildInterpretUserPrompt(userMessage, context, history, toolContext));
             return parseInterpretation(response);
         } catch (ApiException e) {
             throw e;
@@ -103,43 +125,70 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         }
     }
 
-    @Override
     public String answerGeneralChat(String userMessage, ChatbotRequest.ContextDTO context) {
-        return callOpenAi(GENERAL_CHAT_SYSTEM_PROMPT, buildGeneralAnswerUserPrompt(userMessage, context));
+        return answerGeneralChat(userMessage, context, List.of());
     }
 
-    @Override
+    public String answerGeneralChat(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            List<ChatbotRequest.HistoryItemDTO> history) {
+        return callOpenAi(GENERAL_CHAT_SYSTEM_PROMPT, buildGeneralAnswerUserPrompt(userMessage, context, history));
+    }
+
     public String answerDbQa(
             String userMessage,
             ChatbotRequest.ContextDTO context,
             ChatbotService.Interpretation interpretation,
             List<ChatbotService.QueryBlock> queryBlocks) {
-        return callOpenAi(DB_ANSWER_SYSTEM_PROMPT, buildDbAnswerUserPrompt(userMessage, context, interpretation, queryBlocks));
+        return answerDbQa(userMessage, context, List.of(), interpretation, queryBlocks);
     }
 
-    private String buildInterpretUserPrompt(String userMessage, ChatbotRequest.ContextDTO context, String toolContext) {
+    public String answerDbQa(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            List<ChatbotRequest.HistoryItemDTO> history,
+            ChatbotService.Interpretation interpretation,
+            List<ChatbotService.QueryBlock> queryBlocks) {
+        return callOpenAi(
+                DB_ANSWER_SYSTEM_PROMPT,
+                buildDbAnswerUserPrompt(userMessage, context, history, interpretation, queryBlocks));
+    }
+
+    private String buildInterpretUserPrompt(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            List<ChatbotRequest.HistoryItemDTO> history,
+            String toolContext) {
         JsonObject promptJson = new JsonObject();
         promptJson.addProperty("message", userMessage);
         promptJson.add("context", buildContextJson(context));
+        promptJson.add("history", GSON.toJsonTree(sanitizeHistory(history)));
         promptJson.add("toolContext", toJsonElement(toolContext));
         return GSON.toJson(promptJson);
     }
 
-    private String buildGeneralAnswerUserPrompt(String userMessage, ChatbotRequest.ContextDTO context) {
+    private String buildGeneralAnswerUserPrompt(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            List<ChatbotRequest.HistoryItemDTO> history) {
         JsonObject promptJson = new JsonObject();
         promptJson.addProperty("message", userMessage);
         promptJson.add("context", buildContextJson(context));
+        promptJson.add("history", GSON.toJsonTree(sanitizeHistory(history)));
         return GSON.toJson(promptJson);
     }
 
     private String buildDbAnswerUserPrompt(
             String userMessage,
             ChatbotRequest.ContextDTO context,
+            List<ChatbotRequest.HistoryItemDTO> history,
             ChatbotService.Interpretation interpretation,
             List<ChatbotService.QueryBlock> queryBlocks) {
         JsonObject promptJson = new JsonObject();
         promptJson.addProperty("message", userMessage);
         promptJson.add("context", buildContextJson(context));
+        promptJson.add("history", GSON.toJsonTree(sanitizeHistory(history)));
         promptJson.add("interpretation", GSON.toJsonTree(interpretation));
         promptJson.add("queryBlocks", GSON.toJsonTree(queryBlocks));
         return GSON.toJson(promptJson);
@@ -159,16 +208,49 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         return contextJson;
     }
 
+    private List<ChatbotRequest.HistoryItemDTO> sanitizeHistory(List<ChatbotRequest.HistoryItemDTO> history) {
+        if (history == null || history.isEmpty()) {
+            return List.of();
+        }
+
+        return history.stream()
+                .filter(item -> item != null)
+                .filter(item -> item.getRole() != null && !item.getRole().isBlank())
+                .filter(item -> item.getContent() != null && !item.getContent().isBlank())
+                .toList();
+    }
+
     private ChatbotService.Interpretation parseInterpretation(String rawText) {
         JsonObject parsed = parseJsonObject(rawText, "LLM 질문 해석");
         ChatbotService.Mode mode = parseMode(readText(parsed.get("mode")));
+        ChatbotService.ResolvedContext resolvedContext = parseResolvedContext(parsed.get("resolvedContext"));
         List<ChatbotService.QueryPlan> queryPlans = parseQueryPlans(parsed.get("queryPlans"));
 
         if (mode == ChatbotService.Mode.DB_QA && queryPlans.isEmpty()) {
             return ChatbotService.Interpretation.createGeneralChatInterpretation();
         }
 
-        return ChatbotService.Interpretation.createInterpretation(mode, queryPlans);
+        return ChatbotService.Interpretation.createInterpretation(mode, queryPlans, resolvedContext);
+    }
+
+    private ChatbotService.ResolvedContext parseResolvedContext(JsonElement node) {
+        if (node == null || !node.isJsonObject()) {
+            return ChatbotService.ResolvedContext.createEmptyContext();
+        }
+
+        JsonObject resolvedContext = node.getAsJsonObject();
+        return ChatbotService.ResolvedContext.createResolvedContext(
+                parseDomain(readText(resolvedContext.get("domain"))),
+                readText(resolvedContext.get("intent")),
+                readText(resolvedContext.get("region")),
+                readText(resolvedContext.get("targetDate")),
+                readText(resolvedContext.get("endDate")),
+                readText(resolvedContext.get("keyword")),
+                readText(resolvedContext.get("category")),
+                readInteger(resolvedContext.get("tripPlanId"), null),
+                readInteger(resolvedContext.get("limit"), null),
+                readBoolean(resolvedContext.get("isFollowUp")),
+                readStringList(resolvedContext.get("missingFields")));
     }
 
     private List<ChatbotService.QueryPlan> parseQueryPlans(JsonElement node) {
@@ -433,5 +515,31 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         } catch (Exception e) {
             return defaultValue;
         }
+    }
+
+    private boolean readBoolean(JsonElement node) {
+        if (node == null || node.isJsonNull() || !node.isJsonPrimitive()) {
+            return false;
+        }
+        try {
+            return node.getAsBoolean();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private List<String> readStringList(JsonElement node) {
+        if (node == null || !node.isJsonArray()) {
+            return List.of();
+        }
+
+        List<String> values = new ArrayList<>();
+        for (JsonElement element : node.getAsJsonArray()) {
+            String value = readText(element);
+            if (!value.isBlank()) {
+                values.add(value.trim());
+            }
+        }
+        return values;
     }
 }

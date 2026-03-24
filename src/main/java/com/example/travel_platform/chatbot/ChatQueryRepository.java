@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot.application;
+package com.example.travel_platform.chatbot;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,8 +15,6 @@ import com.example.travel_platform.board.BoardCategory;
 import com.example.travel_platform.booking.Booking;
 import com.example.travel_platform.calendar.CalendarEvent;
 import com.example.travel_platform.trip.TripPlan;
-import com.example.travel_platform.chatbot.api.dto.ChatbotRequest;
-
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
@@ -46,6 +44,7 @@ public class ChatQueryRepository {
             case TRIP -> tripBlock(userId, context, queryPlan);
             case CALENDAR -> calendarBlock(userId, context, queryPlan);
             case BOARD -> boardBlock(queryPlan);
+            case WEATHER -> throw new IllegalArgumentException("WEATHER 쿼리는 ChatbotService에서 처리합니다.");
         };
     }
 
