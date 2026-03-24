@@ -47,7 +47,7 @@
 <h1 class="trip-plan-detail-h1-01">{{#model}}{{formattedTitle}}{{/model}}{{^model}}제주 여행{{/model}}</h1>
 <div class="inline-items-gap-2">
 <span class="trip-plan-detail-span-01">
-                                            D-5
+                                            {{#model}}{{dDayLabel}}{{/model}}{{^model}}D-5{{/model}}
                                         </span>
 <span class="trip-plan-detail-span-02">
 <span class="icon-ms-14-mr1">location_on</span>
@@ -101,30 +101,25 @@
 <span class="trip-plan-detail-span-04">{{#model}}{{regionLabel}} 지역 기준{{/model}}{{^model}}제주 지역 기준{{/model}}</span>
 </div>
 <div class="trip-plan-create-div-04">
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">첫째 날</span>
-<span class="text-main-sm-bold">10/15</span>
-<span class="icon-ms-3xl-orange-my1">sunny</span>
-<span class="text-main-lg-bold">22도</span>
+{{#model.weatherForecast}}
+<div class="forecast-card {{^hasData}}no-data{{/hasData}}">
+<span class="text-muted-xs-semibold">{{dayLabel}}</span>
+<span class="text-main-sm-bold">{{date}}</span>
+{{#hasData}}
+<span class="icon-ms-3xl-{{colorClass}}-my1">{{icon}}</span>
+<span class="text-main-lg-bold">{{temp}}</span>
+{{/hasData}}
+{{^hasData}}
+<span class="icon-ms-3xl-muted-my1">block</span>
+<span class="text-main-xs-subtle" style="font-size: 10px; margin-top: 4px;">정보 없음</span>
+{{/hasData}}
 </div>
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">둘째 날</span>
-<span class="text-main-sm-bold">10/16</span>
-<span class="icon-ms-3xl-blue-my1">partly_cloudy_day</span>
-<span class="text-main-lg-bold">20도</span>
+{{/model.weatherForecast}}
+{{^model.weatherForecast}}
+<div class="panel-muted-center-sm" style="width: 100%;">
+    날씨 정보를 불러올 수 없습니다.
 </div>
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">셋째 날</span>
-<span class="text-main-sm-bold">10/17</span>
-<span class="icon-ms-3xl-muted-my1">rainy</span>
-<span class="text-main-lg-bold">19도</span>
-</div>
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">넷째 날</span>
-<span class="text-main-sm-bold">10/18</span>
-<span class="icon-ms-3xl-orange-my1">sunny</span>
-<span class="text-main-lg-bold">21도</span>
-</div>
+{{/model.weatherForecast}}
 </div>
 </div>
 <div class="trip-plan-detail-div-11">
@@ -133,36 +128,33 @@
 <span class="icon-ms-primary">checkroom</span>
                                     준비물 추천
                                 </h2>
-<span class="trip-plan-detail-span-04">평균 20도 기준</span>
+<span class="trip-plan-detail-span-04">{{#model}}{{avgTempLabel}}{{/model}}</span>
 </div>
 <div class="trip-plan-detail-div-12">
+{{#model.recommendations}}
+{{^isLast}}
 <div class="trip-plan-detail-div-13">
 <div class="trip-plan-detail-div-14">
-<span class="icon-ms-base">apparel</span>
+<span class="icon-ms-base">{{icon}}</span>
 </div>
 <div class="chatbot-demo-div-09">
-<span class="text-main-base-bold">가벼운 아우터</span>
-<span class="signup-p-03">얇은 셔츠나 니트</span>
+<span class="text-main-base-bold">{{title}}</span>
+<span class="signup-p-03">{{description}}</span>
 </div>
 </div>
-<div class="trip-plan-detail-div-13">
-<div class="trip-plan-detail-div-14">
-<span class="icon-ms-base">umbrella</span>
-</div>
-<div class="chatbot-demo-div-09">
-<span class="text-main-base-bold">우산</span>
-<span class="signup-p-03">비 소식 대비</span>
-</div>
-</div>
+{{/isLast}}
+{{#isLast}}
 <div class="trip-plan-detail-div-15">
 <div class="trip-plan-detail-div-16">
-<span class="icon-ms-base">check_circle</span>
+<span class="icon-ms-base">{{icon}}</span>
 </div>
 <div class="chatbot-demo-div-09">
-<span class="text-main-base-bold">챙김 목록</span>
-<span class="signup-p-03">보조배터리, 선글라스, 편한 이동화</span>
+<span class="text-main-base-bold">{{title}}</span>
+<span class="signup-p-03">{{description}}</span>
 </div>
 </div>
+{{/isLast}}
+{{/model.recommendations}}
 </div>
 </div>
 </div>

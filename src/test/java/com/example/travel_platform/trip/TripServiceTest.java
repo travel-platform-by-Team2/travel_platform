@@ -25,6 +25,7 @@ import com.example.travel_platform._core.handler.ex.Exception401;
 import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserQueryRepository;
+import com.example.travel_platform.weather.WeatherRepository;
 
 class TripServiceTest {
 
@@ -34,7 +35,10 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         User user = user(3, "ssar");
         TripRequest.CreatePlanDTO reqDTO = new TripRequest.CreatePlanDTO();
         reqDTO.setTitle("trip to jeju");
@@ -69,7 +73,8 @@ class TripServiceTest {
                 mock(TripRepository.class),
                 mock(TripPlanQueryRepository.class),
                 mock(UserQueryRepository.class),
-                mock(TripPlaceRepository.class));
+                mock(TripPlaceRepository.class),
+                mock(WeatherRepository.class));
         TripRequest.CreatePlanDTO reqDTO = new TripRequest.CreatePlanDTO();
         reqDTO.setTitle("trip to busan");
         reqDTO.setRegion("busan");
@@ -88,9 +93,13 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         LocalDate today = LocalDate.now();
-        TripPlan tripPlan = plan(7, user(2, "cos"), "tokyo trip", "seoul", "solo", today.plusDays(5), today.plusDays(7));
+        TripPlan tripPlan = plan(7, user(2, "cos"), "tokyo trip", "seoul", "solo", today.plusDays(5),
+                today.plusDays(7));
 
         when(tripPlanQueryRepository.findPlanList(2, 0, 9)).thenReturn(List.of(tripPlan));
         when(tripPlanQueryRepository.countPlanList(2)).thenReturn(11L);
@@ -116,9 +125,13 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         LocalDate today = LocalDate.now();
-        TripPlan tripPlan = plan(9, user(2, "cos"), "osaka trip", "busan", "friend", today.plusDays(10), today.plusDays(12));
+        TripPlan tripPlan = plan(9, user(2, "cos"), "osaka trip", "busan", "friend", today.plusDays(10),
+                today.plusDays(12));
 
         when(tripPlanQueryRepository.findUpcomingPlanList(eq(2), any(LocalDate.class), eq(9), eq(9)))
                 .thenReturn(List.of(tripPlan));
@@ -142,7 +155,8 @@ class TripServiceTest {
                 mock(TripRepository.class),
                 mock(TripPlanQueryRepository.class),
                 mock(UserQueryRepository.class),
-                mock(TripPlaceRepository.class));
+                mock(TripPlaceRepository.class),
+                mock(WeatherRepository.class));
 
         Exception401 exception = assertThrows(Exception401.class, () -> tripService.getPlanList(null, "result", 0));
 
@@ -155,7 +169,10 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         TripPlan tripPlan = plan(21, user(2, "cos"), "jeju plan", "jeju", "friend",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 3));
         TripPlace first = place(40, tripPlan, "museum", 2);
@@ -170,7 +187,7 @@ class TripServiceTest {
 
         assertTrue(response.isHasPlaces());
         assertEquals(4L, response.getPlaceCount());
-        
+
         List<Integer> actualIds = response.getDays().stream()
                 .flatMap(day -> day.getItems().stream())
                 .map(TripResponse.PlaceItemDTO::getId)
@@ -184,7 +201,10 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         TripPlan tripPlan = plan(21, user(2, "cos"), "jeju plan", "jeju", "friend",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 3));
 
@@ -201,7 +221,10 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         TripPlan tripPlan = plan(9, user(2, "cos"), "jeju plan", "jeju", "friend",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 3));
         setField(tripPlan, "places", List.of(place(11, tripPlan, "beach", 1), place(12, tripPlan, "hotel", 2)));
@@ -223,7 +246,10 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         TripPlan tripPlan = plan(17, user(4, "ssar"), "busan plan", "busan", "friend",
                 LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 2));
         TripRequest.AddPlaceDTO reqDTO = new TripRequest.AddPlaceDTO();
@@ -261,7 +287,10 @@ class TripServiceTest {
         TripPlanQueryRepository tripPlanQueryRepository = mock(TripPlanQueryRepository.class);
         UserQueryRepository userQueryRepository = mock(UserQueryRepository.class);
         TripPlaceRepository tripPlaceRepository = mock(TripPlaceRepository.class);
-        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+        WeatherRepository weatherRepository = mock(WeatherRepository.class);
+
+        TripService tripService = service(tripRepository, tripPlanQueryRepository, userQueryRepository,
+                tripPlaceRepository, weatherRepository);
         TripPlan tripPlan = plan(17, user(4, "ssar"), "busan plan", "busan", "friend",
                 LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 2));
         TripRequest.AddPlaceDTO reqDTO = new TripRequest.AddPlaceDTO();
@@ -282,8 +311,10 @@ class TripServiceTest {
             TripRepository tripRepository,
             TripPlanQueryRepository tripPlanQueryRepository,
             UserQueryRepository userQueryRepository,
-            TripPlaceRepository tripPlaceRepository) {
-        return new TripService(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository);
+            TripPlaceRepository tripPlaceRepository,
+            WeatherRepository weatherRepository) {
+        return new TripService(tripRepository, tripPlanQueryRepository, userQueryRepository, tripPlaceRepository,
+                weatherRepository);
     }
 
     private User user(int id, String username) {
