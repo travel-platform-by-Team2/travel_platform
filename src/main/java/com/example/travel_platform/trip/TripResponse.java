@@ -177,6 +177,18 @@ public class TripResponse {
 
     @Data
     @Builder
+    public static class WeatherDTO {
+        private String date;        // "10/15"
+        private String dayLabel;    // "첫째 날"
+        private String icon;        // "sunny", "cloudy", "rainy", "cloudy_snowing"
+        private String colorClass;  // "orange", "blue", "gray" 등
+        private String temp;        // "22도"
+        private String description; // "맑음"
+        private boolean hasData;    // 데이터 존재 여부
+    }
+
+    @Data
+    @Builder
     public static class DetailDTO {
         private Integer id;
         private String title;
@@ -194,8 +206,9 @@ public class TripResponse {
         private long placeCount;
         private boolean hasPlaces;
         private List<DayGroupDTO> days;
+        private List<WeatherDTO> weatherForecast;
 
-        public static DetailDTO createPlanDetail(TripPlan tripPlan, List<PlaceItemDTO> places) {
+        public static DetailDTO createPlanDetail(TripPlan tripPlan, List<PlaceItemDTO> places, List<WeatherDTO> weatherForecast) {
             long nightCount = calculateNightCount(tripPlan.getStartDate(), tripPlan.getEndDate());
             long dayCount = nightCount + 1;
             String regionLabel = tripPlan.getRegionLabel();
@@ -235,6 +248,7 @@ public class TripResponse {
                     .placeCount(places.size())
                     .hasPlaces(!places.isEmpty())
                     .days(dayGroups)
+                    .weatherForecast(weatherForecast)
                     .build();
         }
     }

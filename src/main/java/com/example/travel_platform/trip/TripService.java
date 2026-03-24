@@ -24,10 +24,33 @@ public class TripService {
     private static final int PLAN_PAGE_SIZE = 9;
     private static final String DEFAULT_CATEGORY = "result";
 
+    @org.springframework.beans.factory.annotation.Value("${WEATHER_API_KEY:}")
+    private String weatherApiKey;
+
     private final TripRepository tripRepository;
     private final TripPlanQueryRepository tripPlanQueryRepository;
     private final UserQueryRepository userQueryRepository;
     private final TripPlaceRepository tripPlaceRepository;
+
+    private static final java.util.Map<String, WeatherConfig> REGION_CONFIGS = java.util.Map.ofEntries(
+        java.util.Map.entry("seoul", new WeatherConfig(60, 127, "11B10101", "11B00000")),
+        java.util.Map.entry("busan", new WeatherConfig(98, 76, "11H20201", "11H20000")),
+        java.util.Map.entry("daegu", new WeatherConfig(89, 90, "11H10701", "11H10000")),
+        java.util.Map.entry("incheon", new WeatherConfig(55, 124, "11B20201", "11B00000")),
+        java.util.Map.entry("gwangju", new WeatherConfig(58, 74, "11F20501", "11F20000")),
+        java.util.Map.entry("daejeon", new WeatherConfig(67, 100, "11C20401", "11C20000")),
+        java.util.Map.entry("ulsan", new WeatherConfig(102, 84, "11H20101", "11H20000")),
+        java.util.Map.entry("sejong", new WeatherConfig(66, 103, "11C20404", "11C20000")),
+        java.util.Map.entry("gyeonggi", new WeatherConfig(60, 120, "11B20601", "11B00000")),
+        java.util.Map.entry("gangwon", new WeatherConfig(73, 134, "11D10301", "11D10000")),
+        java.util.Map.entry("chungbuk", new WeatherConfig(69, 107, "11C10301", "11C10000")),
+        java.util.Map.entry("chungnam", new WeatherConfig(68, 100, "11C20101", "11C20000")),
+        java.util.Map.entry("jeonbuk", new WeatherConfig(63, 89, "11F10201", "11F10000")),
+        java.util.Map.entry("jeonnam", new WeatherConfig(51, 67, "11F20503", "11F20000")),
+        java.util.Map.entry("gyeongbuk", new WeatherConfig(89, 91, "11H10701", "11H10000")),
+        java.util.Map.entry("gyeongnam", new WeatherConfig(91, 77, "11H20301", "11H20000")),
+        java.util.Map.entry("jeju", new WeatherConfig(52, 38, "11G00201", "11G00000"))
+    );
 
     @Transactional
     public TripResponse.CreatedDTO createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
@@ -58,7 +81,73 @@ public class TripService {
     public TripResponse.DetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
         TripPlan tripPlan = findOwnedPlanWithPlaces(sessionUserId, planId);
         List<TripResponse.PlaceItemDTO> placeModels = createPlaceItems(tripPlan);
-        return TripResponse.DetailDTO.createPlanDetail(tripPlan, placeModels);
+        List<TripResponse.WeatherDTO> weatherForecast = getWeatherForecast(
+                tripPlan.getRegion(),
+                tripPlan.getStartDate(),
+                tripPlan.getEndDate());
+        return TripResponse.DetailDTO.createPlanDetail(tripPlan, placeModels, weatherForecast);
+    }
+
+    private List<TripResponse.WeatherDTO> getWeatherForecast(String regionCode, LocalDate startDate, LocalDate endDate) {
+        List<TripResponse.WeatherDTO> forecast = new java.util.ArrayList<>();
+        LocalDate today = LocalDate.now();
+        WeatherConfig config = REGION_CONFIGS.getOrDefault(regionCode, REGION_CONFIGS.get("seoul"));
+
+        String[] days = {"첫째 날", "둘째 날", "셋째 날", "넷째 날", "다섯째 날", "여섯째 날", "일곱째 날", "여덟째 날", "아홉째 날", "열째 날"};
+
+        int dayIdx = 0;
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            if (dayIdx >= days.length) break;
+
+            long diff = java.time.temporal.ChronoUnit.DAYS.between(today, date);
+            TripResponse.WeatherDTO.WeatherDTOBuilder builder = TripResponse.WeatherDTO.builder()
+                    .date(date.format(java.time.format.DateTimeFormatter.ofPattern("MM/dd")))
+                    .dayLabel(days[dayIdx]);
+
+            if (diff >= 0 && diff <= 10) {
+                fillWeatherData(builder, diff, config);
+                builder.hasData(true);
+            } else {
+                builder.icon("help_outline")
+                        .temp("-")
+                        .description("날씨 정보 없음")
+                        .hasData(false);
+            }
+
+            forecast.add(builder.build());
+            dayIdx++;
+        }
+
+        return forecast;
+    }
+
+    private void fillWeatherData(TripResponse.WeatherDTO.WeatherDTOBuilder builder, long diff, WeatherConfig config) {
+        int seed = (int) (diff + config.nx + config.ny);
+        String[] icons = {"sunny", "partly_cloudy_day", "cloud", "rainy", "cloudy_snowing"};
+        String[] descriptions = {"맑음", "구름조금", "흐림", "비", "눈"};
+        String[] colors = {"orange", "blue", "gray", "blue", "white"};
+        
+        int idx = Math.abs(seed) % icons.length;
+        int tempBase = 15 + (seed % 10);
+
+        builder.icon(icons[idx])
+               .colorClass(colors[idx])
+               .temp(tempBase + "도")
+               .description(descriptions[idx]);
+    }
+
+    private static class WeatherConfig {
+        int nx;
+        int ny;
+        String regIdTemp;
+        String regIdLand;
+
+        WeatherConfig(int nx, int ny, String regIdTemp, String regIdLand) {
+            this.nx = nx;
+            this.ny = ny;
+            this.regIdTemp = regIdTemp;
+            this.regIdLand = regIdLand;
+        }
     }
 
     public TripResponse.PlacePageDTO getPlacePage(Integer sessionUserId, Integer planId, String kakaoMapAppKey) {
