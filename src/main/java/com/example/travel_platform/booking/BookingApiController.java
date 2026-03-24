@@ -2,7 +2,6 @@ package com.example.travel_platform.booking;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,15 +22,12 @@ import jakarta.servlet.http.HttpSession;
 public class BookingApiController {
 
     private final BookingService bookingService;
-    private final String tourApiServiceKey;
     private final HttpSession session;
 
     public BookingApiController(
             BookingService bookingService,
-            @Value("${TOUR_API_SERVICE_KEY:}") String tourApiServiceKey,
             HttpSession session) {
         this.bookingService = bookingService;
-        this.tourApiServiceKey = tourApiServiceKey;
         this.session = session;
     }
 
@@ -65,7 +61,6 @@ public class BookingApiController {
             @RequestParam(name = "lodgingName") String lodgingName,
             @RequestParam(name = "address") String address) {
         List<BookingResponse.RoomDTO> rooms = bookingService.getRoomList(
-                tourApiServiceKey,
                 BookingRequest.RoomQueryDTO.builder()
                         .lodgingName(lodgingName)
                         .address(address)
@@ -79,7 +74,6 @@ public class BookingApiController {
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "address", required = false) String address) {
         BookingResponse.PlaceImageDTO image = bookingService.getPlaceImage(
-                tourApiServiceKey,
                 BookingRequest.PlaceImageQueryDTO.builder()
                         .placeUrl(placeUrl)
                         .name(name)

@@ -831,7 +831,7 @@
         }
       }
     } catch (error) {
-      console.error("TourAPI fetch error:", error);
+      console.error("Rooms fetch error:", error);
     }
 
     if (rooms.length === 0) {
@@ -852,6 +852,23 @@
                i === 1 ? "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=250&fit=crop" :
                "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=250&fit=crop",
           desc: item.name + "에서 정성껏 준비한 " + theme + "테마의 " + roomType + " 객실입니다."
+        });
+      }
+    }
+
+    // 카드에 표시되는 1박 최소가격(basePrice)과 객실 리스트의 최저가를 일치시키기 위해 정규화한다.
+    // (외부 데이터/가공 로직에 따라 객실 가격이 basePrice보다 높게 생성되는 경우가 있어 보정)
+    if (rooms.length > 0) {
+      var minRoomPrice = rooms.reduce(function (min, room) {
+        return Math.min(min, Number(room.price || 0));
+      }, Number.POSITIVE_INFINITY);
+
+      if (Number.isFinite(minRoomPrice) && minRoomPrice > basePrice) {
+        var diff = minRoomPrice - basePrice;
+        rooms = rooms.map(function (room) {
+          return Object.assign({}, room, {
+            price: Math.max(basePrice, Number(room.price || 0) - diff)
+          });
         });
       }
     }
@@ -967,6 +984,11 @@
       return;
     }
 
+    HAS_SELECTED_POI = true;
+
+    showFocusOverlay(state, item);
+
+    var scrollArea = panel.querySelector(".sidebar-scroll-white");
     var titleEl = panel.querySelector(".map-poi-panel-h1-01");
     var subtitleEl = panel.querySelector(".map-poi-panel-p-01");
     var badgeEl = panel.querySelector(".map-poi-panel-div-10");
@@ -1020,6 +1042,12 @@
           return '<span class="chip-neutral-action">#' + escapeHtml(chip) + "</span>";
         })
         .join("");
+    }
+
+    if (scrollArea) {
+      scrollArea.style.visibility = "visible";
+      scrollArea.style.pointerEvents = "auto";
+      scrollArea.scrollTop = 0;
     }
     panel.hidden = false;
     if (toggleButton) {
@@ -1618,26 +1646,19 @@
       state.lastCenter = targetCenter; // Update the Source of Truth
       state.hasSearched = true;
       state.syncByViewport = true;
+
+      // Reset list scroll to top on new search
+      var listContainer = document.querySelector("[data-map-drag-scroll]");
+      if (listContainer) {
+        listContainer.scrollTop = 0;
+      }
+
       fetchAndRenderVisiblePois(state);
     }
 
     submitButton.addEventListener("click", function (event) {
       event.preventDefault();
       searchBySelectedRegion(true);
-    });
-
-    regionSelect.addEventListener("change", function () {
-      var regionKey = regionSelect.value;
-      var view = REGION_VIEW[regionKey];
-      if (!view) {
-        return;
-      }
-      state.currentRegionKey = regionKey;
-      updateRegionLabel(regionSelect);
-      state.map.setLevel(view.level);
-      var targetCenter = new kakao.maps.LatLng(view.lat, view.lng);
-      state.map.panTo(targetCenter);
-      state.lastCenter = targetCenter; // Update the Source of Truth
     });
 
     function refreshListPriceOnly() {
@@ -1647,12 +1668,6 @@
       renderList(state);
     }
 
-    if (startDateEl) {
-      startDateEl.addEventListener("change", refreshListPriceOnly);
-    }
-    if (endDateEl) {
-      endDateEl.addEventListener("change", refreshListPriceOnly);
-    }
 
     if (hasSearchParamsInUrl()) {
       searchBySelectedRegion(false);
@@ -1849,10 +1864,18 @@
     }
 
     var closeButton = panel.querySelector("[data-map-poi-close]");
+    var scrollArea = panel.querySelector(".sidebar-scroll-white");
 
     function setOpen(open) {
       panel.hidden = !open;
       toggleButton.setAttribute("aria-expanded", String(open));
+      if (open && scrollArea && !HAS_SELECTED_POI) {
+        scrollArea.style.visibility = "hidden";
+        scrollArea.style.pointerEvents = "none";
+      }
+      if (!open && CURRENT_MAP_STATE) {
+        clearFocusOverlay(CURRENT_MAP_STATE);
+      }
       // Removed manual relayout: ResizeObserver will handle this using state.lastCenter
     }
 
@@ -1878,6 +1901,7 @@
   }
 
   var CURRENT_MAP_STATE = null;
+  var HAS_SELECTED_POI = false;
 
   function initPriceRangeSheet() {
     var toggleButton = document.querySelector("[data-price-range-toggle]");
