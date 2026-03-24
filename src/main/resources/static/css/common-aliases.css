@@ -676,10 +676,10 @@
 .event-range--family{background:#9333ea}
 .event-range--work{background:#ea580c}
 .calendar-add-event-div-09 button.is-active{transform:translateY(-1px);box-shadow:0 6px 12px rgba(15,23,42,.12);border:1px solid rgba(15,23,42,.08);}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="TRIP"]{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="PERSONAL"]{background:#d1fae5;color:#047857;border-color:#6ee7b7}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="FAMILY"]{background:#f3e8ff;color:#7e22ce;border-color:#d8b4fe}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="WORK"]{background:#ffedd5;color:#c2410c;border-color:#fdba74}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="TRIP"]{background:#eff6ff;color:#1d4fd8d7;border-color:#93c5fd}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="PERSONAL"]{background:#d1fae5;color:#05835fd2;border-color:#6ee7b7}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="FAMILY"]{background:#f3e8ff;color:rgba(131, 53, 199, 0.815);border-color:#d8b4fe}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="WORK"]{background:#ffedd5;color:#c2400cd7;border-color:#fdba74}
 .calendar-add-event-div-09 button[data-calendar-category]{border-radius:9999px;border:1px solid transparent;transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease,color .15s ease,border-color .15s ease}
 .calendar-add-event-div-09 button[data-calendar-category].is-active{box-shadow:0 8px 16px rgba(15,23,42,.2)}
 .inline-row-hover-primary{display:flex;align-items:center;gap:.375rem;transition:color .2s ease}

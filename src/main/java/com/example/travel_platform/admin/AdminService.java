@@ -4,7 +4,6 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -34,6 +33,9 @@ public class AdminService {
     private static final int RECENT_BOARD_DAYS = 7;
     private static final int BOARD_PAGE_SIZE = 10;
     private static final int BOARD_PAGE_BLOCK_SIZE = 5;
+    private static final int USER_PAGE_SIZE = 10;
+    private static final int USER_PAGE_BLOCK_SIZE = 5;
+
     private static final DateTimeFormatter DASHBOARD_DATE_TIME_FORMATTER = DateTimeFormatter
             .ofPattern("yyyy.MM.dd HH:mm");
     private static final String USER_SORT_BY_CREATED_AT = "createdAt";
@@ -72,19 +74,46 @@ public class AdminService {
                 loadRecentBoards());
     }
 
-    public AdminResponse.UserListViewDTO getUserListView(Boolean active, String keyword, String sortBy,
-            String orderBy) {
+    public AdminResponse.UserListViewDTO getUserListView(Boolean active, String keyword, String sortBy, String orderBy,
+            int page) {
         String normalizedKeyword = normalizeKeyword(keyword);
         String normalizedSortBy = normalizeUserSortBy(sortBy);
         String normalizedOrderBy = normalizeUserOrderBy(orderBy);
-        List<AdminUserSummaryRow> userRows = findUsersByFilter(active, normalizedKeyword);
+        int normalizedPage = normalizePage(page);
+        long totalCount = countUsers(active, normalizedKeyword);
+        int totalPages = resolveUserTotalPages(totalCount);
+
+        if (totalPages > 0 && normalizedPage > totalPages - 1) {
+            normalizedPage = totalPages - 1;
+        }
+
+        int offset = normalizedPage * USER_PAGE_SIZE;
+        List<AdminUserSummaryRow> userRows = findPagedUsersByFilter(
+                active,
+                normalizedKeyword,
+                normalizedSortBy,
+                normalizedOrderBy,
+                offset,
+                USER_PAGE_SIZE);
         List<AdminResponse.AdminUserDTO> userModels = createAdminUserModels(userRows, normalizedSortBy,
                 normalizedOrderBy);
+        boolean hasPrev = normalizedPage > 0;
+        boolean hasNext = totalPages > 0 && normalizedPage < totalPages - 1;
+        Integer prevPage = hasPrev ? normalizedPage - 1 : null;
+        Integer nextPage = hasNext ? normalizedPage + 1 : null;
         AdminResponse.UserListPageDTO pageModel = createUserListPageModel(
                 normalizedKeyword,
                 active,
                 normalizedSortBy,
-                normalizedOrderBy);
+                normalizedOrderBy,
+                normalizedPage,
+                totalPages,
+                totalCount,
+                hasPrev,
+                hasNext,
+                prevPage,
+                nextPage,
+                createUserPageItems(normalizedPage, totalPages));
 
         return AdminResponse.UserListViewDTO.createUserListView(pageModel, userModels);
     }
@@ -128,7 +157,15 @@ public class AdminService {
             String normalizedKeyword,
             Boolean active,
             String normalizedSortBy,
-            String normalizedOrderBy) {
+            String normalizedOrderBy,
+            int currentPage,
+            int totalPages,
+            long filteredUserCount,
+            boolean hasPrev,
+            boolean hasNext,
+            Integer prevPage,
+            Integer nextPage,
+            List<AdminResponse.UserPageItemDTO> pageItems) {
         return AdminResponse.UserListPageDTO.createUserListPage(
                 adminQueryRepository.countUsers(),
                 adminQueryRepository.countInactiveUsers(),
@@ -141,22 +178,54 @@ public class AdminService {
                 normalizedOrderBy,
                 buildUsersUrl(null, normalizedKeyword, normalizedSortBy, normalizedOrderBy),
                 buildUsersUrl(true, normalizedKeyword, normalizedSortBy, normalizedOrderBy),
-                buildUsersUrl(false, normalizedKeyword, normalizedSortBy, normalizedOrderBy));
+                buildUsersUrl(false, normalizedKeyword, normalizedSortBy, normalizedOrderBy),
+                currentPage,
+                totalPages,
+                filteredUserCount,
+                hasPrev,
+                hasNext,
+                prevPage,
+                nextPage,
+                pageItems);
     }
 
-    private List<AdminUserSummaryRow> findUsersByFilter(Boolean active, String keyword) {
+    private long countUsers(Boolean active, String keyword) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
 
+        // 검색어 유무와 상태 필터 유무에 따라 count 대상이 달라지므로 4가지 경우로 분기한다.
         if (hasKeyword && active != null) {
-            return adminQueryRepository.findUserSummaryRowsByActiveAndKeyword(active, keyword);
+            return adminQueryRepository.countUsersByActiveAndKeyword(active, keyword);
         }
         if (hasKeyword) {
-            return adminQueryRepository.findUserSummaryRowsByKeyword(keyword);
+            return adminQueryRepository.countUsersByKeyword(keyword);
         }
-        if (active == null) {
-            return adminQueryRepository.findAllUserSummaryRowsByCreatedAtDesc();
+        if (active != null) {
+            return adminQueryRepository.countUsersByActive(active);
         }
-        return adminQueryRepository.findUserSummaryRowsByActiveByCreatedAtDesc(active);
+        return adminQueryRepository.countUsers();
+    }
+
+    private List<AdminUserSummaryRow> findPagedUsersByFilter(
+            Boolean active,
+            String keyword,
+            String sortBy,
+            String orderBy,
+            int offset,
+            int limit) {
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+
+        // count와 같은 4분기 규칙으로 목록 조회를 고른다.
+        if (hasKeyword && active != null) {
+            return adminQueryRepository.findPagedUsersByActiveAndKeyword(active, keyword, sortBy, orderBy, offset,
+                    limit);
+        }
+        if (hasKeyword) {
+            return adminQueryRepository.findPagedUsersByKeyword(keyword, sortBy, orderBy, offset, limit);
+        }
+        if (active != null) {
+            return adminQueryRepository.findPagedUsersByActive(active, sortBy, orderBy, offset, limit);
+        }
+        return adminQueryRepository.findPagedUsers(sortBy, orderBy, offset, limit);
     }
 
     private List<AdminResponse.AdminUserDTO> createAdminUserModels(
@@ -175,36 +244,31 @@ public class AdminService {
                     Math.toIntExact(userRow.boardCount())));
         }
 
-        userModels.sort(buildUserSortComparator(sortBy, orderBy));
         return userModels;
     }
 
-    private Comparator<AdminResponse.AdminUserDTO> buildUserSortComparator(String sortBy, String orderBy) {
-        return (left, right) -> compareAdminUsers(left, right, sortBy, orderBy);
+    private int resolveUserTotalPages(long totalCount) {
+        if (totalCount == 0) {
+            return 0;
+        }
+        return (int) Math.ceil((double) totalCount / USER_PAGE_SIZE);
     }
 
-    private int compareAdminUsers(
-            AdminResponse.AdminUserDTO left,
-            AdminResponse.AdminUserDTO right,
-            String sortBy,
-            String orderBy) {
-        int compareResult;
+    private List<AdminResponse.UserPageItemDTO> createUserPageItems(int currentPage, int totalPages) {
+        List<AdminResponse.UserPageItemDTO> pageItems = new ArrayList<>();
 
-        if (USER_SORT_BY_POST_COUNT.equals(sortBy)) {
-            compareResult = Integer.compare(left.getBoardCount(), right.getBoardCount());
-        } else {
-            compareResult = left.getCreatedAt().compareTo(right.getCreatedAt());
+        if (totalPages == 0) {
+            return pageItems;
         }
 
-        if (USER_ORDER_BY_DESC.equals(orderBy)) {
-            compareResult = compareResult * -1;
+        int startPage = (currentPage / USER_PAGE_BLOCK_SIZE) * USER_PAGE_BLOCK_SIZE;
+        int endPage = Math.min(startPage + USER_PAGE_BLOCK_SIZE - 1, totalPages - 1);
+
+        for (int page = startPage; page <= endPage; page++) {
+            pageItems.add(AdminResponse.UserPageItemDTO.createUserPageItem(page, page + 1, page == currentPage));
         }
 
-        if (compareResult != 0) {
-            return compareResult;
-        }
-
-        return Integer.compare(left.getUserId(), right.getUserId());
+        return pageItems;
     }
 
     private AdminResponse.BoardListPageDTO createBoardListPageModel(
@@ -264,6 +328,7 @@ public class AdminService {
 
         for (int i = startPage; i <= endPage; i++) {
             pageItems.add(
+
                     AdminResponse.PageItemDTO.createPageItem(i, i + 1, i == page, keyword, sort.getCode(),
                             selectedCategory));
         }
@@ -301,6 +366,7 @@ public class AdminService {
             long recentBoardCount,
             long totalBoardViewCount) {
         List<AdminResponse.DashboardMetricDTO> metrics = new ArrayList<>();
+
         metrics.add(AdminResponse.DashboardMetricDTO.createMetric("전체 사용자", formatCount(totalUserCount),
                 "활성 " + formatCount(activeUserCount) + "명", "groups", "metric-icon-blue"));
         metrics.add(AdminResponse.DashboardMetricDTO.createMetric("비활성 사용자", formatCount(inactiveUserCount),
@@ -309,6 +375,7 @@ public class AdminService {
                 "최근 7일 " + formatCount(recentBoardCount) + "개", "forum", "metric-icon-purple"));
         metrics.add(AdminResponse.DashboardMetricDTO.createMetric("누적 조회수", formatCount(totalBoardViewCount),
                 "커뮤니티 전체 기준", "visibility", "metric-icon-orange"));
+
         return metrics;
     }
 
@@ -331,6 +398,7 @@ public class AdminService {
             String badgeClass,
             String barClass) {
         int percent = calculatePercent(count, total);
+
         return AdminResponse.StatusChartItemDTO.createStatusItem(
                 label,
                 formatCount(count) + "명",
@@ -342,6 +410,7 @@ public class AdminService {
 
     private List<AdminResponse.CategoryChartItemDTO> createBoardCategoryItems(long totalBoardCount) {
         List<AdminResponse.CategoryChartItemDTO> items = new ArrayList<>();
+
         items.add(createCategoryChartItem(BoardCategory.TIPS.getLabel(),
                 adminQueryRepository.countBoardsByCategory(BoardCategory.TIPS), totalBoardCount,
                 "admin-category-badge cat-tips", "admin-chart-bar--tips"));
@@ -465,6 +534,10 @@ public class AdminService {
 
     private String normalizeKeyword(String keyword) {
         return keyword == null ? "" : keyword.trim();
+    }
+
+    private int normalizePage(int page) {
+        return Math.max(page, 0);
     }
 
     private String normalizeUserSortBy(String sortBy) {
