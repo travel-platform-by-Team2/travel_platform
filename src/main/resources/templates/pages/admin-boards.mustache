@@ -78,17 +78,17 @@
                         <span class="material-symbols-outlined">expand_more</span>
                       </summary>
                       <div class="admin-board-sort-menu">
-                        <a class="admin-board-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
+                        <a class="admin-board-sort-option{{model.latestClass}}"
                            href="/admin/boards?sort=latest{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 최신 순</a>
-                        <a class="admin-board-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
+                        <a class="admin-board-sort-option{{model.dateClass}}"
                            href="/admin/boards?sort=date{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 오래된 순</a>
-                        <a class="admin-board-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
+                        <a class="admin-board-sort-option{{model.viewClass}}"
                            href="/admin/boards?sort=view{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 많은 순</a>
-                        <a class="admin-board-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
+                        <a class="admin-board-sort-option{{model.lowViewClass}}"
                            href="/admin/boards?sort=downview{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 적은 순</a>
-                        <a class="admin-board-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
+                        <a class="admin-board-sort-option{{model.likeClass}}"
                            href="/admin/boards?sort=likes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 많은 순</a>
-                        <a class="admin-board-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
+                        <a class="admin-board-sort-option{{model.lowLikeClass}}"
                            href="/admin/boards?sort=downlikes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 적은 순</a>
                       </div>
                     </details>

@@ -101,6 +101,15 @@
       return null;
     }
 
+    if (
+      data.body &&
+      typeof data.body === 'object' &&
+      typeof data.body.answer === 'string' &&
+      data.body.answer.trim()
+    ) {
+      return data.body.answer.trim();
+    }
+
     if (typeof data.answer === 'string' && data.answer.trim()) {
       return data.answer.trim();
     }

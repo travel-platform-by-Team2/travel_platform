@@ -4,37 +4,18 @@
 
 ## 목적
 
-OpenAI Responses API 기반 챗봇 LLM 클라이언트와 계획/재탐색 모델을 둔다.
+OpenAI Responses API 기반 질문 해석과 답변 생성을 담당한다.
 
 ## 주요 파일
 
 | 파일명 | 설명 |
 | --- | --- |
-| ChatbotLlmClient.java | LLM 클라이언트 인터페이스다. |
-| ChatbotLlmPlan.java | LLM 계획 결과 모델이다. |
-| ChatbotLlmSearchReview.java | 재탐색 계속 여부와 다음 SQL을 담는 LLM 판단 결과 모델이다. |
-| ChatbotSearchAttempt.java | 이전 SQL/rows/평가 사유를 누적하는 탐색 이력 모델이다. |
-| OpenAiChatbotLlmClient.java | OpenAI Responses API 호출, 프롬프트 구성, 응답 파싱 구현체다. |
-
-## 하위 디렉토리
-
-- 없음
+| `ChatbotLlmClient.java` | 질문 해석, 일반 대화 답변, DB 답변 합성 계약을 정의한다. |
+| `OpenAiChatbotLlmClient.java` | OpenAI 호출과 JSON 파싱을 구현한다. |
 
 ## AI 작업 지침
 
-- `OPENAI_API_KEY`, 모델명, 엔드포인트는 설정으로 주입받는 현재 방식을 유지한다.
-- 계획 생성, 탐색 재평가, 최종 답변 프롬프트가 모두 JSON 응답 계약을 지키도록 유지한다.
-- 응답 파싱은 JSON 코드펜스와 `output_text`/`output[].content[]` 둘 다 처리하므로 변경 시 회귀 테스트를 추가한다.
-- `PLAN_SYSTEM_PROMPT`, `SEARCH_REVIEW_SYSTEM_PROMPT`, `DB_ANSWER_SYSTEM_PROMPT`는 서로 다른 책임을 가지므로 하나로 합치지 않는다.
-- `OpenAiChatbotLlmClient`는 `parsePlanResponse`, `parseSearchReviewResponse`, `parseDbAnswerResponse` helper로 JSON 파싱 책임을 나눈 상태다.
-
-## 테스트
-
-- 응답 포맷 변경 시 계획/재탐색 모델과 전체 챗봇 흐름을 함께 확인한다.
-- OpenAI 응답에서 `output_text`가 비어 있을 때 `output[].content[].text` fallback 파싱도 유지되는지 확인한다.
-
-## 의존성
-
-- 내부: `chatbot/application`, `_core/handler/ex`
-- 외부: `HttpURLConnection`, `Gson`, `OpenAI Responses API`
-
+- 현재 LLM 역할은 SQL 생성이 아니라 `질문 해석 + 자연어 답변 생성`이다.
+- 질문 해석 응답은 JSON 객체로 강제한다.
+- 허용 도메인 이름은 `BOOKING`, `TRIP`, `CALENDAR`, `BOARD`다.
+- 실패 시 `_core` 예외 체계로 넘길 수 있도록 `ApiException`을 사용한다.

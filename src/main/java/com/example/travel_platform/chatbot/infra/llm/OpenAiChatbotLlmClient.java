@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -17,121 +18,62 @@ import org.springframework.stereotype.Component;
 
 import com.example.travel_platform._core.handler.ex.ApiException;
 import com.example.travel_platform.chatbot.api.dto.ChatbotRequest;
+import com.example.travel_platform.chatbot.application.ChatbotService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-/**
- * OpenAI Responses API 기반 챗봇 LLM 클라이언트 구현체.
- *
- * 역할:
- * 1) 사용자 질문에 대한 1차 계획(JSON) 생성
- * 2) DB 탐색 결과를 바탕으로 재탐색 여부(JSON) 판단
- * 3) 탐색 이력을 바탕으로 최종 답변(JSON) 생성
- */
 @Component
 public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
 
-    /** OpenAI 연결 타임아웃 */
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
-
-    /** OpenAI 요청 전체 타임아웃 */
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
 
-    /**
-     * 1차 계획 생성을 위한 시스템 프롬프트.
-     * 스토리보드 기준으로 DB 필요 여부, SQL, direct answer를 구조화한다.
-     */
-    private static final String PLAN_SYSTEM_PROMPT = """
-            너는 여행 플랫폼 챗봇의 질의 계획기다.
-            반드시 아래 JSON 스키마만 반환해라.
+    private static final String INTERPRET_SYSTEM_PROMPT = """
+            당신은 여행 플랫폼 챗봇의 질문 해석기다.
+            SQL을 만들지 말고, 어떤 처리 모드와 어떤 조회 도메인을 써야 하는지만 JSON으로 반환하라.
+            응답 형식:
             {
-              "needsDb": boolean,
-              "queryIntent": string,
-              "querySummary": string,
-              "sql": string,
-              "answer": string
+              "mode": "DB_QA" | "GENERAL_CHAT",
+              "queryPlans": [
+                {
+                  "domain": "BOOKING" | "TRIP" | "CALENDAR" | "BOARD",
+                  "intent": string,
+                  "keyword": string,
+                  "startDate": "YYYY-MM-DD",
+                  "endDate": "YYYY-MM-DD",
+                  "category": string,
+                  "limit": number
+                }
+              ]
             }
             규칙:
-            - DB 조회가 필요하면 needsDb=true로 설정하고 읽기 전용 SELECT SQL을 작성해라.
-            - DB 조회가 필요 없으면 needsDb=false로 설정하고 answer에 최종 답변을 작성해라.
-            - markdown, 코드블록(```), 설명 문장은 넣지 마라.
-            - 테이블/컬럼 참조는 반드시 schemaContext에 제공된 정보만 사용해라.
-            - 목록 조회 시 사용자가 개수를 명시하지 않으면 LIMIT 5를 사용해라.
-            - 사용자 표현과 DB 텍스트가 정확히 일치하지 않을 수 있으니 핵심 키워드, 동의어, 어간을 기준으로 유연하게 검색해라.
-            - 예를 들어 "제주도"를 찾을 때는 "제주"처럼 더 넓은 키워드도 함께 고려하고, 가능하면 정확한 일치보다 LIKE 조건을 우선 검토해라.
+            - DB 조회가 필요하면 mode는 DB_QA로 둔다.
+            - 일반 대화, 잡담, 인사, 설명 요청은 GENERAL_CHAT으로 둔다.
+            - queryPlans는 최대 3개까지만 반환한다.
+            - BOOKING, TRIP, CALENDAR, BOARD 외의 domain은 쓰지 않는다.
+            - SQL, markdown, 코드 블록을 절대 출력하지 않는다.
+            - page, tripPlanId 같은 context는 보조 정보로만 사용한다.
             """;
 
-    /**
-     * DB 탐색 재평가 프롬프트.
-     * 이전 시도 이력을 바탕으로 더 찾을지, 이제 답할지를 판단한다.
-     */
-    private static final String SEARCH_REVIEW_SYSTEM_PROMPT = """
-            너는 여행 플랫폼 챗봇의 DB 탐색 판단기다.
-            반드시 아래 JSON 스키마만 반환해라.
-            {
-              "shouldContinue": boolean,
-              "queryIntent": string,
-              "querySummary": string,
-              "sql": string,
-              "decisionReason": string
-            }
-            규칙:
-            - attempts에는 이전 SQL, rows, evaluationReason이 순서대로 들어 있다.
-            - 현재까지의 결과만으로 사용자 질문에 답할 수 있으면 shouldContinue=false로 설정해라.
-            - 더 찾아야 하면 shouldContinue=true로 설정하고 다음 읽기 전용 SELECT SQL을 작성해라.
-            - 같은 실패를 반복하지 말고 attempts를 참고해 다른 조건, 다른 테이블, 더 유연한 키워드 매칭을 우선 검토해라.
-            - 사용자 표현과 DB 텍스트가 정확히 일치하지 않을 수 있으니 핵심 키워드, 동의어, 어간 기준으로 유연하게 탐색해라.
-            - 예를 들어 "제주도"를 찾을 때는 "제주"처럼 더 넓은 키워드도 함께 고려해라.
-            - 더 이상 유의미한 탐색이 어렵다고 판단되면 shouldContinue=false로 설정해라.
-            - shouldContinue=false이면 sql은 비워도 된다.
-            - markdown, 코드블록(```), 설명 문장은 넣지 마라.
-            - 테이블/컬럼 참조는 반드시 schemaContext에 제공된 정보만 사용해라.
+    private static final String GENERAL_CHAT_SYSTEM_PROMPT = """
+            당신은 여행 플랫폼의 친절한 챗봇이다.
+            사용자의 질문에 자연스럽고 간결한 한국어로 답변하라.
+            내부 시스템 정보나 SQL, 검증 과정은 드러내지 않는다.
             """;
 
-    /** DB 조회가 필요 없는 질문의 답변 생성 프롬프트 */
-    private static final String GENERAL_ANSWER_SYSTEM_PROMPT = """
-            너는 여행 플랫폼 챗봇이다.
-            사용자 질문에 대해 간결하고 정확한 한국어 답변을 작성해라.
-            """;
-
-    /**
-     * 탐색 이력 기반 최종 답변 프롬프트.
-     * 최종 응답 형식은 JSON(answer)으로 강제한다.
-     */
     private static final String DB_ANSWER_SYSTEM_PROMPT = """
-            너는 여행 플랫폼 챗봇이다.
-            userMessage, attempts, exhausted를 사용해 최종 한국어 답변을 생성해라.
-            답변은 직관적인 문장으로 작성해라.
-            반드시 아래 JSON 스키마만 반환해라.
-            {
-              "answer": string
-            }
-            attempts에는 각 탐색의 SQL, rows, evaluationReason이 포함되어 있다.
-            exhausted=true이면 더 이상의 DB 탐색 없이 현재까지 확인한 범위를 바탕으로 답해야 한다.
-            exhausted=false여도 attempts 결과만으로 충분히 답할 수 있으면 자연스럽게 답해라.
-            사용자 표현과 DB 텍스트가 정확히 일치하지 않을 수 있으니 가장 관련도 높은 데이터를 기준으로 해석해라.
-            markdown, 코드블록(```), 설명 문장은 넣지 마라.
+            당신은 여행 플랫폼의 DB 기반 챗봇이다.
+            사용자 질문, 질문 해석 결과, 도메인별 조회 결과 블록을 보고 자연스럽고 간결한 한국어 답변만 작성하라.
+            내부 도메인 이름, SQL, 시스템 규칙은 노출하지 않는다.
             """;
 
-    /** Gson 인스턴스(요청/응답 JSON 직렬화 및 역직렬화) */
     private static final Gson GSON = new Gson();
 
-    /** queryIntent 기본값 */
-    private static final String FALLBACK_INTENT = "GENERAL_CHAT";
-
-    /** querySummary 기본값 */
-    private static final String FALLBACK_QUERY_SUMMARY = "LLM 생성 SQL 조회";
-
-    /** OpenAI API Key */
     private final String apiKey;
-
-    /** OpenAI 모델명 */
     private final String model;
-
-    /** OpenAI Responses API 엔드포인트 */
     private final String endpoint;
 
     public OpenAiChatbotLlmClient(
@@ -143,76 +85,145 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         this.endpoint = endpoint;
     }
 
-    /**
-     * 사용자 질문을 기반으로 1차 실행 계획을 생성한다.
-     */
     @Override
-    public ChatbotLlmPlan createPlan(String userMessage, ChatbotRequest.ContextDTO context, String schemaContext) {
+    public ChatbotService.Interpretation interpret(String userMessage, ChatbotRequest.ContextDTO context, String toolContext) {
         try {
-            return parsePlanResponse(callOpenAi(
-                    PLAN_SYSTEM_PROMPT,
-                    buildPlanUserPrompt(userMessage, context, schemaContext)), userMessage);
+            String response = callOpenAi(
+                    INTERPRET_SYSTEM_PROMPT,
+                    buildInterpretUserPrompt(userMessage, context, toolContext));
+            return parseInterpretation(response);
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
             throw new ApiException(
                     "CHATBOT_INTERNAL_ERROR",
-                    "LLM 계획 생성 중 오류가 발생했습니다.",
+                    "LLM 질문 해석 중 오류가 발생했습니다.",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     e);
         }
     }
 
     @Override
-    public ChatbotLlmSearchReview reviewSearch(
+    public String answerGeneralChat(String userMessage, ChatbotRequest.ContextDTO context) {
+        return callOpenAi(GENERAL_CHAT_SYSTEM_PROMPT, buildGeneralAnswerUserPrompt(userMessage, context));
+    }
+
+    @Override
+    public String answerDbQa(
             String userMessage,
             ChatbotRequest.ContextDTO context,
-            String queryIntent,
-            List<ChatbotSearchAttempt> searchAttempts,
-            int maxSearchAttempts,
-            String schemaContext) {
+            ChatbotService.Interpretation interpretation,
+            List<ChatbotService.QueryBlock> queryBlocks) {
+        return callOpenAi(DB_ANSWER_SYSTEM_PROMPT, buildDbAnswerUserPrompt(userMessage, context, interpretation, queryBlocks));
+    }
+
+    private String buildInterpretUserPrompt(String userMessage, ChatbotRequest.ContextDTO context, String toolContext) {
+        JsonObject promptJson = new JsonObject();
+        promptJson.addProperty("message", userMessage);
+        promptJson.add("context", buildContextJson(context));
+        promptJson.add("toolContext", toJsonElement(toolContext));
+        return GSON.toJson(promptJson);
+    }
+
+    private String buildGeneralAnswerUserPrompt(String userMessage, ChatbotRequest.ContextDTO context) {
+        JsonObject promptJson = new JsonObject();
+        promptJson.addProperty("message", userMessage);
+        promptJson.add("context", buildContextJson(context));
+        return GSON.toJson(promptJson);
+    }
+
+    private String buildDbAnswerUserPrompt(
+            String userMessage,
+            ChatbotRequest.ContextDTO context,
+            ChatbotService.Interpretation interpretation,
+            List<ChatbotService.QueryBlock> queryBlocks) {
+        JsonObject promptJson = new JsonObject();
+        promptJson.addProperty("message", userMessage);
+        promptJson.add("context", buildContextJson(context));
+        promptJson.add("interpretation", GSON.toJsonTree(interpretation));
+        promptJson.add("queryBlocks", GSON.toJsonTree(queryBlocks));
+        return GSON.toJson(promptJson);
+    }
+
+    private JsonObject buildContextJson(ChatbotRequest.ContextDTO context) {
+        JsonObject contextJson = new JsonObject();
+        if (context == null) {
+            return contextJson;
+        }
+        if (context.getPage() != null && !context.getPage().isBlank()) {
+            contextJson.addProperty("page", context.getPage());
+        }
+        if (context.getTripPlanId() != null) {
+            contextJson.addProperty("tripPlanId", context.getTripPlanId());
+        }
+        return contextJson;
+    }
+
+    private ChatbotService.Interpretation parseInterpretation(String rawText) {
+        JsonObject parsed = parseJsonObject(rawText, "LLM 질문 해석");
+        ChatbotService.Mode mode = parseMode(readText(parsed.get("mode")));
+        List<ChatbotService.QueryPlan> queryPlans = parseQueryPlans(parsed.get("queryPlans"));
+
+        if (mode == ChatbotService.Mode.DB_QA && queryPlans.isEmpty()) {
+            return ChatbotService.Interpretation.createGeneralChatInterpretation();
+        }
+
+        return ChatbotService.Interpretation.createInterpretation(mode, queryPlans);
+    }
+
+    private List<ChatbotService.QueryPlan> parseQueryPlans(JsonElement node) {
+        List<ChatbotService.QueryPlan> queryPlans = new ArrayList<>();
+        if (node == null || !node.isJsonArray()) {
+            return queryPlans;
+        }
+
+        JsonArray array = node.getAsJsonArray();
+        for (JsonElement element : array) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject queryPlan = element.getAsJsonObject();
+            ChatbotService.Domain domain = parseDomain(readText(queryPlan.get("domain")));
+            if (domain == null) {
+                continue;
+            }
+            queryPlans.add(ChatbotService.QueryPlan.createQueryPlan(
+                    domain,
+                    readText(queryPlan.get("intent")),
+                    readText(queryPlan.get("keyword")),
+                    readText(queryPlan.get("startDate")),
+                    readText(queryPlan.get("endDate")),
+                    readText(queryPlan.get("category")),
+                    readInteger(queryPlan.get("limit"), 5)));
+            if (queryPlans.size() >= 3) {
+                break;
+            }
+        }
+        return queryPlans;
+    }
+
+    private ChatbotService.Mode parseMode(String value) {
+        if (value == null || value.isBlank()) {
+            return ChatbotService.Mode.GENERAL_CHAT;
+        }
         try {
-            return parseSearchReviewResponse(
-                    callOpenAi(
-                    SEARCH_REVIEW_SYSTEM_PROMPT,
-                    buildSearchReviewUserPrompt(
-                            userMessage,
-                            context,
-                            queryIntent,
-                            searchAttempts,
-                            maxSearchAttempts,
-                            schemaContext)),
-                    queryIntent);
-        } catch (ApiException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ApiException(
-                    "CHATBOT_INTERNAL_ERROR",
-                    "LLM 탐색 재평가 중 오류가 발생했습니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    e);
+            return ChatbotService.Mode.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ChatbotService.Mode.GENERAL_CHAT;
         }
     }
 
-    /**
-     * DB 조회 결과를 기반으로 2차 최종 답변을 생성한다.
-     * 응답은 JSON(answer) 형식으로 강제하고 파싱한다.
-     */
-    @Override
-    public String createDbAnswer(
-            String userMessage,
-            String queryIntent,
-            List<ChatbotSearchAttempt> searchAttempts,
-            boolean exhausted) {
-        return parseDbAnswerResponse(callOpenAi(
-                DB_ANSWER_SYSTEM_PROMPT,
-                buildDbAnswerUserPrompt(userMessage, queryIntent, searchAttempts, exhausted)));
+    private ChatbotService.Domain parseDomain(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return ChatbotService.Domain.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
-    /**
-     * OpenAI Responses API 공통 호출 메서드.
-     * 프롬프트 입력, 응답 텍스트 추출, 오류 처리를 담당한다.
-     */
     private String callOpenAi(String systemPrompt, String userPrompt) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new ApiException(
@@ -239,7 +250,7 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
             if (statusCode >= 400) {
                 throw new ApiException(
                         "CHATBOT_INTERNAL_ERROR",
-                        "OpenAI API 호출 실패(status=" + statusCode + ")",
+                        "OpenAI API 호출에 실패했습니다. status=" + statusCode,
                         HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
@@ -247,7 +258,7 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
             if (answer.isBlank()) {
                 throw new ApiException(
                         "CHATBOT_INTERNAL_ERROR",
-                        "OpenAI 응답에 텍스트가 없습니다.",
+                        "OpenAI 응답 텍스트가 비어 있습니다.",
                         HttpStatus.INTERNAL_SERVER_ERROR);
             }
             return answer;
@@ -300,87 +311,6 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         }
     }
 
-    /**
-     * 1차 계획 생성용 user 프롬프트를 JSON 문자열로 구성한다.
-     */
-    private String buildPlanUserPrompt(String userMessage, ChatbotRequest.ContextDTO context, String schemaContext) {
-        JsonObject promptJson = new JsonObject();
-        promptJson.addProperty("message", userMessage);
-        promptJson.add("context", buildContextJson(context));
-        promptJson.add("schemaContext", toJsonElement(schemaContext));
-        return GSON.toJson(promptJson);
-    }
-
-    /**
-     * DB 탐색 재평가용 user 프롬프트를 JSON 문자열로 구성한다.
-     */
-    private String buildSearchReviewUserPrompt(
-            String userMessage,
-            ChatbotRequest.ContextDTO context,
-            String queryIntent,
-            List<ChatbotSearchAttempt> searchAttempts,
-            int maxSearchAttempts,
-            String schemaContext) {
-        JsonObject promptJson = new JsonObject();
-        promptJson.addProperty("message", userMessage);
-        promptJson.add("context", buildContextJson(context));
-        promptJson.addProperty("queryIntent", queryIntent);
-        promptJson.addProperty("completedAttempts", searchAttempts == null ? 0 : searchAttempts.size());
-        promptJson.addProperty("maxAttempts", maxSearchAttempts);
-        promptJson.add("attempts", GSON.toJsonTree(searchAttempts));
-        promptJson.add("schemaContext", toJsonElement(schemaContext));
-        return GSON.toJson(promptJson);
-    }
-
-    /**
-     * 최종 DB 답변 생성용 user 프롬프트를 JSON 문자열로 구성한다.
-     */
-    private String buildDbAnswerUserPrompt(
-            String userMessage,
-            String queryIntent,
-            List<ChatbotSearchAttempt> searchAttempts,
-            boolean exhausted) {
-        JsonObject payload = new JsonObject();
-        payload.addProperty("userMessage", userMessage);
-        payload.addProperty("queryIntent", queryIntent);
-        payload.addProperty("exhausted", exhausted);
-        payload.add("attempts", GSON.toJsonTree(searchAttempts));
-        return GSON.toJson(payload);
-    }
-
-    private JsonObject buildContextJson(ChatbotRequest.ContextDTO context) {
-        JsonObject contextJson = new JsonObject();
-        if (context != null) {
-            if (context.getPage() != null && !context.getPage().isBlank()) {
-                contextJson.addProperty("page", context.getPage());
-            }
-            if (context.getTripPlanId() != null) {
-                contextJson.addProperty("tripPlanId", context.getTripPlanId());
-            }
-        }
-        return contextJson;
-    }
-
-    /**
-     * raw JSON 문자열을 JsonElement로 변환한다.
-     * 파싱 실패 시 원문을 담은 fallback 객체를 반환한다.
-     */
-    private JsonElement toJsonElement(String rawJson) {
-        if (rawJson == null || rawJson.isBlank()) {
-            return new JsonObject();
-        }
-        try {
-            return JsonParser.parseString(rawJson);
-        } catch (Exception ignored) {
-            JsonObject fallback = new JsonObject();
-            fallback.addProperty("raw", rawJson);
-            return fallback;
-        }
-    }
-
-    /**
-     * Responses API 요청 본문을 구성한다.
-     */
     private JsonObject buildRequestPayload(String systemPrompt, String userPrompt) {
         JsonObject payload = new JsonObject();
         payload.addProperty("model", model);
@@ -393,9 +323,6 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         return payload;
     }
 
-    /**
-     * Responses API input message 1건을 구성한다.
-     */
     private JsonObject buildInputMessage(String role, String text) {
         JsonObject message = new JsonObject();
         message.addProperty("role", role);
@@ -410,108 +337,6 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         return message;
     }
 
-    /**
-     * LLM 응답 텍스트에서 JSON 객체를 추출한다.
-     * 코드블록으로 감싼 응답도 허용한다.
-     */
-    private JsonObject parseJsonObject(String rawText, String sourceName) {
-        String candidate = rawText == null ? "" : rawText.trim();
-        if (candidate.startsWith("```")) {
-            candidate = stripCodeFence(candidate);
-        }
-
-        int start = candidate.indexOf('{');
-        int end = candidate.lastIndexOf('}');
-        if (start >= 0 && end > start) {
-            candidate = candidate.substring(start, end + 1);
-        }
-
-        JsonElement parsed = JsonParser.parseString(candidate);
-        if (!parsed.isJsonObject()) {
-            throw new ApiException(
-                    "CHATBOT_INTERNAL_ERROR",
-                    sourceName + " 응답이 JSON 객체 형식이 아닙니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return parsed.getAsJsonObject();
-    }
-
-    private ChatbotLlmPlan parsePlanResponse(String rawText, String userMessage) {
-        JsonObject plan = parseJsonObject(rawText, "LLM 계획");
-        boolean needsDb = readBoolean(plan.get("needsDb"), false);
-        String queryIntent = toQueryIntent(readText(plan.get("queryIntent")));
-        String querySummary = toQuerySummary(readText(plan.get("querySummary")));
-        String sql = readText(plan.get("sql"));
-        String answer = readText(plan.get("answer"));
-
-        if (needsDb && sql.isBlank()) {
-            throw new ApiException(
-                    "CHATBOT_INTERNAL_ERROR",
-                    "LLM 계획에 SQL이 포함되지 않았습니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        if (!needsDb && answer.isBlank()) {
-            answer = callOpenAi(GENERAL_ANSWER_SYSTEM_PROMPT, userMessage);
-        }
-
-        return new ChatbotLlmPlan(needsDb, queryIntent, querySummary, sql, answer);
-    }
-
-    private ChatbotLlmSearchReview parseSearchReviewResponse(String rawText, String currentQueryIntent) {
-        JsonObject review = parseJsonObject(rawText, "LLM 탐색 재평가");
-        boolean shouldContinue = readBoolean(review.get("shouldContinue"), false);
-        String nextQueryIntent = toQueryIntent(readText(review.get("queryIntent")), currentQueryIntent);
-        String querySummary = readText(review.get("querySummary"));
-        String sql = readText(review.get("sql"));
-        String decisionReason = readText(review.get("decisionReason"));
-
-        if (shouldContinue && sql.isBlank()) {
-            throw new ApiException(
-                    "CHATBOT_INTERNAL_ERROR",
-                    "LLM 탐색 재평가 결과에 SQL이 포함되지 않았습니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return new ChatbotLlmSearchReview(
-                shouldContinue,
-                nextQueryIntent,
-                querySummary,
-                sql,
-                decisionReason);
-    }
-
-    private String parseDbAnswerResponse(String rawText) {
-        JsonObject parsed = parseJsonObject(rawText, "LLM DB 답변");
-        String answer = readText(parsed.get("answer"));
-        if (answer.isBlank()) {
-            throw new ApiException(
-                    "CHATBOT_INTERNAL_ERROR",
-                    "LLM DB 답변 JSON에 answer 필드가 없습니다.",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return answer;
-    }
-
-    /**
-     * markdown code fence를 제거한다.
-     */
-    private String stripCodeFence(String text) {
-        String stripped = text.trim();
-        if (stripped.startsWith("```json")) {
-            stripped = stripped.substring(7).trim();
-        } else if (stripped.startsWith("```")) {
-            stripped = stripped.substring(3).trim();
-        }
-        if (stripped.endsWith("```")) {
-            stripped = stripped.substring(0, stripped.length() - 3).trim();
-        }
-        return stripped;
-    }
-
-    /**
-     * Responses API 응답에서 텍스트를 추출한다.
-     * 우선순위: output_text -> output[].content[].text
-     */
     private String extractOutputText(String responseBody) {
         JsonObject root = JsonParser.parseString(responseBody).getAsJsonObject();
         String outputText = readText(root.get("output_text"));
@@ -526,12 +351,10 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
                 if (!outputNode.isJsonObject()) {
                     continue;
                 }
-
                 JsonElement contentElement = outputNode.getAsJsonObject().get("content");
                 if (contentElement == null || !contentElement.isJsonArray()) {
                     continue;
                 }
-
                 JsonArray contentArray = contentElement.getAsJsonArray();
                 for (JsonElement contentNode : contentArray) {
                     if (!contentNode.isJsonObject()) {
@@ -548,25 +371,52 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         return "";
     }
 
-    /**
-     * JsonElement를 boolean으로 안전하게 변환한다.
-     */
-    private boolean readBoolean(JsonElement node, boolean defaultValue) {
-        if (node == null || node.isJsonNull() || !node.isJsonPrimitive()) {
-            return defaultValue;
+    private JsonObject parseJsonObject(String rawText, String sourceName) {
+        String candidate = rawText == null ? "" : rawText.trim();
+        if (candidate.startsWith("```")) {
+            candidate = stripCodeFence(candidate);
         }
-        if (node.getAsJsonPrimitive().isBoolean()) {
-            return node.getAsBoolean();
+        int start = candidate.indexOf('{');
+        int end = candidate.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+            candidate = candidate.substring(start, end + 1);
         }
-        if (node.getAsJsonPrimitive().isString()) {
-            return Boolean.parseBoolean(node.getAsString());
+        JsonElement parsed = JsonParser.parseString(candidate);
+        if (!parsed.isJsonObject()) {
+            throw new ApiException(
+                    "CHATBOT_INTERNAL_ERROR",
+                    sourceName + " 응답이 JSON 객체 형식이 아닙니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return defaultValue;
+        return parsed.getAsJsonObject();
     }
 
-    /**
-     * JsonElement를 문자열로 안전하게 변환한다.
-     */
+    private String stripCodeFence(String text) {
+        String stripped = text.trim();
+        if (stripped.startsWith("```json")) {
+            stripped = stripped.substring(7).trim();
+        } else if (stripped.startsWith("```")) {
+            stripped = stripped.substring(3).trim();
+        }
+        if (stripped.endsWith("```")) {
+            stripped = stripped.substring(0, stripped.length() - 3).trim();
+        }
+        return stripped;
+    }
+
+    private JsonElement toJsonElement(String rawJson) {
+        if (rawJson == null || rawJson.isBlank()) {
+            return new JsonObject();
+        }
+        try {
+            return JsonParser.parseString(rawJson);
+        } catch (Exception ignored) {
+            JsonObject fallback = new JsonObject();
+            fallback.addProperty("raw", rawJson);
+            return fallback;
+        }
+    }
+
     private String readText(JsonElement node) {
         if (node == null || node.isJsonNull() || !node.isJsonPrimitive() || !node.getAsJsonPrimitive().isString()) {
             return "";
@@ -574,25 +424,14 @@ public class OpenAiChatbotLlmClient implements ChatbotLlmClient {
         return node.getAsString();
     }
 
-    private String toQueryIntent(String queryIntent) {
-        if (queryIntent == null || queryIntent.isBlank()) {
-            return FALLBACK_INTENT;
+    private Integer readInteger(JsonElement node, Integer defaultValue) {
+        if (node == null || node.isJsonNull() || !node.isJsonPrimitive()) {
+            return defaultValue;
         }
-        return queryIntent;
-    }
-
-    private String toQueryIntent(String queryIntent, String currentQueryIntent) {
-        if (queryIntent == null || queryIntent.isBlank()) {
-            return toQueryIntent(currentQueryIntent);
+        try {
+            return node.getAsInt();
+        } catch (Exception e) {
+            return defaultValue;
         }
-        return queryIntent;
-    }
-
-    private String toQuerySummary(String querySummary) {
-        if (querySummary == null || querySummary.isBlank()) {
-            return FALLBACK_QUERY_SUMMARY;
-        }
-        return querySummary;
     }
 }
-

@@ -13,15 +13,18 @@ public class AdminResponse {
     private static final String USERS_MENU = "users";
     private static final String BOARDS_MENU = "boards";
 
-    private static String resolveActiveClass(String currentMenu, String targetMenu) {
+    private static String activeClass(String currentMenu, String targetMenu) {
         if (targetMenu.equals(currentMenu)) {
             return " is-active";
         }
         return "";
     }
 
-    private static boolean isBoardSort(BoardSort sort, BoardSort target) {
-        return sort == target;
+    private static String sortClass(BoardSort currentSort, BoardSort targetSort) {
+        if (currentSort == targetSort) {
+            return " is-active";
+        }
+        return "";
     }
 
     @Data
@@ -39,9 +42,9 @@ public class AdminResponse {
         private List<RecentBoardDTO> recentBoards;
         private boolean hasRecentUsers;
         private boolean hasRecentBoards;
-        private String dashboardActiveClass;
-        private String usersActiveClass;
-        private String boardsActiveClass;
+        private String dashboardClass;
+        private String usersClass;
+        private String boardsClass;
 
         public static DashboardViewDTO createDashboardView(
                 long totalUserCount,
@@ -69,9 +72,9 @@ public class AdminResponse {
             dto.setRecentBoards(recentBoards);
             dto.setHasRecentUsers(!recentUsers.isEmpty());
             dto.setHasRecentBoards(!recentBoards.isEmpty());
-            dto.setDashboardActiveClass(resolveActiveClass(DASHBOARD_MENU, DASHBOARD_MENU));
-            dto.setUsersActiveClass(resolveActiveClass(DASHBOARD_MENU, USERS_MENU));
-            dto.setBoardsActiveClass(resolveActiveClass(DASHBOARD_MENU, BOARDS_MENU));
+            dto.setDashboardClass(activeClass(DASHBOARD_MENU, DASHBOARD_MENU));
+            dto.setUsersClass(activeClass(DASHBOARD_MENU, USERS_MENU));
+            dto.setBoardsClass(activeClass(DASHBOARD_MENU, BOARDS_MENU));
             return dto;
         }
     }
@@ -85,9 +88,9 @@ public class AdminResponse {
         private boolean allTab;
         private boolean activeTab;
         private boolean inactiveTab;
-        private String dashboardActiveClass;
-        private String usersActiveClass;
-        private String boardsActiveClass;
+        private String dashboardClass;
+        private String usersClass;
+        private String boardsClass;
         private String sortBy;
         private String orderBy;
         private boolean sortByPostCount;
@@ -128,9 +131,9 @@ public class AdminResponse {
             dto.setAllTabHref(allTabHref);
             dto.setActiveTabHref(activeTabHref);
             dto.setInactiveTabHref(inactiveTabHref);
-            dto.setDashboardActiveClass(resolveActiveClass(USERS_MENU, DASHBOARD_MENU));
-            dto.setUsersActiveClass(resolveActiveClass(USERS_MENU, USERS_MENU));
-            dto.setBoardsActiveClass(resolveActiveClass(USERS_MENU, BOARDS_MENU));
+            dto.setDashboardClass(activeClass(USERS_MENU, DASHBOARD_MENU));
+            dto.setUsersClass(activeClass(USERS_MENU, USERS_MENU));
+            dto.setBoardsClass(activeClass(USERS_MENU, BOARDS_MENU));
             return dto;
         }
     }
@@ -304,22 +307,18 @@ public class AdminResponse {
         private long allCount;
         private Integer prevPage;
         private Integer nextPage;
-        private String category;
         private String keyword;
         private String sort;
         private String sortLabel;
         private String sortFieldLabel;
         private String sortDirectionLabel;
         private String toggleDirectionSort;
-        private String dateField;
-        private String viewField;
-        private String likesField;
-        private boolean isSortLikes;
-        private boolean isSortDownlikes;
-        private boolean isSortViews;
-        private boolean isSortDownviews;
-        private boolean isSortLatest;
-        private boolean isSortDate;
+        private String likeClass;
+        private String lowLikeClass;
+        private String viewClass;
+        private String lowViewClass;
+        private String latestClass;
+        private String dateClass;
         private String allCategory;
         private boolean allCategoryTab;
         private String selectCategory;
@@ -328,9 +327,9 @@ public class AdminResponse {
         private boolean isFood;
         private boolean isReview;
         private boolean isQna;
-        private String dashboardActiveClass;
-        private String usersActiveClass;
-        private String boardsActiveClass;
+        private String dashboardClass;
+        private String usersClass;
+        private String boardsClass;
 
         public static BoardListPageDTO createBoardListPage(
                 List<PageItemDTO> pageItems,
@@ -340,15 +339,11 @@ public class AdminResponse {
                 long allCount,
                 Integer prevPage,
                 Integer nextPage,
-                String category,
                 String keyword,
                 String sort,
                 String sortFieldLabel,
                 String sortDirectionLabel,
                 String toggleDirectionSort,
-                String dateField,
-                String viewField,
-                String likesField,
                 String allCategory,
                 boolean allCategoryTab,
                 String selectCategory,
@@ -366,22 +361,18 @@ public class AdminResponse {
             dto.setAllCount(allCount);
             dto.setPrevPage(prevPage);
             dto.setNextPage(nextPage);
-            dto.setCategory(category);
             dto.setKeyword(keyword);
             dto.setSort(boardSort.getCode());
             dto.setSortLabel(boardSort.getLabel());
             dto.setSortFieldLabel(sortFieldLabel);
             dto.setSortDirectionLabel(sortDirectionLabel);
             dto.setToggleDirectionSort(toggleDirectionSort);
-            dto.setDateField(dateField);
-            dto.setViewField(viewField);
-            dto.setLikesField(likesField);
-            dto.setSortLikes(isBoardSort(boardSort, BoardSort.LIKES));
-            dto.setSortDownlikes(isBoardSort(boardSort, BoardSort.DOWNLIKES));
-            dto.setSortViews(isBoardSort(boardSort, BoardSort.VIEW));
-            dto.setSortDownviews(isBoardSort(boardSort, BoardSort.DOWNVIEW));
-            dto.setSortLatest(isBoardSort(boardSort, BoardSort.LATEST));
-            dto.setSortDate(isBoardSort(boardSort, BoardSort.DATE));
+            dto.setLikeClass(sortClass(boardSort, BoardSort.LIKES));
+            dto.setLowLikeClass(sortClass(boardSort, BoardSort.DOWNLIKES));
+            dto.setViewClass(sortClass(boardSort, BoardSort.VIEW));
+            dto.setLowViewClass(sortClass(boardSort, BoardSort.DOWNVIEW));
+            dto.setLatestClass(sortClass(boardSort, BoardSort.LATEST));
+            dto.setDateClass(sortClass(boardSort, BoardSort.DATE));
             dto.setAllCategory(allCategory);
             dto.setAllCategoryTab(allCategoryTab);
             dto.setSelectCategory(selectCategory);
@@ -390,9 +381,9 @@ public class AdminResponse {
             dto.setFood(isFood);
             dto.setReview(isReview);
             dto.setQna(isQna);
-            dto.setDashboardActiveClass(resolveActiveClass(BOARDS_MENU, DASHBOARD_MENU));
-            dto.setUsersActiveClass(resolveActiveClass(BOARDS_MENU, USERS_MENU));
-            dto.setBoardsActiveClass(resolveActiveClass(BOARDS_MENU, BOARDS_MENU));
+            dto.setDashboardClass(activeClass(BOARDS_MENU, DASHBOARD_MENU));
+            dto.setUsersClass(activeClass(BOARDS_MENU, USERS_MENU));
+            dto.setBoardsClass(activeClass(BOARDS_MENU, BOARDS_MENU));
             return dto;
         }
     }
