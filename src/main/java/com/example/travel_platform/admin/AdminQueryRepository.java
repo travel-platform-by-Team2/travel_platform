@@ -114,6 +114,131 @@ public class AdminQueryRepository {
         return toAdminUserSummaryRows(tuples);
     }
 
+    public List<AdminUserSummaryRow> findPagedUsers(String sortBy, String orderBy, int offset, int limit) {
+        // 1. 사용자 목록에 필요한 컬럼과 게시글 수 집계값을 함께 조회한다.
+        String jpql = """
+                select
+                    u.id as userId,
+                    u.username as username,
+                    u.email as email,
+                    u.createdAt as createdAt,
+                    u.active as active,
+                    count(b) as boardCount
+                from User u
+                left join Board b on b.user = u
+                group by u.id, u.username, u.email, u.createdAt, u.active
+                order by
+                """ + toUserOrderBy(sortBy, orderBy);
+
+        // 2. 정렬이 끝난 전체 결과에서 현재 페이지에 필요한 구간만 잘라온다.
+        List<Tuple> tuples = em.createQuery(jpql, Tuple.class)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+
+        // 3. Tuple 결과를 서비스가 쓰기 쉬운 SummaryRow로 변환한다.
+        return toAdminUserSummaryRows(tuples);
+    }
+
+    public List<AdminUserSummaryRow> findPagedUsersByActive(
+            boolean active,
+            String sortBy,
+            String orderBy,
+            int offset,
+            int limit) {
+        String jpql = """
+                select
+                    u.id as userId,
+                    u.username as username,
+                    u.email as email,
+                    u.createdAt as createdAt,
+                    u.active as active,
+                    count(b) as boardCount
+                from User u
+                left join Board b on b.user = u
+                where u.active = :active
+                group by u.id, u.username, u.email, u.createdAt, u.active
+                order by
+                """ + toUserOrderBy(sortBy, orderBy);
+
+        List<Tuple> tuples = em.createQuery(jpql, Tuple.class)
+                .setParameter("active", active)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+
+        return toAdminUserSummaryRows(tuples);
+    }
+
+    public List<AdminUserSummaryRow> findPagedUsersByKeyword(
+            String keyword,
+            String sortBy,
+            String orderBy,
+            int offset,
+            int limit) {
+        String normalizedKeyword = keyword == null ? "" : keyword.toLowerCase();
+        String jpql = """
+                select
+                    u.id as userId,
+                    u.username as username,
+                    u.email as email,
+                    u.createdAt as createdAt,
+                    u.active as active,
+                    count(b) as boardCount
+                from User u
+                left join Board b on b.user = u
+                where lower(u.username) like concat('%', :keyword, '%')
+                   or lower(u.email) like concat('%', :keyword, '%')
+                group by u.id, u.username, u.email, u.createdAt, u.active
+                order by
+                """ + toUserOrderBy(sortBy, orderBy);
+
+        List<Tuple> tuples = em.createQuery(jpql, Tuple.class)
+                .setParameter("keyword", normalizedKeyword)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+
+        return toAdminUserSummaryRows(tuples);
+    }
+
+    public List<AdminUserSummaryRow> findPagedUsersByActiveAndKeyword(
+            boolean active,
+            String keyword,
+            String sortBy,
+            String orderBy,
+            int offset,
+            int limit) {
+        String normalizedKeyword = keyword == null ? "" : keyword.toLowerCase();
+        String jpql = """
+                select
+                    u.id as userId,
+                    u.username as username,
+                    u.email as email,
+                    u.createdAt as createdAt,
+                    u.active as active,
+                    count(b) as boardCount
+                from User u
+                left join Board b on b.user = u
+                where u.active = :active
+                  and (
+                      lower(u.username) like concat('%', :keyword, '%')
+                      or lower(u.email) like concat('%', :keyword, '%')
+                  )
+                group by u.id, u.username, u.email, u.createdAt, u.active
+                order by
+                """ + toUserOrderBy(sortBy, orderBy);
+
+        List<Tuple> tuples = em.createQuery(jpql, Tuple.class)
+                .setParameter("active", active)
+                .setParameter("keyword", normalizedKeyword)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+
+        return toAdminUserSummaryRows(tuples);
+    }
+
     public List<AdminRecentUserRow> findRecentUserRows(int limit) {
         List<Tuple> tuples = em.createQuery("""
                 select
@@ -350,4 +475,64 @@ public class AdminQueryRepository {
             default -> "b.createdAt desc, b.id desc";
         };
     }
+
+    public long countAllUsers() {
+        return em.createQuery("select count(u) from User u", Long.class).getSingleResult();
+    }
+
+    public long countUsersByActive(boolean active) {
+        return em.createQuery("select count(u) from User u where u.active = :active", Long.class)
+                .setParameter("active", active)
+                .getSingleResult();
+    }
+
+    public long countUsersByKeyword(String keyword) {
+        String normalizedKeyword = keyword == null ? "" : keyword.toLowerCase();
+
+        return em.createQuery("""
+                select count(u)
+                from User u
+                where lower(u.username) like concat('%', :keyword, '%')
+                   or lower(u.email) like concat('%', :keyword, '%')
+                """, Long.class)
+                .setParameter("keyword", normalizedKeyword)
+                .getSingleResult();
+    }
+
+    public long countUsersByActiveAndKeyword(boolean active, String keyword) {
+        String normalizedKeyword = keyword == null ? "" : keyword.toLowerCase();
+
+        return em.createQuery("""
+                select count(u)
+                from User u
+                where u.active = :active
+                  and (
+                      lower(u.username) like concat('%', :keyword, '%')
+                      or lower(u.email) like concat('%', :keyword, '%')
+                  )
+                """, Long.class)
+                .setParameter("active", active)
+                .setParameter("keyword", normalizedKeyword)
+                .getSingleResult();
+    }
+
+    private String toUserOrderBy(String sortBy, String orderBy) {
+        // 사용자 목록 페이징에서는 전체 결과를 먼저 정렬한 뒤 현재 페이지 분량만 잘라야 한다.
+        if ("postCount".equals(sortBy)) {
+            // 게시글 수 기준 오름차순: 게시글 수가 적은 사용자부터 보여준다.
+            if ("asc".equals(orderBy)) {
+                return "count(b) asc, u.id asc";
+            }
+            // 게시글 수 기준 내림차순: 게시글 수가 많은 사용자부터 보여준다.
+            return "count(b) desc, u.id asc";
+        }
+
+        // 가입일 기준 오름차순: 오래전에 가입한 사용자부터 보여준다.
+        if ("asc".equals(orderBy)) {
+            return "u.createdAt asc, u.id asc";
+        }
+        // 가입일 기준 내림차순: 최근에 가입한 사용자부터 보여준다.
+        return "u.createdAt desc, u.id asc";
+    }
+
 }
