@@ -176,11 +176,13 @@
   .panel-elevated-lg{padding:2rem}
 }
 .panel-header{padding:1.5rem;border-bottom:1px solid #e2e8f0;background:#fff;flex-shrink:0}
-.panel-body-fill{flex:1 1 auto;display:flex;flex-direction:column;padding:1.5rem;background:#fff;height:100%}
+/* Let the right-side detail body own the single scroll area. */
+.panel-body-fill{flex:1 1 auto;display:flex;flex-direction:column;padding:1.5rem;background:#fff;height:100%;min-height:0;overflow-y:auto}
 .panel-footer-actions{background:#f8fafc;padding:1.25rem 2rem;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:.75rem}
 .surface-panel{background:#f6f6f8;border-radius:.75rem;box-shadow:0 1px 2px rgba(15,23,42,.08);border:1px solid #e2e8f0;overflow:hidden}
 .notice-sky-row{display:flex;align-items:center;gap:1rem;padding:1rem;background:#e0f2fe;border-radius:.75rem;border:1px solid #bae6fd}
-.scroll-stack{flex:1 1 auto;overflow-y:auto;padding-bottom:1rem;display:flex;flex-direction:column;gap:.75rem}
+/* Memo cards now follow the panel scroll instead of creating a nested scrollbar. */
+.scroll-stack{padding-bottom:1rem;display:flex;flex-direction:column;gap:.75rem}
 .timeline-dot{position:absolute;left:-9px;top:0;width:1rem;height:1rem;border-radius:9999px;border:2px solid #fff;background:#cbd5e1;transition:background-color .2s ease}
 .group:hover .timeline-dot{background:#0d6efd}
 .timeline-card{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:1rem;border-radius:.75rem;border:1px solid #f1f5f9;box-shadow:0 1px 2px rgba(15,23,42,.08);transition:box-shadow .2s ease}
