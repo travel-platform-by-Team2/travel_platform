@@ -276,6 +276,66 @@ class BoardServiceTest {
         assertThrows(Exception403.class, () -> boardService.toggleBoardLike(1, 9));
     }
 
+    @Test
+    void listPageOverflowUsesLastPage() {
+        BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
+        BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
+        ReplyRepository replyRepository = mock(ReplyRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
+
+        User author = user(1, "ssar", "USER");
+        Board board = board(10, author, "Busan route", "tips", "<p>Busan travel tips</p>");
+
+        when(boardQueryRepository.findAllPaging(eq(BoardSort.LATEST), eq(10), eq(10)))
+                .thenReturn(List.of(board));
+        when(boardQueryRepository.count()).thenReturn(12L);
+        when(boardLikeRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 2L));
+        when(replyRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 0L));
+
+        BoardResponse.ListViewDTO response = boardService.getBoardList(null, "", "latest", 100);
+
+        assertEquals(1, response.getModel().getCurrentPage());
+        assertEquals(2, response.getModel().getTotalPages());
+        verify(boardQueryRepository).findAllPaging(BoardSort.LATEST, 10, 10);
+    }
+
+    @Test
+    void listNegativePageUsesFirstPage() {
+        BoardRepository boardRepository = mock(BoardRepository.class);
+        BoardQueryRepository boardQueryRepository = mock(BoardQueryRepository.class);
+        BoardLikeRepository boardLikeRepository = mock(BoardLikeRepository.class);
+        ReplyRepository replyRepository = mock(ReplyRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        BoardService boardService = new BoardService(
+                boardRepository,
+                boardQueryRepository,
+                boardLikeRepository,
+                replyRepository,
+                userRepository);
+
+        User author = user(1, "ssar", "USER");
+        Board board = board(10, author, "Seoul route", "tips", "<p>Seoul travel tips</p>");
+
+        when(boardQueryRepository.findAllPaging(eq(BoardSort.LATEST), eq(0), eq(10)))
+                .thenReturn(List.of(board));
+        when(boardQueryRepository.count()).thenReturn(12L);
+        when(boardLikeRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 1L));
+        when(replyRepository.countByBoardIds(List.of(10))).thenReturn(Map.of(10, 0L));
+
+        BoardResponse.ListViewDTO response = boardService.getBoardList(null, "", "latest", -5);
+
+        assertEquals(0, response.getModel().getCurrentPage());
+        assertEquals(2, response.getModel().getTotalPages());
+        verify(boardQueryRepository).findAllPaging(BoardSort.LATEST, 0, 10);
+    }
+
     private User user(int id, String username, String role) {
         User user = User.create(username, "1234", username + "@nate.com", "010-1111-2222", role);
         setField(user, "id", id);

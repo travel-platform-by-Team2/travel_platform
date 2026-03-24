@@ -52,19 +52,20 @@ public class BoardService {
 
     public BoardResponse.ListViewDTO getBoardList(String category, String keyword, String sort, int page) {
         BoardListQuery query = BoardListQuery.createQuery(category, keyword, sort, page, PAGE_SIZE);
-        List<Board> boards = findBoardList(query);
         long totalCount = countBoardList(query);
-        List<BoardResponse.SummaryDTO> summaries = toSummaryDTOs(boards);
         int totalPages = resolveTotalPages(totalCount);
-        List<BoardResponse.PageItemDTO> pageItems = createPageItems(query.page(), totalPages);
+        BoardListQuery normalizedQuery = query.withPage(resolvePage(query.page(), totalPages), PAGE_SIZE);
+        List<Board> boards = findBoardList(normalizedQuery);
+        List<BoardResponse.SummaryDTO> summaries = toSummaryDTOs(boards);
+        List<BoardResponse.PageItemDTO> pageItems = createPageItems(normalizedQuery.page(), totalPages);
 
         BoardResponse.ListPageDTO model = BoardResponse.ListPageDTO.createListPage(
                 pageItems,
-                query.page(),
+                normalizedQuery.page(),
                 totalPages,
-                query.categoryCodeOrNull(),
-                query.keyword(),
-                query.sort());
+                normalizedQuery.categoryCodeOrNull(),
+                normalizedQuery.keyword(),
+                normalizedQuery.sort());
 
         return BoardResponse.ListViewDTO.createListView(model, summaries);
     }
@@ -164,6 +165,16 @@ public class BoardService {
     private int resolveTotalPages(long totalCount) {
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
         return totalPages == 0 ? 1 : totalPages;
+    }
+
+    private int resolvePage(int page, int totalPages) {
+        if (page < 0) {
+            return 0;
+        }
+        if (page >= totalPages) {
+            return totalPages - 1;
+        }
+        return page;
     }
 
     private List<BoardResponse.PageItemDTO> createPageItems(int page, int totalPages) {
@@ -289,8 +300,13 @@ public class BoardService {
             String normalizedCategory = normalizeCategory(category);
             String normalizedKeyword = normalizeKeyword(keyword);
             BoardSort normalizedSort = normalizeSort(sort);
-            int offset = page * pageSize;
-            return new BoardListQuery(normalizedCategory, normalizedKeyword, normalizedSort, page, offset);
+            int normalizedPage = Math.max(page, 0);
+            int offset = normalizedPage * pageSize;
+            return new BoardListQuery(normalizedCategory, normalizedKeyword, normalizedSort, normalizedPage, offset);
+        }
+
+        private BoardListQuery withPage(int page, int pageSize) {
+            return new BoardListQuery(category, keyword, sort, page, page * pageSize);
         }
 
         private boolean hasKeyword() {
