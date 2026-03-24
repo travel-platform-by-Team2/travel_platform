@@ -27,6 +27,9 @@ class UserServiceLoginAndFilterTest {
     @Autowired
     private UserSessionChecker userSessionChecker;
 
+    @Autowired
+    private UserSessionRegistry userSessionRegistry;
+
     @Test
     void loginOff() {
         UserRequest.LoginDTO reqDTO = new UserRequest.LoginDTO();
@@ -39,7 +42,8 @@ class UserServiceLoginAndFilterTest {
 
     @Test
     void loginPage() throws Exception {
-        LoginInterceptor loginInterceptor = new LoginInterceptor(userSessionChecker);
+        LoginInterceptor loginInterceptor = new LoginInterceptor(
+                new UserSessionPolicyChecker(userSessionChecker, userSessionRegistry));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/mypage");
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockHttpSession session = inactiveSession();
@@ -56,7 +60,8 @@ class UserServiceLoginAndFilterTest {
 
     @Test
     void loginApi() throws Exception {
-        LoginInterceptor loginInterceptor = new LoginInterceptor(userSessionChecker);
+        LoginInterceptor loginInterceptor = new LoginInterceptor(
+                new UserSessionPolicyChecker(userSessionChecker, userSessionRegistry));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/calendar");
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockHttpSession session = inactiveSession();
@@ -72,7 +77,8 @@ class UserServiceLoginAndFilterTest {
 
     @Test
     void adminPage() throws Exception {
-        AdminInterceptor adminInterceptor = new AdminInterceptor(userSessionChecker);
+        AdminInterceptor adminInterceptor = new AdminInterceptor(
+                new UserSessionPolicyChecker(userSessionChecker, userSessionRegistry));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/admin");
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockHttpSession session = inactiveSession();

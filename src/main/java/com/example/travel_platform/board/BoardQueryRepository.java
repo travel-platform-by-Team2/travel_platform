@@ -44,7 +44,7 @@ public class BoardQueryRepository {
         return totalViewCount == null ? 0L : totalViewCount;
     }
 
-    public List<Board> findAllPaging(String sort, int offset, int size) {
+    public List<Board> findAllPaging(BoardSort sort, int offset, int size) {
         String jpql = """
                 select b
                 from Board b
@@ -58,7 +58,7 @@ public class BoardQueryRepository {
                 .getResultList();
     }
 
-    public List<Board> findAllPagingByCategory(BoardCategory category, String sort, int offset, int size) {
+    public List<Board> findAllPagingByCategory(BoardCategory category, BoardSort sort, int offset, int size) {
         String jpql = """
                 select b
                 from Board b
@@ -116,7 +116,7 @@ public class BoardQueryRepository {
         return boardCounts;
     }
 
-    public List<Board> search(BoardCategory category, String[] words, String sort, int offset, int size) {
+    public List<Board> search(BoardCategory category, String[] words, BoardSort sort, int offset, int size) {
         StringBuilder jpql = new StringBuilder();
         jpql.append("select b from Board b join fetch b.user where 1=1 ");
 
@@ -180,15 +180,7 @@ public class BoardQueryRepository {
         return query.getSingleResult();
     }
 
-    private String toOrderBy(String sort) {
-        return switch (sort) {
-            case "likes" -> "(select count(bl) from BoardLike bl where bl.board = b) desc, b.createdAt desc, b.id desc";
-            case "downlikes" ->
-                "(select count(bl) from BoardLike bl where bl.board = b) asc, b.createdAt asc, b.id asc";
-            case "view" -> "b.viewCount desc, b.createdAt desc, b.id desc";
-            case "downview" -> "b.viewCount asc, b.createdAt asc, b.id asc";
-            case "date" -> "b.createdAt asc, b.id asc";
-            default -> "b.createdAt desc, b.id desc";
-        };
+    private String toOrderBy(BoardSort sort) {
+        return sort.getOrderBy();
     }
 }
