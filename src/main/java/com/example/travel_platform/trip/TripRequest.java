@@ -2,6 +2,7 @@ package com.example.travel_platform.trip;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import com.example.travel_platform._core.validation.ValidEnumCode;
 
@@ -60,7 +61,7 @@ public class TripRequest {
     @AllArgsConstructor
     public static class AddPlacesDTO {
         private Integer tripDay;
-        private java.util.List<PlaceDTO> places;
+        private List<PlaceDTO> places;
     }
 
     @Data
