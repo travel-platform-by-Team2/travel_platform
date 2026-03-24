@@ -47,6 +47,15 @@ public class TripApiController {
         return Resp.ok(tripService.addPlace(sessionUserId, planId, reqDTO));
     }
 
+    @PostMapping("/{planId}/places/bulk")
+    public ResponseEntity<Resp<Void>> addPlaces(
+            @PathVariable(name = "planId") Integer planId,
+            @RequestBody TripRequest.AddPlacesDTO reqDTO) {
+        Integer sessionUserId = requiredSessionUserId();
+        tripService.addPlacesToPlan(sessionUserId, planId, reqDTO);
+        return Resp.ok(null);
+    }
+
     private Integer requiredSessionUserId() {
         return SessionUsers.requireUserId(session);
     }
