@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot.api;
+package com.example.travel_platform.chatbot;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,9 +21,6 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import com.example.travel_platform._core.handler.ApiExceptionHandler;
 import com.example.travel_platform._core.handler.ex.ApiException;
-import com.example.travel_platform.chatbot.api.dto.ChatbotRequest;
-import com.example.travel_platform.chatbot.api.dto.ChatbotResponse;
-import com.example.travel_platform.chatbot.application.ChatbotService;
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.SessionUsers;
 

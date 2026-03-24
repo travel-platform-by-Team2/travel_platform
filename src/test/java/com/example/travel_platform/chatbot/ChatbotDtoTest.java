@@ -1,4 +1,4 @@
-package com.example.travel_platform.chatbot.api.dto;
+package com.example.travel_platform.chatbot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,12 +12,19 @@ class ChatbotDtoTest {
     @Test
     void askRequestFactory_createsRequest() {
         ChatbotRequest.ContextDTO context = ChatbotRequest.ContextDTO.createContext("/trip", 10);
-        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.createAskRequest("여행 일정 알려줘", context);
+        List<ChatbotRequest.HistoryItemDTO> history = List.of(
+                ChatbotRequest.HistoryItemDTO.createHistoryItem("user", "이전 질문"),
+                ChatbotRequest.HistoryItemDTO.createHistoryItem("assistant", "이전 답변"));
+
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.createAskRequest("여행 일정 알려줘", context, history);
 
         assertEquals("여행 일정 알려줘", request.getMessage());
         assertNotNull(request.getContext());
         assertEquals("/trip", request.getContext().getPage());
         assertEquals(10, request.getContext().getTripPlanId());
+        assertEquals(2, request.getHistory().size());
+        assertEquals("user", request.getHistory().get(0).getRole());
+        assertEquals("이전 질문", request.getHistory().get(0).getContent());
     }
 
     @Test
