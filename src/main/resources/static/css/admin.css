@@ -233,6 +233,10 @@
   margin-top: 1.5rem;
 }
 
+.page-admin .admin-grid-2 > .admin-panel + .admin-panel {
+  margin-top: 0;
+}
+
 .page-admin .admin-panel__header {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid #edf2f7;
@@ -270,10 +274,16 @@
 .page-admin .admin-grid-2 {
   display: grid;
   gap: 1.5rem;
+  align-items: start;
 }
 
 .page-admin .admin-grid-2--feeds {
   margin-top: 1.5rem;
+}
+
+.page-admin .admin-grid-2--charts > .admin-panel {
+  align-self: start;
+  margin-top: 0 !important;
 }
 
 .page-admin .admin-toolbar {

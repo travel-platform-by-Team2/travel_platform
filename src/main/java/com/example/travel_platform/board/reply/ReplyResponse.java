@@ -3,6 +3,8 @@ package com.example.travel_platform.board.reply;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,6 +20,7 @@ public class ReplyResponse {
         private String username;
         private String content;
         private String createdAtDisplay;
+        @JsonProperty("isOwner")
         private boolean isOwner;
 
         public static CreatedDTO fromReply(Reply reply) {

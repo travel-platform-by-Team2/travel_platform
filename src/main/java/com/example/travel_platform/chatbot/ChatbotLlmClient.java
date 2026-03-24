@@ -28,6 +28,7 @@ public class ChatbotLlmClient {
 
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
+    private static final int MAX_RECENT_HISTORY_ITEMS = 8;
 
     private static final String INTERPRET_SYSTEM_PROMPT = """
             당신은 여행 플랫폼 챗봇의 질문 해석기다.
@@ -160,10 +161,15 @@ public class ChatbotLlmClient {
             ChatbotRequest.ContextDTO context,
             List<ChatbotRequest.HistoryItemDTO> history,
             String toolContext) {
+        List<ChatbotRequest.HistoryItemDTO> sanitizedHistory = sanitizeHistory(history);
         JsonObject promptJson = new JsonObject();
         promptJson.addProperty("message", userMessage);
         promptJson.add("context", buildContextJson(context));
-        promptJson.add("history", GSON.toJsonTree(sanitizeHistory(history)));
+        promptJson.add("history", GSON.toJsonTree(sanitizedHistory));
+        promptJson.addProperty("recentConversation", buildRecentConversation(sanitizedHistory));
+        promptJson.addProperty(
+                "followUpInstruction",
+                "If the current message omits region, date, keyword, or topic, infer them from recentConversation when the conversation clearly continues.");
         promptJson.add("toolContext", toJsonElement(toolContext));
         return GSON.toJson(promptJson);
     }
@@ -172,10 +178,12 @@ public class ChatbotLlmClient {
             String userMessage,
             ChatbotRequest.ContextDTO context,
             List<ChatbotRequest.HistoryItemDTO> history) {
+        List<ChatbotRequest.HistoryItemDTO> sanitizedHistory = sanitizeHistory(history);
         JsonObject promptJson = new JsonObject();
         promptJson.addProperty("message", userMessage);
         promptJson.add("context", buildContextJson(context));
-        promptJson.add("history", GSON.toJsonTree(sanitizeHistory(history)));
+        promptJson.add("history", GSON.toJsonTree(sanitizedHistory));
+        promptJson.addProperty("recentConversation", buildRecentConversation(sanitizedHistory));
         return GSON.toJson(promptJson);
     }
 
@@ -185,10 +193,12 @@ public class ChatbotLlmClient {
             List<ChatbotRequest.HistoryItemDTO> history,
             ChatbotService.Interpretation interpretation,
             List<ChatbotService.QueryBlock> queryBlocks) {
+        List<ChatbotRequest.HistoryItemDTO> sanitizedHistory = sanitizeHistory(history);
         JsonObject promptJson = new JsonObject();
         promptJson.addProperty("message", userMessage);
         promptJson.add("context", buildContextJson(context));
-        promptJson.add("history", GSON.toJsonTree(sanitizeHistory(history)));
+        promptJson.add("history", GSON.toJsonTree(sanitizedHistory));
+        promptJson.addProperty("recentConversation", buildRecentConversation(sanitizedHistory));
         promptJson.add("interpretation", GSON.toJsonTree(interpretation));
         promptJson.add("queryBlocks", GSON.toJsonTree(queryBlocks));
         return GSON.toJson(promptJson);
@@ -218,6 +228,42 @@ public class ChatbotLlmClient {
                 .filter(item -> item.getRole() != null && !item.getRole().isBlank())
                 .filter(item -> item.getContent() != null && !item.getContent().isBlank())
                 .toList();
+    }
+
+    private String buildRecentConversation(List<ChatbotRequest.HistoryItemDTO> history) {
+        if (history == null || history.isEmpty()) {
+            return "No previous conversation.";
+        }
+
+        int startIndex = Math.max(0, history.size() - MAX_RECENT_HISTORY_ITEMS);
+        List<ChatbotRequest.HistoryItemDTO> recentHistory = history.subList(startIndex, history.size());
+        StringBuilder transcript = new StringBuilder();
+
+        for (ChatbotRequest.HistoryItemDTO item : recentHistory) {
+            if (transcript.length() > 0) {
+                transcript.append('\n');
+            }
+            transcript.append(resolveSpeaker(item.getRole()))
+                    .append(": ")
+                    .append(item.getContent().trim());
+        }
+
+        return transcript.toString();
+    }
+
+    private String resolveSpeaker(String role) {
+        if (role == null) {
+            return "Unknown";
+        }
+
+        String normalizedRole = role.trim().toLowerCase();
+        if (normalizedRole.equals("user")) {
+            return "User";
+        }
+        if (normalizedRole.equals("assistant") || normalizedRole.equals("bot")) {
+            return "Assistant";
+        }
+        return role.trim();
     }
 
     private ChatbotService.Interpretation parseInterpretation(String rawText) {

@@ -78,6 +78,7 @@ public class MypageService {
         String newPasswordConfirm = normalize(reqDTO.getNewPasswordConfirm());
 
         validateCurrentPassword(user, currentPassword);
+        validateNewPasswordChanged(currentPassword, newPassword);
         validateNewPasswordConfirm(newPassword, newPasswordConfirm);
 
         user.changePassword(newPassword);
@@ -165,6 +166,12 @@ public class MypageService {
     private void validateNewPasswordConfirm(String newPassword, String newPasswordConfirm) {
         if (!newPassword.equals(newPasswordConfirm)) {
             throw new Exception400("새 비밀번호와 확인값이 일치하지 않습니다.");
+        }
+    }
+
+    private void validateNewPasswordChanged(String currentPassword, String newPassword) {
+        if (currentPassword.equals(newPassword)) {
+            throw new Exception400("새 비밀번호는 현재 비밀번호와 같을 수 없습니다.");
         }
     }
 
