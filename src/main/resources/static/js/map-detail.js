@@ -984,6 +984,8 @@
       return;
     }
 
+    HAS_SELECTED_POI = true;
+
     showFocusOverlay(state, item);
 
     var scrollArea = panel.querySelector(".sidebar-scroll-white");
@@ -1043,6 +1045,8 @@
     }
 
     if (scrollArea) {
+      scrollArea.style.visibility = "visible";
+      scrollArea.style.pointerEvents = "auto";
       scrollArea.scrollTop = 0;
     }
     panel.hidden = false;
@@ -1642,26 +1646,19 @@
       state.lastCenter = targetCenter; // Update the Source of Truth
       state.hasSearched = true;
       state.syncByViewport = true;
+
+      // Reset list scroll to top on new search
+      var listContainer = document.querySelector("[data-map-drag-scroll]");
+      if (listContainer) {
+        listContainer.scrollTop = 0;
+      }
+
       fetchAndRenderVisiblePois(state);
     }
 
     submitButton.addEventListener("click", function (event) {
       event.preventDefault();
       searchBySelectedRegion(true);
-    });
-
-    regionSelect.addEventListener("change", function () {
-      var regionKey = regionSelect.value;
-      var view = REGION_VIEW[regionKey];
-      if (!view) {
-        return;
-      }
-      state.currentRegionKey = regionKey;
-      updateRegionLabel(regionSelect);
-      state.map.setLevel(view.level);
-      var targetCenter = new kakao.maps.LatLng(view.lat, view.lng);
-      state.map.panTo(targetCenter);
-      state.lastCenter = targetCenter; // Update the Source of Truth
     });
 
     function refreshListPriceOnly() {
@@ -1671,12 +1668,6 @@
       renderList(state);
     }
 
-    if (startDateEl) {
-      startDateEl.addEventListener("change", refreshListPriceOnly);
-    }
-    if (endDateEl) {
-      endDateEl.addEventListener("change", refreshListPriceOnly);
-    }
 
     if (hasSearchParamsInUrl()) {
       searchBySelectedRegion(false);
@@ -1873,10 +1864,15 @@
     }
 
     var closeButton = panel.querySelector("[data-map-poi-close]");
+    var scrollArea = panel.querySelector(".sidebar-scroll-white");
 
     function setOpen(open) {
       panel.hidden = !open;
       toggleButton.setAttribute("aria-expanded", String(open));
+      if (open && scrollArea && !HAS_SELECTED_POI) {
+        scrollArea.style.visibility = "hidden";
+        scrollArea.style.pointerEvents = "none";
+      }
       if (!open && CURRENT_MAP_STATE) {
         clearFocusOverlay(CURRENT_MAP_STATE);
       }
@@ -1905,6 +1901,7 @@
   }
 
   var CURRENT_MAP_STATE = null;
+  var HAS_SELECTED_POI = false;
 
   function initPriceRangeSheet() {
     var toggleButton = document.querySelector("[data-price-range-toggle]");
