@@ -753,6 +753,37 @@
   padding-left: 0;
 }
 
+.page-admin .admin-toolbar--users {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-admin .admin-toolbar--users .admin-tab-shell {
+  flex: 0 0 auto;
+}
+
+.page-admin .admin-search-wrap--users {
+  flex: 1 1 auto;
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-admin .admin-search-row--users {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.page-admin .admin-filter-controls--users {
+  flex: 0 0 auto;
+  width: auto;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
 .page-admin .admin-filter-controls .admin-select-field {
   min-width: 5.9rem;
   padding-left: 0.7rem;

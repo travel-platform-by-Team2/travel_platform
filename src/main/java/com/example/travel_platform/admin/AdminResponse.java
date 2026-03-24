@@ -100,6 +100,14 @@ public class AdminResponse {
         private String allTabHref;
         private String activeTabHref;
         private String inactiveTabHref;
+        private int currentPage;
+        private int totalPages;
+        private long filteredUserCount;
+        private boolean hasPrev;
+        private boolean hasNext;
+        private Integer prevPage;
+        private Integer nextPage;
+        private List<UserPageItemDTO> pageItems;
 
         public static UserListPageDTO createUserListPage(
                 long totalUserCount,
@@ -113,7 +121,15 @@ public class AdminResponse {
                 String orderBy,
                 String allTabHref,
                 String activeTabHref,
-                String inactiveTabHref) {
+                String inactiveTabHref,
+                int currentPage,
+                int totalPages,
+                long filteredUserCount,
+                boolean hasPrev,
+                boolean hasNext,
+                Integer prevPage,
+                Integer nextPage,
+                List<UserPageItemDTO> pageItems) {
             UserListPageDTO dto = new UserListPageDTO();
             dto.setTotalUserCount(totalUserCount);
             dto.setInactiveUserCount(inactiveUserCount);
@@ -131,9 +147,32 @@ public class AdminResponse {
             dto.setAllTabHref(allTabHref);
             dto.setActiveTabHref(activeTabHref);
             dto.setInactiveTabHref(inactiveTabHref);
+            dto.setCurrentPage(currentPage);
+            dto.setTotalPages(totalPages);
+            dto.setFilteredUserCount(filteredUserCount);
+            dto.setHasPrev(hasPrev);
+            dto.setHasNext(hasNext);
+            dto.setPrevPage(prevPage);
+            dto.setNextPage(nextPage);
+            dto.setPageItems(pageItems);
             dto.setDashboardClass(activeClass(USERS_MENU, DASHBOARD_MENU));
             dto.setUsersClass(activeClass(USERS_MENU, USERS_MENU));
             dto.setBoardsClass(activeClass(USERS_MENU, BOARDS_MENU));
+            return dto;
+        }
+    }
+
+    @Data
+    public static class UserPageItemDTO {
+        private int page;
+        private int displayNumber;
+        private boolean current;
+
+        public static UserPageItemDTO createUserPageItem(int page, int displayNumber, boolean current) {
+            UserPageItemDTO dto = new UserPageItemDTO();
+            dto.setPage(page);
+            dto.setDisplayNumber(displayNumber);
+            dto.setCurrent(current);
             return dto;
         }
     }

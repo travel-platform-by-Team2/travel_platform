@@ -40,8 +40,9 @@ public class AdminController {
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "orderBy", required = false) String orderBy,
+            @RequestParam(name = "page", defaultValue = "0") int page,
             Model model) {
-        AdminResponse.UserListViewDTO viewDTO = adminService.getUserListView(active, keyword, sortBy, orderBy);
+        AdminResponse.UserListViewDTO viewDTO = adminService.getUserListView(active, keyword, sortBy, orderBy, page);
         return renderUsersPage(model, viewDTO);
     }
 
@@ -53,6 +54,7 @@ public class AdminController {
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "orderBy", required = false) String orderBy,
+            @RequestParam(name = "page", required = false) Integer page,
             RedirectAttributes redirectAttributes) {
         adminService.updateUserActiveStatus(userId, targetActive);
 
@@ -67,6 +69,9 @@ public class AdminController {
         }
         if (orderBy != null && !orderBy.isBlank()) {
             redirectAttributes.addAttribute("orderBy", orderBy);
+        }
+        if (page != null) {
+            redirectAttributes.addAttribute("page", page);
         }
 
         return "redirect:/admin/users";

@@ -7,10 +7,17 @@
   var state = {
     map: null,
     places: null,
+    hotelClusterer: null,
+    attrClusterer: null,
     overlays: [],
+    markers: [],
     items: [],
     selectedPlaces: [],
+    panelItem: null,
+    panelRooms: [],
+    panelSelectedRoomIdx: null,
     currentRegionKey: null,
+    regionLabel: pageRoot.dataset.region || "",
     currentCategory: "",
     currentKeyword: "",
     idleTimer: null,
@@ -19,7 +26,8 @@
     saveUrl: pageRoot.dataset.saveUrl || "",
     detailUrl: pageRoot.dataset.detailUrl || "/trip",
     existingCount: parseInt(pageRoot.dataset.existingCount || "0", 10) || 0,
-    currentDay: 1
+    currentDay: 1,
+    imageCache: {} // 이미지 캐시 초기화
   };
 
   function initDayTabs() {
@@ -55,35 +63,328 @@
   }
 
   function createFallbackImageDataUri(item) {
-    var seed = hashText(item.name || "place");
     var isHotel = item.type === "hotel" || item.category_group_code === "AD5";
-    var images = isHotel ? [
-        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&h=300&fit=crop"
-    ] : [
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop"
-    ];
-    return images[seed % images.length];
+    return isHotel ? "/images/hotel.png" : "/images/place.png";
   }
 
   function normalizePlace(p, categoryCode) {
     var type = (categoryCode === "AD5" || p.category_group_code === "AD5") ? "hotel" : "attraction";
+    var name = p.place_name;
+    var placeUrl = p.place_url || "";
+    var cacheKey = placeUrl + "|" + normalizeNameKey(name);
+    
+    // 이미 캐시된 이미지가 있다면 즉시 사용 (깜빡임 방지)
+    var cachedImg = (state.imageCache && state.imageCache[cacheKey]) || null;
+
     return {
       id: p.id,
-      name: p.place_name,
+      name: name,
       address: p.road_address_name || p.address_name,
       lat: parseFloat(p.y), lng: parseFloat(p.x),
-      type: type, placeUrl: p.place_url || "", imgUrl: p.image_url || null,
-      rating: (4.0 + Math.random()).toFixed(1),
-      reviewCount: Math.floor(Math.random() * 5000)
+      type: type, placeUrl: placeUrl, imgUrl: cachedImg || p.image_url || null,
+      rating: (4.0 + (hashText(p.id) % 10) / 10).toFixed(1), // 일관된 랜덤 평점
+      reviewCount: Math.floor((hashText(p.id) % 1000) + 10)
     };
   }
 
   function isSelected(itemId) {
     return state.selectedPlaces.some(function (item) { return String(item.id) === String(itemId); });
+  }
+
+  function getPoiPanel() {
+    return document.querySelector("[data-trip-poi-panel]");
+  }
+
+  function setPoiPanelOpen(open) {
+    var panel = getPoiPanel();
+    if (!panel) return;
+    panel.hidden = !open;
+  }
+
+  function unwrapRespBody(data) {
+    if (data && typeof data === "object" && Object.prototype.hasOwnProperty.call(data, "body")) {
+      return data.body;
+    }
+    return data;
+  }
+
+  function normalizeNameKey(name) {
+    return String(name || "").replace(/\s+/g, "").toLowerCase();
+  }
+
+  async function fetchPlaceImageFromServer(item) {
+    var cacheKey = (item.placeUrl || "") + "|" + normalizeNameKey(item.name);
+    if (state.imageCache && cacheKey in state.imageCache) {
+      return state.imageCache[cacheKey];
+    }
+    if (!state.imageCache) state.imageCache = {};
+
+    try {
+      var params = new URLSearchParams();
+      if (item.placeUrl) params.set("placeUrl", item.placeUrl);
+      if (item.name) params.set("name", item.name);
+      if (item.address) params.set("address", item.address);
+
+      var response = await fetch("/api/bookings/place-image?" + params.toString(), {
+        method: "GET",
+        headers: { Accept: "application/json" }
+      });
+
+      if (!response.ok) return "";
+
+      var data = unwrapRespBody(await response.json());
+      var imageUrl = data && typeof data.imageUrl === "string" ? data.imageUrl : "";
+      state.imageCache[cacheKey] = imageUrl;
+      return imageUrl;
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function fillPoiPanel(item) {
+    var panel = getPoiPanel();
+    if (!panel || !item) return;
+
+    state.panelItem = item;
+    state.panelRooms = [];
+    state.panelSelectedRoomIdx = null;
+
+    var titleEl = panel.querySelector(".map-poi-panel-h1-01");
+    var subtitleEl = panel.querySelector(".map-poi-panel-p-01");
+    var badgeEl = panel.querySelector(".map-poi-panel-div-10");
+    var ratingEl = panel.querySelector(".map-poi-panel-span-01");
+    var reviewCountEl = panel.querySelector(".map-poi-panel-span-02");
+    var addressEl = panel.querySelector(".map-poi-panel-p-02");
+    var openEl = panel.querySelector(".map-poi-panel-p-03");
+    var descEl = panel.querySelector(".map-poi-panel-p-04");
+    var heroEl = panel.querySelector(".map-poi-panel-div-03");
+    var chipsWrapEl = panel.querySelector(".map-poi-panel-div-14");
+    var scrollArea = panel.querySelector(".sidebar-scroll-white");
+
+    if (scrollArea) {
+      scrollArea.scrollTop = 0;
+    }
+
+    if (titleEl) titleEl.textContent = item.name || "";
+    if (subtitleEl) subtitleEl.textContent = "";
+    if (badgeEl) badgeEl.textContent = item.type === "hotel" ? "숙소" : "명소";
+    if (ratingEl) ratingEl.textContent = item.rating ? String(item.rating) : "";
+    if (reviewCountEl) {
+      var countText = item.reviewCount ? Number(item.reviewCount).toLocaleString() : "";
+      reviewCountEl.textContent = countText ? "(" + countText + " 리뷰)" : "";
+    }
+    if (addressEl) addressEl.textContent = item.address || "";
+    if (openEl) openEl.textContent = "";
+    if (descEl) {
+      descEl.textContent = item.placeUrl ? "자세한 정보는 카카오 장소 페이지에서 확인할 수 있어요." : "";
+    }
+
+    if (chipsWrapEl) {
+      var typeChip = item.type === "hotel" ? "#숙소" : "#명소";
+      var regionChip = state.regionLabel ? ("#" + String(state.regionLabel).replace(/\s+/g, "")) : "";
+      chipsWrapEl.innerHTML = "" +
+        '<span class="chip-neutral-action">' + typeChip + "</span>" +
+        (regionChip ? '<span class="chip-neutral-action">' + regionChip + "</span>" : "");
+    }
+
+    var roomContainer = document.getElementById("poiRoomListContainer");
+    if (roomContainer) roomContainer.innerHTML = "";
+
+    if (heroEl) {
+      var fallbackHero = createFallbackImageDataUri(item);
+      var initialHero = item.imgUrl || fallbackHero;
+      heroEl.style.backgroundImage = "url('" + String(initialHero).replace(/'/g, "%27") + "')";
+
+      fetchPlaceImageFromServer(item).then(function(url) {
+        if (!url) return;
+        if (!state.panelItem || String(state.panelItem.id) !== String(item.id)) return;
+        heroEl.style.backgroundImage = "url('" + String(url).replace(/'/g, "%27") + "')";
+      });
+    }
+
+    var addBtn = document.getElementById("tripPoiAddToTripBtn");
+    if (addBtn) {
+      addBtn.style.display = "flex";
+      if (isSelected(item.id)) {
+        addBtn.disabled = true;
+        addBtn.style.opacity = "0.6";
+        addBtn.style.cursor = "not-allowed";
+        addBtn.innerHTML = '<span class="icon-ms-20">check_circle</span> 이미 추가됨';
+      } else if (item.type === "hotel") {
+        addBtn.disabled = true;
+        addBtn.style.opacity = "0.5";
+        addBtn.style.cursor = "not-allowed";
+        addBtn.innerHTML = '<span class="icon-ms-20">touch_app</span> 객실을 선택해주세요';
+      } else {
+        addBtn.disabled = false;
+        addBtn.style.opacity = "1";
+        addBtn.style.cursor = "pointer";
+        addBtn.innerHTML = '<span class="icon-ms-20">add_circle</span> 여행 계획에 추가';
+      }
+    }
+
+    renderRoomListForTrip(item, roomContainer);
+    setPoiPanelOpen(true);
+  }
+
+  async function renderRoomListForTrip(item, container) {
+    if (!container) return;
+
+    if (!item || item.type !== "hotel") {
+      container.innerHTML = "";
+      return;
+    }
+
+    container.innerHTML = '<div class="map-poi-panel-div-16"><p style="font-size: 0.875rem; color: #64748b;">객실 정보를 불러오는 중...</p></div>';
+
+    var rooms = [];
+    try {
+      var params = new URLSearchParams();
+      params.set("lodgingName", item.name || "");
+      params.set("address", item.address || "");
+      var response = await fetch("/api/bookings/rooms?" + params.toString());
+      if (response.ok) {
+        var data = unwrapRespBody(await response.json());
+        if (Array.isArray(data)) {
+          rooms = data.map(function(r) {
+            return {
+              name: r && r.name ? r.name : "객실",
+              img: r && r.imageUrl ? r.imageUrl : "",
+              desc: r && r.content ? r.content : ""
+            };
+          });
+        }
+      }
+    } catch (error) {
+      rooms = [];
+    }
+
+    if (!state.panelItem || String(state.panelItem.id) !== String(item.id)) {
+      return;
+    }
+
+    state.panelRooms = rooms;
+    state.panelSelectedRoomIdx = null;
+
+    if (!rooms.length) {
+      container.innerHTML = "";
+
+      var addBtn = document.getElementById("tripPoiAddToTripBtn");
+      if (addBtn && !isSelected(item.id)) {
+        addBtn.disabled = false;
+        addBtn.style.opacity = "1";
+        addBtn.style.cursor = "pointer";
+        addBtn.innerHTML = '<span class="icon-ms-20">add_circle</span> 여행 계획에 추가';
+      }
+      return;
+    }
+
+    var html = '<div class="map-poi-panel-div-16"><h3 class="map-poi-panel-h3-01">객실 선택 (1개 선택 가능)</h3>';
+    html += '<div class="room-list-group" id="roomListGroup" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">';
+
+    rooms.forEach(function(room, idx) {
+      var roomImg = room.img && room.img.trim() ? room.img : "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop";
+      html += '<div class="room-card-selectable" data-idx="' + idx + '" style="cursor: pointer; border: 2px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; background: #fff; transition: all 0.2s;">' +
+              '<img src="' + roomImg + '" style="width: 100%; height: 140px; object-fit: cover;" alt="' + room.name + '">' +
+              '<div style="padding: 1rem;">' +
+              '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">' +
+              '<h4 style="font-size: 1rem; font-weight: 700; color: #0f172a;">' + room.name + '</h4>' +
+              '<span class="select-indicator icon-ms-20" style="color: #cbd5e1;">radio_button_unchecked</span>' +
+              '</div>' +
+              '<p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0;">' + (room.desc || "상세 정보 없음") + "</p>" +
+              "</div></div>";
+    });
+
+    html += "</div></div>";
+    container.innerHTML = html;
+
+    var addBtn = document.getElementById("tripPoiAddToTripBtn");
+    if (addBtn && !isSelected(item.id)) {
+      addBtn.disabled = true;
+      addBtn.style.opacity = "0.5";
+      addBtn.style.cursor = "not-allowed";
+      addBtn.innerHTML = '<span class="icon-ms-20">touch_app</span> 객실을 선택해주세요';
+    }
+
+    var cards = container.querySelectorAll(".room-card-selectable");
+    cards.forEach(function(card) {
+      card.addEventListener("click", function() {
+        var idx = parseInt(this.getAttribute("data-idx"), 10);
+        state.panelSelectedRoomIdx = Number.isFinite(idx) ? idx : null;
+
+        cards.forEach(function(c) {
+          c.style.borderColor = "#e2e8f0";
+          c.style.background = "#fff";
+          var indicator = c.querySelector(".select-indicator");
+          if (indicator) {
+            indicator.textContent = "radio_button_unchecked";
+            indicator.style.color = "#cbd5e1";
+          }
+        });
+
+        this.style.borderColor = "#1152d4";
+        this.style.background = "#f0f7ff";
+        var selectedIndicator = this.querySelector(".select-indicator");
+        if (selectedIndicator) {
+          selectedIndicator.textContent = "check_circle";
+          selectedIndicator.style.color = "#1152d4";
+        }
+
+        if (addBtn && state.panelItem && String(state.panelItem.id) === String(item.id) && !isSelected(item.id)) {
+          addBtn.disabled = false;
+          addBtn.style.opacity = "1";
+          addBtn.style.cursor = "pointer";
+          addBtn.innerHTML = '<span class="icon-ms-20">add_circle</span> 여행 계획에 추가';
+        }
+      });
+    });
+  }
+
+  async function hydrateListImages() {
+    var images = document.querySelectorAll("[data-place-image]");
+    await Promise.all(
+      Array.from(images).map(async function (imgEl) {
+        var id = imgEl.getAttribute("data-id");
+        var item = state.items.find(function(v) { return String(v.id) === String(id); });
+        if (!item) return;
+        
+        var serverImage = await fetchPlaceImageFromServer(item);
+        var fallbackImg = createFallbackImageDataUri(item); // 미리 정의된 hotel.png 또는 place.png
+
+        if (serverImage && serverImage.trim() !== "") {
+          // 서버 이미지를 세팅하기 전에 로드 실패 시 fallback으로 복구하는 핸들러를 동적으로 등록
+          imgEl.onerror = function() {
+            this.onerror = null;
+            this.src = fallbackImg;
+            item.imgUrl = fallbackImg;
+            var selectedImg = document.querySelector("#selected-img-" + id);
+            if (selectedImg) selectedImg.src = fallbackImg;
+          };
+
+          imgEl.src = serverImage;
+          item.imgUrl = serverImage;
+          
+          var selectedItem = state.selectedPlaces.find(function(v) { return String(v.id) === String(id); });
+          if (selectedItem) selectedItem.imgUrl = serverImage;
+
+          var selectedImg = document.querySelector("#selected-img-" + id);
+          if (selectedImg) {
+            selectedImg.onerror = function() {
+              this.onerror = null;
+              this.src = fallbackImg;
+            };
+            selectedImg.src = serverImage;
+          }
+        } else {
+          // 서버에서 이미지를 못 가져온 경우, 확실하게 기본 이미지로 세팅
+          imgEl.src = fallbackImg;
+          item.imgUrl = fallbackImg;
+          
+          var selectedImg = document.querySelector("#selected-img-" + id);
+          if (selectedImg) selectedImg.src = fallbackImg;
+        }
+      })
+    );
   }
 
   function renderList() {
@@ -98,10 +399,16 @@
     container.innerHTML = state.items.map(function (item) {
       var selected = isSelected(item.id);
       var typeLabel = item.type === "hotel" ? "숙소" : "명소";
+      var fallbackImg = createFallbackImageDataUri(item);
+      var imageUrl = item.imgUrl || fallbackImg;
+      
       return '' +
         '<div class="place-option-card" id="place-card-' + item.id + '" style="display:flex; gap:1rem; padding:1rem; border:1px solid #e2e8f0; border-radius:1rem; background:#fff; margin-bottom:1rem; position:relative;">' +
         '  <div style="width:80px; height:80px; flex-shrink:0; overflow:hidden; border-radius:0.75rem;">' +
-        '    <img src="' + (item.imgUrl || createFallbackImageDataUri(item)) + '" style="width:100%; height:100%; object-fit:cover;"/>' +
+        '    <img src="' + imageUrl + '" ' +
+        '         onerror="this.onerror=null; this.src=\'' + fallbackImg + '\';" ' +
+        '         data-place-image data-id="' + item.id + '" ' +
+        '         style="width:100%; height:100%; object-fit:cover;"/>' +
         '  </div>' +
         '  <div style="flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center;">' +
         '    <div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
@@ -120,6 +427,9 @@
         '  </button>' +
         '</div>';
     }).join("");
+    
+    // 비동기적으로 실제 이미지 로드
+    hydrateListImages();
   }
 
   function renderSelectedPlaces() {
@@ -129,16 +439,21 @@
     if (!state.selectedPlaces.length) {
       container.innerHTML = '<div class="empty-state" style="font-size:0.8rem; color:#94a3b8;">장소를 추가해 보세요.</div>';
       document.getElementById("selectedPlaceCount").textContent = "0";
-      renderList();
       return;
     }
 
     document.getElementById("selectedPlaceCount").textContent = state.selectedPlaces.length;
     container.innerHTML = state.selectedPlaces.map(function (item) {
+      var fallbackImg = createFallbackImageDataUri(item);
+      // 캐시된 이미지가 있으면 사용
+      var cachedImg = (state.imageCache && state.imageCache[(item.placeUrl || "") + "|" + normalizeNameKey(item.name)]) || fallbackImg;
+      
       return '' +
         '<div class="selected-item-card">' +
         '  <div style="position:relative;">' +
-        '    <img src="' + (item.imgUrl || createFallbackImageDataUri(item)) + '" alt="Selected"/>' +
+        '    <img src="' + cachedImg + '" ' +
+        '         onerror="this.onerror=null; this.src=\'' + fallbackImg + '\';" ' +
+        '         id="selected-img-' + item.id + '" alt="Selected"/>' +
         '    <button class="remove-btn" data-action="remove-place" data-id="' + item.id + '">✕</button>' +
         '  </div>' +
         '  <span class="item-name">' + item.name + '</span>' +
@@ -146,20 +461,39 @@
     }).join("");
 
     container.scrollLeft = container.scrollWidth;
+  }
+
+  function addSelectedPlaceByItem(item) {
+    if (!item) return;
+    if (isSelected(item.id)) return;
+    state.selectedPlaces.push(item);
+    renderSelectedPlaces();
     renderList();
   }
 
   function addSelectedPlace(itemId) {
-    if (isSelected(itemId)) return;
     var item = state.items.find(function (v) { return String(v.id) === String(itemId); });
-    if (!item) return;
-    state.selectedPlaces.push(item);
-    renderSelectedPlaces();
+    addSelectedPlaceByItem(item);
   }
 
   function removeSelectedPlace(itemId) {
     state.selectedPlaces = state.selectedPlaces.filter(function (v) { return String(v.id) !== String(itemId); });
     renderSelectedPlaces();
+    renderList(); // 리스트의 버튼 상태(더하기 표시) 복구를 위해 호출
+  }
+
+  function clearSelectedPlaces() {
+    state.selectedPlaces = [];
+    renderSelectedPlaces();
+    renderList();
+  }
+
+  function searchByCategory(cat) {
+    return new Promise(function(resolve) {
+      state.places.categorySearch(cat, function(data, status) {
+        resolve(status === kakao.maps.services.Status.OK ? data.map(function(p) { return normalizePlace(p, cat); }) : []);
+      }, { useMapBounds: true });
+    });
   }
 
   async function fetchAndRenderPois() {
@@ -167,21 +501,32 @@
     state.loading = true;
     try {
       var results = [];
-      var cat = state.currentCategory || "AT4";
       if (state.currentKeyword) {
         results = await new Promise(function(resolve) {
           state.places.keywordSearch(state.currentKeyword, function(data, status) {
             resolve(status === kakao.maps.services.Status.OK ? data.map(function(p) { return normalizePlace(p, p.category_group_code); }) : []);
           }, { useMapBounds: true });
         });
+      } else if (state.currentCategory) {
+        results = await searchByCategory(state.currentCategory);
       } else {
-        results = await new Promise(function(resolve) {
-          state.places.categorySearch(cat, function(data, status) {
-            resolve(status === kakao.maps.services.Status.OK ? data.map(function(p) { return normalizePlace(p, cat); }) : []);
-          }, { useMapBounds: true });
-        });
+        // "전체"인 경우 명소(AT4)와 숙소(AD5) 병렬 검색
+        var [resAt4, resAd5] = await Promise.all([
+          searchByCategory("AT4"),
+          searchByCategory("AD5")
+        ]);
+        results = resAt4.concat(resAd5);
       }
       state.items = results;
+      
+      // 지역 필터링: 설정된 지역명(예: 부산, 서울)이 주소에 포함된 경우만 남김
+      if (state.regionLabel && state.regionLabel !== "전국" && state.regionLabel !== "지역 정보 없음") {
+        state.items = state.items.filter(function(item) {
+          // 주소(address)에 지역명(regionLabel)이 포함되어 있는지 확인
+          return item.address && item.address.indexOf(state.regionLabel) !== -1;
+        });
+      }
+
       renderList();
       renderOverlays();
     } finally { state.loading = false; }
@@ -190,21 +535,134 @@
   function renderOverlays() {
     state.overlays.forEach(function(o) { o.setMap(null); });
     state.overlays = [];
+    
+    // 줌 레벨에 따라 동적으로 gridSize 계산
+    var zoomLevel = state.map.getLevel();
+    var dynamicGridSize = 60;
+    if (zoomLevel >= 10) dynamicGridSize = 120;
+    else if (zoomLevel >= 8) dynamicGridSize = 90;
+    else if (zoomLevel >= 6) dynamicGridSize = 70;
+
+    // 클러스터러 초기화/재설정 함수
+    function createClusterer(color) {
+      return new kakao.maps.MarkerClusterer({
+        map: state.map,
+        averageCenter: true,
+        minLevel: 5,
+        gridSize: dynamicGridSize,
+        styles: [{
+          width: '40px', height: '40px',
+          background: color,
+          borderRadius: '20px',
+          color: '#fff',
+          textAlign: 'center',
+          fontWeight: '800',
+          lineHeight: '41px',
+          fontSize: '14px',
+          border: '2px solid #fff',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+        }]
+      });
+    }
+
+    // 클러스터러가 없거나 gridSize가 변경되었다면 재설정
+    if (!state.hotelClusterer || state.lastGridSize !== dynamicGridSize) {
+      if (state.hotelClusterer) state.hotelClusterer.clear();
+      if (state.attrClusterer) state.attrClusterer.clear();
+      
+      state.hotelClusterer = createClusterer('rgba(37, 99, 235, 0.9)'); // 숙소: Blue
+      state.attrClusterer = createClusterer('rgba(234, 88, 12, 0.9)');  // 명소: Orange
+      state.lastGridSize = dynamicGridSize;
+    } else {
+      state.hotelClusterer.clear();
+      state.attrClusterer.clear();
+    }
+    
+    var hotelMarkers = [];
+    var attrMarkers = [];
+
     state.items.forEach(function(item) {
       var node = document.createElement("div");
       node.className = "stay-marker stay-marker--" + (item.type === "hotel" ? "hotel" : "attraction");
       node.innerHTML = '<div class="stay-marker__pin"><span class="icon-ms-16">' + (item.type === "hotel" ? "hotel" : "attractions") + '</span></div><div class="stay-marker__label">' + item.name + '</div>';
-      var overlay = new kakao.maps.CustomOverlay({ position: new kakao.maps.LatLng(item.lat, item.lng), content: node, yAnchor: 1 });
+      
+      var position = new kakao.maps.LatLng(item.lat, item.lng);
+      var overlay = new kakao.maps.CustomOverlay({ position: position, content: node, yAnchor: 1 });
       overlay.setMap(state.map);
       state.overlays.push(overlay);
-      node.onclick = function() { addSelectedPlace(item.id); };
+      
+      node.onclick = function() { fillPoiPanel(item); };
+
+      // 투명 마커 생성
+      var marker = new kakao.maps.Marker({
+        position: position,
+        image: new kakao.maps.MarkerImage(
+          'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+          new kakao.maps.Size(1, 1)
+        )
+      });
+
+      if (item.type === "hotel") {
+        hotelMarkers.push(marker);
+      } else {
+        attrMarkers.push(marker);
+      }
     });
+
+    if (state.hotelClusterer) state.hotelClusterer.addMarkers(hotelMarkers);
+    if (state.attrClusterer) state.attrClusterer.addMarkers(attrMarkers);
   }
 
   function initMap() {
     kakao.maps.load(function () {
       state.map = new kakao.maps.Map(document.getElementById("tripMap"), { center: new kakao.maps.LatLng(33.4996, 126.5312), level: 8, scrollwheel: true });
       state.places = new kakao.maps.services.Places(state.map);
+      
+      // 초기 렌더링을 호출하여 클러스터러 생성
+      renderOverlays();
+
+      var panel = getPoiPanel();
+      if (panel) {
+        setPoiPanelOpen(false);
+
+        var closeButton = panel.querySelector("[data-trip-poi-close]");
+        if (closeButton) {
+          closeButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            setPoiPanelOpen(false);
+          });
+        }
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && !panel.hidden) {
+            setPoiPanelOpen(false);
+          }
+        });
+      }
+
+      var addBtn = document.getElementById("tripPoiAddToTripBtn");
+      if (addBtn) {
+        addBtn.addEventListener("click", function (event) {
+          event.preventDefault();
+          if (!state.panelItem) return;
+          if (isSelected(state.panelItem.id)) return;
+          if (state.panelItem.type === "hotel" && state.panelRooms && state.panelRooms.length > 0 && state.panelSelectedRoomIdx === null) {
+            return;
+          }
+          addSelectedPlaceByItem(state.panelItem);
+          setPoiPanelOpen(false);
+        });
+      }
+
+      if (state.regionLabel) {
+        state.places.keywordSearch(state.regionLabel, function(data, status) {
+          if (status === kakao.maps.services.Status.OK && data.length > 0) {
+            var first = data[0];
+            state.map.setCenter(new kakao.maps.LatLng(first.y, first.x));
+          }
+        });
+      }
+
       kakao.maps.event.addListener(state.map, "idle", function() { if (state.idleTimer) clearTimeout(state.idleTimer); state.idleTimer = setTimeout(fetchAndRenderPois, 200); });
 
       document.getElementById("placeListContainer").onclick = function(e) {
@@ -215,6 +673,12 @@
         var btn = e.target.closest("[data-action='remove-place']");
         if (btn) removeSelectedPlace(btn.dataset.id);
       };
+      var clearBtn = document.getElementById("clearSelectedPlaces");
+      if (clearBtn) {
+        clearBtn.onclick = function() {
+          clearSelectedPlaces();
+        };
+      }
       document.getElementById("categoryTabs").onclick = function(e) {
         if (e.target.tagName !== "BUTTON") return;
         this.querySelectorAll("button").forEach(function(b) { b.className = "category-tab-btn"; });
@@ -223,9 +687,54 @@
         fetchAndRenderPois();
       };
       
-      document.getElementById("clearSelectedPlaces").onclick = function() { state.selectedPlaces = []; renderSelectedPlaces(); };
-      document.getElementById("saveSelectedPlaces").onclick = function() { /* 저장 로직 */ };
-      document.getElementById("cancelPlaceSelection").onclick = function() { location.href = state.detailUrl; };
+      document.getElementById("saveSelectedPlaces").onclick = async function() {
+        if (state.saving || state.selectedPlaces.length === 0) {
+          if (state.selectedPlaces.length === 0) alert("장소를 하나 이상 선택해주세요.");
+          return;
+        }
+
+        state.saving = true;
+        this.disabled = true;
+        this.textContent = "저장 중...";
+
+        try {
+          var payload = {
+            tripDay: state.currentDay,
+            places: state.selectedPlaces.map(function(p) {
+              return {
+                placeName: p.name,
+                address: p.address,
+                latitude: p.lat,
+                longitude: p.lng,
+                placeUrl: p.placeUrl,
+                imgUrl: p.imgUrl,
+                type: p.type
+              };
+            })
+          };
+
+          var response = await fetch(state.saveUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            location.href = state.detailUrl;
+          } else {
+            alert("저장에 실패했습니다.");
+            state.saving = false;
+            this.disabled = false;
+            this.textContent = "완료";
+          }
+        } catch (e) {
+          console.error(e);
+          alert("에러가 발생했습니다.");
+          state.saving = false;
+          this.disabled = false;
+          this.textContent = "완료";
+        }
+      };
 
       var searchInput = document.getElementById("placeSearchInput");
       if (searchInput) { searchInput.onkeypress = function(e) { if (e.key === "Enter") { state.currentKeyword = this.value.trim(); fetchAndRenderPois(); } }; }
