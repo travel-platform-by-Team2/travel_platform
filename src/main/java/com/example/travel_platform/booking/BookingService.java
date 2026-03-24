@@ -1,10 +1,5 @@
 package com.example.travel_platform.booking;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -12,7 +7,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -30,7 +24,6 @@ import com.example.travel_platform.trip.TripRepository;
 import com.example.travel_platform.trip.TripRegion;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserQueryRepository;
-import tools.jackson.databind.ObjectMapper;
 
 @Transactional(readOnly = true)
 @Service
@@ -43,7 +36,6 @@ public class BookingService {
     private final TripPlanQueryRepository tripPlanQueryRepository;
     private final LodgingQueryRepository lodgingQueryRepository;
     private final MapPlaceImageRepository mapPlaceImageRepository;
-    private final ObjectMapper objectMapper;
 
     // 명시적 생성자 주입
     public BookingService(
@@ -61,254 +53,42 @@ public class BookingService {
         this.tripPlanQueryRepository = tripPlanQueryRepository;
         this.lodgingQueryRepository = lodgingQueryRepository;
         this.mapPlaceImageRepository = mapPlaceImageRepository;
-        this.objectMapper = new ObjectMapper();
     }
 
     public User getUserById(Integer id) {
         return userQueryRepository.findUser(id).orElse(null);
     }
 
-    /**
-     * 공통 HTTP 요청 메서드 (AirApp 스타일)
-     */
-    private String executeGet(String urlStr) {
-        try {
-            URL url = new URL(urlStr);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(3000);
-            conn.setReadTimeout(5000);
-
-            StringBuilder json = new StringBuilder();
-            try (Scanner sc = new Scanner(conn.getInputStream(), StandardCharsets.UTF_8)) {
-                while (sc.hasNextLine()) {
-                    json.append(sc.nextLine());
-                }
-            }
-            return json.toString();
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 통신 에러: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * TourAPI 4.0을 사용하여 숙소의 객실 정보 및 추가 이미지를 가져옴.
-     */
-    public List<BookingResponse.RoomDTO> getRoomList(String serviceKey, BookingRequest.RoomQueryDTO reqDTO) {
-        if (reqDTO == null) {
+    public List<BookingResponse.RoomDTO> getRoomList(BookingRequest.RoomQueryDTO reqDTO) {
+        if (reqDTO == null || reqDTO.getLodgingName() == null || reqDTO.getLodgingName().isBlank()) {
             return List.of();
         }
-        return fetchRoomsFromTourApi(serviceKey, reqDTO.getLodgingName(), reqDTO.getAddress());
-    }
 
-    private List<BookingResponse.RoomDTO> fetchRoomsFromTourApi(String serviceKey, String lodgingName, String address) {
-        try {
-            String contentId = searchTourApiContentId(serviceKey, lodgingName, address);
-            if (contentId == null)
-                return List.of();
+        String lodgingName = reqDTO.getLodgingName();
+        String address = reqDTO.getAddress() == null ? "" : reqDTO.getAddress();
+        int seed = Math.abs((lodgingName + "|" + address).hashCode());
 
-            // 1. 객실 상세 정보 가져오기 (이름, 기본 사진 등)
-            List<BookingResponse.RoomDTO> rooms = fetchTourApiRoomDetails(serviceKey, contentId);
+        List<BookingResponse.RoomDTO> rooms = new ArrayList<>();
+        String[] baseNames = new String[] { "스탠다드", "디럭스", "프리미엄" };
+        String[] views = new String[] { "시티뷰", "오션뷰", "마운틴뷰" };
+        String[] images = new String[] {
+                "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&h=520&fit=crop",
+                "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=520&fit=crop",
+                "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&h=520&fit=crop"
+        };
 
-            // 2. 추가 이미지 정보 가져오기 (갤러리용 고화질 사진들)
-            List<String> extraImages = fetchTourApiAdditionalImages(serviceKey, contentId);
-
-            // 3. 만약 객실 정보가 아예 없다면, 추가 이미지를 활용해 가상의 객실이라도 생성 (데이터 보완)
-            if (rooms.isEmpty() && !extraImages.isEmpty()) {
-                BookingResponse.RoomDTO virtualRoom = BookingResponse.RoomDTO.createRoom(
-                        "기본 객실",
-                        "상세 정보는 숙소에 문의해 주세요.",
-                        "",
-                        "",
-                        extraImages.get(0),
-                        extraImages);
-                return List.of(virtualRoom);
-            }
-
-            // 4. 기존 객실 정보가 있다면 각각에 추가 이미지 리스트를 넣어줌
-            List<BookingResponse.RoomDTO> enrichedRooms = new ArrayList<>();
-            for (BookingResponse.RoomDTO room : rooms) {
-                enrichedRooms.add(room.withAllImages(extraImages));
-            }
-
-            return enrichedRooms;
-        } catch (Exception e) {
-            return List.of();
+        for (int i = 0; i < baseNames.length; i += 1) {
+            String roomName = baseNames[i] + " " + views[(seed + i) % views.length];
+            rooms.add(BookingResponse.RoomDTO.createRoom(
+                    roomName,
+                    lodgingName + "에서 제공하는 " + baseNames[i] + " 객실입니다.",
+                    String.valueOf(2),
+                    String.valueOf(4),
+                    images[i % images.length],
+                    List.of(images)));
         }
-    }
 
-    @SuppressWarnings("unchecked")
-    private List<String> fetchTourApiAdditionalImages(String serviceKey, String contentId) {
-        List<String> images = new ArrayList<>();
-        try {
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/detailImage2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&contentId=" + contentId
-                    + "&imageYN=Y&subImageYN=Y";
-
-            String json = executeGet(urlStr);
-            if (json == null)
-                return images;
-
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null || body.get("items").equals(""))
-                return images;
-
-            Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
-            Object itemData = itemsObj.get("item");
-
-            List<Map<String, Object>> itemList = new ArrayList<>();
-            if (itemData instanceof List) {
-                itemList = (List<Map<String, Object>>) itemData;
-            } else if (itemData instanceof Map) {
-                itemList.add((Map<String, Object>) itemData);
-            }
-
-            for (Map<String, Object> item : itemList) {
-                // 이미지 필드명 후보들: originimgurl, smallimageurl, imageUrl 등
-                String imgUrl = getAnyField(item, "originimgurl", "originImgUrl", "smallimageurl", "smallImageUrl",
-                        "imageUrl");
-                if (imgUrl != null && !imgUrl.isBlank()) {
-                    images.add(imgUrl);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 추가 이미지 조회 실패: " + e.getMessage());
-        }
-        return images;
-    }
-
-    @SuppressWarnings("unchecked")
-    private String searchTourApiContentId(String serviceKey, String name, String address) {
-        if (serviceKey == null || serviceKey.isBlank())
-            return null;
-        try {
-            String encodedKeyword = URLEncoder.encode(name, StandardCharsets.UTF_8);
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/searchKeyword2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&keyword=" + encodedKeyword;
-
-            String json = executeGet(urlStr);
-            if (json == null)
-                return null;
-
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            if (res == null)
-                return null;
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null)
-                return null;
-
-            Object itemsObj = body.get("items");
-            if (itemsObj instanceof String && ((String) itemsObj).isBlank())
-                return null;
-            if (!(itemsObj instanceof Map))
-                return null;
-
-            Map<String, Object> itemsMap = (Map<String, Object>) itemsObj;
-            Object itemData = itemsMap.get("item");
-
-            List<Map<String, Object>> itemList = new ArrayList<>();
-            if (itemData instanceof List) {
-                itemList = (List<Map<String, Object>>) itemData;
-            } else if (itemData instanceof Map) {
-                itemList.add((Map<String, Object>) itemData);
-            }
-
-            if (!itemList.isEmpty()) {
-                String simpleInputName = simplifyName(name);
-                for (Map<String, Object> item : itemList) {
-                    String itemSimpleName = simplifyName((String) item.get("title"));
-                    if (itemSimpleName.contains(simpleInputName) || simpleInputName.contains(itemSimpleName)) {
-                        return (String) item.get("contentid");
-                    }
-                }
-                return (String) itemList.get(0).get("contentid");
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] ID 검색 실패: " + e.getMessage());
-        }
-        return null;
-    }
-
-    private String simplifyName(String name) {
-        if (name == null)
-            return "";
-        return name.replaceAll("\\s+", "")
-                .replaceAll("(호텔|리조트|펜션|모텔|게스트하우스|스테이|민박|여관|해수욕장|공원)", "")
-                .replaceAll("[^a-zA-Z0-9가-힣]", "")
-                .toLowerCase();
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<BookingResponse.RoomDTO> fetchTourApiRoomDetails(String serviceKey, String contentId) {
-        List<BookingResponse.RoomDTO> roomList = new ArrayList<>();
-        try {
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/detailInfo2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&contentId=" + contentId
-                    + "&contentTypeId=32";
-
-            String json = executeGet(urlStr);
-            if (json == null)
-                return roomList;
-
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null || body.get("items").equals(""))
-                return roomList;
-
-            Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
-            Object itemData = itemsObj.get("item");
-
-            List<Map<String, Object>> itemList = new ArrayList<>();
-            if (itemData instanceof List) {
-                itemList = (List<Map<String, Object>>) itemData;
-            } else if (itemData instanceof Map) {
-                itemList.add((Map<String, Object>) itemData);
-            }
-
-            for (Map<String, Object> item : itemList) {
-                // 필드명이 바뀔 수 있으므로 여러 가능성을 열어두고 추출
-                String roomTitle = getAnyField(item, "roomtitle", "roomTitle", "title");
-                if (roomTitle == null || roomTitle.isBlank())
-                    continue;
-
-                String roomIntro = getAnyField(item, "roomintro", "roomIntro", "content");
-                String roomBaseCount = getAnyField(item, "roombasecount", "roomBaseCount", "baseCount");
-                String roomMaxCount = getAnyField(item, "roommaxcount", "roomMaxCount", "maxCount");
-                String roomImg = getAnyField(item, "roomimg1", "roomImg1", "roomimg", "imageUrl");
-
-                roomList.add(BookingResponse.RoomDTO.createRoom(
-                        roomTitle,
-                        valueToString(roomIntro),
-                        valueToString(roomBaseCount),
-                        valueToString(roomMaxCount),
-                        valueToString(roomImg),
-                        List.of()));
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 객실 상세 조회 실패: " + e.getMessage());
-        }
-        return roomList;
-    }
-
-    private String getAnyField(Map<String, Object> item, String... keys) {
-        for (String key : keys) {
-            Object val = item.get(key);
-            if (val != null && !String.valueOf(val).isBlank()) {
-                return String.valueOf(val);
-            }
-        }
-        return null;
+        return rooms;
     }
 
     @Transactional
@@ -377,7 +157,7 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingResponse.PlaceImageDTO getPlaceImage(String serviceKey, BookingRequest.PlaceImageQueryDTO reqDTO) {
+    public BookingResponse.PlaceImageDTO getPlaceImage(BookingRequest.PlaceImageQueryDTO reqDTO) {
         if (reqDTO == null) {
             return BookingResponse.PlaceImageDTO.createPlaceImage("", "");
         }
@@ -386,56 +166,11 @@ public class BookingService {
         String imageUrl = findCachedPlaceImage(normalizedName);
 
         if (imageUrl == null || imageUrl.isBlank()) {
-            imageUrl = resolvePlaceImage(serviceKey, reqDTO);
+            imageUrl = resolvePlaceImage(reqDTO);
             cachePlaceImage(normalizedName, reqDTO.getName(), imageUrl);
         }
 
         return BookingResponse.PlaceImageDTO.createPlaceImage(imageUrl, reqDTO.getName());
-    }
-
-    @SuppressWarnings("unchecked")
-    private String fetchImageFromTourApi(String serviceKey, String name, String address) {
-        if (serviceKey == null || serviceKey.isBlank() || name == null || name.isBlank())
-            return null;
-        try {
-            String encodedKeyword = URLEncoder.encode(name, StandardCharsets.UTF_8);
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/searchKeyword2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&keyword=" + encodedKeyword;
-
-            String json = executeGet(urlStr);
-            if (json == null)
-                return null;
-
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
-
-            if (itemsObj != null && itemsObj.get("item") instanceof List) {
-                List<Map<String, Object>> itemList = (List<Map<String, Object>>) itemsObj.get("item");
-
-                String targetAddr = (address != null) ? address.substring(0, Math.min(address.length(), 2)) : "";
-                for (Map<String, Object> item : itemList) {
-                    String firstImage = (String) item.get("firstimage");
-                    String itemAddr = (String) item.get("addr1");
-                    if (firstImage != null && !firstImage.isBlank()) {
-                        if (targetAddr.isEmpty() || (itemAddr != null && itemAddr.contains(targetAddr))) {
-                            return firstImage;
-                        }
-                    }
-                }
-                for (Map<String, Object> item : itemList) {
-                    String firstImage = (String) item.get("firstimage");
-                    if (firstImage != null && !firstImage.isBlank())
-                        return firstImage;
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 이미지 조회 실패: " + e.getMessage());
-        }
-        return null;
     }
 
     public List<BookingResponse.MapPoiDTO> mergeMapPois(BookingRequest.MergeMapPoisDTO reqDTO) {
@@ -618,12 +353,8 @@ public class BookingService {
         return mapPlaceImageRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
     }
 
-    private String resolvePlaceImage(String serviceKey, BookingRequest.PlaceImageQueryDTO reqDTO) {
-        String imageUrl = fetchImageFromTourApi(serviceKey, reqDTO.getName(), reqDTO.getAddress());
-        if (imageUrl == null || imageUrl.isBlank()) {
-            imageUrl = resolveImageFromKakaoPlace(reqDTO.getPlaceUrl());
-        }
-        return imageUrl;
+    private String resolvePlaceImage(BookingRequest.PlaceImageQueryDTO reqDTO) {
+        return resolveImageFromKakaoPlace(reqDTO.getPlaceUrl());
     }
 
     private void cachePlaceImage(String normalizedName, String name, String imageUrl) {
@@ -634,7 +365,7 @@ public class BookingService {
                 normalizedName,
                 blankToDefault(name, normalizedName),
                 imageUrl,
-                "TOUR_API_OR_KAKAO");
+                "KAKAO");
     }
 
     private int parseGuestCount(String guests) {

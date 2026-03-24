@@ -27,7 +27,7 @@ class BookingApiControllerTest {
     @Test
     void rooms() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingApiController controller = new BookingApiController(bookingService, session());
         List<BookingResponse.RoomDTO> rooms = List.of(BookingResponse.RoomDTO.createRoom(
                 "디럭스 룸",
                 "오션뷰",
@@ -37,8 +37,7 @@ class BookingApiControllerTest {
                 List.of()));
 
         when(bookingService.getRoomList(
-                eq("tour-key"),
-                argThat(reqDTO -> reqDTO != null
+                argThat((BookingRequest.RoomQueryDTO reqDTO) -> reqDTO != null
                         && "시그니엘 부산".equals(reqDTO.getLodgingName())
                         && "부산 해운대구".equals(reqDTO.getAddress()))))
                 .thenReturn(rooms);
@@ -51,12 +50,11 @@ class BookingApiControllerTest {
     @Test
     void img() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingApiController controller = new BookingApiController(bookingService, session());
         BookingResponse.PlaceImageDTO dto = BookingResponse.PlaceImageDTO.createPlaceImage("https://image.test/place.jpg", "해운대");
 
         when(bookingService.getPlaceImage(
-                eq("tour-key"),
-                argThat(reqDTO -> reqDTO != null
+                argThat((BookingRequest.PlaceImageQueryDTO reqDTO) -> reqDTO != null
                         && "https://place.map.kakao.com/1".equals(reqDTO.getPlaceUrl())
                         && "해운대".equals(reqDTO.getName())
                         && "부산 해운대구".equals(reqDTO.getAddress()))))
@@ -73,7 +71,7 @@ class BookingApiControllerTest {
     @Test
     void merge() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingApiController controller = new BookingApiController(bookingService, session());
         BookingRequest.MergeMapPoisDTO reqDTO = new BookingRequest.MergeMapPoisDTO();
         List<BookingResponse.MapPoiDTO> pois = List.of(new BookingResponse.MapPoiDTO(
                 "p1",
@@ -99,7 +97,7 @@ class BookingApiControllerTest {
     @Test
     void create() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingApiController controller = new BookingApiController(bookingService, session());
         BookingRequest.CreateBookingDTO reqDTO = new BookingRequest.CreateBookingDTO();
 
         ResponseEntity<Resp<Void>> response = controller.createBooking(reqDTO);
@@ -111,7 +109,7 @@ class BookingApiControllerTest {
     @Test
     void cancel() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingApiController controller = new BookingApiController(bookingService, session());
 
         ResponseEntity<Resp<Void>> response = controller.cancelBooking(33);
 
@@ -122,7 +120,7 @@ class BookingApiControllerTest {
     @Test
     void list() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingApiController controller = new BookingApiController(bookingService, session());
         List<BookingResponse.BookingSummaryDTO> list = List.of(BookingResponse.BookingSummaryDTO.builder()
                 .id(1)
                 .statusCode("booked")
@@ -140,7 +138,7 @@ class BookingApiControllerTest {
     @Test
     void detail() {
         BookingService bookingService = mock(BookingService.class);
-        BookingApiController controller = new BookingApiController(bookingService, "tour-key", session());
+        BookingApiController controller = new BookingApiController(bookingService, session());
         BookingResponse.BookingDetailDTO detail = BookingResponse.BookingDetailDTO.builder()
                 .id(77)
                 .checkIn(LocalDate.of(2026, 4, 10))
@@ -160,7 +158,7 @@ class BookingApiControllerTest {
 
     @Test
     void create401() {
-        BookingApiController controller = new BookingApiController(mock(BookingService.class), "tour-key", new MockHttpSession());
+        BookingApiController controller = new BookingApiController(mock(BookingService.class), new MockHttpSession());
 
         Assertions.assertThrows(Exception401.class,
                 () -> controller.createBooking(new BookingRequest.CreateBookingDTO()));
