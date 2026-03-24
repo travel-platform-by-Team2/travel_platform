@@ -105,11 +105,11 @@ public class MypageResponse {
                     .profile(profile)
                     .bookingSection(bookingSection)
                     .tripPlanSection(tripPlanSection)
-                    .passwordError(normalize(passwordError))
+                    .passwordError(passwordError)
                     .passwordModalOpen(passwordModalOpen)
-                    .withdrawError(normalize(withdrawError))
+                    .withdrawError(withdrawError)
                     .withdrawModalOpen(withdrawModalOpen)
-                    .passwordSuccessMessage(normalize(passwordSuccessMessage))
+                    .passwordSuccessMessage(passwordSuccessMessage)
                     .build();
         }
     }

@@ -2,6 +2,7 @@ package com.example.travel_platform.mypage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -32,9 +33,9 @@ class MypageResponseTest {
         assertFalse(page.getTripPlanSection().isHasItems());
         assertFalse(page.isPasswordModalOpen());
         assertFalse(page.isWithdrawModalOpen());
-        assertEquals("", page.getPasswordError());
-        assertEquals("", page.getWithdrawError());
-        assertEquals("", page.getPasswordSuccessMessage());
+        assertNull(page.getPasswordError());
+        assertNull(page.getWithdrawError());
+        assertNull(page.getPasswordSuccessMessage());
     }
 
     @Test
@@ -47,7 +48,7 @@ class MypageResponseTest {
 
         assertEquals("wrong password", page.getPasswordError());
         assertTrue(page.isPasswordModalOpen());
-        assertEquals("", page.getWithdrawError());
+        assertNull(page.getWithdrawError());
         assertFalse(page.isWithdrawModalOpen());
     }
 
@@ -61,7 +62,7 @@ class MypageResponseTest {
 
         assertEquals("withdraw blocked", page.getWithdrawError());
         assertTrue(page.isWithdrawModalOpen());
-        assertEquals("", page.getPasswordError());
+        assertNull(page.getPasswordError());
         assertFalse(page.isPasswordModalOpen());
     }
 
