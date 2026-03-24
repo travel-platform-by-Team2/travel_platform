@@ -307,7 +307,6 @@ public class MypageResponse {
         private String roomPriceText;
         private String feeText;
         private String totalPriceText;
-        private boolean hasTripPlanLink;
         private String tripPlanLink;
         private boolean canCancel;
         private String cancelApiUrl;
@@ -334,7 +333,6 @@ public class MypageResponse {
                     .roomPriceText(formatWon(detail.getPricePerNight()))
                     .feeText(formatWon(detail.getTaxAndServiceFee()))
                     .totalPriceText(normalize(detail.getTotalPriceText()))
-                    .hasTripPlanLink(detail.getTripPlanId() != null)
                     .tripPlanLink(detail.getTripPlanId() == null ? "" : "/trip/detail?id=" + detail.getTripPlanId())
                     .canCancel(detail.isCanCancel())
                     .cancelApiUrl("/api/bookings/" + detail.getId())
