@@ -1,9 +1,18 @@
 package com.example.travel_platform.trip;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +22,12 @@ import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.handler.ex.Exception404;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserQueryRepository;
+import com.example.travel_platform.weather.WeatherRegion;
+import com.example.travel_platform.weather.WeatherRepository;
+import com.example.travel_platform.weather.WeatherRepository.LandForecastRaw;
+import com.example.travel_platform.weather.WeatherRepository.ShortTermForecastItem;
+import com.example.travel_platform.weather.WeatherRepository.ShortTermForecastRaw;
+import com.example.travel_platform.weather.WeatherRepository.TemperatureForecastRaw;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,10 +39,14 @@ public class TripService {
     private static final int PLAN_PAGE_SIZE = 9;
     private static final String DEFAULT_CATEGORY = "result";
 
+    @Value("${WEATHER_API_KEY:}")
+    private String weatherApiKey;
+
     private final TripRepository tripRepository;
     private final TripPlanQueryRepository tripPlanQueryRepository;
     private final UserQueryRepository userQueryRepository;
     private final TripPlaceRepository tripPlaceRepository;
+    private final WeatherRepository weatherRepository;
 
     @Transactional
     public TripResponse.CreatedDTO createPlan(Integer sessionUserId, TripRequest.CreatePlanDTO reqDTO) {
@@ -58,7 +77,175 @@ public class TripService {
     public TripResponse.DetailDTO getPlanDetail(Integer sessionUserId, Integer planId) {
         TripPlan tripPlan = findOwnedPlanWithPlaces(sessionUserId, planId);
         List<TripResponse.PlaceItemDTO> placeModels = createPlaceItems(tripPlan);
-        return TripResponse.DetailDTO.createPlanDetail(tripPlan, placeModels);
+        List<TripResponse.WeatherDTO> weatherForecast = getWeatherForecast(
+                tripPlan.getRegion(),
+                tripPlan.getStartDate(),
+                tripPlan.getEndDate());
+        return TripResponse.DetailDTO.createPlanDetail(tripPlan, placeModels, weatherForecast);
+    }
+
+    private List<TripResponse.WeatherDTO> getWeatherForecast(String regionCode, LocalDate startDate, LocalDate endDate) {
+        List<TripResponse.WeatherDTO> forecast = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
+        
+        WeatherRegion region = WeatherRegion.fromInput(regionCode);
+        if (region == null) region = WeatherRegion.SEOUL;
+
+        String[] dayLabels = {"첫째 날", "둘째 날", "셋째 날", "넷째 날", "다섯째 날", "여섯째 날", "일곱째 날", "여덟째 날", "아홉째 날", "열째 날"};
+
+        int dayIdx = 0;
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            if (dayIdx >= dayLabels.length) break;
+
+            long diff = ChronoUnit.DAYS.between(today, date);
+            TripResponse.WeatherDTO.WeatherDTOBuilder builder = TripResponse.WeatherDTO.builder()
+                    .date(date.format(DateTimeFormatter.ofPattern("MM/dd")))
+                    .dayLabel(dayLabels[dayIdx]);
+
+            if (diff >= 0 && diff <= 10) {
+                try {
+                    fillRealWeatherData(builder, region, date, diff);
+                    builder.hasData(true);
+                } catch (Exception e) {
+                    builder.icon("help_outline").temp("-").description("데이터 오류").hasData(false);
+                }
+            } else {
+                builder.icon("help_outline").temp("-").description("날씨 정보 없음").hasData(false);
+            }
+
+            forecast.add(builder.build());
+            dayIdx++;
+        }
+
+        return forecast;
+    }
+
+    private void fillRealWeatherData(TripResponse.WeatherDTO.WeatherDTOBuilder builder, 
+                                    WeatherRegion region, 
+                                    LocalDate date, long diff) {
+        if (diff <= 3) {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime baseDateTime = resolveShortTermBaseDateTime(now);
+            
+            ShortTermForecastRaw raw = 
+                weatherRepository.fetchShortTermForecast(
+                    region.getShortTermNx(), region.getShortTermNy(),
+                    baseDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyyMMdd")),
+                    baseDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HHmm"))
+                );
+
+            List<ShortTermForecastItem> items = raw.getItems().stream()
+                .filter(item -> date.equals(item.getForecastDate()))
+                .toList();
+
+            if (items.isEmpty()) {
+                builder.icon("help_outline").temp("-").description("정보 없음");
+                return;
+            }
+
+            String sky = findWeatherValue(items, "SKY", "1400");
+            String pty = findWeatherValue(items, "PTY", "1400");
+            String tmp = findWeatherValue(items, "TMP", "1400");
+
+            mapWeatherInfo(builder, sky, pty, tmp);
+        } else {
+            LocalDateTime announcementTime = resolveMidTermAnnouncementTime(LocalDateTime.now());
+            String tmFc = announcementTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+
+            LandForecastRaw land = 
+                weatherRepository.fetchLandForecast(region.getLandRegId(), tmFc);
+            TemperatureForecastRaw temp = 
+                weatherRepository.fetchTemperatureForecast(region.getTemperatureRegId(), tmFc);
+
+            String wf = land.getText("wf" + diff);
+            if (wf == null) wf = land.getText("wf" + diff + "Pm");
+            
+            Integer taMax = temp.getNumber("taMax" + diff);
+
+            builder.description(wf != null ? wf : "맑음");
+            builder.temp(taMax != null ? taMax + "도" : "-");
+            
+            if (wf != null && (wf.contains("비") || wf.contains("소나기"))) {
+                builder.icon("rainy").colorClass("blue");
+            } else if (wf != null && wf.contains("눈")) {
+                builder.icon("cloudy_snowing").colorClass("white");
+            } else if (wf != null && wf.contains("구름많음")) {
+                builder.icon("partly_cloudy_day").colorClass("blue");
+            } else if (wf != null && wf.contains("흐림")) {
+                builder.icon("cloud").colorClass("gray");
+            } else {
+                builder.icon("sunny").colorClass("orange");
+            }
+        }
+    }
+
+    private void mapWeatherInfo(TripResponse.WeatherDTO.WeatherDTOBuilder builder, String sky, String pty, String tmp) {
+        builder.temp((tmp != null ? tmp : "-") + "도");
+        
+        if (pty != null && !"0".equals(pty)) {
+            switch (pty) {
+                case "1", "4", "5" -> builder.icon("rainy").colorClass("blue").description("비");
+                case "2", "6" -> builder.icon("cloudy_snowing").colorClass("white").description("비/눈");
+                case "3", "7" -> builder.icon("cloudy_snowing").colorClass("white").description("눈");
+                default -> builder.icon("rainy").colorClass("blue").description("비");
+            }
+        } else {
+            switch (sky != null ? sky : "1") {
+                case "1" -> builder.icon("sunny").colorClass("orange").description("맑음");
+                case "3" -> builder.icon("partly_cloudy_day").colorClass("blue").description("구름많음");
+                case "4" -> builder.icon("cloud").colorClass("gray").description("흐림");
+                default -> builder.icon("sunny").colorClass("orange").description("맑음");
+            }
+        }
+    }
+
+    private String findWeatherValue(List<ShortTermForecastItem> items, String category, String preferredTime) {
+        return items.stream()
+            .filter(i -> category.equals(i.getCategory()))
+            .sorted((a, b) -> {
+                if (preferredTime.equals(a.getForecastTime())) return -1;
+                if (preferredTime.equals(b.getForecastTime())) return 1;
+                return a.getForecastTime().compareTo(b.getForecastTime());
+            })
+            .map(ShortTermForecastItem::getForecastValue)
+            .findFirst()
+            .orElse(null);
+    }
+
+    private LocalDateTime resolveShortTermBaseDateTime(LocalDateTime now) {
+        LocalDateTime adjustedNow = now.minusMinutes(10);
+        LocalDate date = adjustedNow.toLocalDate();
+        LocalTime time = adjustedNow.toLocalTime();
+        List<LocalTime> baseTimes = List.of(
+            LocalTime.of(2, 0), LocalTime.of(5, 0), LocalTime.of(8, 0),
+            LocalTime.of(11, 0), LocalTime.of(14, 0), LocalTime.of(17, 0),
+            LocalTime.of(20, 0), LocalTime.of(23, 0));
+
+        for (int i = baseTimes.size() - 1; i >= 0; i--) {
+            if (!time.isBefore(baseTimes.get(i))) return LocalDateTime.of(date, baseTimes.get(i));
+        }
+        return LocalDateTime.of(date.minusDays(1), LocalTime.of(23, 0));
+    }
+
+    private LocalDateTime resolveMidTermAnnouncementTime(LocalDateTime now) {
+        if (now.getHour() >= 18) return now.toLocalDate().atTime(18, 0);
+        if (now.getHour() >= 6) return now.toLocalDate().atTime(6, 0);
+        return now.toLocalDate().minusDays(1).atTime(18, 0);
+    }
+
+    private static class WeatherConfig {
+        int nx;
+        int ny;
+        String regIdTemp;
+        String regIdLand;
+
+        WeatherConfig(int nx, int ny, String regIdTemp, String regIdLand) {
+            this.nx = nx;
+            this.ny = ny;
+            this.regIdTemp = regIdTemp;
+            this.regIdLand = regIdLand;
+        }
     }
 
     public TripResponse.PlacePageDTO getPlacePage(Integer sessionUserId, Integer planId, String kakaoMapAppKey) {
@@ -113,8 +300,8 @@ public class TripService {
                     tripPlan,
                     p.getPlaceName(),
                     p.getAddress(),
-                    p.getLatitude() == null ? null : java.math.BigDecimal.valueOf(p.getLatitude()),
-                    p.getLongitude() == null ? null : java.math.BigDecimal.valueOf(p.getLongitude()),
+                    p.getLatitude() == null ? null : BigDecimal.valueOf(p.getLatitude()),
+                    p.getLongitude() == null ? null : BigDecimal.valueOf(p.getLongitude()),
                     reqDTO.getTripDay(),
                     p.getImgUrl(),
                     p.getType());
@@ -169,7 +356,7 @@ public class TripService {
     }
 
     private List<Integer> createTripPlanIds(List<TripPlan> tripPlans) {
-        List<Integer> tripPlanIds = new java.util.ArrayList<>();
+        List<Integer> tripPlanIds = new ArrayList<>();
         for (TripPlan tripPlan : tripPlans) {
             tripPlanIds.add(tripPlan.getId());
         }
@@ -189,10 +376,10 @@ public class TripService {
             return List.of();
         }
 
-        List<TripPlace> sortedPlaces = new java.util.ArrayList<>(tripPlan.getPlaces());
+        List<TripPlace> sortedPlaces = new ArrayList<>(tripPlan.getPlaces());
         sortedPlaces.sort((left, right) -> compareTripPlaces(left, right));
 
-        List<TripResponse.PlaceItemDTO> placeItems = new java.util.ArrayList<>();
+        List<TripResponse.PlaceItemDTO> placeItems = new ArrayList<>();
         for (TripPlace sortedPlace : sortedPlaces) {
             placeItems.add(TripResponse.PlaceItemDTO.fromTripPlace(sortedPlace));
         }

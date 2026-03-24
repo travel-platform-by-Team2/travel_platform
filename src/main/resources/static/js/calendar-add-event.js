@@ -9,7 +9,11 @@
 
   // 서버에서 가져온 현재 월 일정 캐시
   var cachedEvents = [];
+<<<<<<< HEAD
   // 현재 페이지 세션 동안 월별 lane 배치 상태를 기억한다.
+=======
+  // Current-page session memory for monthly lane placement.
+>>>>>>> sub
   var monthLayoutCache = {};
   
   // 현재 보고 있는 달
@@ -276,7 +280,11 @@
       var endDate = dateFromYmd(endDateText || startDateText);
       if (!startDate || !endDate) return [];
 
+<<<<<<< HEAD
       // 멀티데이 일정이 차지하는 날짜를 하루 단위로 펼친다.
+=======
+      // Expand a multi-day event into each occupied calendar date.
+>>>>>>> sub
       var dateRangeKeys = [];
       var cursor = new Date(startDate);
       while (cursor.getTime() <= endDate.getTime()) {
@@ -400,7 +408,11 @@
         });
       });
 
+<<<<<<< HEAD
       // 삭제 후에는 남은 일정이 비어 있는 상단 lane을 다시 사용할 수 있게 아래로 재배치한다.
+=======
+      // Re-pack downward after deletes so surviving events can reclaim empty upper lanes.
+>>>>>>> sub
       laneByEventId = {};
       occupiedByDate = {};
       dateBuckets = {};
@@ -530,7 +542,11 @@
             continue;
           }
 
+<<<<<<< HEAD
           // 비어 있는 윗줄도 높이를 유지해, 아래 lane 일정이 중간 날짜에서 위로 점프하지 않게 한다.
+=======
+          // Keep empty upper rows visible so a lower-lane multi-day event does not jump upward mid-span.
+>>>>>>> sub
           var spacer = document.createElement("div");
           spacer.className = "event-chip";
           spacer.setAttribute("data-calendar-chip", "true");
