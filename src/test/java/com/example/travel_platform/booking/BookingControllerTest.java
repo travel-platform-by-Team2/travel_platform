@@ -26,7 +26,7 @@ class BookingControllerTest {
     @Test
     void map() {
         BookingService bookingService = mock(BookingService.class);
-        BookingController controller = new BookingController("kakao-key", "tour-key", bookingService, new MockHttpSession());
+        BookingController controller = new BookingController("kakao-key", bookingService, new MockHttpSession());
         Model model = new ExtendedModelMap();
 
         String view = controller.detailMap(model);
@@ -40,7 +40,7 @@ class BookingControllerTest {
     @Test
     void coGuest() {
         BookingService bookingService = mock(BookingService.class);
-        BookingController controller = new BookingController("kakao-key", "tour-key", bookingService, new MockHttpSession());
+        BookingController controller = new BookingController("kakao-key", bookingService, new MockHttpSession());
         Model model = new ExtendedModelMap();
 
         String view = controller.checkoutPage(
@@ -76,7 +76,7 @@ class BookingControllerTest {
     void coUser() {
         BookingService bookingService = mock(BookingService.class);
         MockHttpSession session = session(5);
-        BookingController controller = new BookingController("kakao-key", "tour-key", bookingService, session);
+        BookingController controller = new BookingController("kakao-key", bookingService, session);
         Model model = new ExtendedModelMap();
         User user = User.create("ssar", "1234", "ssar@nate.com", "010-1111-2222", "USER");
 
@@ -108,7 +108,7 @@ class BookingControllerTest {
     @Test
     void doneGuest() {
         BookingService bookingService = mock(BookingService.class);
-        BookingController controller = new BookingController("kakao-key", "tour-key", bookingService, new MockHttpSession());
+        BookingController controller = new BookingController("kakao-key", bookingService, new MockHttpSession());
         Model model = new ExtendedModelMap();
 
         String view = controller.completePage(
@@ -138,7 +138,7 @@ class BookingControllerTest {
     void doneUser() {
         BookingService bookingService = mock(BookingService.class);
         MockHttpSession session = session(7);
-        BookingController controller = new BookingController("kakao-key", "tour-key", bookingService, session);
+        BookingController controller = new BookingController("kakao-key", bookingService, session);
         Model model = new ExtendedModelMap();
 
         String view = controller.completePage(
@@ -176,7 +176,7 @@ class BookingControllerTest {
     @Test
     void coBadDate() {
         BookingService bookingService = mock(BookingService.class);
-        BookingController controller = new BookingController("kakao-key", "tour-key", bookingService, new MockHttpSession());
+        BookingController controller = new BookingController("kakao-key", bookingService, new MockHttpSession());
         Model model = new ExtendedModelMap();
 
         Exception400 exception = assertThrows(

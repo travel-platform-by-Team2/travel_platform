@@ -29,17 +29,14 @@ public class BookingController {
     private static final String COMPLETE_VIEW = "pages/booking-complete";
 
     private final String kakaoMapAppKey;
-    private final String tourApiServiceKey;
     private final BookingService bookingService;
     private final HttpSession session;
 
     public BookingController(
             @Value("${KAKAO_MAP_APP_KEY:}") String kakaoMapAppKey,
-            @Value("${TOUR_API_SERVICE_KEY:}") String tourApiServiceKey,
             BookingService bookingService,
             HttpSession session) {
         this.kakaoMapAppKey = kakaoMapAppKey;
-        this.tourApiServiceKey = tourApiServiceKey;
         this.bookingService = bookingService;
         this.session = session;
     }
