@@ -124,31 +124,7 @@
     const NAVER_CLIENT_ID = '{{model.naverClientId}}'.trim();
     const GOOGLE_CLIENT_ID = '{{model.googleClientId}}'.trim();
 
-    /* ===== [1] 네이버 콜백 처리 (최우선 실행) ===== */
-    (function handleNaverCallback() {
-      if (window.location.hash.includes("access_token")) {
-        document.documentElement.style.display = 'none'; // 팝업 내 우리 사이트 노출 방지
-        
-        const process = () => {
-          if (typeof naver === 'undefined') { setTimeout(process, 50); return; }
-          const naverLogin = new naver.LoginWithNaverId({ clientId: NAVER_CLIENT_ID });
-          naverLogin.init();
-          naverLogin.getLoginStatus(function(status) {
-            if (status) {
-              const user = naverLogin.user;
-              const url = `/auth/naver/callback?providerId=${user.id}&nickname=${encodeURIComponent(user.nickname || 'Guest')}&email=${user.email || ''}`;
-              if (window.opener && window.opener !== window) {
-                window.opener.location.href = url;
-                window.close();
-              } else {
-                window.location.href = url;
-              }
-            }
-          });
-        };
-        process();
-      }
-    })();
+    /* ===== [1] 네이버 콜백 처리 (인가 코드 방식으로 변경되어 클라이언트 처리가 필요 없음) ===== */
 
     document.addEventListener('DOMContentLoaded', function() {
       // 카카오 SDK 초기화
@@ -180,8 +156,11 @@
     function loginWithNaver(event) {
       if (event) event.preventDefault();
       const state = Math.random().toString(36).substr(2, 11);
-      const url = `https://nid.naver.com/oauth2.0/authorize?response_type=token&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + "/login-form")}&state=${state}`;
-      window.open(url, "naverLogin", "width=500,height=600");
+      // response_type=code로 변경하여 인가 코드를 요청합니다.
+      // redirect_uri를 서버의 콜백 주소로 지정합니다.
+      const redirectUri = encodeURIComponent(window.location.origin + "/auth/naver/callback");
+      const url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${redirectUri}&state=${state}`;
+      location.href = url; // 팝업 대신 현재 창에서 이동 (일반적인 방식)
     }
 
     function loginWithKakao(event) {
