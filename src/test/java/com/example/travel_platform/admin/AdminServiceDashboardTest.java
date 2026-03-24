@@ -47,7 +47,7 @@ class AdminServiceDashboardTest {
 
     @Test
     void users() {
-        AdminResponse.UserListViewDTO view = adminService.getUserListView(null, null, null, null);
+        AdminResponse.UserListViewDTO view = adminService.getUserListView(null, null, null, null, 0);
 
         assertEquals(3L, view.getModel().getTotalUserCount());
         assertEquals(1L, view.getModel().getInactiveUserCount());

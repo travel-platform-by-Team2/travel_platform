@@ -3,42 +3,35 @@ package com.example.travel_platform.chatbot.api.dto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 class ChatbotDtoTest {
 
     @Test
-    void req() {
-        ChatbotRequest.ContextDTO contextDTO = ChatbotRequest.ContextDTO.createContext("/bookings/checkout", 3);
-        ChatbotRequest.AskDTO askDTO = ChatbotRequest.AskDTO.createAskRequest("booking list", contextDTO);
+    void askRequestFactory_createsRequest() {
+        ChatbotRequest.ContextDTO context = ChatbotRequest.ContextDTO.createContext("/trip", 10);
+        ChatbotRequest.AskDTO request = ChatbotRequest.AskDTO.createAskRequest("여행 일정 알려줘", context);
 
-        assertEquals("booking list", askDTO.getMessage());
-        assertNotNull(askDTO.getContext());
-        assertEquals("/bookings/checkout", askDTO.getContext().getPage());
-        assertEquals(3, askDTO.getContext().getTripPlanId());
+        assertEquals("여행 일정 알려줘", request.getMessage());
+        assertNotNull(request.getContext());
+        assertEquals("/trip", request.getContext().getPage());
+        assertEquals(10, request.getContext().getTripPlanId());
     }
 
     @Test
-    void resp() {
+    void askResponseFactory_createsResponse() {
         ChatbotResponse.AskDTO response = ChatbotResponse.AskDTO.createAskResponse(
-                "DIRECT_LLM",
-                "ok",
-                ChatbotResponse.MetaDTO.createDirectMeta());
+                "DB_QA",
+                "예약이 있어요.",
+                List.of("BOOKING", "TRIP"),
+                true);
 
-        assertEquals("DIRECT_LLM", response.getProcessingType());
-        assertEquals("ok", response.getAnswer());
-        assertNotNull(response.getMeta());
-        assertEquals(false, response.getMeta().getNeedsDb());
-    }
-
-    @Test
-    void db() {
-        ChatbotResponse.MetaDTO meta = ChatbotResponse.MetaDTO.createDbMeta("예약 조회", "select * from booking_tb limit 5", 3);
-
-        assertEquals(true, meta.getNeedsDb());
-        assertEquals("예약 조회", meta.getQuerySummary());
-        assertEquals("select * from booking_tb limit 5", meta.getGeneratedSql());
-        assertEquals(3, meta.getRowCount());
+        assertEquals("DB_QA", response.getMode());
+        assertEquals("DB_QA", response.getProcessingType());
+        assertEquals("예약이 있어요.", response.getAnswer());
+        assertEquals(List.of("BOOKING", "TRIP"), response.getUsedTools());
+        assertEquals(true, response.getHasSufficientData());
     }
 }
-

@@ -44,9 +44,9 @@ class AdminControllerTest {
 
         assertEquals("pages/admin-dashboard", view);
         assertSame(viewDTO, model.getAttribute("model"));
-        assertEquals(" is-active", viewDTO.getDashboardActiveClass());
-        assertEquals("", viewDTO.getUsersActiveClass());
-        assertEquals("", viewDTO.getBoardsActiveClass());
+        assertEquals(" is-active", viewDTO.getDashboardClass());
+        assertEquals("", viewDTO.getUsersClass());
+        assertEquals("", viewDTO.getBoardsClass());
         verify(adminService).getDashboardView();
     }
 
@@ -67,23 +67,31 @@ class AdminControllerTest {
                 "asc",
                 "/admin/users?keyword=ssar&sortBy=postCount&orderBy=asc",
                 "/admin/users?active=true&keyword=ssar&sortBy=postCount&orderBy=asc",
-                "/admin/users?active=false&keyword=ssar&sortBy=postCount&orderBy=asc");
+                "/admin/users?active=false&keyword=ssar&sortBy=postCount&orderBy=asc",
+                0,
+                1,
+                1L,
+                false,
+                false,
+                null,
+                null,
+                List.of(AdminResponse.UserPageItemDTO.createUserPageItem(0, 1, true)));
         AdminResponse.UserListViewDTO viewDTO = AdminResponse.UserListViewDTO.createUserListView(pageDTO, List.of());
 
-        when(adminService.getUserListView(true, "ssar", "postCount", "asc")).thenReturn(viewDTO);
+        when(adminService.getUserListView(true, "ssar", "postCount", "asc", 0)).thenReturn(viewDTO);
 
-        String view = controller.users(true, "ssar", "postCount", "asc", model);
+        String view = controller.users(true, "ssar", "postCount", "asc", 0, model);
 
         assertEquals("pages/admin-users", view);
         assertSame(pageDTO, model.getAttribute("model"));
         assertSame(viewDTO.getModels(), model.getAttribute("models"));
-        assertEquals("", pageDTO.getDashboardActiveClass());
-        assertEquals(" is-active", pageDTO.getUsersActiveClass());
-        assertEquals("", pageDTO.getBoardsActiveClass());
+        assertEquals("", pageDTO.getDashboardClass());
+        assertEquals(" is-active", pageDTO.getUsersClass());
+        assertEquals("", pageDTO.getBoardsClass());
         assertEquals("/admin/users?keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getAllTabHref());
         assertEquals("/admin/users?active=true&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getActiveTabHref());
         assertEquals("/admin/users?active=false&keyword=ssar&sortBy=postCount&orderBy=asc", pageDTO.getInactiveTabHref());
-        verify(adminService).getUserListView(true, "ssar", "postCount", "asc");
+        verify(adminService).getUserListView(true, "ssar", "postCount", "asc", 0);
     }
 
     @Test
@@ -93,13 +101,14 @@ class AdminControllerTest {
         org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap redirectAttributes =
                 new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap();
 
-        String view = controller.toggleUserStatus(3, false, true, " ssar ", "postCount", "asc", redirectAttributes);
+        String view = controller.toggleUserStatus(3, false, true, " ssar ", "postCount", "asc", 2, redirectAttributes);
 
         assertEquals("redirect:/admin/users", view);
         assertEquals("true", String.valueOf(redirectAttributes.getAttribute("active")));
         assertEquals(" ssar ", redirectAttributes.getAttribute("keyword"));
         assertEquals("postCount", redirectAttributes.getAttribute("sortBy"));
         assertEquals("asc", redirectAttributes.getAttribute("orderBy"));
+        assertEquals("2", String.valueOf(redirectAttributes.getAttribute("page")));
         verify(adminService).updateUserActiveStatus(3, false);
     }
 
@@ -116,15 +125,11 @@ class AdminControllerTest {
                 0L,
                 null,
                 null,
-                "tips",
                 "busan",
                 "latest",
                 "date",
                 "desc",
-                "date",
                 "latest",
-                "view",
-                "likes",
                 "tips",
                 false,
                 "tips",
@@ -142,9 +147,9 @@ class AdminControllerTest {
         assertEquals("pages/admin-boards", view);
         assertSame(pageDTO, model.getAttribute("model"));
         assertSame(viewDTO.getModels(), model.getAttribute("models"));
-        assertEquals("", pageDTO.getDashboardActiveClass());
-        assertEquals("", pageDTO.getUsersActiveClass());
-        assertEquals(" is-active", pageDTO.getBoardsActiveClass());
+        assertEquals("", pageDTO.getDashboardClass());
+        assertEquals("", pageDTO.getUsersClass());
+        assertEquals(" is-active", pageDTO.getBoardsClass());
         verify(adminService).getBoardListView("tips", "busan", "latest", 1);
     }
 

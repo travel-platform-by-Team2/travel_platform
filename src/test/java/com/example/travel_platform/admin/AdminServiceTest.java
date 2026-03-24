@@ -24,6 +24,7 @@ import com.example.travel_platform.board.Board;
 import com.example.travel_platform.board.BoardCategory;
 import com.example.travel_platform.board.BoardLikeRepository;
 import com.example.travel_platform.board.BoardRepository;
+import com.example.travel_platform.board.BoardSort;
 import com.example.travel_platform.user.SessionUser;
 import com.example.travel_platform.user.User;
 import com.example.travel_platform.user.UserRepository;
@@ -116,7 +117,8 @@ class AdminServiceTest {
                 12,
                 BoardCategory.TIPS);
 
-        when(adminQueryRepository.findBoardSummaryRows(eq(BoardCategory.TIPS), any(String[].class), eq("view"), eq(10), eq(10)))
+        when(adminQueryRepository.findBoardSummaryRows(eq(BoardCategory.TIPS), any(String[].class), eq(BoardSort.VIEW),
+                eq(10), eq(10)))
                 .thenReturn(List.of(boardRow));
         when(adminQueryRepository.countBoardSummaryRows(eq(BoardCategory.TIPS), any(String[].class)))
                 .thenReturn(1L);
@@ -143,7 +145,8 @@ class AdminServiceTest {
         AdminService service = service(adminQueryRepository, mock(UserRepository.class),
                 mock(BoardRepository.class), mock(BoardLikeRepository.class));
 
-        when(adminQueryRepository.findBoardSummaryRows(isNull(), any(String[].class), eq("latest"), eq(0), eq(10)))
+        when(adminQueryRepository.findBoardSummaryRows(isNull(), any(String[].class), eq(BoardSort.LATEST), eq(0),
+                eq(10)))
                 .thenReturn(List.of());
         when(adminQueryRepository.countBoardSummaryRows(isNull(), any(String[].class))).thenReturn(0L);
         when(adminQueryRepository.countBoards()).thenReturn(0L);
