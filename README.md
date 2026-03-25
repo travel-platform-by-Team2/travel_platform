@@ -167,7 +167,7 @@ travel_platform
 - 서비스 진입 화면
 - 로그인 상태에 따라 헤더 및 접근 가능한 기능 구분
 
-![메인 페이지](./README-assets/main.png)
+![메인 페이지](./README-assets/home.png)
 
 ### 로그인 / 회원가입
 
@@ -175,7 +175,13 @@ travel_platform
 - 세션 기반 로그인 처리
 - 기본 사용자 진입 흐름 제공
 
-![로그인 회원가입 페이지](./README-assets/auth.png)
+  <p align="center">                                                                                                                                                                                                   
+    <img src="./README-assets/login.png" alt="로그인" width="45%" />                                                                                                                                                   
+    <img src="./README-assets/join.png" alt="회원가입" width="45%" />                                                                                                                                                  
+  </p>                                                                                                                                                                                                                 
+  <p align="center">                                                                                                                                                                                                   
+    <sub>로그인 / 회원가입 화면 </sub>                                                                                                                                                                                  
+  </p>
 
 ### 여행 계획
 
@@ -184,7 +190,14 @@ travel_platform
 - 여행 상세 확인
 - 여행 장소 추가
 
-![여행 계획 페이지](./README-assets/trip.png)
+  <p align="center">                                                                                                                                                                                                   
+    <img src="./README-assets/trip-list.png" alt="여행 목록" width="32%" />                                                                                                                                            
+    <img src="./README-assets/trip-detail.png" alt="여행 상세" width="32%" />                                                                                                                                          
+    <img src="./README-assets/trip-place-add.png" alt="장소 추가" width="32%" />                                                                                                                                       
+  </p> 
+    <p align="center">                                                                                                                                                                                                   
+    <sub>여행 계획 목록 / 여행 계획 상세 화면 / 여행지 추가 화면</sub>                                                                                                                                                                                  
+  </p>
 
 ### 지도 탐색 / 예약
 
@@ -193,14 +206,27 @@ travel_platform
 - 예약 정보 확인
 - 예약 완료 처리
 
-![지도 탐색 예약 페이지](./README-assets/map-booking.png)
+  <p align="center">                                                                                                                                                                                                   
+    <img src="./README-assets/booking-map-detail.png" alt="게시판 목록" width="32%" />                                                                                                                                            
+    <img src="./README-assets/booking-checkin.png" alt="게시판 상세" width="32%" />                                                                                                                                          
+    <img src="./README-assets/booking-complete.png" alt="게시판 추가 및 수정" width="32%" />                                                                                                                                       
+  </p> 
+    <p align="center">                                                                                                                                                                                                   
+    <sub>지역 상세 및 숙소 진입 페이지 / 예약 체크인 페이지 / 예약 완료 페이지</sub>                                                                                                                                                                                  
+  </p>
 
 ### 캘린더
 
 - 일정 확인
 - 여행 및 예약 정보 연계 확인
 
-![캘린더 페이지](./README-assets/calendar.png)
+  <p align="center">                                                                                                                                                                                                   
+    <img src="./README-assets/calendar.png" alt="캘린더 페이지" width="45%" />                                                                                                                                                   
+    <img src="./README-assets/calendar-create.png" alt="캘린더 일정 추가" width="45%" />                                                                                                                                                  
+  </p>                                                                                                                                                                                                                 
+  <p align="center">                                                                                                                                                                                                   
+    <sub>캘린더 페이지 / 캘린더 일정 추가 </sub>                                                                                                                                                                                  
+  </p>
 
 ### 게시판
 
@@ -208,14 +234,28 @@ travel_platform
 - 게시글 상세 조회
 - 게시글 작성 및 수정
 
-![게시판 페이지](./README-assets/board.png)
+  <p align="center">                                                                                                                                                                                                   
+    <img src="./README-assets/board-list.png" alt="게시판 목록" width="32%" />                                                                                                                                            
+    <img src="./README-assets/board-detail.png" alt="게시판 상세" width="32%" />                                                                                                                                          
+    <img src="./README-assets/board-edit.png" alt="게시판 추가 및 수정" width="32%" />                                                                                                                                       
+  </p> 
+    <p align="center">                                                                                                                                                                                                   
+    <sub>여행 계획 목록 / 여행 계획 상세 화면 / 여행지 추가 화면</sub>                                                                                                                                                                                  
+  </p>
 
 ### 마이페이지
 
 - 사용자 정보 확인
 - 예약 및 여행 이력 확인
 
-![마이페이지](./README-assets/mypage.png)
+  <p align="center">                                                                                                                                                                                                   
+    <img src="./README-assets/mypage.png" alt="마이페이지 메인" width="32%" />                                                                                                                                            
+    <img src="./README-assets/mypage-bookings.png" alt="예약 목록 페이지" width="32%" />                                                                                                                                          
+    <img src="./README-assets/mypage-booking-detail.png" alt="예약 상세 페이지" width="32%" />                                                                                                                                       
+  </p>  
+    <p align="center">                                                                                                                                                                                                   
+    <sub>마이페이지 메인 / 예약 목록 페이지 / 예약 상세 페이지</sub>                                                                                                                                                                                  
+  </p>
 
 ### 관리자
 
@@ -223,4 +263,11 @@ travel_platform
 - 게시글 관리
 - 대시보드 확인
 
-![관리자 페이지](./README-assets/admin.png)
+  <p align="center">                                                                                                                                                                                                   
+    <img src="./README-assets/admin-dashboard.png" alt="관리자 대시보드" width="32%" />                                                                                                                                            
+    <img src="./README-assets/admin-users.png" alt="관리자 사용자 관리" width="32%" />                                                                                                                                          
+    <img src="./README-assets/admin-boards.png" alt="관리자 게시글 관리" width="32%" />                                                                                                                                       
+  </p>  
+    <p align="center">                                                                                                                                                                                                   
+    <sub>관리자 대시보드 / 관리자 사용자 관리 / 관리자 게시글 관리</sub>                                                                                                                                                                                  
+  </p>
