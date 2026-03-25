@@ -10,7 +10,8 @@ const pages = [
   { name: "trip-list", path: "/trip" },
   { name: "trip-create", path: "/trip/create" },
   { name: "trip-detail", path: "/trip/detail?id=1" },
-  { name: "trip-place", path: "/trip/place?id=1" },
+  { name: "trip-place-add", path: "/trip/place?id=1" },
+  
 
   { name: "board-list", path: "/boards" },
   { name: "board-new", path: "/boards/new" },
