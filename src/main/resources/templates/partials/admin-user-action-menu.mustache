@@ -1,0 +1,25 @@
+<button
+  class="admin-icon-button"
+  type="button"
+  aria-label="사용자 액션"
+  aria-haspopup="true"
+  aria-expanded="false"
+  data-admin-action-button
+>
+  <span class="material-symbols-outlined">more_vert</span>
+</button>
+<div class="admin-action-card" data-admin-action-card hidden>
+  <p class="admin-action-card__label">상태 변경</p>
+  <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>활성</span>
+  </a>
+  <a class="admin-action-link" href="#" onclick="return false;" aria-disabled="true">
+    <span class="material-symbols-outlined">block</span>
+    <span>비활성</span>
+  </a>
+  <a class="admin-action-link is-danger" href="#" onclick="return false;" aria-disabled="true">
+    <span class="material-symbols-outlined">delete</span>
+    <span>삭제</span>
+  </a>
+</div>

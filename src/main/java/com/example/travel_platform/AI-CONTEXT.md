@@ -1,0 +1,44 @@
+# travel_platform
+
+## 목적
+
+여행 플랫폼의 메인 애플리케이션 패키지로, 공통 기능과 도메인별 기능이 이 아래로 분리된다.
+
+## 주요 파일
+
+| 파일명                         | 설명                                 |
+| ------------------------------ | ------------------------------------ |
+| TravelPlatformApplication.java | Spring Boot 애플리케이션 진입점이다. |
+
+## 하위 디렉토리
+
+- `admin/` - 관리자 페이지 SSR 진입 기능을 둔다.
+- `_core/` - 로그인/관리자 접근 제어, 예외 처리, 유틸리티를 둔다.
+- `board/` - 게시판 기능을 둔다.
+- `booking/` - 예약 및 지도 상세 기능을 둔다.
+- `calendar/` - 일정 캘린더 기능을 둔다.
+- `chatbot/` - 챗봇 기능을 둔다.
+- `mypage/` - 마이페이지 조합 화면 기능을 둔다.
+- `trip/` - 여행 계획 기능을 둔다.
+- `user/` - 회원 기능을 둔다.
+
+## AI 작업 지침
+
+- 페이지용 `@Controller`와 JSON용 `@RestController`를 분리하는 현재 구조를 유지한다.
+- 공통 예외, 필터, 응답 포맷은 `_core`에 두고 도메인 패키지에 중복시키지 않는다.
+- 공통 검증 어노테이션과 validator는 `_core/validation`에 두고, 도메인 request DTO에서 재사용한다.
+- `/admin`, `/admin/*` 접근 제어는 컨트롤러 안에서 중복 구현하지 말고 `_core/interceptor`의 관리자 인터셉터를 기준으로 맞춘다.
+- 외부 연동 fallback, TODO 구현, 수동 QA 전제 기능은 각 도메인 `AI-CONTEXT.md`를 먼저 확인하고 수정한다.
+- 공통 head/script partial은 `src/main/resources/templates/partials/head-assets.mustache`, `chatbot-assets.mustache`, `scripts.mustache` 기준으로 유지하고, 페이지 전용 JS/CSS를 다시 전역 partial로 밀어넣지 않는다.
+- 현재 페이지 전용 JS는 `main-index.mustache -> /js/main-index.js`, `calendar.mustache -> /js/calendar-add-event.js`, `map-detail.mustache -> /js/map-detail.js`, `trip-add-place.mustache -> /js/trip-add-place.js`처럼 각 화면이 직접 로드한다.
+
+## 테스트
+
+- PowerShell에서는 `./gradlew.bat test`로 전체 회귀 테스트를 실행한다.
+- 공통 템플릿/정적 자산 계약은 `StaticScriptContractTest`, `StaticStyleContractTest`, 각 도메인 `*TemplateContractTest`로 고정한다.
+
+## 의존성
+
+- 내부: `admin`, `_core`, `board`, `booking`, `calendar`, `chatbot`, `mypage`, `trip`, `user`
+
+- 외부: `Spring Boot`, `Spring MVC`, `Spring JDBC`, `JPA/Hibernate`, `Mustache`, `H2`, `MySQL`, `Gson`, `Jsoup`, `OpenAI Responses API`

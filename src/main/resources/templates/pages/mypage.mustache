@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>마이페이지 | TravelMate</title>
+  {{>partials/head-assets}}
+  <link href="/css/account.css" rel="stylesheet">
+</head>
+<body class="page-body page-body-sans">
+  {{>partials/header}}
+
+  {{#model.passwordSuccessMessage}}
+  <div class="mypage-feedback-toast-shell" aria-live="polite" aria-atomic="true">
+    <div class="mypage-feedback-toast" data-feedback-toast role="status">
+      <span class="material-symbols-outlined">check_circle</span>
+      <span>{{model.passwordSuccessMessage}}</span>
+    </div>
+  </div>
+  {{/model.passwordSuccessMessage}}
+
+  <main class="account-page mypage-screen">
+    <div class="mypage-screen__inner">
+      <section class="mypage-summary-card">
+        <div class="mypage-summary-card__body">
+          <h1 class="mypage-summary-card__name">{{model.profile.username}}</h1>
+          <p class="mypage-summary-card__email">{{model.profile.email}}</p>
+        </div>
+      </section>
+
+      <section class="mypage-section">
+        <div class="mypage-section__head mypage-section__head--action">
+          <h2 class="mypage-section__title">예약된 일정</h2>
+          <a class="mypage-inline-link" href="{{model.bookingSection.listLink}}">
+            전체보기
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
+        </div>
+
+        {{#model.bookingSection.hasItems}}
+        <div class="mypage-reservation-list">
+          {{#model.bookingSection.items}}
+          <article class="mypage-reservation-card">
+            <div class="mypage-reservation-card__top">
+              <div class="mypage-reservation-card__text">
+                <h3 class="mypage-reservation-card__title">{{lodgingName}}</h3>
+                <p class="mypage-reservation-card__date">{{dateRangeLabel}}</p>
+              </div>
+              <div class="mypage-reservation-card__icon">
+                <span class="material-symbols-outlined">hotel</span>
+              </div>
+            </div>
+            <a class="mypage-primary-button" href="{{detailLink}}">상세 보기</a>
+          </article>
+          {{/model.bookingSection.items}}
+        </div>
+        {{/model.bookingSection.hasItems}}
+
+        {{^model.bookingSection.hasItems}}
+        <div class="mypage-empty-state">
+          <span class="material-symbols-outlined">event_busy</span>
+          <p>예정된 예약이 없습니다.</p>
+        </div>
+        {{/model.bookingSection.hasItems}}
+      </section>
+
+      <section class="mypage-section">
+        <div class="mypage-section__head mypage-section__head--action">
+          <h2 class="mypage-section__title">나의 여행 계획</h2>
+          <a class="mypage-inline-link" href="/trip">
+            전체보기
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
+        </div>
+
+        {{#model.tripPlanSection.hasItems}}
+        <div class="mypage-plan-grid">
+          {{#model.tripPlanSection.items}}
+          <article class="mypage-plan-card">
+            <div class="mypage-plan-card__top">
+              <div class="mypage-plan-card__text">
+                <h3 class="mypage-plan-card__title">{{title}}</h3>
+                <p class="mypage-plan-card__date">{{dateRangeLabel}}</p>
+              </div>
+              <div class="mypage-plan-card__icon">
+                <span class="material-symbols-outlined">map</span>
+              </div>
+            </div>
+            <a class="mypage-secondary-button" href="{{detailLink}}">상세 보기</a>
+          </article>
+          {{/model.tripPlanSection.items}}
+        </div>
+        {{/model.tripPlanSection.hasItems}}
+
+        {{^model.tripPlanSection.hasItems}}
+        <div class="mypage-empty-state">
+          <span class="material-symbols-outlined">travel_explore</span>
+          <p>다가오는 여행 계획이 없습니다.</p>
+        </div>
+        {{/model.tripPlanSection.hasItems}}
+      </section>
+
+      <section class="mypage-section mypage-section--account">
+        <div class="mypage-section__head">
+          <h2 class="mypage-section__title">계정 관리</h2>
+        </div>
+        <div class="mypage-account-card">
+          <button
+            class="mypage-account-row mypage-account-row--active"
+            type="button"
+            data-password-modal-open
+            aria-controls="mypage-password-modal"
+            aria-haspopup="dialog"
+          >
+            <div>
+              <span class="material-symbols-outlined">lock</span>
+              <span>비밀번호 변경</span>
+            </div>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+          <a class="mypage-account-row mypage-account-row--danger" href="/logout">
+            <div>
+              <span class="material-symbols-outlined">logout</span>
+              <span>로그아웃</span>
+            </div>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
+          {{#model.profile.withdrawAllowed}}
+          <button
+            class="mypage-account-row mypage-account-row--danger"
+            type="button"
+            data-withdraw-modal-open
+            aria-controls="mypage-withdraw-modal"
+            aria-haspopup="dialog"
+          >
+            <div>
+              <span class="material-symbols-outlined">person_off</span>
+              <span>회원 탈퇴</span>
+            </div>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+          {{/model.profile.withdrawAllowed}}
+        </div>
+      </section>
+    </div>
+
+    <div
+      class="mypage-password-overlay {{^model.passwordModalOpen}}is-hidden{{/model.passwordModalOpen}}"
+      data-password-modal-overlay
+      aria-hidden="{{^model.passwordModalOpen}}true{{/model.passwordModalOpen}}{{#model.passwordModalOpen}}false{{/model.passwordModalOpen}}"
+    >
+      <div
+        class="mypage-password-modal"
+        id="mypage-password-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mypage-password-modal-title"
+      >
+        <div class="mypage-password-modal__head">
+          <h3 class="mypage-password-modal__title" id="mypage-password-modal-title">비밀번호 변경</h3>
+          <button class="mypage-password-modal__close" type="button" data-password-modal-close aria-label="비밀번호 변경 팝업 닫기">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <form class="mypage-password-form" action="/mypage/password" method="post">
+          {{#model.passwordError}}
+          <p class="mypage-password-form__error">{{model.passwordError}}</p>
+          {{/model.passwordError}}
+
+          <label class="mypage-password-field">
+            <span>현재 비밀번호</span>
+            <input type="password" name="currentPassword" placeholder="현재 비밀번호를 입력하세요" required>
+          </label>
+          <label class="mypage-password-field">
+            <span>새 비밀번호</span>
+            <input type="password" name="newPassword" placeholder="새 비밀번호를 입력하세요" required>
+          </label>
+          <label class="mypage-password-field">
+            <span>새 비밀번호 확인</span>
+            <input type="password" name="newPasswordConfirm" placeholder="새 비밀번호를 다시 입력하세요" required>
+          </label>
+          <p class="mypage-password-form__help">
+            <span class="material-symbols-outlined">info</span>
+            현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.
+          </p>
+          <div class="mypage-password-form__actions">
+            <button class="mypage-secondary-button" type="button" data-password-modal-close>취소</button>
+            <button class="mypage-primary-button" type="submit">변경하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      class="mypage-password-overlay {{^model.withdrawModalOpen}}is-hidden{{/model.withdrawModalOpen}}"
+      data-withdraw-modal-overlay
+      aria-hidden="{{^model.withdrawModalOpen}}true{{/model.withdrawModalOpen}}{{#model.withdrawModalOpen}}false{{/model.withdrawModalOpen}}"
+    >
+      <div
+        class="mypage-password-modal"
+        id="mypage-withdraw-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mypage-withdraw-modal-title"
+      >
+        <div class="mypage-password-modal__head">
+          <h3 class="mypage-password-modal__title" id="mypage-withdraw-modal-title">회원 탈퇴</h3>
+          <button class="mypage-password-modal__close" type="button" data-withdraw-modal-close aria-label="회원 탈퇴 팝업 닫기">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <form class="mypage-password-form" action="/mypage/withdraw" method="post">
+          {{#model.withdrawError}}
+          <p class="mypage-password-form__error">{{model.withdrawError}}</p>
+          {{/model.withdrawError}}
+
+          <p class="mypage-password-form__help">
+            <span class="material-symbols-outlined">warning</span>
+            계정과 관련 데이터가 삭제되며 복구할 수 없습니다.
+          </p>
+          <label class="mypage-password-field">
+            <span>현재 비밀번호</span>
+            <input type="password" name="currentPassword" placeholder="현재 비밀번호를 입력하세요" required>
+          </label>
+          <div class="mypage-password-form__actions">
+            <button class="mypage-secondary-button" type="button" data-withdraw-modal-close>취소</button>
+            <button class="mypage-primary-button" type="submit">탈퇴하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  {{>partials/footer}}
+  {{>partials/scripts}}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var openButtons = document.querySelectorAll("[data-password-modal-open]");
+      var closeButtons = document.querySelectorAll("[data-password-modal-close]");
+      var overlay = document.querySelector("[data-password-modal-overlay]");
+      var modal = document.getElementById("mypage-password-modal");
+      var withdrawOpenButtons = document.querySelectorAll("[data-withdraw-modal-open]");
+      var withdrawCloseButtons = document.querySelectorAll("[data-withdraw-modal-close]");
+      var withdrawOverlay = document.querySelector("[data-withdraw-modal-overlay]");
+      var feedbackToast = document.querySelector("[data-feedback-toast]");
+
+      function bindModal(openTargets, closeTargets, targetOverlay) {
+        if (!targetOverlay || openTargets.length === 0) {
+          return;
+        }
+
+        function openModal() {
+          targetOverlay.classList.remove("is-hidden");
+          targetOverlay.setAttribute("aria-hidden", "false");
+          document.body.classList.add("mypage-modal-open");
+        }
+
+        function closeModal() {
+          targetOverlay.classList.add("is-hidden");
+          targetOverlay.setAttribute("aria-hidden", "true");
+          if ((overlay == null || overlay.classList.contains("is-hidden"))
+              && (withdrawOverlay == null || withdrawOverlay.classList.contains("is-hidden"))) {
+            document.body.classList.remove("mypage-modal-open");
+          }
+        }
+
+        if (!targetOverlay.classList.contains("is-hidden")) {
+          document.body.classList.add("mypage-modal-open");
+        }
+
+        openTargets.forEach(function (button) {
+          button.addEventListener("click", openModal);
+        });
+
+        closeTargets.forEach(function (button) {
+          button.addEventListener("click", closeModal);
+        });
+
+        targetOverlay.addEventListener("click", function (event) {
+          if (event.target === targetOverlay) {
+            closeModal();
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && !targetOverlay.classList.contains("is-hidden")) {
+            closeModal();
+          }
+        });
+      }
+
+      bindModal(openButtons, closeButtons, overlay);
+      bindModal(withdrawOpenButtons, withdrawCloseButtons, withdrawOverlay);
+
+      if (feedbackToast) {
+        window.setTimeout(function () {
+          feedbackToast.classList.add("is-exiting");
+          window.setTimeout(function () {
+            feedbackToast.classList.add("is-hidden");
+          }, 360);
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>
+

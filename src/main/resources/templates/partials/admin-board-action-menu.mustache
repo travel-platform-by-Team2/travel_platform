@@ -1,0 +1,26 @@
+<button
+  class="admin-icon-button"
+  type="button"
+  aria-label="게시글 액션"
+  aria-haspopup="true"
+  aria-expanded="false"
+  data-admin-action-button
+>
+  <span class="material-symbols-outlined">more_vert</span>
+</button>
+<div class="admin-action-card" data-admin-action-card hidden>
+  <a class="admin-action-link" href="/boards/{{id}}">
+    <span class="material-symbols-outlined">visibility</span>
+    <span>보기</span>
+  </a>
+  <form action="/admin/boards/{{id}}/delete" method="post">
+    <input type="hidden" name="category" value="{{model.allCategory}}">
+    <input type="hidden" name="keyword" value="{{model.keyword}}">
+    <input type="hidden" name="sort" value="{{model.sort}}">
+    <input type="hidden" name="page" value="{{model.currentPage}}">
+    <button class="admin-action-link is-danger" type="submit">
+      <span class="material-symbols-outlined">delete</span>
+      <span>삭제</span>
+    </button>
+  </form>
+</div>

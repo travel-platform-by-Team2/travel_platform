@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unified Map Exploration Variant 1</title>
+  {{>partials/head-assets}}
+  <style>
+    .map-detail-main-01 { display: flex; flex: 1 1 auto; min-height: 0; }
+    .map-detail-div-10 { position: relative; height: 100%; min-height: 0; flex: 1 1 auto; }
+    .map-detail-div-11 { position: relative; height: 100%; min-height: 0; background: transparent !important; }
+    #kakaoMap { width: 100%; height: 100%; min-height: 0; opacity: 1 !important; background: transparent !important; }
+    .map-detail-search-card {
+      width: 100%;
+      max-width: 100%;
+      background: #f3f4f6;
+      border: 1px solid #dfe5ee;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+    .map-detail-search-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .map-detail-search-grid-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+      gap: 0.875rem;
+      align-items: end;
+    }
+    .map-detail-search-grid-bottom {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(10.5rem, 1.05fr);
+      gap: 0.875rem;
+      align-items: end;
+    }
+    .map-detail-search-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+    .map-detail-search-action {
+      display: flex;
+      align-items: flex-end;
+      min-width: 0;
+    }
+    .map-detail-search-label {
+      color: #64748b;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1rem;
+    }
+    .map-detail-search-control {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .map-detail-search-select,
+    .map-detail-search-input {
+      width: 100%;
+      min-height: 2.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      background: #fff;
+      color: #0f172a;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.75rem 2.5rem 0.75rem 2.4rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+    .map-detail-search-select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+    .map-detail-search-select:focus,
+    .map-detail-search-input:focus {
+      outline: none;
+      border-color: #1152d4;
+      box-shadow: 0 0 0 3px rgba(17, 82, 212, 0.12);
+    }
+    .map-detail-search-icon-left,
+    .map-detail-search-icon-right {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .map-detail-search-icon-left {
+      left: 0.75rem;
+    }
+    .map-detail-search-icon-right {
+      right: 0.75rem;
+    }
+    .map-detail-search-submit {
+      min-width: 10.5rem;
+      width: 100%;
+      height: 2.75rem;
+      border: 0;
+      border-radius: 0.75rem;
+    }
+    @media (min-width: 1200px) {
+      .map-detail-search-form {
+        display: grid;
+        /* Prevent date inputs from becoming too narrow and truncating YYYY-MM-DD. */
+        grid-template-columns:
+          minmax(0, 1.45fr)
+          minmax(12.25rem, 1fr)
+          minmax(12.25rem, 1fr)
+          minmax(9.25rem, 1fr)
+          minmax(11rem, 0.95fr);
+        gap: 0.875rem;
+        align-items: end;
+      }
+      .map-detail-search-input[type="date"] {
+        min-width: 12.25rem;
+        /* Date inputs already have a native picker affordance; free up text space. */
+        padding-right: 1.25rem;
+      }
+      .map-detail-search-input[type="date"] + .map-detail-search-icon-right {
+        display: none;
+      }
+      .map-detail-search-grid-top,
+      .map-detail-search-grid-bottom {
+        display: contents;
+      }
+      .map-detail-search-action {
+        align-self: end;
+      }
+    }
+    .map-detail-main-01 > .map-detail-aside-01 {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      bottom: 1rem;
+      width: clamp(17rem, 32vw, 26rem);
+      max-width: calc(100vw - 5rem);
+    }
+    .stay-marker {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      transform: translateY(0);
+      transition: transform 180ms ease;
+      user-select: none;
+    }
+    .stay-marker:hover,
+    .stay-marker.is-hover {
+      transform: translateY(-6px);
+    }
+    .stay-marker__pin {
+      width: 2.15rem;
+      height: 2.15rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.28);
+      border: 2px solid rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(2px);
+    }
+    .stay-marker__label {
+      opacity: 1;
+      transform: translateY(0);
+      transition: background-color 150ms ease, transform 150ms ease;
+      white-space: nowrap;
+      background: rgba(15, 23, 42, 0.9);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      padding: 0.2rem 0.55rem;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
+      pointer-events: auto;
+    }
+    .stay-marker:hover .stay-marker__label,
+    .stay-marker.is-hover .stay-marker__label {
+      background: rgba(15, 23, 42, 0.98);
+      transform: translateY(-1px);
+    }
+    .stay-marker--hotel .stay-marker__pin { background: linear-gradient(145deg, #1d4ed8, #2563eb); }
+    .stay-marker--resort .stay-marker__pin { background: linear-gradient(145deg, #0891b2, #06b6d4); }
+    .stay-marker--villa .stay-marker__pin { background: linear-gradient(145deg, #7c3aed, #8b5cf6); }
+    .stay-marker--attraction .stay-marker__pin { background: linear-gradient(145deg, #ea580c, #f97316); }
+    .nearby-poi-marker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 9999px;
+      background: linear-gradient(145deg, #f59e0b, #f97316);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      color: #fff;
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.2);
+      cursor: pointer;
+      transform: translateY(0);
+      transition: transform 160ms ease;
+    }
+    .nearby-poi-marker:hover {
+      transform: translateY(-4px);
+    }
+    @media (max-width: 640px) {
+      .map-detail-search-grid-top,
+      .map-detail-search-grid-bottom {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .map-detail-search-submit {
+        width: 100%;
+      }
+    }
+    @media (max-width: 768px) {
+      .map-detail-div-01 {
+        padding: 0.5rem 0.75rem 0.75rem;
+      }
+      .map-detail-search-card {
+        padding: 0.9rem;
+        border-radius: 0.95rem;
+      }
+      .map-detail-search-grid-top {
+        grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .map-detail-search-grid-bottom {
+        grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 0.9fr);
+        gap: 0.75rem;
+      }
+      .map-detail-search-form {
+        gap: 0.8rem;
+      }
+      .map-detail-search-select,
+      .map-detail-search-input {
+        min-height: 2.45rem;
+        font-size: 0.9rem;
+        padding: 0.65rem 2.25rem 0.65rem 2.2rem;
+      }
+      .map-detail-search-submit {
+        min-width: 9.5rem;
+        height: 2.45rem;
+      }
+      .map-detail-main-01 > .map-detail-aside-01 {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        bottom: 0.75rem;
+        width: min(14.5rem, calc(100vw - 6rem));
+        max-width: calc(100vw - 6rem);
+      }
+    }
+    @media (max-width: 480px) {
+      .map-detail-search-grid-top,
+      .map-detail-search-grid-bottom {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .map-detail-search-submit {
+        width: 100%;
+      }
+      .map-detail-main-01 > .map-detail-aside-01 {
+        width: min(13rem, calc(100vw - 5.25rem));
+        max-width: calc(100vw - 5.25rem);
+      }
+    }
+
+    .map-detail-div-01 {
+      position: relative;
+      z-index: 20;
+    }
+
+    .price-range-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+      z-index: 300;
+    }
+
+    .price-range-sheet {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 1.5rem;
+      width: 320px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1.25rem;
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.15);
+      z-index: 301;
+    }
+
+    /* 가격 슬라이더 스타일 */
+    .price-slider-container {
+      position: relative;
+      width: 100%;
+      height: 32px;
+      margin: 1.25rem 0 0.5rem;
+    }
+    .price-slider-track {
+      position: absolute;
+      width: 100%;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .price-slider-range {
+      position: absolute;
+      height: 4px;
+      background: #2563eb;
+      border-radius: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .price-slider-input {
+      position: absolute;
+      width: 100%;
+      background: none;
+      pointer-events: none;
+      appearance: none;
+      -webkit-appearance: none;
+      top: 50%;
+      transform: translateY(-50%);
+      margin: 0;
+    }
+    .price-slider-input::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #2563eb;
+      pointer-events: auto;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .price-slider-input::-moz-range-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #2563eb;
+      pointer-events: auto;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .price-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #1e293b;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+
+    .price-range-sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .price-range-sheet-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+
+    .price-range-sheet-close {
+      border: 0;
+      background: transparent;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    .price-range-sheet-close:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .price-range-sheet-desc {
+      margin: 0 0 0.875rem;
+      color: #64748b;
+      font-size: 0.9rem;
+      line-height: 1.35rem;
+    }
+
+    .price-range-sheet-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.95rem;
+    }
+
+    .price-range-sheet-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 520px) {
+      .price-range-sheet-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .price-range-sheet-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .price-range-sheet-actions .pill-neutral,
+    .price-range-sheet-actions .fx-group-cta-primary {
+      height: 2.5rem;
+    }
+  </style>
+</head>
+<body class="page-body-screen-neutral-hidden map-detail-page">
+  {{>partials/header}}
+
+<div class="map-detail-div-01">
+<div class="container-5xl-center">
+<div class="map-detail-search-card">
+<form class="map-detail-search-form" onsubmit="return false;">
+<div class="map-detail-search-grid-top">
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapRegion">광역시/도</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">location_on</span>
+<select class="map-detail-search-select" id="mapRegion" name="region">
+<option value="seoul">서울특별시</option>
+<option value="busan" selected>부산광역시</option>
+<option value="daegu">대구광역시</option>
+<option value="incheon">인천광역시</option>
+<option value="gwangju">광주광역시</option>
+<option value="daejeon">대전광역시</option>
+<option value="ulsan">울산광역시</option>
+<option value="sejong">세종특별자치시</option>
+<option value="gyeonggi">경기도</option>
+<option value="gangwon">강원특별자치도</option>
+<option value="chungbuk">충청북도</option>
+<option value="chungnam">충청남도</option>
+<option value="jeonbuk">전라북도</option>
+<option value="jeonnam">전라남도</option>
+<option value="gyeongbuk">경상북도</option>
+<option value="gyeongnam">경상남도</option>
+<option value="jeju">제주특별자치도</option>
+</select>
+<span class="map-detail-search-icon-right icon-ms-18">expand_more</span>
+</div>
+</div>
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapStartDate">가는 날</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">calendar_today</span>
+<input class="map-detail-search-input" id="mapStartDate" type="date" required/>
+<span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
+</div>
+</div>
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapEndDate">오는 날</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">event</span>
+<input class="map-detail-search-input" id="mapEndDate" type="date" required/>
+<span class="map-detail-search-icon-right icon-ms-18">calendar_today</span>
+</div>
+</div>
+</div>
+<div class="map-detail-search-grid-bottom">
+<div class="map-detail-search-field">
+<label class="map-detail-search-label" for="mapGuests">인원수</label>
+<div class="map-detail-search-control">
+<span class="map-detail-search-icon-left icon-ms-18">group</span>
+<select class="map-detail-search-select" id="mapGuests" name="guests">
+<option value="1">성인 1명</option>
+<option value="2" selected>성인 2명</option>
+<option value="3">성인 3명</option>
+<option value="4">성인 4명</option>
+<option value="group">단체 (5명 이상)</option>
+</select>
+<span class="map-detail-search-icon-right icon-ms-18">expand_more</span>
+</div>
+</div>
+<div class="map-detail-search-action">
+<button class="fx-group-cta-primary map-search-submit" type="button">
+<span class="icon-ms-base">search</span>
+<span>탐색하기</span>
+</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<div class="timeline-chip-scroll">
+<button class="map-detail-button-02 map-panel-toggle" type="button" data-map-panel-toggle aria-controls="mapResultPanel" aria-expanded="false">
+<span class="icon-ms-16">hotel</span>
+                    숙소
+                </button>
+<button class="map-detail-button-03" type="button" data-map-poi-toggle aria-controls="mapPoiPanel" aria-expanded="false">
+<span class="icon-ms-16">attractions</span>
+                    관광지
+                </button>
+<div class="map-detail-div-05"></div>
+<button class="pill-neutral" type="button" data-price-range-toggle aria-controls="priceRangeSheet" aria-expanded="false">
+  <span data-price-range-label>가격 범위</span>
+  <span class="icon-ms-14">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+
+<div class="price-range-sheet-backdrop" data-price-range-backdrop hidden></div>
+<section class="price-range-sheet" id="priceRangeSheet" data-price-range-sheet hidden aria-label="가격 범위 설정">
+  <div class="price-range-sheet-header">
+    <h3 class="price-range-sheet-title">가격 범위 (1박 기준)</h3>
+    <button class="price-range-sheet-close" type="button" data-price-range-close aria-label="닫기">
+      <span class="icon-ms-20">close</span>
+    </button>
+  </div>
+
+  <div class="price-slider-container">
+    <div class="price-slider-track"></div>
+    <div class="price-slider-range" id="priceSliderRange"></div>
+    <input type="range" class="price-slider-input" id="priceMin" min="0" max="1000000" step="10000" value="0">
+    <input type="range" class="price-slider-input" id="priceMax" min="0" max="1000000" step="10000" value="1000000">
+  </div>
+  <div class="price-display">
+    <span id="priceMinLabel">0원</span>
+    <span id="priceMaxLabel">100만원+</span>
+  </div>
+
+  <div class="price-range-sheet-actions">
+    <button type="button" class="pill-neutral" data-price-range-clear>초기화</button>
+    <button type="button" class="fx-group-cta-primary" data-price-range-apply>적용</button>
+  </div>
+</section>
+<main class="map-detail-main-01">
+<aside class="map-detail-aside-01" id="mapResultPanel" data-map-result-panel hidden>
+<div class="map-detail-div-06">
+<h3 class="map-detail-h3-01"><span class="map-detail-region-label">부산광역시</span> 검색 결과 <span class="map-detail-span-02">128</span>개</h3>
+</div>
+<div class="sidebar-scroll-soft" data-map-drag-scroll hidden>
+<div class="poi-card" data-map-card data-name="파라다이스 호텔 부산" data-lat="35.158697" data-lng="129.160384" data-stay-type="hotel">
+<div class="poi-card-media">
+<img alt="Busan ocean view hotel" class="media-cover-zoom105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-JAUxidY-8eAcp_IDpWDkgrUGMXIGAlPy1BJwza3o8VSKr55RAv9mLt9GMN6aPzSqUaGSwFoL74EWZKG0EtV9HzVx5i_KbnAraqlodDx-GlN53CzIIcHWdA6Ookubfk19r7qR7DWsq3neb-etxuMxfQnAjmDHvE9QnncbJ2VNnStRshVdPe9zBeLMiBxAsuQIkYIiMzR6gRiw9KI84TWahGVSWjxkaS9308j5YVRMy6BQS1lwXSpj13SwdZmAlCmkkIwlpo1W9rA"/>
+<div class="poi-card-fav">
+<span class="icon-ms-18-block">favorite</span>
+</div>
+<div class="poi-card-tag">
+                            호텔/리조트
+                        </div>
+</div>
+<div class="p-4">
+<div class="row-between-start-mb1">
+<h4 class="poi-card-title">파라다이스 호텔 부산</h4>
+<div class="poi-rating">
+<span class="icon-ms-14-fill">star</span>
+                                4.9
+                            </div>
+</div>
+<p class="text-neutral-sm-truncate-mb3">부산 해운대구 · 해운대 해수욕장 앞</p>
+<div class="map-detail-div-08">
+<span class="badge-neutral-xs">오션뷰</span>
+<span class="badge-neutral-xs">수영장</span>
+<span class="badge-neutral-xs">스파</span>
+</div>
+<div class="row-between-price">
+<div class="text-neutral-xs-subtle">최소가격</div>
+<div class="text-right-align">
+<p class="price-strong">₩520,000~</p>
+<span class="text-neutral-xs-subtle">/ 1박</span>
+</div>
+</div>
+</div>
+</div>
+<div class="poi-card" data-map-card data-name="감천문화마을" data-lat="35.097486" data-lng="129.010599" data-stay-type="attraction">
+<div class="poi-card-media">
+<img alt="Traditional market in Busan" class="media-cover-zoom105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVgQdNeNWAKvF_XEmrvmeXZhDlZEkrsaT5L1HswoFEJqscQS4AFi3qZHQi23dm2ZJkqGyL2eLQGHruSaxy8w-VVD7ATptLBCOHPwnmn6ADoO2ih0ChSHfWp5oL88gqhBFdXzJH5GvXK6Jz4nvszn01k9ihI4LeOPRDKQxIqxS62edpm1n2UKy6XNlmYASt0mJo-Ehk7FmD9Ho8BjPIGseLR12D9G3rz118NEFOwx452_ocUKPMXRl_zfaNbMVYZPpzvET2mFTbii8"/>
+<div class="poi-card-fav">
+<span class="icon-ms-18-block">favorite</span>
+</div>
+<div class="poi-card-tag">
+                            관광지
+                        </div>
+</div>
+<div class="p-4">
+<div class="row-between-start-mb1">
+<h4 class="poi-card-title">감천문화마을</h4>
+<div class="poi-rating">
+<span class="icon-ms-14-fill">star</span>
+                                4.7
+                            </div>
+</div>
+<p class="text-neutral-sm-truncate-mb3">부산 사하구 · 한국의 마추픽추</p>
+<div class="map-detail-div-08">
+<span class="badge-neutral-xs">포토존</span>
+<span class="badge-neutral-xs">문화체험</span>
+</div>
+<div class="row-between-price">
+<div class="text-neutral-xs-subtle">입장료 무료</div>
+<div class="text-right-align">
+<p class="price-strong">무료</p>
+<span class="text-neutral-xs-subtle">상시 개방</span>
+</div>
+</div>
+</div>
+</div>
+<div class="poi-card" data-map-card data-name="시그니엘 부산" data-lat="35.158760" data-lng="129.166741" data-stay-type="resort">
+<div class="poi-card-media">
+<img alt="Modern hotel exterior" class="media-cover-zoom105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5HkQwgzyLa00qm4kJK8AntO2ohMwlggRjDKOLbAr-VuVZaW85t84Qg56mlYmwmNjAv9juzqcKjyymqjhbKRJF4YWTS6zPuGQs47NhHldI1a9kOEUWW9WRNwQxKJ3oPyAHrgmudLH2GDtU4wxGE34BYVcq161Lf1rmKY4x98zy3NaqZT9QJb8Maldzovyq4zCkxfgqycRYpIJ3RgFqvtONxkOrnspgSgW8rjDHtNC_mVCd_QtL2VID4YErblfOFPAaJDDo7-sPyok"/>
+<div class="poi-card-fav">
+<span class="icon-ms-18-block">favorite</span>
+</div>
+<div class="poi-card-tag">
+                            호텔
+                        </div>
+</div>
+<div class="p-4">
+<div class="row-between-start-mb1">
+<h4 class="poi-card-title">시그니엘 부산</h4>
+<div class="poi-rating">
+<span class="icon-ms-14-fill">star</span>
+                                4.8
+                            </div>
+</div>
+<p class="text-neutral-sm-truncate-mb3">부산 해운대구 · 엘시티 타워</p>
+<div class="map-detail-div-08">
+<span class="badge-neutral-xs">갤러리</span>
+<span class="badge-neutral-xs">인피니티풀</span>
+</div>
+<div class="row-between-price">
+<div class="text-neutral-xs-subtle">최소가격</div>
+<div class="text-right-align">
+<p class="price-strong">₩450,000~</p>
+<span class="text-neutral-xs-subtle">/ 1박</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<div class="map-detail-div-10">
+<div class="map-detail-div-11" data-alt="Map of Busan area" data-location="Busan">
+<div id="kakaoMap"></div>
+</div>
+  </div></div>
+  {{>partials/map-poi-side-sheet}}
+</main>
+
+  {{>partials/footer}}
+  {{#model.kakaoMapAppKey}}
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{model.kakaoMapAppKey}}&libraries=services&autoload=false"></script>
+  {{/model.kakaoMapAppKey}}
+  <script src="/js/map-detail.js"></script>
+  {{>partials/scripts}}
+</body>
+</html>
+
+
+
+

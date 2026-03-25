@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">샘플 카드 이미지</title>
+  <desc id="desc">더미 이미지 자리표시자</desc>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#bfdbfe"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#g)"/>
+  <g fill="none" stroke="#60a5fa" stroke-width="8" opacity="0.7">
+    <rect x="240" y="120" width="720" height="435" rx="24"/>
+    <path d="M300 470l160-170 130 125 120-140 190 185"/>
+    <circle cx="430" cy="245" r="42"/>
+  </g>
+  <text x="50%" y="86%" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#1e3a8a">
+    Dummy Travel Image
+  </text>
+</svg>

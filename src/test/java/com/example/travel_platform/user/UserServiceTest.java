@@ -1,0 +1,80 @@
+package com.example.travel_platform.user;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.travel_platform._core.handler.ex.Exception401;
+
+@Transactional
+@SpringBootTest
+class UserServiceTest {
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserQueryRepository userQueryRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Test
+    void snsJoin() {
+        String email = "new_sns_user@example.com";
+        String username = "SNSUser";
+        String provider = "kakao";
+        String providerId = "12345678";
+
+        SessionUser result = userService.loginWithSns(email, username, provider, providerId);
+
+        assertNotNull(result.getId());
+        assertEquals(email, result.getEmail());
+
+        Optional<User> user = userQueryRepository.findSnsUser(email, provider);
+        assertTrue(user.isPresent());
+        assertEquals(provider, user.get().getProvider());
+    }
+
+    @Test
+    void snsReuse() {
+        String email = "existing_sns_user@example.com";
+        String username = "OldUser";
+        String provider = "google";
+        String providerId = "87654321";
+
+        User existingUser = User.createSNS(
+                username,
+                passwordEncoder.encode("temporary-password"),
+                email,
+                provider,
+                providerId);
+        userRepository.save(existingUser);
+
+        SessionUser result = userService.loginWithSns(email, username, provider, providerId);
+
+        assertEquals(existingUser.getId(), result.getId());
+        assertEquals(email, result.getEmail());
+    }
+
+    @Test
+    void snsBadProvider() {
+        Exception401 exception = assertThrows(
+                Exception401.class,
+                () -> userService.loginWithSns("bad@test.com", "BadUser", "github", "1234"));
+
+        assertEquals("지원하지 않는 SNS 제공자입니다.", exception.getMessage());
+    }
+}

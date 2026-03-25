@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reservation Completion - TravelApp</title>
+  {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
+</head>
+<body class="page-body">
+  {{>partials/header}}
+
+{{#model}}
+<main class="booking-complete-main-01">
+<div class="booking-complete-wrap">
+<div class="booking-complete-div-01">
+<div class="booking-complete-div-02">
+<span class="icon-ms-primary-48-bold">check</span>
+</div>
+<h2 class="booking-complete-h2-01">예약이 완료되었습니다.</h2>
+<p class="booking-complete-p-01">선택하신 숙소 예약이 정상적으로 처리되었습니다.</p>
+</div>
+<div class="booking-complete-div-03">
+<div class="booking-complete-div-04">
+<div class="booking-complete-div-05">
+<img alt="{{lodgingName}}" class="booking-complete-img-01" src="{{completeImageUrl}}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/aida-public/AB6AXuC-tNVV57D0EwHVcc8AGgHsqFcUf1oHeJUsCxZ-987Qnye2F7JO9sQyk8t_AWfw0W3RDx8bJWwNKOLLAFJe_IIC1x8Pdg3Q6_YzcyaKkC7GitmYoVQPK24H1H4ZGnJYOn_ihHy2Tp-8xS1yfeVoS0dIPgu3UwUeR3w16rvw0eJ-X49iGCKDq0ku2fbWdoYPv_RklQ4NrLhuBb5HSC1KdxB4_6rQkDx3n2Z8l1IsBQTL0F_C2wv7gApGTmObL4V1gUyPs9A2p3zThbw';"/>
+<div class="booking-complete-div-06"></div>
+</div>
+<div class="booking-complete-div-07">
+<h3 class="booking-complete-h3-01">예약 상세 정보</h3>
+<div class="booking-complete-div-08">
+<div class="booking-complete-div-09">
+<span class="text-muted-sm-medium">예약 번호</span>
+<span class="booking-complete-span-01">{{bookingNumber}}</span>
+</div>
+<div class="booking-complete-div-09">
+<span class="text-muted-sm-medium">숙소 이름</span>
+<span class="booking-complete-span-02">{{lodgingName}}</span>
+</div>
+<div class="booking-complete-div-09">
+<span class="text-muted-sm-medium">지역</span>
+<div class="booking-complete-div-10">
+<span class="icon-ms-sm-muted">location_on</span>
+<span class="booking-complete-span-03">{{region}}</span>
+</div>
+</div>
+<div class="booking-complete-div-09">
+<span class="text-muted-sm-medium">인원 수</span>
+<span class="booking-complete-span-02">{{guests}}</span>
+</div>
+<div class="booking-complete-div-11">
+<span class="text-muted-sm-medium">체크인 / 체크아웃</span>
+<div class="booking-complete-div-12">
+<span class="icon-ms-primary">calendar_today</span>
+<span class="booking-complete-span-04">{{checkIn}} - {{checkOut}}</span>
+<span class="booking-complete-span-05">{{nightsLabel}}</span>
+</div>
+</div>
+<div class="booking-complete-div-13">
+<div class="row-between-end">
+<span class="booking-complete-span-06">총 결제 금액</span>
+<span class="booking-complete-span-07">{{totalPriceText}}</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="booking-complete-div-14">
+<span class="icon-ms-sm-green-500">verified_user</span>
+<span class="booking-complete-span-08">결제가 안전하게 완료되었습니다.</span>
+</div>
+</div>
+<p class="booking-complete-p-02">
+<span class="mr-2-fixed">💡</span>예약 정보는 자동으로 여행 계획과 캘린더에 등록되었습니다.
+        </p>
+<div class="booking-complete-div-15">
+  <form action="/trip" method="get" style="display: inline-block; margin: 0;">
+    <input type="hidden" name="regionKey" value="{{regionKey}}"/>
+    <input type="hidden" name="region" value="{{region}}"/>
+    <input type="hidden" name="lodgingName" value="{{lodgingName}}"/>
+    <input type="hidden" name="checkIn" value="{{checkIn}}"/>
+    <input type="hidden" name="checkOut" value="{{checkOut}}"/>
+    <input type="hidden" name="guests" value="{{guests}}"/>
+    <input type="hidden" name="bookingNumber" value="{{bookingNumber}}"/>
+    <input type="hidden" name="totalPriceText" value="{{totalPriceText}}"/>
+    <button class="booking-complete-button-01" type="submit">
+      <span class="icon-ms-20">map</span>
+      여행 계획 보기
+    </button>
+  </form>
+
+  <form action="/calendar" method="get" style="display: inline-block; margin: 0;">
+    <input type="hidden" name="regionKey" value="{{regionKey}}"/>
+    <input type="hidden" name="region" value="{{region}}"/>
+    <input type="hidden" name="lodgingName" value="{{lodgingName}}"/>
+    <input type="hidden" name="checkIn" value="{{checkIn}}"/>
+    <input type="hidden" name="checkOut" value="{{checkOut}}"/>
+    <input type="hidden" name="guests" value="{{guests}}"/>
+    <input type="hidden" name="bookingNumber" value="{{bookingNumber}}"/>
+    <input type="hidden" name="totalPriceText" value="{{totalPriceText}}"/>
+    <button class="booking-complete-button-02" type="submit">
+      <span class="icon-ms-20">calendar_month</span>
+      캘린더 확인하기
+    </button>
+  </form>
+</div>
+<div class="mt-6">
+<a class="fx-group-link-muted" href="/bookings/map-detail?region={{regionKey}}&checkIn={{checkIn}}&checkOut={{checkOut}}&guests={{guests}}">
+<span class="icon-ms-18-hover-left">arrow_back</span>
+                탐색으로 돌아가기
+            </a>
+</div>
+</div>
+</main>
+{{/model}}
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>
+

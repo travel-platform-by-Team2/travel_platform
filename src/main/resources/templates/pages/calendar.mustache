@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{model.pageTitle}}</title>
+  {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
+</head>
+<body class="page-body-overflow-hidden-shell">
+  {{>partials/header}}
+
+<div class="calendar-shell-fixed">
+<div class="calendar-add-event-div-01">
+<main class="chat-panel-scroll-shell-rel">
+<div class="calendar-header-sticky-high">
+<div class="calendar-add-event-div-02">
+{{!월 제목}}
+<h1 class="heading-xl-tight calendar-month-title-fixed" data-calendar-month-title>현재 달</h1>
+{{!이전/다음 달 버튼 }}
+<div class="pager-shell">
+<button class="btn-round-soft" type="button" data-calendar-prev-month>
+<span class="icon-ms-20">chevron_left</span>
+</button>
+<button class="btn-round-soft" type="button" data-calendar-next-month>
+<span class="icon-ms-20">chevron_right</span>
+</button>
+</div>
+</div>
+{{!일정 추가 열기 버튼}}
+<div class="calendar-add-event-div-03">
+<button class="btn-primary-lg-inline" type="button" data-calendar-event-open aria-expanded="false" aria-controls="calendar-event-panel">
+<span class="icon-ms-20">add</span>
+{{!일정 입력 패널}}
+<span>일정 추가</span>
+</button>
+<div class="popover-panel-flyout" id="calendar-event-panel" data-calendar-event-panel hidden>
+<div class="calendar-add-event-div-04">
+<h3 class="heading-sm-strong">일정 추가</h3>
+<button class="calendar-add-event-button-01" type="button" data-calendar-event-close>
+<span class="icon-ms-base">close</span>
+</button>
+</div>
+{{!입력 필드: 제목}}
+<div class="calendar-add-event-div-05">
+<div>
+<label class="label-xs-muted">일정 제목</label>
+<input class="calendar-add-event-input-01" placeholder="예: 점심 약속, 제주도 여행" type="text" data-calendar-title/>
+</div>
+<div class="stack-gap-3">
+<div class="row-between-center">
+<label class="calendar-add-event-label-01">일시</label>
+</div>
+{{!입력 필드: 일시(시작일/시간)}}
+<div class="calendar-add-event-div-06">
+<div class="calendar-add-event-div-07 calendar-add-event-date-field" data-calendar-start-date-wrap>
+<input class="input-prefix" type="date" data-calendar-start-date/>
+</div>
+<div class="calendar-add-event-div-08 calendar-add-event-time-field" data-calendar-start-time-wrap>
+<input class="input-suffix-center" type="time" value="00:00" data-calendar-start-time/>
+</div>
+</div>
+{{!입력 필드: 일시(종료일/시간)}}
+<div class="calendar-add-event-div-06">
+<div class="calendar-add-event-div-07 calendar-add-event-date-field" data-calendar-end-date-wrap>
+<input class="input-prefix" type="date" data-calendar-end-date/>
+</div>
+<div class="calendar-add-event-div-08 calendar-add-event-time-field" data-calendar-end-time-wrap>
+<input class="input-suffix-center" type="time" value="00:00" data-calendar-end-time/>
+</div>
+</div>
+</div>
+{{!입력 필드: 카테고리}}
+<div>
+<label class="calendar-add-event-label-02">카테고리</label>
+<div class="calendar-add-event-div-09">
+<button class="calendar-add-event-button-03" type="button" data-calendar-category="TRIP"></button>
+<button class="calendar-add-event-button-04" type="button" data-calendar-category="PERSONAL"></button>
+<button class="calendar-add-event-button-06" type="button" data-calendar-category="FAMILY"></button>
+<button class="calendar-add-event-button-05" type="button" data-calendar-category="WORK"></button>
+</div>
+</div>
+{{!입력 필드: 메모}}
+<div>
+<label class="label-xs-muted">메모</label>
+<textarea class="calendar-add-event-textarea-01" placeholder="메모를 입력하세요..." rows="3" maxlength="500" data-calendar-memo></textarea>
+</div>
+</div>
+{{!저장/취소 버튼}}
+<div class="calendar-add-event-div-10">
+<button class="calendar-add-event-button-08" type="button" data-calendar-event-close>취소</button>
+<button class="calendar-add-event-button-09" type="button" data-calendar-event-save>저장하기</button>
+<div data-calendar-event-action hidden>
+<button class="calendar-event-delete-button" type="button" data-calendar-event-delete>
+<span class="icon-ms-base">delete</span>
+<span>삭제하기</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+{{!좌측 캘린더 영역}}
+<div class="calendar-add-event-div-11">
+{{!캘린더 주 그리드}}
+<div class="calendar-week-grid-head">
+{{!캘린더 일 그리드}}
+<div class="calendar-add-event-div-12">일</div>
+<div class="calendar-weekday-label">월</div>
+<div class="calendar-weekday-label">화</div>
+<div class="calendar-weekday-label">수</div>
+<div class="calendar-weekday-label">목</div>
+<div class="calendar-weekday-label">금</div>
+<div class="calendar-weekday-label">토</div>
+</div>
+{{!캘린더 전체 일자별 그리드 }}
+<div class="calendar-grid-shell" data-calendar-grid></div>
+
+</div>
+</main>
+{{!우측 패널 전체}}
+<aside class="page-right-panel">
+{{!우측 패널 헤더}}
+<div class="panel-header">
+<div class="row-between-center-mb4">
+<h2 class="calendar-add-event-h2-01">일정</h2>
+</div>
+</div>
+{{!우측 패널 바디}}
+<div class="panel-body-fill">
+<div class="row-between-center-mb4">
+<h3 class="title-row-md">
+<span class="icon-ms-xl-amber">event</span>
+                    일정
+                </h3>
+</div>
+{{!선택 날짜 일정 목록}} 
+<div class="stack-gap-2 calendar-event-list-block" data-calendar-event-list></div>
+<div class="row-between-center-mb4">
+<h3 class="title-row-md">
+
+<span class="icon-ms-xl-amber">sticky_note_2</span>
+                    메모
+                </h3>
+</div>
+{{!선택 날짜 메모 목록}}
+<div class="scroll-stack" data-calendar-memo-list></div>
+</div>
+</aside>
+</div>
+</div>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  <script src="/js/calendar-add-event.js"></script>
+  {{>partials/scripts}}
+</body>
+</html>

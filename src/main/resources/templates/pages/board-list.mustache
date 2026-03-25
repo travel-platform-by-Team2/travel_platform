@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TripKorea - 커뮤니티</title>
+  {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
+</head>
+<body class="community-list-body-01">
+  {{>partials/header}}
+
+<main class="page-main-wrap-1440">
+<div class="layout-stack-960">
+<div class="community-list-div-01">
+<div class="stack-gap-2">
+<h1 class="community-list-h1-01">커뮤니티</h1>
+<p class="community-list-p-01">
+                        여행자들과 함께 소통하며 대한민국 곳곳의 여행 팁과 숨은 명소를 발견해 보세요.
+                    </p>
+</div>
+<a class="community-list-button-01" href="/boards/new">
+<span class="icon-ms-20">edit</span>
+<span>글쓰기</span>
+</a>
+</div>
+
+<div class="community-list-div-02 community-board-hero">
+  <div class="community-board-hero__backdrop"></div>
+
+  <div class="community-board-hero__topline">
+    <details class="community-sort-dropdown community-board-category-dropdown">
+      <summary class="community-sort-summary community-board-sort-summary community-board-category-button{{^model.category}} cat-all{{/model.category}}{{#model.isTips}} cat-tips{{/model.isTips}}{{#model.isPlan}} cat-plan{{/model.isPlan}}{{#model.isFood}} cat-food{{/model.isFood}}{{#model.isReview}} cat-review{{/model.isReview}}{{#model.isQna}} cat-qna{{/model.isQna}}">
+        <span>{{^model.category}}전체{{/model.category}}{{#model.isTips}}여행 팁{{/model.isTips}}{{#model.isPlan}}여행 계획{{/model.isPlan}}{{#model.isFood}}맛집/카페{{/model.isFood}}{{#model.isReview}}숙소 후기{{/model.isReview}}{{#model.isQna}}질문/답변{{/model.isQna}}</span>
+        <span class="icon-ms-18">expand_more</span>
+      </summary>
+
+      <div class="community-sort-menu community-board-sort-menu community-board-category-menu" aria-label="게시글 카테고리">
+        <a class="community-sort-option cat-all {{^model.category}}is-active{{/model.category}}" href="/boards{{#model.sort}}?sort={{model.sort}}{{/model.sort}}{{#model.keyword}}{{#model.sort}}&{{/model.sort}}keyword={{model.keyword}}{{/model.keyword}}">전체</a>
+        <a class="community-sort-option cat-tips {{#model.isTips}}is-active{{/model.isTips}}" href="/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 팁</a>
+        <a class="community-sort-option cat-plan {{#model.isPlan}}is-active{{/model.isPlan}}" href="/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 계획</a>
+        <a class="community-sort-option cat-food {{#model.isFood}}is-active{{/model.isFood}}" href="/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">맛집/카페</a>
+        <a class="community-sort-option cat-review {{#model.isReview}}is-active{{/model.isReview}}" href="/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">숙소 후기</a>
+        <a class="community-sort-option cat-qna {{#model.isQna}}is-active{{/model.isQna}}" href="/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">질문/답변</a>
+      </div>
+    </details>
+
+    <form action="/boards" method="get" class="community-board-search community-board-search--toolbar">
+      {{#model.category}}<input type="hidden" name="category" value="{{model.category}}">{{/model.category}}
+      {{#model.sort}}<input type="hidden" name="sort" value="{{model.sort}}">{{/model.sort}}
+      <div class="community-board-search__field">
+        <span class="icon-ms-18 community-board-search__icon">search</span>
+        <input
+          type="text"
+          name="keyword"
+          value="{{model.keyword}}"
+          class="community-board-search__input"
+          placeholder="제목 또는 내용 검색">
+      </div>
+      <button class="community-board-search__submit" type="submit">
+        검색
+      </button>
+    </form>
+
+    <div class="community-board-sort-group community-board-sort-group--hero">
+      <div class="community-sort-wrap community-sort-wrap--hero">
+        <details class="community-sort-dropdown">
+          <summary class="community-sort-summary community-board-sort-summary">
+            <span>{{model.sortLabel}}</span>
+            <span class="icon-ms-18">expand_more</span>
+          </summary>
+
+          <div class="community-sort-menu community-board-sort-menu" aria-label="게시글 정렬">
+            <a class="community-sort-option{{model.latestClass}}"
+            href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 최신 순</a>
+
+            <a class="community-sort-option{{model.dateClass}}"
+            href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 오래된 순</a>
+
+            <a class="community-sort-option{{model.viewClass}}"
+            href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 많은 순</a>
+
+            <a class="community-sort-option{{model.lowViewClass}}"
+            href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 적은 순</a>
+
+            <a class="community-sort-option{{model.likeClass}}"
+            href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 많은 순</a>
+
+            <a class="community-sort-option{{model.lowLikeClass}}"
+            href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 적은 순</a>
+          </div>
+        </details>
+      </div>
+
+      <a class="community-board-reset" href="/boards">
+        <span class="icon-ms-18">restart_alt</span>
+        초기화
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<div class="stack-gap-3">
+{{#models}}
+<a class="place-card-row" href="/boards/{{id}}">
+<div class="community-list-div-04">
+<div class="inline-row-gap2-mb2">
+<span class="community-list-span-01 {{categoryClass}}">
+                                {{categoryLabel}}
+                             </span>
+<span class="community-list-span-02">• {{createdAtDisplay}}</span>
+</div>
+<h3 class="place-card-title">
+                            {{title}}
+                        </h3>
+<p class="text-muted-sm-truncate">
+                            {{summary}}
+                        </p>
+</div>
+<div class="place-card-meta">
+<div class="inline-row-gap1-5">
+<span class="icon-ms-18">favorite</span>
+<span>{{likeCount}}</span>
+</div>
+<div class="inline-row-gap1-5">
+<span class="icon-ms-18">visibility</span>
+<span>{{viewCount}}</span>
+</div>
+<div class="community-list-div-05">
+<span class="icon-ms-18">chat_bubble</span>
+<span>{{replyCount}}</span>
+</div>
+<div class="inline-row-gap2-ml2">
+<span class="text-main-xs-medium">{{username}}</span>
+</div>
+</div>
+</a>
+{{/models}}
+{{^models}}
+<p class="text-muted-sm-truncate">아직 게시글이 없습니다.</p>
+{{/models}}
+
+<div class="pagination-wrap">
+  {{#model.prevPage}}
+  <a class="community-page-btn" href="/boards?page={{model.prevPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
+    이전
+  </a>
+  {{/model.prevPage}}
+
+  {{#model.pageItems}}
+    {{#current}}
+    <span class="community-page-btn is-active">{{displayNumber}}</span>
+    {{/current}}
+
+    {{^current}}
+    <a class="community-page-btn" href="/boards?page={{page}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
+      {{displayNumber}}
+    </a>
+    {{/current}}
+  {{/model.pageItems}}
+
+  {{#model.nextPage}}
+  <a class="community-page-btn" href="/boards?page={{model.nextPage}}{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
+    다음
+  </a>
+  {{/model.nextPage}}
+</div>
+</div>
+</main>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>

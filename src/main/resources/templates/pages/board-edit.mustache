@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TravelKorea - Community Post Edit</title>
+  {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
+  <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+</head>
+<body class="page-body-smooth">
+  {{>partials/header}}
+
+  {{#model}}
+  <main class="page-main-compact">
+    <div class="surface-panel">
+      <form action="/boards/{{id}}/update" method="post">
+        <div class="community-create-div-04">
+
+          <div class="stack-gap-2">
+            <label class="label-strong" for="category">
+              태그 (카테고리) <span class="text-danger">*</span>
+            </label>
+            <div class="is-relative">
+              <select class="select-control" id="category" name="category">
+                <option disabled value="">카테고리를 선택하세요</option>
+                <option value="tips">여행 팁</option>
+                <option value="plan">여행 계획</option>
+                <option value="food">맛집/카페</option>
+                <option value="review">숙소 후기</option>
+                <option value="qna">질문/답변</option>
+              </select>
+              <input type="hidden" id="categoryValue" value="{{category}}">
+              <div class="input-icon-right">
+                <span class="icon-ms-base">expand_more</span>
+              </div>
+            </div>
+            {{#categoryError}}
+                <p class="text-danger text-caption">{{categoryError}}</p>
+              {{/categoryError}}
+          </div>
+
+          <div class="stack-gap-2">
+            <label class="label-strong" for="title">
+              제목 <span class="text-danger">*</span>
+            </label>
+            <input class="input-control-solid"
+                   id="title"
+                   name="title"
+                   placeholder="제목을 입력하세요"
+                   type="text"
+                   value="{{title}}"/>
+            {{#titleError}}
+            <p class="text-danger text-caption">{{titleError}}</p>
+            {{/titleError}}
+          </div>
+
+          <div class="stack-gap-2">
+            <label class="label-strong" for="content">
+              내용 <span class="text-danger">*</span>
+            </label>
+            <textarea class="community-content-textarea"
+                      id="content"
+                      name="content"
+                      placeholder="여행 후기나 정보를 자유롭게 작성해주세요..."
+                      rows="16">{{content}}</textarea>
+            {{#contentError}}
+            <p class="text-danger text-caption">{{contentError}}</p>
+            {{/contentError}}
+          </div>
+
+        </div>
+
+        <div class="panel-footer-actions">
+          <a class="community-create-button-01" href="/boards/{{id}}">
+            취소
+          </a>
+          <button class="community-create-button-02" type="submit">
+            수정 완료
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+  {{/model}}
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/lang/summernote-ko-KR.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+
+      const select = document.getElementById("category");
+      const valueHolder = document.getElementById("categoryValue");
+      if (select && valueHolder && valueHolder.value) {
+      select.value = valueHolder.value;
+      }
+
+      $('#content').summernote({
+        height: 350,
+        lang: 'ko-KR',
+        placeholder: '여행 후기나 정보를 자유롭게 작성해주세요...',
+        toolbar: [
+          ['style', ['style']],
+          ['font', ['bold', 'underline', 'clear']],
+          ['color', ['color']],
+          ['para', ['ul', 'ol', 'paragraph']],
+          ['table', ['table']],
+          ['insert', ['link', 'picture']],
+          ['view', ['codeview']]
+        ]
+      });
+    });
+  </script>
+</body>
+</html>

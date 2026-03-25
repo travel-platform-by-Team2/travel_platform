@@ -1,0 +1,27 @@
+<aside class="admin-sidebar section-card">
+  <div class="admin-sidebar__brand">
+    <div class="admin-sidebar__brand-icon">
+      <span class="material-symbols-outlined">shield_person</span>
+    </div>
+    <div>
+      <p class="admin-sidebar__eyebrow">Admin Console</p>
+      <h2 class="admin-sidebar__title">관리자 대시보드</h2>
+      <p class="admin-sidebar__subtitle">운영 관리 메뉴</p>
+    </div>
+  </div>
+
+  <nav class="admin-sidebar__nav" aria-label="관리자 메뉴">
+    <a class="admin-sidebar__link{{dashboardClass}}" href="/admin">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span>대시보드</span>
+    </a>
+    <a class="admin-sidebar__link{{usersClass}}" href="/admin/users">
+      <span class="material-symbols-outlined">group</span>
+      <span>사용자 관리</span>
+    </a>
+    <a class="admin-sidebar__link{{boardsClass}}" href="/admin/boards">
+      <span class="material-symbols-outlined">article</span>
+      <span>게시글 관리</span>
+    </a>
+  </nav>
+</aside>

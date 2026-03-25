@@ -1,0 +1,24 @@
+<button type="button" class="btn btn-primary app-chatbot-fab" data-chatbot-open aria-label="챗봇 열기" aria-expanded="false">
+  <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<section class="chatbot-panel d-none" data-chatbot-panel>
+  <header class="chatbot-header chatbot-header-inner">
+    <strong>TripMate 챗봇</strong>
+    <button type="button" class="btn btn-sm btn-light" data-chatbot-close>닫기</button>
+  </header>
+
+  <div class="chatbot-body chatbot-body-inner" data-chatbot-messages aria-live="polite">
+    <div class="chat-msg bot">
+      <span class="bubble">여행 관련 질문을 입력하면 바로 답변해드릴게요.</span>
+    </div>
+  </div>
+
+  <form class="chatbot-form" action="#" method="post">
+    <div class="input-group input-group-sm">
+      <input type="text" class="form-control" name="message" placeholder="메시지를 입력하세요" autocomplete="off" />
+      <button class="btn btn-primary" type="submit">전송</button>
+    </div>
+  </form>
+</section>
+

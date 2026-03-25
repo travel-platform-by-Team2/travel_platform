@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TravelMate 관리자 - 사용자 관리</title>
+  {{>partials/head-assets}}
+  <link href="/css/admin.css" rel="stylesheet">
+</head>
+<body class="page-body page-body-sans page-admin">
+  {{>partials/header}}
+
+  <main class="app-main admin-main">
+    <div class="container-xxl">
+      <div class="admin-page-shell">
+        {{#model}}
+        {{>partials/admin-sidebar}}
+        {{/model}}
+
+        <section class="admin-content">
+          <div class="admin-page-header">
+            <div>
+              <h1 class="admin-page-title">사용자 관리</h1>
+              <p class="admin-page-subtitle">등록된 사용자 목록을 조회하고 계정 상태를 관리하는 관리자 화면입니다.</p>
+            </div>
+          </div>
+
+          <div class="admin-metric-grid">
+            <article class="admin-metric-card">
+              <div class="admin-metric-card__top">
+                <div class="admin-metric-icon metric-icon-blue">
+                  <span class="material-symbols-outlined">groups</span>
+                </div>
+              </div>
+              <span class="admin-metric-label">전체 사용자 수</span>
+              <p class="admin-metric-value">{{model.totalUserCount}}</p>
+            </article>
+
+            <article class="admin-metric-card">
+              <div class="admin-metric-card__top">
+                <div class="admin-metric-icon metric-icon-rose">
+                  <span class="material-symbols-outlined">block</span>
+                </div>
+              </div>
+              <span class="admin-metric-label">비활성 사용자 수</span>
+              <p class="admin-metric-value">{{model.inactiveUserCount}}</p>
+            </article>
+          </div>
+
+          <section class="admin-panel">
+            <div class="admin-toolbar admin-toolbar--users">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="admin-tab-shell" aria-label="사용자 상태 탭">
+                  <a class="admin-tab-button{{#model.allTab}} is-active-tab{{/model.allTab}}" href="{{model.allTabHref}}">전체</a>
+                  <a class="admin-tab-button{{#model.activeTab}} is-active-tab{{/model.activeTab}}" href="{{model.activeTabHref}}">활성</a>
+                  <a class="admin-tab-button{{#model.inactiveTab}} is-active-tab{{/model.inactiveTab}}" href="{{model.inactiveTabHref}}">비활성</a>
+                </div>
+              </div>
+
+              <div class="admin-search-group">
+                <form class="admin-search-wrap admin-search-wrap--users" action="/admin/users" method="get">
+                  {{#model.currentActive}}
+                  <input type="hidden" name="active" value="true">
+                  {{/model.currentActive}}
+                  {{^model.allTab}}
+                  {{^model.currentActive}}
+                  <input type="hidden" name="active" value="false">
+                  {{/model.currentActive}}
+                  {{/model.allTab}}
+
+                  <div class="admin-search-row admin-search-row--users">
+                    <span class="material-symbols-outlined">search</span>
+                    <input
+                      class="form-control admin-search-field"
+                      type="text"
+                      name="keyword"
+                      value="{{model.keyword}}"
+                      placeholder="이름 또는 이메일 검색">
+                    <button type="submit" class="admin-search-submit">검색</button>
+                  </div>
+
+                  <div class="admin-filter-controls admin-filter-controls--users">
+                    <select class="form-select admin-select-field text-center" name="sortBy" aria-label="정렬 기준" onchange="this.form.submit()">
+                      <option value="createdAt"{{#model.sortByCreatedAt}} selected{{/model.sortByCreatedAt}}>가입일</option>
+                      <option value="postCount"{{#model.sortByPostCount}} selected{{/model.sortByPostCount}}>게시글 수</option>
+                    </select>
+                    <select class="form-select admin-select-field text-center" name="orderBy" aria-label="정렬 방향" onchange="this.form.submit()">
+                      <option value="asc"{{#model.orderByAsc}} selected{{/model.orderByAsc}}>오름차순</option>
+                      <option value="desc"{{#model.orderByDesc}} selected{{/model.orderByDesc}}>내림차순</option>
+                    </select>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="admin-table-wrap">
+              <table class="table admin-table">
+                <thead>
+                  <tr>
+                    <th>사용자 정보</th>
+                    <th>가입일</th>
+                    <th class="text-center">게시글 수</th>
+                    <th class="text-end admin-manage-cell">관리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#models}}
+                  <tr>
+                    <td>
+                      <div class="d-flex flex-column gap-1">
+                        <p class="admin-name mb-0">{{username}}</p>
+                        <span class="text-muted">{{email}}</span>
+                      </div>
+                    </td>
+                    <td>{{createdAt}}</td>
+                    <td class="text-center">{{boardCount}}</td>
+                    <td class="text-end admin-manage-cell">
+                      <form action="/admin/users/{{userId}}/status" method="post" class="admin-status-actions">
+                        {{#model.currentActive}}
+                        <input type="hidden" name="active" value="true">
+                        {{/model.currentActive}}
+                        {{^model.allTab}}
+                        {{^model.currentActive}}
+                        <input type="hidden" name="active" value="false">
+                        {{/model.currentActive}}
+                        {{/model.allTab}}
+                        <input type="hidden" name="keyword" value="{{model.keyword}}">
+                        <input type="hidden" name="sortBy" value="{{model.sortBy}}">
+                        <input type="hidden" name="orderBy" value="{{model.orderBy}}">
+                        <input type="hidden" name="page" value="{{model.currentPage}}">
+                        {{#active}}
+                        <button class="admin-pill status-active" type="submit" name="targetActive" value="true" disabled>활성</button>
+                        <button class="admin-pill status-neutral" type="submit" name="targetActive" value="false">비활성</button>
+                        {{/active}}
+                        {{^active}}
+                        <button class="admin-pill status-neutral" type="submit" name="targetActive" value="true">활성</button>
+                        <button class="admin-pill status-danger" type="submit" name="targetActive" value="false" disabled>비활성</button>
+                        {{/active}}
+                      </form>
+                    </td>
+                  </tr>
+                  {{/models}}
+                  {{^models}}
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-5">
+                      조회된 사용자 데이터가 없습니다.
+                    </td>
+                  </tr>
+                  {{/models}}
+                </tbody>
+              </table>
+            </div>
+
+            {{#model.filteredUserCount}}
+            <div class="admin-panel__footer justify-content-center">
+              <div class="admin-pagination">
+                {{#model.hasPrev}}
+                <a class="admin-page-button"
+                   href="/admin/users?page={{model.prevPage}}{{#model.currentActive}}&active=true{{/model.currentActive}}{{^model.allTab}}{{^model.currentActive}}&active=false{{/model.currentActive}}{{/model.allTab}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}&sortBy={{model.sortBy}}&orderBy={{model.orderBy}}">
+                  <span class="material-symbols-outlined">chevron_left</span>
+                </a>
+                {{/model.hasPrev}}
+
+                {{#model.pageItems}}
+                  {{#current}}
+                  <button class="admin-page-button is-active-page" type="button">
+                    {{displayNumber}}
+                  </button>
+                  {{/current}}
+                  {{^current}}
+                  <a class="admin-page-button"
+                     href="/admin/users?page={{page}}{{#model.currentActive}}&active=true{{/model.currentActive}}{{^model.allTab}}{{^model.currentActive}}&active=false{{/model.currentActive}}{{/model.allTab}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}&sortBy={{model.sortBy}}&orderBy={{model.orderBy}}">
+                    {{displayNumber}}
+                  </a>
+                  {{/current}}
+                {{/model.pageItems}}
+
+                {{#model.hasNext}}
+                <a class="admin-page-button"
+                   href="/admin/users?page={{model.nextPage}}{{#model.currentActive}}&active=true{{/model.currentActive}}{{^model.allTab}}{{^model.currentActive}}&active=false{{/model.currentActive}}{{/model.allTab}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}&sortBy={{model.sortBy}}&orderBy={{model.orderBy}}">
+                  <span class="material-symbols-outlined">chevron_right</span>
+                </a>
+                {{/model.hasNext}}
+              </div>
+            </div>
+            {{/model.filteredUserCount}}
+          </section>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  {{>partials/footer}}
+  {{>partials/scripts}}
+  {{>partials/admin-page-scripts}}
+</body>
+</html>

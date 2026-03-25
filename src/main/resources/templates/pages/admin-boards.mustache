@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TravelMate 관리자 - 게시글 관리</title>
+  {{>partials/head-assets}}
+  <link href="/css/admin.css" rel="stylesheet">
+</head>
+<body class="page-body page-body-sans page-admin">
+  {{>partials/header}}
+
+  <main class="app-main admin-main">
+    <div class="container-xxl">
+      <div class="admin-page-shell">
+        {{#model}}
+        {{>partials/admin-sidebar}}
+        {{/model}}
+
+        <section class="admin-content">
+          <div class="admin-page-header">
+            <div>
+              <h1 class="admin-page-title">게시글 관리</h1>
+              <p class="admin-page-subtitle">커뮤니티 게시글을 검색하고 카테고리와 정렬 기준으로 관리할 수 있습니다.</p>
+            </div>
+          </div>
+
+          <section class="admin-panel">
+            <div class="admin-toolbar">
+              <h2 class="admin-table-title mb-0">게시글 목록</h2>
+
+              <div class="admin-search-group admin-board-toolbar-shell">
+                <form class="admin-search-wrap admin-board-toolbar-form" action="/admin/boards" method="get">
+                  <details class="admin-board-sort-dropdown admin-board-category-dropdown">
+                    <summary class="admin-board-sort-button admin-board-category-button{{#model.allCategoryTab}} cat-all{{/model.allCategoryTab}}{{#model.isTips}} cat-tips{{/model.isTips}}{{#model.isPlan}} cat-plan{{/model.isPlan}}{{#model.isFood}} cat-food{{/model.isFood}}{{#model.isReview}} cat-review{{/model.isReview}}{{#model.isQna}} cat-qna{{/model.isQna}}">
+                      {{#model.allCategoryTab}}전체{{/model.allCategoryTab}}
+                      {{#model.isTips}}여행 팁{{/model.isTips}}
+                      {{#model.isPlan}}여행 계획{{/model.isPlan}}
+                      {{#model.isFood}}맛집/카페{{/model.isFood}}
+                      {{#model.isReview}}숙소 후기{{/model.isReview}}
+                      {{#model.isQna}}질문/답변{{/model.isQna}}
+                      <span class="material-symbols-outlined">expand_more</span>
+                    </summary>
+                    <div class="admin-board-sort-menu">
+                      <a class="admin-board-sort-option cat-all{{#model.allCategoryTab}} is-active{{/model.allCategoryTab}}"
+                         href="/admin/boards?category=all{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">전체</a>
+                      <a class="admin-board-sort-option cat-tips{{#model.isTips}} is-active{{/model.isTips}}"
+                         href="/admin/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 팁</a>
+                      <a class="admin-board-sort-option cat-plan{{#model.isPlan}} is-active{{/model.isPlan}}"
+                         href="/admin/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 계획</a>
+                      <a class="admin-board-sort-option cat-food{{#model.isFood}} is-active{{/model.isFood}}"
+                         href="/admin/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">맛집/카페</a>
+                      <a class="admin-board-sort-option cat-review{{#model.isReview}} is-active{{/model.isReview}}"
+                         href="/admin/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">숙소 후기</a>
+                      <a class="admin-board-sort-option cat-qna{{#model.isQna}} is-active{{/model.isQna}}"
+                         href="/admin/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">질문/답변</a>
+                    </div>
+                  </details>
+
+                  <input type="hidden" name="category" value="{{model.allCategory}}">
+                  <input type="hidden" name="sort" value="{{model.sort}}">
+
+                  <div class="admin-search-row admin-board-toolbar-row">
+                    <span class="material-symbols-outlined">search</span>
+                    <input
+                      class="form-control admin-search-field"
+                      type="text"
+                      name="keyword"
+                      value="{{model.keyword}}"
+                      placeholder="게시글 검색">
+                    <button type="submit" class="admin-search-submit">검색</button>
+                  </div>
+
+                  <div class="admin-filter-controls admin-board-filter-controls">
+                    <details class="admin-board-sort-dropdown">
+                      <summary class="admin-board-sort-button">
+                        {{model.sortLabel}}
+                        <span class="material-symbols-outlined">expand_more</span>
+                      </summary>
+                      <div class="admin-board-sort-menu">
+                        <a class="admin-board-sort-option{{model.latestClass}}"
+                           href="/admin/boards?sort=latest{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 최신 순</a>
+                        <a class="admin-board-sort-option{{model.dateClass}}"
+                           href="/admin/boards?sort=date{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 오래된 순</a>
+                        <a class="admin-board-sort-option{{model.viewClass}}"
+                           href="/admin/boards?sort=view{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 많은 순</a>
+                        <a class="admin-board-sort-option{{model.lowViewClass}}"
+                           href="/admin/boards?sort=downview{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 적은 순</a>
+                        <a class="admin-board-sort-option{{model.likeClass}}"
+                           href="/admin/boards?sort=likes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 많은 순</a>
+                        <a class="admin-board-sort-option{{model.lowLikeClass}}"
+                           href="/admin/boards?sort=downlikes{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 적은 순</a>
+                      </div>
+                    </details>
+
+                    <a class="admin-board-reset" href="/admin/boards">
+                      <span class="material-symbols-outlined">restart_alt</span>
+                      초기화
+                    </a>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="admin-table-wrap">
+              <table class="table admin-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>작성일</th>
+                    <th class="text-center">조회수</th>
+                    <th class="text-end">관리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#models}}
+                  <tr>
+                    <td>
+                      <span class="admin-category-badge {{categoryClass}}">{{category}}</span>
+                    </td>
+                    <td>
+                      <a href="/boards/{{id}}" class="admin-name admin-title-link">{{title}}</a>
+                    </td>
+                    <td>{{userName}}</td>
+                    <td>{{createdDate}}</td>
+                    <td class="text-center">{{viewCount}}</td>
+                    <td class="text-end">
+                      <div class="admin-action-menu" data-admin-action-menu>
+                        {{>partials/admin-board-action-menu}}
+                      </div>
+                    </td>
+                  </tr>
+                  {{/models}}
+
+                  {{^models}}
+                  <tr>
+                    <td colspan="6" class="text-center">게시글이 없습니다.</td>
+                  </tr>
+                  {{/models}}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="admin-panel__footer">
+              <div class="admin-pagination">
+                {{#model.prevPage}}
+                <a class="admin-page-button"
+                   href="/admin/boards?page={{model.prevPage}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
+                  <span class="material-symbols-outlined">chevron_left</span>
+                </a>
+                {{/model.prevPage}}
+
+                {{#model.pageItems}}
+                  {{#current}}
+                  <button class="admin-page-button is-active-page" type="button">
+                    {{displayNumber}}
+                  </button>
+                  {{/current}}
+
+                  {{^current}}
+                  <a class="admin-page-button"
+                     href="/admin/boards?page={{page}}{{#selectCategory}}&category={{selectCategory}}{{/selectCategory}}{{#sort}}&sort={{sort}}{{/sort}}{{#keyword}}&keyword={{keyword}}{{/keyword}}">
+                    {{displayNumber}}
+                  </a>
+                  {{/current}}
+                {{/model.pageItems}}
+
+                {{#model.nextPage}}
+                <a class="admin-page-button"
+                   href="/admin/boards?page={{model.nextPage}}{{#model.allCategory}}&category={{model.allCategory}}{{/model.allCategory}}{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
+                  <span class="material-symbols-outlined">chevron_right</span>
+                </a>
+                {{/model.nextPage}}
+              </div>
+            </div>
+          </section>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  {{>partials/footer}}
+  {{>partials/scripts}}
+  {{>partials/admin-page-scripts}}
+</body>
+</html>

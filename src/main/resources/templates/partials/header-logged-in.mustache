@@ -1,0 +1,91 @@
+<nav class="
+  navbar
+  navbar-expand-lg
+  app-navbar
+  sticky-top
+">
+  <div class="container">
+    <a class="navbar-brand app-brand brand-font" href="/">여기한국</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appNav" aria-controls="appNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="appNav">
+      <ul class="
+        navbar-nav
+        mx-auto
+        mb-2
+        mb-lg-0
+      ">
+
+        <li class="nav-item"><a class="nav-link" data-logged-in-nav="explore" href="/bookings/map-detail" onclick="setLoggedInNavActive('explore');">탐색</a></li>
+        <li class="nav-item"><a class="nav-link" data-logged-in-nav="trip" href="/trip" onclick="setLoggedInNavActive('trip');">여행계획</a></li>
+        <li class="nav-item"><a class="nav-link" data-logged-in-nav="calendar" href="/calendar" onclick="setLoggedInNavActive('calendar');">캘린더</a></li>
+        <li class="nav-item"><a class="nav-link" data-logged-in-nav="community" href="/boards" onclick="setLoggedInNavActive('community');">커뮤니티</a></li>
+      </ul>
+      <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2 mt-3 mt-lg-0">
+        {{#sessionUser.admin}}
+        <a href="/admin" class="btn btn-primary btn-sm fw-semibold">관리자 대시보드</a>
+        {{/sessionUser.admin}}
+        <div class="dropdown">
+          <button class="
+            btn
+            btn-outline-secondary
+            btn-sm
+            dropdown-toggle
+          " type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {{sessionUser.username}} 님
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/mypage">마이페이지</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="/logout">로그아웃</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+  function setLoggedInNavActive(menuKey) {
+    var links = document.querySelectorAll("[data-logged-in-nav]");
+    links.forEach(function (link) {
+      link.classList.remove("active", "fw-semibold");
+    });
+
+    var selectedLink = document.querySelector('[data-logged-in-nav="' + menuKey + '"]');
+    if (selectedLink) {
+      selectedLink.classList.add("active", "fw-semibold");
+    }
+  }
+
+  function resolveLoggedInNavByPath(pathname) {
+    if (pathname.indexOf("/bookings/map-detail") === 0) {
+      return "explore";
+    }
+    if (pathname.indexOf("/trip") === 0 ) {
+      return "trip";
+    }
+    if (pathname.indexOf("/calendar") === 0) {
+      return "calendar";
+    }
+    if (pathname.indexOf("/boards") === 0) {
+      return "community";
+    }
+    return null;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var activeMenu = resolveLoggedInNavByPath(window.location.pathname);
+    if (activeMenu) {
+      setLoggedInNavActive(activeMenu);
+    } else {
+      var links = document.querySelectorAll("[data-logged-in-nav]");
+      links.forEach(function (link) {
+        link.classList.remove("active", "fw-semibold");
+      });
+    }
+  });
+</script>
+

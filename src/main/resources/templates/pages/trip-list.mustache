@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip Plans List</title>
+  {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
+</head>
+<body class="page-body-main-shell">
+  {{>partials/header}}
+
+<main class="page-main-wrap-md">
+<div class="trip-plan-list-div-01">
+<div>
+<h2 class="trip-plan-list-h2-01">내 여행 계획</h2>
+<p class="trip-plan-list-p-01">설레는 여행의 시작, 꼼꼼하게 계획해보세요.</p>
+</div>
+<button class="trip-plan-list-button-01" type="button" onclick="location.href='/trip/create'">
+<span class="icon-ms-20">add</span>
+<span>새 여행 만들기</span>
+</button>
+</div>
+
+{{#model}}
+<div class="tab-strip-scroll">
+  <a href="/trip?category=result&page=0"
+     class="{{#isResult}}trip-plan-list-button-02{{/isResult}}{{^isResult}}chip-surface{{/isResult}}">
+    전체 보기
+  </a>
+
+  <a href="/trip?category=upcoming&page=0"
+     class="{{#isUpcoming}}trip-plan-list-button-02{{/isUpcoming}}{{^isUpcoming}}chip-surface{{/isUpcoming}}">
+    예정된 여행
+  </a>
+
+  <a href="/trip?category=past&page=0"
+     class="{{#isPast}}trip-plan-list-button-02{{/isPast}}{{^isPast}}chip-surface{{/isPast}}">
+    다녀온 여행
+  </a>
+</div>
+
+<div class="trip-plan-list-div-02">
+{{#models}}
+<div class="trip-card">
+<div class="trip-card-media">
+<div class="trip-card-media-bg" onclick="location.href='/trip/detail?id={{id}}'" role="link" tabindex="0" data-alt="Beautiful view of Busan coastline during sunset"
+style="background-image: url('{{imgUrl}}');"></div>{{^disabled}}
+<div class="trip-plan-list-div-03">
+  {{dDay}}
+</div>
+{{/disabled}}
+</div>
+<div class="trip-card-body">
+<div class="trip-card-header">
+<h3 class="trip-card-title">{{title}}</h3>
+</div>
+<div class="trip-card-meta">
+<span class="icon-ms-18">location_on</span>
+<span>{{regionLabel}}</span>
+</div>
+<div class="trip-card-meta-stack">
+<span class="icon-ms-18">calendar_today</span>
+<span>{{dateRangeLabel}}</span>
+</div>
+<div class="trip-card-footer">
+<div class="trip-card-count">
+<span class="icon-ms-20-primary">bookmark</span>
+<span>장소 {{placeCount}}개</span>
+</div>
+<button class="trip-card-link" type="button" onclick="location.href='/trip/detail?id={{id}}'">
+                            상세 보기 <span class="icon-ms-16-shift-right">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</div>
+{{/models}}
+
+{{^models}}
+<div class="empty-state">
+  등록된 여행 계획이 없습니다.
+</div>
+{{/models}}
+</div>
+
+<div class="trip-plan-list-div-06">
+  {{#hasPrev}}
+  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{prevPage}}">
+    <span class="icon-ms-lg">chevron_left</span>
+  </a>
+  {{/hasPrev}}
+
+  {{#pageNumbers}}
+    {{#current}}
+    <button class="trip-plan-list-button-03 active" type="button">
+      {{displayPage}}
+    </button>
+    {{/current}}
+
+    {{^current}}
+    <a class="trip-plan-list-button-03 inactive" href="/trip?category={{category}}&page={{page}}">
+      {{displayPage}}
+    </a>
+    {{/current}}
+  {{/pageNumbers}}
+
+  {{#hasNext}}
+  <a class="icon-btn-surface" href="/trip?category={{category}}&page={{nextPage}}">
+    <span class="icon-ms-lg">chevron_right</span>
+  </a>
+  {{/hasNext}}
+</div>
+{{/model}}
+</main>
+
+  {{>partials/chatbot}}
+  {{>partials/footer}}
+  {{>partials/scripts}}
+</body>
+</html>
