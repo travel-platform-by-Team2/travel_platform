@@ -176,11 +176,13 @@
   .panel-elevated-lg{padding:2rem}
 }
 .panel-header{padding:1.5rem;border-bottom:1px solid #e2e8f0;background:#fff;flex-shrink:0}
-.panel-body-fill{flex:1 1 auto;display:flex;flex-direction:column;padding:1.5rem;background:#fff;height:100%}
+/* Let the right-side detail body own the single scroll area. */
+.panel-body-fill{flex:1 1 auto;display:flex;flex-direction:column;padding:1.5rem;background:#fff;height:100%;min-height:0;overflow-y:auto}
 .panel-footer-actions{background:#f8fafc;padding:1.25rem 2rem;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:.75rem}
 .surface-panel{background:#f6f6f8;border-radius:.75rem;box-shadow:0 1px 2px rgba(15,23,42,.08);border:1px solid #e2e8f0;overflow:hidden}
 .notice-sky-row{display:flex;align-items:center;gap:1rem;padding:1rem;background:#e0f2fe;border-radius:.75rem;border:1px solid #bae6fd}
-.scroll-stack{flex:1 1 auto;overflow-y:auto;padding-bottom:1rem;display:flex;flex-direction:column;gap:.75rem}
+/* Memo cards now follow the panel scroll instead of creating a nested scrollbar. */
+.scroll-stack{padding-bottom:1rem;display:flex;flex-direction:column;gap:.75rem}
 .timeline-dot{position:absolute;left:-9px;top:0;width:1rem;height:1rem;border-radius:9999px;border:2px solid #fff;background:#cbd5e1;transition:background-color .2s ease}
 .group:hover .timeline-dot{background:#0d6efd}
 .timeline-card{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:1rem;border-radius:.75rem;border:1px solid #f1f5f9;box-shadow:0 1px 2px rgba(15,23,42,.08);transition:box-shadow .2s ease}
@@ -557,7 +559,7 @@
 .link-underline-primary{text-decoration:underline;color:inherit;transition:color .2s ease}
 .link-underline-primary:hover{color:#0d6efd}
 .icon-ms-primary{font-family:"Material Symbols Outlined";font-weight:400;font-style:normal;line-height:1;display:inline-block;color:#0d6efd;}
-.icon-ms-primary-48-bold,.icon-ms-sm-muted,.icon-ms-sm-green-500,.icon-ms-18-hover-left,.icon-ms-24-white,.icon-ms-18-hover-right,.icon-ms-28,.icon-ms-3xl,.icon-ms-hover-fill-current,.icon-ms-base,.icon-ms-sm-white,.icon-ms-sm-red-600,.icon-ms-muted,.icon-ms-hover-pulse,.icon-ms-24,.icon-ms-20-yellow-fill,.icon-ms-20-neutral-mt,.icon-ms-20-neutral,.icon-ms-16-tight,.icon-ms-10,.icon-ms-5xl-primary-shadow,.icon-ms-14-mr1,.icon-ms-3xl-orange-my1,.icon-ms-3xl-blue-my1,.icon-ms-3xl-muted-my1,.icon-ms-hover-scale,.icon-ms-6xl{font-family:"Material Symbols Outlined";font-weight:400;font-style:normal;line-height:1;display:inline-block;letter-spacing:normal;text-transform:none;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:"liga";-webkit-font-smoothing:antialiased;}
+.icon-ms-primary-48-bold,.icon-ms-sm-muted,.icon-ms-sm-green-500,.icon-ms-18-hover-left,.icon-ms-24-white,.icon-ms-18-hover-right,.icon-ms-28,.icon-ms-3xl,.icon-ms-hover-fill-current,.icon-ms-base,.icon-ms-sm-white,.icon-ms-sm-red-600,.icon-ms-muted,.icon-ms-hover-pulse,.icon-ms-24,.icon-ms-20-yellow-fill,.icon-ms-20-neutral-mt,.icon-ms-20-neutral,.icon-ms-16-tight,.icon-ms-10,.icon-ms-5xl-primary-shadow,.icon-ms-14-mr1,.icon-ms-3xl-orange-my1,.icon-ms-3xl-blue-my1,.icon-ms-3xl-muted-my1,.icon-ms-3xl-white-my1,.icon-ms-3xl-gray-my1,.icon-ms-hover-scale,.icon-ms-6xl{font-family:"Material Symbols Outlined";font-weight:400;font-style:normal;line-height:1;display:inline-block;letter-spacing:normal;text-transform:none;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:"liga";-webkit-font-smoothing:antialiased;}
 .icon-ms-primary-48-bold{font-size:48px;font-weight:700;color:#0d6efd}
 .icon-ms-sm-muted{font-size:.875rem;color:#94a3b8}
 .icon-ms-sm-green-500{font-size:.875rem;color:#22c55e}
@@ -587,6 +589,8 @@
 .icon-ms-3xl-orange-my1{font-size:1.875rem;color:#fb923c;margin-top:.25rem;margin-bottom:.25rem}
 .icon-ms-3xl-blue-my1{font-size:1.875rem;color:#60a5fa;margin-top:.25rem;margin-bottom:.25rem}
 .icon-ms-3xl-muted-my1{font-size:1.875rem;color:#64748b;margin-top:.25rem;margin-bottom:.25rem}
+.icon-ms-3xl-white-my1{font-size:1.875rem;color:#ffffff;filter:drop-shadow(0 0 1px rgba(0,0,0,0.3));margin-top:.25rem;margin-bottom:.25rem}
+.icon-ms-3xl-gray-my1{font-size:1.875rem;color:#94a3b8;margin-top:.25rem;margin-bottom:.25rem}
 .icon-ms-hover-scale{transition:transform .2s ease}
 .group:hover .icon-ms-hover-scale{transform:scale(1.1)}
 .icon-ms-6xl{font-size:3.75rem}
@@ -676,10 +680,10 @@
 .event-range--family{background:#9333ea}
 .event-range--work{background:#ea580c}
 .calendar-add-event-div-09 button.is-active{transform:translateY(-1px);box-shadow:0 6px 12px rgba(15,23,42,.12);border:1px solid rgba(15,23,42,.08);}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="TRIP"]{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="PERSONAL"]{background:#d1fae5;color:#047857;border-color:#6ee7b7}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="FAMILY"]{background:#f3e8ff;color:#7e22ce;border-color:#d8b4fe}
-.calendar-add-event-div-09 button.is-active[data-calendar-category="WORK"]{background:#ffedd5;color:#c2410c;border-color:#fdba74}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="TRIP"]{background:#eff6ff;color:#1d4fd8d7;border-color:#93c5fd}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="PERSONAL"]{background:#d1fae5;color:#05835fd2;border-color:#6ee7b7}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="FAMILY"]{background:#f3e8ff;color:rgba(131, 53, 199, 0.815);border-color:#d8b4fe}
+.calendar-add-event-div-09 button.is-active[data-calendar-category="WORK"]{background:#ffedd5;color:#c2400cd7;border-color:#fdba74}
 .calendar-add-event-div-09 button[data-calendar-category]{border-radius:9999px;border:1px solid transparent;transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease,color .15s ease,border-color .15s ease}
 .calendar-add-event-div-09 button[data-calendar-category].is-active{box-shadow:0 8px 16px rgba(15,23,42,.2)}
 .inline-row-hover-primary{display:flex;align-items:center;gap:.375rem;transition:color .2s ease}

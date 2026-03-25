@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TravelKorea - Community Post Creation</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 
   <!-- Summernote -->
   <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
@@ -16,7 +17,7 @@
   <main class="page-main-compact">
     <div class="surface-panel">
       <form action="/boards" method="post">
-        {{#page}}
+        {{#model}}
         <div class="community-create-div-04">
 
           <div class="stack-gap-2">
@@ -79,7 +80,7 @@
           </div>
 
         </div>
-        {{/page}}
+        {{/model}}
 
         <div class="panel-footer-actions">
           <a class="community-create-button-01" href="/boards">취소</a>

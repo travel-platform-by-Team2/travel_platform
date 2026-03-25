@@ -15,38 +15,42 @@ public class BoardResponse {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
+    private static String sortClass(BoardSort currentSort, BoardSort targetSort) {
+        if (currentSort == targetSort) {
+            return " is-active";
+        }
+        return "";
+    }
+
     @Data
     @Builder
     public static class SummaryDTO {
         private Integer id;
         private String title;
         private String username;
-        private String category;
         private String categoryLabel;
         private String categoryClass;
         private Integer viewCount;
         private Integer likeCount;
         private Integer replyCount;
-        private LocalDateTime createdAt;
         private String createdAtDisplay;
         private String summary;
 
-        public static SummaryDTO from(Board board, int likeCount) {
+        public static SummaryDTO fromBoard(Board board, int likeCount, int replyCount) {
             String plainText = Jsoup.parse(board.getContent()).text();
             String summary = plainText.substring(0, Math.min(80, plainText.length()));
             LocalDateTime createdAt = board.getCreatedAt();
+            BoardCategory category = board.getCategory();
 
             return SummaryDTO.builder()
                     .id(board.getId())
                     .title(board.getTitle())
                     .username(board.getUser().getUsername())
-                    .category(board.getCategory())
-                    .categoryLabel(toCategoryLabel(board.getCategory()))
-                    .categoryClass(toCategoryClass(board.getCategory()))
+                    .categoryLabel(category.getLabel())
+                    .categoryClass(category.getCssClass())
                     .viewCount(board.getViewCount())
                     .likeCount(likeCount)
-                    .replyCount(board.getReplies().size())
-                    .createdAt(createdAt)
+                    .replyCount(replyCount)
                     .createdAtDisplay(formatDateTime(createdAt))
                     .summary(summary)
                     .build();
@@ -56,32 +60,73 @@ public class BoardResponse {
     @Data
     @Builder
     public static class ListPageDTO {
-        private List<SummaryDTO> boards;
         private List<PageItemDTO> pageItems;
         private int currentPage;
-        private int pageNumber;
-        private int size;
-        private long totalCount;
         private int totalPages;
-        private boolean first;
-        private boolean last;
         private Integer prevPage;
         private Integer nextPage;
         private String category;
         private String keyword;
         private String sort;
         private String sortLabel;
-        private boolean isSortLikes;
-        private boolean isSortDownlikes;
-        private boolean isSortViews;
-        private boolean isSortDownviews;
-        private boolean isSortLatest;
-        private boolean isSortDate;
+        private String likeClass;
+        private String lowLikeClass;
+        private String viewClass;
+        private String lowViewClass;
+        private String latestClass;
+        private String dateClass;
         private boolean isTips;
         private boolean isPlan;
         private boolean isFood;
         private boolean isReview;
         private boolean isQna;
+
+        public static ListPageDTO createListPage(List<PageItemDTO> pageItems,
+                int currentPage,
+                int totalPages,
+                String category,
+                String keyword,
+                BoardSort sort) {
+            boolean first = currentPage == 0;
+            boolean last = currentPage >= totalPages - 1;
+
+            return ListPageDTO.builder()
+                    .pageItems(pageItems)
+                    .currentPage(currentPage)
+                    .totalPages(totalPages)
+                    .prevPage(first ? null : currentPage - 1)
+                    .nextPage(last ? null : currentPage + 1)
+                    .category(category)
+                    .keyword(keyword)
+                    .sort(sort.getCode())
+                    .sortLabel(sort.getLabel())
+                    .likeClass(sortClass(sort, BoardSort.LIKES))
+                    .lowLikeClass(sortClass(sort, BoardSort.DOWNLIKES))
+                    .viewClass(sortClass(sort, BoardSort.VIEW))
+                    .lowViewClass(sortClass(sort, BoardSort.DOWNVIEW))
+                    .latestClass(sortClass(sort, BoardSort.LATEST))
+                    .dateClass(sortClass(sort, BoardSort.DATE))
+                    .isTips(isCategory(category, "tips"))
+                    .isPlan(isCategory(category, "plan"))
+                    .isFood(isCategory(category, "food"))
+                    .isReview(isCategory(category, "review"))
+                    .isQna(isCategory(category, "qna"))
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
+    public static class ListViewDTO {
+        private ListPageDTO model;
+        private List<SummaryDTO> models;
+
+        public static ListViewDTO createListView(ListPageDTO model, List<SummaryDTO> models) {
+            return ListViewDTO.builder()
+                    .model(model)
+                    .models(models)
+                    .build();
+        }
     }
 
     @Data
@@ -90,6 +135,14 @@ public class BoardResponse {
         private int page;
         private int displayNumber;
         private boolean current;
+
+        public static PageItemDTO createPageItem(int page, boolean current) {
+            return PageItemDTO.builder()
+                    .page(page)
+                    .displayNumber(page + 1)
+                    .current(current)
+                    .build();
+        }
     }
 
     @Data
@@ -99,11 +152,10 @@ public class BoardResponse {
         private Integer boardId;
         private String username;
         private String content;
-        private LocalDateTime createdAt;
         private String createdAtDisplay;
         private boolean isOwner;
 
-        public static ReplyItemDTO from(Reply reply, Integer sessionUserId) {
+        public static ReplyItemDTO fromReply(Reply reply, Integer sessionUserId) {
             boolean isOwner = sessionUserId != null && reply.getUser().getId().equals(sessionUserId);
             LocalDateTime createdAt = reply.getCreatedAt();
 
@@ -112,7 +164,6 @@ public class BoardResponse {
                     .boardId(reply.getBoard().getId())
                     .username(reply.getUser().getUsername())
                     .content(reply.getContent())
-                    .createdAt(createdAt)
                     .createdAtDisplay(formatDateTime(createdAt))
                     .isOwner(isOwner)
                     .build();
@@ -125,43 +176,42 @@ public class BoardResponse {
         private Integer id;
         private String title;
         private String content;
-        private String category;
         private String categoryLabel;
         private String categoryClass;
         private String username;
         private Integer viewCount;
         private Integer replyCount;
-        private LocalDateTime createdAt;
         private String createdAtDisplay;
         private List<ReplyItemDTO> replies;
         private Boolean isOwner;
         private Boolean isAdmin;
+        private Boolean canManage;
         private Long likeCount;
         private Boolean likedByMe;
 
-        public static DetailDTO of(Board board,
+        public static DetailDTO fromBoard(Board board,
                 List<ReplyItemDTO> replies,
                 long likeCount,
                 boolean likedByMe,
                 boolean isOwner,
                 boolean isAdmin) {
             LocalDateTime createdAt = board.getCreatedAt();
+            BoardCategory category = board.getCategory();
 
             return DetailDTO.builder()
                     .id(board.getId())
                     .title(board.getTitle())
                     .content(board.getContent())
-                    .category(board.getCategory())
-                    .categoryLabel(toCategoryLabel(board.getCategory()))
-                    .categoryClass(toCategoryClass(board.getCategory()))
+                    .categoryLabel(category.getLabel())
+                    .categoryClass(category.getCssClass())
                     .username(board.getUser().getUsername())
                     .viewCount(board.getViewCount())
                     .replyCount(replies.size())
-                    .createdAt(createdAt)
                     .createdAtDisplay(formatDateTime(createdAt))
                     .replies(replies)
                     .isOwner(isOwner)
                     .isAdmin(isAdmin)
+                    .canManage(isOwner || isAdmin)
                     .likeCount(likeCount)
                     .likedByMe(likedByMe)
                     .build();
@@ -180,46 +230,61 @@ public class BoardResponse {
         private String contentError;
 
         public static FormDTO empty() {
-            return FormDTO.builder()
-                    .category("")
-                    .title("")
-                    .content("")
-                    .build();
+            return createForm(null, "", "", "", null, null, null);
         }
 
-        public static FormDTO fromCreate(BoardRequest.CreateDTO reqDTO,
+        public static FormDTO fromCreateRequest(BoardRequest.CreateDTO reqDTO,
                 String categoryError,
                 String titleError,
                 String contentError) {
-            return FormDTO.builder()
-                    .category(reqDTO.getCategory())
-                    .title(reqDTO.getTitle())
-                    .content(reqDTO.getContent())
-                    .categoryError(categoryError)
-                    .titleError(titleError)
-                    .contentError(contentError)
-                    .build();
+            return createForm(
+                    null,
+                    reqDTO.getCategory(),
+                    reqDTO.getTitle(),
+                    reqDTO.getContent(),
+                    categoryError,
+                    titleError,
+                    contentError);
         }
 
         public static FormDTO fromBoard(Board board) {
-            return FormDTO.builder()
-                    .id(board.getId())
-                    .category(board.getCategory())
-                    .title(board.getTitle())
-                    .content(board.getContent())
-                    .build();
+            return createForm(
+                    board.getId(),
+                    board.getCategoryCode(),
+                    board.getTitle(),
+                    board.getContent(),
+                    null,
+                    null,
+                    null);
         }
 
-        public static FormDTO fromUpdate(Integer boardId,
+        public static FormDTO fromUpdateRequest(Integer boardId,
                 BoardRequest.UpdateDTO reqDTO,
                 String categoryError,
                 String titleError,
                 String contentError) {
+            return createForm(
+                    boardId,
+                    reqDTO.getCategory(),
+                    reqDTO.getTitle(),
+                    reqDTO.getContent(),
+                    categoryError,
+                    titleError,
+                    contentError);
+        }
+
+        private static FormDTO createForm(Integer id,
+                String category,
+                String title,
+                String content,
+                String categoryError,
+                String titleError,
+                String contentError) {
             return FormDTO.builder()
-                    .id(boardId)
-                    .category(reqDTO.getCategory())
-                    .title(reqDTO.getTitle())
-                    .content(reqDTO.getContent())
+                    .id(id)
+                    .category(category)
+                    .title(title)
+                    .content(content)
                     .categoryError(categoryError)
                     .titleError(titleError)
                     .contentError(contentError)
@@ -233,7 +298,7 @@ public class BoardResponse {
         private boolean liked;
         private long likeCount;
 
-        public static LikeToggleDTO of(boolean liked, long likeCount) {
+        public static LikeToggleDTO createLikeToggle(boolean liked, long likeCount) {
             return LikeToggleDTO.builder()
                     .liked(liked)
                     .likeCount(likeCount)
@@ -248,33 +313,7 @@ public class BoardResponse {
         return dateTime.format(DATE_TIME_FORMATTER);
     }
 
-    private static String toCategoryLabel(String category) {
-        if (category == null) {
-            return "";
-        }
-
-        return switch (category) {
-            case "tips" -> "여행 팁";
-            case "plan" -> "여행 계획";
-            case "food" -> "맛집/카페";
-            case "review" -> "숙소 후기";
-            case "qna" -> "질문/답변";
-            default -> category;
-        };
-    }
-
-    private static String toCategoryClass(String category) {
-        if (category == null) {
-            return "";
-        }
-
-        return switch (category) {
-            case "tips" -> "cat-tips";
-            case "plan" -> "cat-plan";
-            case "food" -> "cat-food";
-            case "review" -> "cat-review";
-            case "qna" -> "cat-qna";
-            default -> "";
-        };
+    private static boolean isCategory(String actualCategory, String expectedCategory) {
+        return expectedCategory.equals(actualCategory);
     }
 }

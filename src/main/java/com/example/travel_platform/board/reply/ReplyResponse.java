@@ -3,10 +3,14 @@ package com.example.travel_platform.board.reply;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Builder;
 import lombok.Data;
 
 public class ReplyResponse {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Data
     @Builder
@@ -16,10 +20,10 @@ public class ReplyResponse {
         private String username;
         private String content;
         private String createdAtDisplay;
+        @JsonProperty("isOwner")
         private boolean isOwner;
 
-        public static CreatedDTO from(Reply reply) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        public static CreatedDTO fromReply(Reply reply) {
             LocalDateTime createdAt = reply.getCreatedAt() == null ? LocalDateTime.now() : reply.getCreatedAt();
 
             return CreatedDTO.builder()
@@ -27,7 +31,7 @@ public class ReplyResponse {
                     .boardId(reply.getBoard().getId())
                     .username(reply.getUser().getUsername())
                     .content(reply.getContent())
-                    .createdAtDisplay(createdAt.format(formatter))
+                    .createdAtDisplay(createdAt.format(DATE_TIME_FORMATTER))
                     .isOwner(true)
                     .build();
         }
@@ -40,7 +44,7 @@ public class ReplyResponse {
         private Integer replyId;
         private String content;
 
-        public static UpdatedDTO from(Reply reply) {
+        public static UpdatedDTO fromReply(Reply reply) {
             return UpdatedDTO.builder()
                     .boardId(reply.getBoard().getId())
                     .replyId(reply.getId())

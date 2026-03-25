@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.travel_platform._core.handler.ex.Exception400;
@@ -21,10 +22,18 @@ class UserServiceWithdrawalTest {
     private UserService userService;
 
     @Autowired
+    private UserQueryRepository userQueryRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private EntityManager em;
 
     @Test
-    void withdrawAccount_deletesUserAndConnectedData() {
+    void withdraw() {
+        encodePassword(1, "1234");
+
         userService.withdrawAccount(1, "1234");
 
         assertEquals(0L, count("select count(u) from User u where u.id = :userId", 1));
@@ -42,15 +51,26 @@ class UserServiceWithdrawalTest {
     }
 
     @Test
-    void withdrawAccount_rejectsWrongPassword() {
+    void wrongPw() {
+        encodePassword(1, "1234");
+
         assertThrows(Exception400.class, () -> userService.withdrawAccount(1, "wrong-password"));
         assertEquals(1L, count("select count(u) from User u where u.id = :userId", 1));
     }
 
     @Test
-    void withdrawAccount_rejectsAdminUser() {
+    void admin() {
+        encodePassword(3, "1234");
+
         assertThrows(Exception403.class, () -> userService.withdrawAccount(3, "1234"));
         assertEquals(1L, count("select count(u) from User u where u.id = :userId", 3));
+    }
+
+    private void encodePassword(Integer userId, String rawPassword) {
+        User user = userQueryRepository.findUser(userId).orElseThrow();
+        user.changePassword(passwordEncoder.encode(rawPassword));
+        em.flush();
+        em.clear();
     }
 
     private long count(String jpql, Integer userId) {

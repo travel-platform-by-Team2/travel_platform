@@ -365,6 +365,13 @@
     return createFallbackImageDataUri(item);
   }
 
+  function unwrapRespBody(data) {
+    if (data && typeof data === "object" && Object.prototype.hasOwnProperty.call(data, "body")) {
+      return data.body;
+    }
+    return data;
+  }
+
   function parseGuestCountLabel(rawValue) {
     var value = String(rawValue || "");
     var match = value.match(/\d+/);
@@ -483,7 +490,7 @@
         return "";
       }
 
-      var data = await response.json();
+      var data = unwrapRespBody(await response.json());
       var imageUrl = data && typeof data.imageUrl === "string" ? data.imageUrl : "";
       state.imageCache[cacheKey] = imageUrl;
       return imageUrl;
@@ -788,6 +795,10 @@
 
   async function renderRoomList(state, item, container) {
     if (!container) return;
+    
+    var bookBtn = document.getElementById("unifiedBookBtn");
+    if (bookBtn) bookBtn.style.display = "none"; // Reset button visibility
+
     if (item.type !== "hotel") {
       container.innerHTML = "";
       return;
@@ -801,14 +812,13 @@
     var rooms = [];
 
     try {
-      // 서버 API 호출 (이름과 주소 전달)
       var params = new URLSearchParams();
       params.set("lodgingName", item.name);
       params.set("address", item.roadAddress || item.address || "");
       
       var response = await fetch("/api/bookings/rooms?" + params.toString());
       if (response.ok) {
-        var data = await response.json();
+        var data = unwrapRespBody(await response.json());
         if (Array.isArray(data) && data.length > 0) {
           rooms = data.map(function(r) {
             return {
@@ -821,23 +831,20 @@
         }
       }
     } catch (error) {
-      console.error("TourAPI fetch error:", error);
+      console.error("Rooms fetch error:", error);
     }
 
-    // 데이터가 없으면 가상 데이터 사용 (폴백) - 숙소 이름을 기반으로 다양하게 생성
     if (rooms.length === 0) {
       var seed = hashText(item.name);
       var themes = ["모던 ", "클래식 ", "우드톤 ", "미니멀 ", "럭셔리 "];
       var theme = themes[seed % themes.length];
-      
-      var roomCount = 2 + (seed % 3); // 2~4개 객실 생성
+      var roomCount = 2 + (seed % 3);
       for (var i = 0; i < roomCount; i++) {
         var roomType = (i === 0) ? "스탠다드" : (i === 1) ? "디럭스" : (i === 2) ? "프리미엄" : "스위트";
         var viewType = (seed + i) % 2 === 0 ? " 시티뷰" : " 마운틴뷰";
         if (item.address && (item.address.indexOf("부산") >= 0 || item.address.indexOf("제주") >= 0)) {
             viewType = (seed + i) % 2 === 0 ? " 오션뷰" : " 비치뷰";
         }
-
         rooms.push({
           name: theme + roomType + viewType,
           price: basePrice + (i * 35000) + (seed % 5 * 5000),
@@ -849,29 +856,89 @@
       }
     }
 
-    var html = '<div class="map-poi-panel-div-16"><h3 class="map-poi-panel-h3-01">객실 선택</h3>';
-    html += '<div class="room-list-group" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">';
+    // 카드에 표시되는 1박 최소가격(basePrice)과 객실 리스트의 최저가를 일치시키기 위해 정규화한다.
+    // (외부 데이터/가공 로직에 따라 객실 가격이 basePrice보다 높게 생성되는 경우가 있어 보정)
+    if (rooms.length > 0) {
+      var minRoomPrice = rooms.reduce(function (min, room) {
+        return Math.min(min, Number(room.price || 0));
+      }, Number.POSITIVE_INFINITY);
+
+      if (Number.isFinite(minRoomPrice) && minRoomPrice > basePrice) {
+        var diff = minRoomPrice - basePrice;
+        rooms = rooms.map(function (room) {
+          return Object.assign({}, room, {
+            price: Math.max(basePrice, Number(room.price || 0) - diff)
+          });
+        });
+      }
+    }
+
+    var html = '<div class="map-poi-panel-div-16"><h3 class="map-poi-panel-h3-01">객실 선택 (1개 선택 가능)</h3>';
+    html += '<div class="room-list-group" id="roomListGroup" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">';
     
-    rooms.forEach(function(room) {
-      html += '<div class="room-card" style="border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; background: #fff;">' +
-              '<img src="' + room.img + '" style="width: 100%; height: 160px; object-fit: cover;" alt="' + room.name + '">' +
+    rooms.forEach(function(room, idx) {
+      html += '<div class="room-card-selectable" data-idx="' + idx + '" style="cursor: pointer; border: 2px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; background: #fff; transition: all 0.2s;">' +
+              '<img src="' + room.img + '" style="width: 100%; height: 140px; object-fit: cover;" alt="' + room.name + '">' +
               '<div style="padding: 1rem;">' +
-              '<h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;">' + room.name + '</h4>' +
-              '<p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">' + (room.desc || "최대 인원 2명 · 금연") + '</p>' +
-              '<div style="display: flex; justify-content: space-between; align-items: flex-end;">' +
-              '<div><span style="font-size: 1.125rem; font-weight: 800; color: #1152d4;">' + formatWon(room.price) + '</span><span style="font-size: 0.75rem; color: #94a3b8;"> / 1박</span></div>' +
-              '<button class="fx-group-cta-primary room-book-btn" data-room-name="' + room.name + '" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto; min-width: 0; width: auto;">예약하기</button>' +
-              '</div></div></div>';
+              '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">' +
+              '<h4 style="font-size: 1rem; font-weight: 700; color: #0f172a;">' + room.name + '</h4>' +
+              '<span class="select-indicator icon-ms-20" style="color: #cbd5e1;">radio_button_unchecked</span>' +
+              '</div>' +
+              '<p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.75rem;">' + (room.desc || "최대 인원 2명 · 금연") + '</p>' +
+              '<div><span style="font-size: 1.05rem; font-weight: 800; color: #1152d4;">' + formatWon(room.price) + '</span><span style="font-size: 0.75rem; color: #94a3b8;"> / 1박</span></div>' +
+              '</div></div>';
     });
     
     html += '</div></div>';
     container.innerHTML = html;
 
-    // 예약 버튼 이벤트 바인딩
-    container.querySelectorAll(".room-book-btn").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        var roomName = btn.getAttribute("data-room-name");
-        goToBookingCheckout(state, item, roomName);
+    var selectedRoom = null;
+    var cards = container.querySelectorAll(".room-card-selectable");
+    
+    if (bookBtn) {
+        bookBtn.style.display = "flex";
+        bookBtn.disabled = true;
+        bookBtn.style.opacity = "0.5";
+        bookBtn.style.cursor = "not-allowed";
+        bookBtn.innerHTML = '<span class="icon-ms-20">touch_app</span> 객실을 선택해주세요';
+    }
+
+    cards.forEach(function(card) {
+      card.addEventListener("click", function() {
+        var idx = parseInt(this.getAttribute("data-idx"));
+        selectedRoom = rooms[idx];
+
+        // UI 업데이트
+        cards.forEach(function(c) {
+          c.style.borderColor = "#e2e8f0";
+          c.style.background = "#fff";
+          c.querySelector(".select-indicator").textContent = "radio_button_unchecked";
+          c.querySelector(".select-indicator").style.color = "#cbd5e1";
+        });
+
+        this.style.borderColor = "#1152d4";
+        this.style.background = "#f0f7ff";
+        this.querySelector(".select-indicator").textContent = "check_circle";
+        this.querySelector(".select-indicator").style.color = "#1152d4";
+
+        // 하단 버튼 활성화
+        if (bookBtn) {
+            bookBtn.disabled = false;
+            bookBtn.style.opacity = "1";
+            bookBtn.style.cursor = "pointer";
+            bookBtn.innerHTML = '<span class="icon-ms-20">check_circle</span> ' + selectedRoom.name + ' 예약하기';
+            
+            // 기존 이벤트 제거 및 새 이벤트 할당
+            var newBtn = bookBtn.cloneNode(true);
+            bookBtn.parentNode.replaceChild(newBtn, bookBtn);
+            bookBtn = newBtn;
+            
+            bookBtn.addEventListener("click", function() {
+                if (selectedRoom) {
+                    goToBookingCheckout(state, item, selectedRoom.name);
+                }
+            });
+        }
       });
     });
   }
@@ -917,6 +984,11 @@
       return;
     }
 
+    HAS_SELECTED_POI = true;
+
+    showFocusOverlay(state, item);
+
+    var scrollArea = panel.querySelector(".sidebar-scroll-white");
     var titleEl = panel.querySelector(".map-poi-panel-h1-01");
     var subtitleEl = panel.querySelector(".map-poi-panel-p-01");
     var badgeEl = panel.querySelector(".map-poi-panel-div-10");
@@ -970,6 +1042,12 @@
           return '<span class="chip-neutral-action">#' + escapeHtml(chip) + "</span>";
         })
         .join("");
+    }
+
+    if (scrollArea) {
+      scrollArea.style.visibility = "visible";
+      scrollArea.style.pointerEvents = "auto";
+      scrollArea.scrollTop = 0;
     }
     panel.hidden = false;
     if (toggleButton) {
@@ -1484,7 +1562,7 @@
       if (!response.ok) {
         return kakaoItems;
       }
-      var data = await response.json();
+      var data = unwrapRespBody(await response.json());
       var items = Array.isArray(data) ? data.map(normalizeMergedPoi).filter(Boolean) : [];
       return items.length ? items : kakaoItems;
     } catch (error) {
@@ -1568,26 +1646,19 @@
       state.lastCenter = targetCenter; // Update the Source of Truth
       state.hasSearched = true;
       state.syncByViewport = true;
+
+      // Reset list scroll to top on new search
+      var listContainer = document.querySelector("[data-map-drag-scroll]");
+      if (listContainer) {
+        listContainer.scrollTop = 0;
+      }
+
       fetchAndRenderVisiblePois(state);
     }
 
     submitButton.addEventListener("click", function (event) {
       event.preventDefault();
       searchBySelectedRegion(true);
-    });
-
-    regionSelect.addEventListener("change", function () {
-      var regionKey = regionSelect.value;
-      var view = REGION_VIEW[regionKey];
-      if (!view) {
-        return;
-      }
-      state.currentRegionKey = regionKey;
-      updateRegionLabel(regionSelect);
-      state.map.setLevel(view.level);
-      var targetCenter = new kakao.maps.LatLng(view.lat, view.lng);
-      state.map.panTo(targetCenter);
-      state.lastCenter = targetCenter; // Update the Source of Truth
     });
 
     function refreshListPriceOnly() {
@@ -1597,12 +1668,6 @@
       renderList(state);
     }
 
-    if (startDateEl) {
-      startDateEl.addEventListener("change", refreshListPriceOnly);
-    }
-    if (endDateEl) {
-      endDateEl.addEventListener("change", refreshListPriceOnly);
-    }
 
     if (hasSearchParamsInUrl()) {
       searchBySelectedRegion(false);
@@ -1799,10 +1864,18 @@
     }
 
     var closeButton = panel.querySelector("[data-map-poi-close]");
+    var scrollArea = panel.querySelector(".sidebar-scroll-white");
 
     function setOpen(open) {
       panel.hidden = !open;
       toggleButton.setAttribute("aria-expanded", String(open));
+      if (open && scrollArea && !HAS_SELECTED_POI) {
+        scrollArea.style.visibility = "hidden";
+        scrollArea.style.pointerEvents = "none";
+      }
+      if (!open && CURRENT_MAP_STATE) {
+        clearFocusOverlay(CURRENT_MAP_STATE);
+      }
       // Removed manual relayout: ResizeObserver will handle this using state.lastCenter
     }
 
@@ -1828,6 +1901,7 @@
   }
 
   var CURRENT_MAP_STATE = null;
+  var HAS_SELECTED_POI = false;
 
   function initPriceRangeSheet() {
     var toggleButton = document.querySelector("[data-price-range-toggle]");

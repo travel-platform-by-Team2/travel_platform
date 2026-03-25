@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Simplified Personal Calendar with Memo</title>
+  <title>{{model.pageTitle}}</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="page-body-overflow-hidden-shell">
   {{>partials/header}}
@@ -75,8 +76,8 @@
 <div class="calendar-add-event-div-09">
 <button class="calendar-add-event-button-03" type="button" data-calendar-category="TRIP"></button>
 <button class="calendar-add-event-button-04" type="button" data-calendar-category="PERSONAL"></button>
-<button class="calendar-add-event-button-05" type="button" data-calendar-category="FAMILY"></button>
-<button class="calendar-add-event-button-06" type="button" data-calendar-category="WORK"></button>
+<button class="calendar-add-event-button-06" type="button" data-calendar-category="FAMILY"></button>
+<button class="calendar-add-event-button-05" type="button" data-calendar-category="WORK"></button>
 </div>
 </div>
 {{!입력 필드: 메모}}
@@ -151,6 +152,7 @@
 
   {{>partials/chatbot}}
   {{>partials/footer}}
+  <script src="/js/calendar-add-event.js"></script>
   {{>partials/scripts}}
 </body>
 </html>

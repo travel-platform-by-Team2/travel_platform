@@ -4,31 +4,25 @@
 
 ## 목적
 
-여행 보조 챗봇 기능의 API, 애플리케이션 서비스, LLM 연동 구현을 묶는다.
+로그인 사용자 전용 챗봇 도메인이다.
+기본 흐름은 `LLM 질문 해석 -> 내부 조회/도구 호출 -> LLM 자연어 답변`이다.
 
-## 주요 파일
+## 주요 구조
 
-| 파일명 | 설명                                          |
-| ------ | --------------------------------------------- |
-| 없음   | 이 디렉토리는 하위 챗봇 패키지를 묶는 루트다. |
+- `ChatbotApiController -> ChatbotService -> (ChatQueryRepository, ChatbotLlmClient, WeatherService)`
+- 일반 대화는 `GENERAL_CHAT`로 처리한다.
+- 내부 데이터와 날씨는 모두 `DB_QA` 흐름 안에서 `QueryBlock`으로 만들고, 그 결과를 다시 LLM에 넘겨 답변을 만든다.
 
-## 하위 디렉토리
+## 작업 메모
 
-- `api/` - 챗봇 REST API 입구를 둔다.
-- `application/` - 챗봇 유스케이스 서비스를 둔다.
-- `infra/` - 외부 LLM 연동 구현체를 둔다.
-
-## AI 작업 지침
-
-- 현재 흐름은 계획 생성 -> 안전한 SQL 실행/LLM 재평가 반복 -> 최종 답변 생성 구조다.
-- DB 조회형 질문은 `LLM 자율 판단 + 최대 5회 하드캡`으로 재탐색할 수 있으므로, 탐색 이력 누적 형식을 함께 유지한다.
-- 허용 테이블과 SQL 안전성 정책은 `ChatbotQueryService`를 기준으로 유지한다.
+- 챗봇은 로그인 사용자만 사용할 수 있다.
+- 조회 대상 도메인은 `BOOKING`, `TRIP`, `CALENDAR`, `BOARD`, `WEATHER`다.
+- `WEATHER`는 LLM이 `keyword=region`, `startDate=targetDate`로 해석하면 `weather` 도메인의 공용 API 로직을 재사용한다.
+- 브라우저에서는 현재 페이지 생명주기 동안만 대화 이력을 메모리에 유지하고, 다음 요청 때 함께 보낸다.
+- 질문 해석 결과에는 `resolvedContext`가 포함되며, `domain`, `intent`, `region`, `targetDate`, `keyword`, `tripPlanId`, `isFollowUp`, `missingFields` 같은 공통 슬롯을 담는다.
+- `resolvedContext`는 같은 도메인의 후속 질문에서 `queryPlan`의 빈 필드를 보완하는 데 사용한다.
+- 날씨 응답도 다른 도메인과 같이 `QueryBlock`으로 만든 뒤 LLM이 최종 자연어 답변을 생성한다.
 
 ## 테스트
 
-- 챗봇 관련 변경 후에는 API, 오케스트레이션, SQL 안전성 테스트를 같이 확인한다.
-
-## 의존성
-
-- 내부: `api`, `application`, `infra`
-- 외부: `Spring JDBC`, `Gson`, `OpenAI Responses API`
+- 컨트롤러, DTO, `ChatbotService` 기준 테스트를 우선 확인한다.

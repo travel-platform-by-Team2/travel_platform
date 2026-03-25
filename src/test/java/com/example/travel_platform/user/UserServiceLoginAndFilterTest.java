@@ -13,9 +13,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception403;
 import com.example.travel_platform._core.interceptor.AdminInterceptor;
 import com.example.travel_platform._core.interceptor.LoginInterceptor;
-import com.example.travel_platform._core.handler.ex.Exception403;
 
 @SpringBootTest
 @Transactional
@@ -27,8 +27,11 @@ class UserServiceLoginAndFilterTest {
     @Autowired
     private UserSessionChecker userSessionChecker;
 
+    @Autowired
+    private UserSessionRegistry userSessionRegistry;
+
     @Test
-    void login_rejectsInactiveNormalUser() {
+    void loginOff() {
         UserRequest.LoginDTO reqDTO = new UserRequest.LoginDTO();
         reqDTO.setEmail("cos@nate.com");
         reqDTO.setPassword("1234");
@@ -38,14 +41,14 @@ class UserServiceLoginAndFilterTest {
     }
 
     @Test
-    void loginInterceptor_logsOutInactiveUserAndRedirectsLoginForm() throws Exception {
-        LoginInterceptor loginInterceptor = new LoginInterceptor(userSessionChecker);
+    void loginPage() throws Exception {
+        LoginInterceptor loginInterceptor = new LoginInterceptor(
+                new UserSessionPolicyChecker(userSessionChecker, userSessionRegistry));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/mypage");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        MockHttpSession session = new MockHttpSession();
+        MockHttpSession session = inactiveSession();
         MockFilterChain chain = new MockFilterChain();
 
-        SessionUsers.save(session, new SessionUser(2, "cos", "cos@nate.com", "010-5555-6666", "USER"));
         request.setSession(session);
 
         loginInterceptor.preHandle(request, response, chain);
@@ -56,14 +59,14 @@ class UserServiceLoginAndFilterTest {
     }
 
     @Test
-    void loginInterceptor_returnsForbiddenForInactiveUserApiRequest() throws Exception {
-        LoginInterceptor loginInterceptor = new LoginInterceptor(userSessionChecker);
+    void loginApi() throws Exception {
+        LoginInterceptor loginInterceptor = new LoginInterceptor(
+                new UserSessionPolicyChecker(userSessionChecker, userSessionRegistry));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/calendar");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        MockHttpSession session = new MockHttpSession();
+        MockHttpSession session = inactiveSession();
         MockFilterChain chain = new MockFilterChain();
 
-        SessionUsers.save(session, new SessionUser(2, "cos", "cos@nate.com", "010-5555-6666", "USER"));
         request.setSession(session);
 
         loginInterceptor.preHandle(request, response, chain);
@@ -73,14 +76,14 @@ class UserServiceLoginAndFilterTest {
     }
 
     @Test
-    void adminInterceptor_logsOutInactiveNormalUserBeforeAdminCheck() throws Exception {
-        AdminInterceptor adminInterceptor = new AdminInterceptor(userSessionChecker);
+    void adminPage() throws Exception {
+        AdminInterceptor adminInterceptor = new AdminInterceptor(
+                new UserSessionPolicyChecker(userSessionChecker, userSessionRegistry));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/admin");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        MockHttpSession session = new MockHttpSession();
+        MockHttpSession session = inactiveSession();
         MockFilterChain chain = new MockFilterChain();
 
-        SessionUsers.save(session, new SessionUser(2, "cos", "cos@nate.com", "010-5555-6666", "USER"));
         request.setSession(session);
 
         adminInterceptor.preHandle(request, response, chain);
@@ -88,5 +91,11 @@ class UserServiceLoginAndFilterTest {
         assertTrue(response.getContentAsString().contains("계정 상태가 변경되어 다시 로그인해 주세요."));
         assertTrue(response.getContentAsString().contains("/login-form"));
         assertTrue(session.isInvalid());
+    }
+
+    private MockHttpSession inactiveSession() {
+        MockHttpSession session = new MockHttpSession();
+        SessionUsers.save(session, new SessionUser(2, "cos", "cos@nate.com", "010-5555-6666", "USER"));
+        return session;
     }
 }

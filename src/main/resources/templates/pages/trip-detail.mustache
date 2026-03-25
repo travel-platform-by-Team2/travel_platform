@@ -3,8 +3,35 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Trip Plan Details - Weather &amp; Fashion Variant 2</title>
+  <title>TravelKorea - 여행 계획 상세</title>
   {{>partials/head-assets}}
+  <style>
+    .thumb-lg-optional {
+      width: 100px;
+      height: 100px;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+    }
+    .media-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .timeline-card {
+      background: #fff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 1rem !important;
+      padding: 1rem !important;
+      margin-bottom: 1rem !important;
+      transition: all 0.2s;
+    }
+    .timeline-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+  </style>
 </head>
 <body class="page-body-x-hidden-shell">
   {{>partials/header}}
@@ -17,26 +44,22 @@
 <div class="trip-plan-detail-div-03">
 <div class="trip-plan-detail-div-04">
 <div class="trip-plan-detail-div-05">
-<h1 class="trip-plan-detail-h1-01">{{#plan}}{{plan.formattedTitle}}{{/plan}}{{^plan}}제주도 여행{{/plan}}</h1>
+<h1 class="trip-plan-detail-h1-01">{{#model}}{{formattedTitle}}{{/model}}{{^model}}제주 여행{{/model}}</h1>
 <div class="inline-items-gap-2">
 <span class="trip-plan-detail-span-01">
-                                            D-5 
+                                            {{#model}}{{dDayLabel}}{{/model}}{{^model}}D-5{{/model}}
                                         </span>
 <span class="trip-plan-detail-span-02">
 <span class="icon-ms-14-mr1">location_on</span>
-                                            {{#plan}}{{plan.region}}{{/plan}}{{^plan}}제주특별자치도{{/plan}}
+                                            {{#model}}{{regionLabel}}{{/model}}{{^model}}제주{{/model}}
                                         </span>
 </div>
 </div>
 <div class="trip-plan-detail-div-06">
 <span class="icon-ms-18">calendar_month</span>
-<p>2023.10.15 - 2023.10.18 (3박 4일)</p>
+<p>{{#model}}{{travelPeriodLabel}}{{/model}}{{^model}}2023-10-15 - 2023-10-18 (3박 4일){{/model}}</p>
 </div>
 </div>
-<button class="trip-plan-detail-button-01">
-<span class="icon-ms-18">edit</span>
-<span>수정</span>
-</button>
 </div>
 <div class="trip-plan-detail-div-07">
 <h3 class="text-main-sm-bold">누구와 함께하나요?</h3>
@@ -51,7 +74,7 @@
 <div class="trip-plan-detail-div-09">
 <span class="icon-ms-base">group</span>
 </div>
-<span class="trip-plan-detail-span-03">친구와</span>
+<span class="trip-plan-detail-span-03">{{#model}}{{whoWithLabel}}{{/model}}{{^model}}친구와{{/model}}</span>
 </div>
 <div class="forecast-day">
 <div class="icon-circle-lg">
@@ -73,192 +96,112 @@
 <div class="row-between-center-mb2">
 <h2 class="trip-plan-detail-h2-01">
 <span class="icon-ms-primary">wb_sunny</span>
-                                    날씨 예보
+                                    주간 날씨
                                 </h2>
-<span class="trip-plan-detail-span-04">제주도, 대한민국</span>
+<span class="trip-plan-detail-span-04">{{#model}}{{regionLabel}} 지역 기준{{/model}}{{^model}}제주 지역 기준{{/model}}</span>
 </div>
 <div class="trip-plan-create-div-04">
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">일</span>
-<span class="text-main-sm-bold">10/15</span>
-<span class="icon-ms-3xl-orange-my1">sunny</span>
-<span class="text-main-lg-bold">22°</span>
+{{#model.weatherForecast}}
+<div class="forecast-card {{^hasData}}no-data{{/hasData}}">
+<span class="text-muted-xs-semibold">{{dayLabel}}</span>
+<span class="text-main-sm-bold">{{date}}</span>
+{{#hasData}}
+<span class="icon-ms-3xl-{{colorClass}}-my1">{{icon}}</span>
+<span class="text-main-lg-bold">{{temp}}</span>
+{{/hasData}}
+{{^hasData}}
+<span class="icon-ms-3xl-muted-my1">block</span>
+<span class="text-main-xs-subtle" style="font-size: 10px; margin-top: 4px;">정보 없음</span>
+{{/hasData}}
 </div>
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">월</span>
-<span class="text-main-sm-bold">10/16</span>
-<span class="icon-ms-3xl-blue-my1">partly_cloudy_day</span>
-<span class="text-main-lg-bold">20°</span>
+{{/model.weatherForecast}}
+{{^model.weatherForecast}}
+<div class="panel-muted-center-sm" style="width: 100%;">
+    날씨 정보를 불러올 수 없습니다.
 </div>
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">화</span>
-<span class="text-main-sm-bold">10/17</span>
-<span class="icon-ms-3xl-muted-my1">rainy</span>
-<span class="text-main-lg-bold">19°</span>
-</div>
-<div class="forecast-card">
-<span class="text-muted-xs-semibold">수</span>
-<span class="text-main-sm-bold">10/18</span>
-<span class="icon-ms-3xl-orange-my1">sunny</span>
-<span class="text-main-lg-bold">21°</span>
-</div>
+{{/model.weatherForecast}}
 </div>
 </div>
 <div class="trip-plan-detail-div-11">
 <div class="row-between-center-mb2">
 <h2 class="trip-plan-detail-h2-01">
 <span class="icon-ms-primary">checkroom</span>
-                                    옷차림 추천
+                                    준비물 추천
                                 </h2>
-<span class="trip-plan-detail-span-04">평균 20°C 기준</span>
+<span class="trip-plan-detail-span-04">{{#model}}{{avgTempLabel}}{{/model}}</span>
 </div>
 <div class="trip-plan-detail-div-12">
+{{#model.recommendations}}
+{{^isLast}}
 <div class="trip-plan-detail-div-13">
 <div class="trip-plan-detail-div-14">
-<span class="icon-ms-base">apparel</span>
+<span class="icon-ms-base">{{icon}}</span>
 </div>
 <div class="chatbot-demo-div-09">
-<span class="text-main-base-bold">가벼운 외투</span>
-<span class="signup-p-03">아침/저녁 쌀쌀함</span>
+<span class="text-main-base-bold">{{title}}</span>
+<span class="signup-p-03">{{description}}</span>
 </div>
 </div>
-<div class="trip-plan-detail-div-13">
-<div class="trip-plan-detail-div-14">
-<span class="icon-ms-base">umbrella</span>
-</div>
-<div class="chatbot-demo-div-09">
-<span class="text-main-base-bold">우산</span>
-<span class="signup-p-03">화요일 비 예보</span>
-</div>
-</div>
+{{/isLast}}
+{{#isLast}}
 <div class="trip-plan-detail-div-15">
 <div class="trip-plan-detail-div-16">
-<span class="icon-ms-base">check_circle</span>
+<span class="icon-ms-base">{{icon}}</span>
 </div>
 <div class="chatbot-demo-div-09">
-<span class="text-main-base-bold">챙길 목록</span>
-<span class="signup-p-03">보조배터리, 선글라스, 편한 운동화</span>
+<span class="text-main-base-bold">{{title}}</span>
+<span class="signup-p-03">{{description}}</span>
 </div>
 </div>
+{{/isLast}}
+{{/model.recommendations}}
 </div>
 </div>
 </div>
 <div class="trip-plan-detail-div-17">
 <h2 class="trip-plan-detail-h2-02">상세 일정</h2>
-<div class="calendar-add-event-div-06">
-<button class="text-muted-hover-primary">
-<span class="icon-ms-base">filter_list</span>
-</button>
-<button class="text-muted-hover-primary">
-<span class="icon-ms-base">map</span>
-</button>
-</div>
 </div>
 <div class="trip-plan-detail-div-18">
+{{#model.days}}
 <div class="community-list-div-02">
 <div class="chatbot-demo-div-07">
-<div class="trip-plan-detail-div-19">1</div>
-<h3 class="text-main-lg-bold">1일차 - 도착 및 체크인</h3>
-<span class="trip-plan-detail-span-05">10.15 (일)</span>
+<div class="trip-plan-detail-div-19">{{tripDay}}</div>
+<h3 class="text-main-lg-bold">{{tripDay}}일차</h3>
+<span class="trip-plan-detail-span-05">{{dateLabel}}</span>
 </div>
 <div class="trip-plan-detail-div-20">
+{{#items}}
 <div class="fx-group-rel-pl8">
 <div class="timeline-dot"></div>
 <div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">10:30</span>
-<span class="trip-plan-detail-span-06">AM</span>
-</div>
-<div class="flex-fill">
+<div class="trip-plan-detail-div-21">
+<div class="thumb-lg-optional">
+  <img alt="{{placeName}}" class="media-cover" src="{{imgUrl}}" 
+       onerror="this.onerror=null; this.src='{{#isHotel}}/images/hotel.png{{/isHotel}}{{^isHotel}}/images/place.png{{/isHotel}}';">
+</div><div class="flex-fill">
 <div class="row-between-center">
-<h4 class="text-main-lg-bold-mb1">제주 공항 도착</h4>
-<span class="trip-plan-detail-span-07">
-                                                    예약 확정
-                                                </span>
+<h4 class="text-main-lg-bold-mb1">{{placeName}}</h4>
 </div>
-<p class="trip-plan-detail-p-01">KE1203편 • 김포 출발</p>
 <div class="inline-meta-xs">
 <span class="icon-ms-16">location_on</span>
-                                                 제주특별자치도 제주시 공항로 2
-                                            </div>
+{{address}}
 </div>
 </div>
 </div>
+</div>
+</div>
+{{/items}}
+{{^items}}
 <div class="fx-group-rel-pl8">
-<div class="timeline-dot"></div>
 <div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">12:00</span>
-<span class="trip-plan-detail-span-06">PM</span>
-</div>
-<div class="trip-plan-detail-div-21">
-<div class="thumb-lg-optional">
-<img alt="Noodle Soup" class="media-cover" data-alt="Delicious bowl of Jeju noodle soup" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1gaOUiqMTUco68MfeR4xHXKDsx161fPjEkP-vgpvqHUJKmZXBQuZ5zlfJNzV5pbDf2aYAJlVWGcv2d4y98t7Qr277FdASZeox-o91KVAOTen8MNxL903k-ZvKE3eG4hFb6Xc6GKSnG7YT8Hs2c4djbC1AN3caPGR_Ibfry5EFwGXyJUcM0-TWrjYvym3s6blEpmNSfwuVfdiT3hHFFjIg73hO1-kE1ltcY_E07WsrwWDZAga5MenYiJQbiah9Yu9_kKSTKDSPJaQ"/>
-</div>
-<div class="flex-fill">
-<h4 class="text-main-lg-bold-mb1">자매국수</h4>
-<p class="trip-plan-detail-p-01">고기국수 맛집 • 웨이팅 있음</p>
-<div class="trip-plan-detail-div-22">
-<button class="trip-plan-detail-button-02">길찾기</button>
-<span class="text-body-tertiary">|</span>
-<button class="trip-plan-detail-button-02">리뷰 보기</button>
+<p class="text-muted-xs">일정이 없습니다. 장소를 추가해보세요.</p>
 </div>
 </div>
+{{/items}}
 </div>
 </div>
-</div>
-<div class="fx-group-rel-pl8">
-<div class="timeline-dot"></div>
-<div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">14:00</span>
-<span class="trip-plan-detail-span-06">PM</span>
-</div>
-<div class="trip-plan-detail-div-21">
-<div class="thumb-lg-optional">
-<img alt="Hotel" class="media-cover" data-alt="Grand Hyatt Jeju hotel exterior view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe5dcjeaPyFuDsZYXr92SvPd8hn9RdE99L8T5KmSfKRPdBpRFjxMpK8SkucugjViG84untsLPUBzgC3FZO5oIzRvTTqL4mNDPDG7j4iFDBDi1WNdFVMYhAW0nszR0MXbu2yTmz1pfWvyQqT24vUxZD0ZW6dql4NaigsViNQIEEvCu5YAP-pFuuMru1UM654jW1SnsUiGnuZsHL8Up5zHD4E8clHk3J1zBLHHff1YHmZdM0MD7WFHG2MKSuK7T75Ymt4elmLl1cbWQ"/>
-</div>
-<div class="flex-fill">
-<div class="row-between-center">
-<h4 class="text-main-lg-bold-mb1">그랜드 하얏트 제주</h4>
-<span class="trip-plan-detail-span-08">
-                                                        체크인
-                                                    </span>
-</div>
-<p class="trip-plan-detail-p-01">킹 룸 - 오션뷰</p>
-<div class="inline-meta-xs">
-<span class="icon-ms-16">location_on</span>
-                                                    제주시 노형동
-                                                </div>
-</div>
-</div>
-</div>
-</div>
-<div class="fx-group-rel-pl8">
-<div class="timeline-dot"></div>
-<div class="timeline-card">
-<div class="timeline-time-col">
-<span class="text-main-lg-bold">16:30</span>
-<span class="trip-plan-detail-span-06">PM</span>
-</div>
-<div class="trip-plan-detail-div-21">
-<div class="thumb-lg-optional">
-<img alt="Jeju Sunset" class="media-cover" data-alt="Jeju coast sunset view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1egG5_diAAZROQ5Kl9WcV4qDpgGl47hBgJ3o4Sw-HNtZd9cpLcoF_WnXTPCpEOqA9bM0SAeLBO5BIlWge1o4Uew0HMNDTLm_SJAolt8QymQFsXdT9WPZ8jbEbjkiAWY0nCnNnpLGNlcIaa58qgCSfIXCHy2w5ekIwpcRnW22htcvSMvqUZo04-q7YNJGUhwLk-IBMbGVTioLvEBagcObU8X1_vsz98n-UdLyBQkg2-_hwXc6UnAg-mCtGFvkaM-g9c-8KpPtGeWc"/>
-</div>
-<div class="flex-fill">
-<h4 class="text-main-lg-bold-mb1">용두암 해변 산책</h4>
-<p class="trip-plan-detail-p-01">일몰 감상 포인트</p>
-<div class="inline-meta-xs">
-<span class="icon-ms-16">photo_camera</span>
-                                                    사진 촬영 추천
-                                                </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<button class="fx-dashed-add-btn" type="button" onclick="location.href='/trip/place?id={{#plan}}{{plan.id}}{{/plan}}'">
+{{/model.days}}
+<button class="fx-dashed-add-btn" type="button" onclick="location.href='/trip/place?id={{#model}}{{id}}{{/model}}'">
 <span class="icon-ms-hover-scale">add_circle</span>
                             장소 추가하기
                         </button>
@@ -266,7 +209,7 @@
 </div>
 </div>
 <div class="trip-plan-detail-div-23">
-<button class="trip-plan-detail-button-03" type="button" onclick="location.href='/trip/place?id={{#plan}}{{plan.id}}{{/plan}}'">
+<button class="trip-plan-detail-button-03" type="button" onclick="location.href='/trip/place?id={{#model}}{{id}}{{/model}}'">
 <span class="icon-ms-2xl">add_location_alt</span>
 </button>
 </div>

@@ -1,445 +1,176 @@
 package com.example.travel_platform.booking;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.travel_platform._core.handler.ex.Exception400;
+import com.example.travel_platform._core.handler.ex.Exception404;
+import com.example.travel_platform.booking.lodging.LodgingPoiRow;
+import com.example.travel_platform.booking.lodging.LodgingQueryRepository;
+import com.example.travel_platform.booking.mapPlaceImage.MapPlaceImageRepository;
 import com.example.travel_platform.trip.TripPlan;
+import com.example.travel_platform.trip.TripPlanQueryRepository;
 import com.example.travel_platform.trip.TripRepository;
+import com.example.travel_platform.trip.TripRegion;
 import com.example.travel_platform.user.User;
-import com.example.travel_platform.user.UserRepository;
-import tools.jackson.databind.ObjectMapper;
+import com.example.travel_platform.user.UserQueryRepository;
 
 @Transactional(readOnly = true)
 @Service
 public class BookingService {
 
     private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
+    private final BookingQueryRepository bookingQueryRepository;
+    private final UserQueryRepository userQueryRepository;
     private final TripRepository tripRepository;
-    private final ObjectMapper objectMapper;
+    private final TripPlanQueryRepository tripPlanQueryRepository;
+    private final LodgingQueryRepository lodgingQueryRepository;
+    private final MapPlaceImageRepository mapPlaceImageRepository;
 
     // 명시적 생성자 주입
     public BookingService(
             BookingRepository bookingRepository,
-            UserRepository userRepository,
-            TripRepository tripRepository) {
+            BookingQueryRepository bookingQueryRepository,
+            UserQueryRepository userQueryRepository,
+            TripRepository tripRepository,
+            TripPlanQueryRepository tripPlanQueryRepository,
+            LodgingQueryRepository lodgingQueryRepository,
+            MapPlaceImageRepository mapPlaceImageRepository) {
         this.bookingRepository = bookingRepository;
-        this.userRepository = userRepository;
+        this.bookingQueryRepository = bookingQueryRepository;
+        this.userQueryRepository = userQueryRepository;
         this.tripRepository = tripRepository;
-        this.objectMapper = new ObjectMapper();
+        this.tripPlanQueryRepository = tripPlanQueryRepository;
+        this.lodgingQueryRepository = lodgingQueryRepository;
+        this.mapPlaceImageRepository = mapPlaceImageRepository;
     }
 
     public User getUserById(Integer id) {
-        return userRepository.findById(id).orElse(null);
+        return userQueryRepository.findUser(id).orElse(null);
     }
 
-    /**
-     * 공통 HTTP 요청 메서드 (AirApp 스타일)
-     */
-    private String executeGet(String urlStr) {
-        try {
-            URL url = new URL(urlStr);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(3000);
-            conn.setReadTimeout(5000);
-
-            StringBuilder json = new StringBuilder();
-            try (Scanner sc = new Scanner(conn.getInputStream(), StandardCharsets.UTF_8)) {
-                while (sc.hasNextLine()) {
-                    json.append(sc.nextLine());
-                }
-            }
-            return json.toString();
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 통신 에러: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * TourAPI 4.0을 사용하여 숙소의 객실 정보 및 추가 이미지를 가져옴.
-     */
-    public List<BookingResponse.RoomDTO> fetchRoomsFromTourApi(String serviceKey, String lodgingName, String address) {
-        try {
-            String contentId = searchTourApiContentId(serviceKey, lodgingName, address);
-            if (contentId == null)
-                return List.of();
-
-            // 1. 객실 상세 정보 가져오기 (이름, 기본 사진 등)
-            List<BookingResponse.RoomDTO> rooms = fetchTourApiRoomDetails(serviceKey, contentId);
-
-            // 2. 추가 이미지 정보 가져오기 (갤러리용 고화질 사진들)
-            List<String> extraImages = fetchTourApiAdditionalImages(serviceKey, contentId);
-
-            // 3. 만약 객실 정보가 아예 없다면, 추가 이미지를 활용해 가상의 객실이라도 생성 (데이터 보완)
-            if (rooms.isEmpty() && !extraImages.isEmpty()) {
-                BookingResponse.RoomDTO virtualRoom = BookingResponse.RoomDTO.builder()
-                        .name("기본 객실")
-                        .content("상세 정보는 숙소에 문의해 주세요.")
-                        .imageUrl(extraImages.get(0))
-                        .allImages(extraImages)
-                        .build();
-                return List.of(virtualRoom);
-            }
-
-            // 4. 기존 객실 정보가 있다면 각각에 추가 이미지 리스트를 넣어줌
-            for (BookingResponse.RoomDTO room : rooms) {
-                room.setAllImages(extraImages);
-            }
-
-            return rooms;
-        } catch (Exception e) {
+    public List<BookingResponse.RoomDTO> getRoomList(BookingRequest.RoomQueryDTO reqDTO) {
+        if (reqDTO == null || reqDTO.getLodgingName() == null || reqDTO.getLodgingName().isBlank()) {
             return List.of();
         }
-    }
 
-    @SuppressWarnings("unchecked")
-    private List<String> fetchTourApiAdditionalImages(String serviceKey, String contentId) {
-        List<String> images = new ArrayList<>();
-        try {
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/detailImage2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&contentId=" + contentId
-                    + "&imageYN=Y&subImageYN=Y";
+        String lodgingName = reqDTO.getLodgingName();
+        String address = reqDTO.getAddress() == null ? "" : reqDTO.getAddress();
+        int seed = Math.abs((lodgingName + "|" + address).hashCode());
 
-            String json = executeGet(urlStr);
-            if (json == null)
-                return images;
+        List<BookingResponse.RoomDTO> rooms = new ArrayList<>();
+        String[] baseNames = new String[] { "스탠다드", "디럭스", "프리미엄" };
+        String[] views = new String[] { "시티뷰", "오션뷰", "마운틴뷰" };
+        String[] images = new String[] {
+                "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&h=520&fit=crop",
+                "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=520&fit=crop",
+                "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&h=520&fit=crop"
+        };
 
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null || body.get("items").equals(""))
-                return images;
-
-            Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
-            Object itemData = itemsObj.get("item");
-
-            List<Map<String, Object>> itemList = new ArrayList<>();
-            if (itemData instanceof List) {
-                itemList = (List<Map<String, Object>>) itemData;
-            } else if (itemData instanceof Map) {
-                itemList.add((Map<String, Object>) itemData);
-            }
-
-            for (Map<String, Object> item : itemList) {
-                // 이미지 필드명 후보들: originimgurl, smallimageurl, imageUrl 등
-                String imgUrl = getAnyField(item, "originimgurl", "originImgUrl", "smallimageurl", "smallImageUrl",
-                        "imageUrl");
-                if (imgUrl != null && !imgUrl.isBlank()) {
-                    images.add(imgUrl);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 추가 이미지 조회 실패: " + e.getMessage());
+        for (int i = 0; i < baseNames.length; i += 1) {
+            String roomName = baseNames[i] + " " + views[(seed + i) % views.length];
+            rooms.add(BookingResponse.RoomDTO.createRoom(
+                    roomName,
+                    lodgingName + "에서 제공하는 " + baseNames[i] + " 객실입니다.",
+                    String.valueOf(2),
+                    String.valueOf(4),
+                    images[i % images.length],
+                    List.of(images)));
         }
-        return images;
-    }
 
-    @SuppressWarnings("unchecked")
-    private String searchTourApiContentId(String serviceKey, String name, String address) {
-        if (serviceKey == null || serviceKey.isBlank())
-            return null;
-        try {
-            String encodedKeyword = URLEncoder.encode(name, StandardCharsets.UTF_8);
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/searchKeyword2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&keyword=" + encodedKeyword;
-
-            String json = executeGet(urlStr);
-            if (json == null)
-                return null;
-
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            if (res == null)
-                return null;
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null)
-                return null;
-
-            Object itemsObj = body.get("items");
-            if (itemsObj instanceof String && ((String) itemsObj).isBlank())
-                return null;
-            if (!(itemsObj instanceof Map))
-                return null;
-
-            Map<String, Object> itemsMap = (Map<String, Object>) itemsObj;
-            Object itemData = itemsMap.get("item");
-
-            List<Map<String, Object>> itemList = new ArrayList<>();
-            if (itemData instanceof List) {
-                itemList = (List<Map<String, Object>>) itemData;
-            } else if (itemData instanceof Map) {
-                itemList.add((Map<String, Object>) itemData);
-            }
-
-            if (!itemList.isEmpty()) {
-                String simpleInputName = simplifyName(name);
-                for (Map<String, Object> item : itemList) {
-                    String itemSimpleName = simplifyName((String) item.get("title"));
-                    if (itemSimpleName.contains(simpleInputName) || simpleInputName.contains(itemSimpleName)) {
-                        return (String) item.get("contentid");
-                    }
-                }
-                return (String) itemList.get(0).get("contentid");
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] ID 검색 실패: " + e.getMessage());
-        }
-        return null;
-    }
-
-    private String simplifyName(String name) {
-        if (name == null)
-            return "";
-        return name.replaceAll("\\s+", "")
-                .replaceAll("(호텔|리조트|펜션|모텔|게스트하우스|스테이|민박|여관|해수욕장|공원)", "")
-                .replaceAll("[^a-zA-Z0-9가-힣]", "")
-                .toLowerCase();
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<BookingResponse.RoomDTO> fetchTourApiRoomDetails(String serviceKey, String contentId) {
-        List<BookingResponse.RoomDTO> roomList = new ArrayList<>();
-        try {
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/detailInfo2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&contentId=" + contentId
-                    + "&contentTypeId=32";
-
-            String json = executeGet(urlStr);
-            if (json == null)
-                return roomList;
-
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            if (body == null || body.get("items") == null || body.get("items").equals(""))
-                return roomList;
-
-            Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
-            Object itemData = itemsObj.get("item");
-
-            List<Map<String, Object>> itemList = new ArrayList<>();
-            if (itemData instanceof List) {
-                itemList = (List<Map<String, Object>>) itemData;
-            } else if (itemData instanceof Map) {
-                itemList.add((Map<String, Object>) itemData);
-            }
-
-            for (Map<String, Object> item : itemList) {
-                // 필드명이 바뀔 수 있으므로 여러 가능성을 열어두고 추출
-                String roomTitle = getAnyField(item, "roomtitle", "roomTitle", "title");
-                if (roomTitle == null || roomTitle.isBlank())
-                    continue;
-
-                String roomIntro = getAnyField(item, "roomintro", "roomIntro", "content");
-                String roomBaseCount = getAnyField(item, "roombasecount", "roomBaseCount", "baseCount");
-                String roomMaxCount = getAnyField(item, "roommaxcount", "roomMaxCount", "maxCount");
-                String roomImg = getAnyField(item, "roomimg1", "roomImg1", "roomimg", "imageUrl");
-
-                roomList.add(BookingResponse.RoomDTO.builder()
-                        .name(roomTitle)
-                        .content(valueToString(roomIntro))
-                        .baseCount(valueToString(roomBaseCount))
-                        .maxCount(valueToString(roomMaxCount))
-                        .imageUrl(valueToString(roomImg))
-                        .build());
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 객실 상세 조회 실패: " + e.getMessage());
-        }
-        return roomList;
-    }
-
-    private String getAnyField(Map<String, Object> item, String... keys) {
-        for (String key : keys) {
-            Object val = item.get(key);
-            if (val != null && !String.valueOf(val).isBlank()) {
-                return String.valueOf(val);
-            }
-        }
-        return null;
+        return rooms;
     }
 
     @Transactional
     public void processBookingCompletion(
             Integer sessionUserId,
-            String lodgingName,
-            String regionKey,
-            String location,
-            String checkIn,
-            String checkOut,
-            String guests,
-            Integer pricePerNight,
-            Integer taxAndServiceFee,
-            String imageUrl) {
-
-        User user = userRepository.findById(sessionUserId).orElse(null);
-        if (user == null)
+            BookingRequest.CompleteBookingDTO reqDTO) {
+        User user = findUserOrNull(sessionUserId);
+        if (user == null || reqDTO == null) {
             return;
-
-        LocalDate checkInDate = resolveDate(checkIn, LocalDate.now());
-        LocalDate checkOutDate = resolveDate(checkOut, LocalDate.now().plusDays(1));
-
-        var plans = tripRepository.findPlanListByUserId(user.getId(), 0, 1);
-        TripPlan plan;
-        if (!plans.isEmpty()) {
-            plan = plans.get(0);
-        } else {
-            plan = TripPlan.create(
-                    user,
-                    "나의 여행 계획",
-                    blankToDefault(regionKey, BookVar.DEFAULT_REGION_KEY),
-                    null,
-                    checkInDate,
-                    checkOutDate,
-                    blankToDefault(imageUrl, ""));
-            plan = tripRepository.savePlan(plan);
         }
 
-        Booking booking = Booking.create(
-                user,
-                plan,
-                lodgingName,
-                checkInDate,
-                checkOutDate,
-                parseGuestCount(guests),
-                pricePerNight == null ? 0 : pricePerNight,
-                taxAndServiceFee == null ? 0 : taxAndServiceFee,
-                blankToDefault(location, BookVar.DEFAULT_LOCATION_NAME),
-                imageUrl);
-
+        BookingCompletionDraft draft = createCompletionDraft(reqDTO);
+        TripPlan plan = resolveCompletionPlan(user, draft);
+        Booking booking = buildCompletionBooking(user, plan, draft);
         bookingRepository.save(booking);
     }
 
     @Transactional
     public void createBooking(Integer sessionUserId, BookingRequest.CreateBookingDTO reqDTO) {
-        User user = userRepository.findById(sessionUserId).orElse(null);
-        if (user == null)
+        User user = findUserOrNull(sessionUserId);
+        if (user == null || reqDTO == null) {
             return;
+        }
 
-        TripPlan plan = tripRepository.findPlanById(reqDTO.getTripPlanId()).orElse(null);
-        if (plan == null)
+        TripPlan plan = findTripPlanOrNull(reqDTO.getTripPlanId());
+        if (plan == null && reqDTO.getCheckIn() != null && reqDTO.getCheckOut() != null) {
+            plan = tripPlanQueryRepository.findByDates(user.getId(), reqDTO.getCheckIn(), reqDTO.getCheckOut())
+                    .orElseGet(() -> {
+                        TripRegion region = resolveBookingRegion(reqDTO.getRegionKey(), reqDTO.getLocation());
+                        return tripRepository.savePlan(TripPlan.create(
+                                user,
+                                "나의 여행 계획",
+                                region,
+                                null,
+                                reqDTO.getCheckIn(),
+                                reqDTO.getCheckOut(),
+                                reqDTO.getImageUrl()));
+                    });
+        }
+
+        if (plan == null) {
             return;
+        }
 
-        Booking booking = Booking.create(
-                user,
-                plan,
-                reqDTO.getLodgingName(),
-                reqDTO.getCheckIn(),
-                reqDTO.getCheckOut(),
-                reqDTO.getGuestCount(),
-                reqDTO.getPricePerNight(),
-                reqDTO.getTaxAndServiceFee(),
-                reqDTO.getLocation(),
-                reqDTO.getImageUrl());
-
-        bookingRepository.save(booking);
+        bookingRepository.save(buildCreatedBooking(user, plan, reqDTO));
     }
 
     @Transactional
     public void cancelBooking(Integer sessionUserId, Integer bookingId) {
+        Booking booking = findOwnedBooking(sessionUserId, bookingId);
+        validateCancelableBooking(booking);
+        booking.cancel(LocalDateTime.now());
     }
 
     public List<BookingResponse.BookingSummaryDTO> getBookingList(Integer sessionUserId) {
-        return List.of();
+        List<Booking> bookings = bookingQueryRepository.findOwnedBookingList(sessionUserId);
+        List<BookingResponse.BookingSummaryDTO> bookingSummaries = new ArrayList<>();
+        for (Booking booking : bookings) {
+            bookingSummaries.add(BookingResponse.BookingSummaryDTO.fromBooking(booking));
+        }
+        return bookingSummaries;
     }
 
     public BookingResponse.BookingDetailDTO getBookingDetail(Integer sessionUserId, Integer bookingId) {
-        return null;
+        return BookingResponse.BookingDetailDTO.fromBooking(findOwnedBooking(sessionUserId, bookingId));
     }
 
     @Transactional
-    public BookingResponse.PlaceImageDTO getPlaceImage(String serviceKey, String placeUrl, String name,
-            String address) {
-        String normalizedName = (name == null) ? "" : name.replaceAll("\\s+", "").toLowerCase();
-        String imageUrl = bookingRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
+    public BookingResponse.PlaceImageDTO getPlaceImage(BookingRequest.PlaceImageQueryDTO reqDTO) {
+        if (reqDTO == null) {
+            return BookingResponse.PlaceImageDTO.createPlaceImage("", "");
+        }
+
+        String normalizedName = normalizePlaceName(reqDTO.getName());
+        String imageUrl = findCachedPlaceImage(normalizedName);
 
         if (imageUrl == null || imageUrl.isBlank()) {
-            imageUrl = fetchImageFromTourApi(serviceKey, name, address);
-
-            if (imageUrl == null || imageUrl.isBlank()) {
-                imageUrl = resolveImageFromKakaoPlace(placeUrl);
-            }
-
-            if (imageUrl != null && !imageUrl.isBlank() && !normalizedName.isBlank()) {
-                String finalImageUrl = imageUrl;
-                bookingRepository.upsertMapPlaceImage(
-                        normalizedName,
-                        (name != null ? name : normalizedName),
-                        finalImageUrl,
-                        "TOUR_API_OR_KAKAO");
-            }
+            imageUrl = resolvePlaceImage(reqDTO);
+            cachePlaceImage(normalizedName, reqDTO.getName(), imageUrl);
         }
 
-        return BookingResponse.PlaceImageDTO.builder()
-                .imageUrl(imageUrl == null ? "" : imageUrl)
-                .name(name == null ? "" : name)
-                .build();
-    }
-
-    @SuppressWarnings("unchecked")
-    private String fetchImageFromTourApi(String serviceKey, String name, String address) {
-        if (serviceKey == null || serviceKey.isBlank() || name == null || name.isBlank())
-            return null;
-        try {
-            String encodedKeyword = URLEncoder.encode(name, StandardCharsets.UTF_8);
-            String urlStr = "https://apis.data.go.kr/B551011/KorService2/searchKeyword2"
-                    + "?serviceKey=" + serviceKey
-                    + "&MobileOS=ETC&MobileApp=TravelApp&_type=json"
-                    + "&keyword=" + encodedKeyword;
-
-            String json = executeGet(urlStr);
-            if (json == null)
-                return null;
-
-            Map<String, Object> response = objectMapper.readValue(json, Map.class);
-            Map<String, Object> res = (Map<String, Object>) response.get("response");
-            Map<String, Object> body = (Map<String, Object>) res.get("body");
-            Map<String, Object> itemsObj = (Map<String, Object>) body.get("items");
-
-            if (itemsObj != null && itemsObj.get("item") instanceof List) {
-                List<Map<String, Object>> itemList = (List<Map<String, Object>>) itemsObj.get("item");
-
-                String targetAddr = (address != null) ? address.substring(0, Math.min(address.length(), 2)) : "";
-                for (Map<String, Object> item : itemList) {
-                    String firstImage = (String) item.get("firstimage");
-                    String itemAddr = (String) item.get("addr1");
-                    if (firstImage != null && !firstImage.isBlank()) {
-                        if (targetAddr.isEmpty() || (itemAddr != null && itemAddr.contains(targetAddr))) {
-                            return firstImage;
-                        }
-                    }
-                }
-                for (Map<String, Object> item : itemList) {
-                    String firstImage = (String) item.get("firstimage");
-                    if (firstImage != null && !firstImage.isBlank())
-                        return firstImage;
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("[TourAPI] 이미지 조회 실패: " + e.getMessage());
-        }
-        return null;
+        return BookingResponse.PlaceImageDTO.createPlaceImage(imageUrl, reqDTO.getName());
     }
 
     public List<BookingResponse.MapPoiDTO> mergeMapPois(BookingRequest.MergeMapPoisDTO reqDTO) {
@@ -448,8 +179,9 @@ public class BookingService {
         String regionKey = reqDTO == null ? "" : blankToDefault(reqDTO.getRegionKey(), "");
         double[] bounds = resolveBounds(reqDTO == null ? null : reqDTO.getBounds());
 
-        List<BookingResponse.MapPoiDTO> dbPois = bookingRepository.findActiveLodgingsInBounds(
+        List<LodgingPoiRow> dbPoiRows = lodgingQueryRepository.findActiveLodgingsInBounds(
                 regionKey, bounds[0], bounds[1], bounds[2], bounds[3]);
+        List<BookingResponse.MapPoiDTO> dbPois = createDbMapPois(dbPoiRows);
 
         LinkedHashMap<String, BookingResponse.MapPoiDTO> merged = new LinkedHashMap<>();
         for (BookingResponse.MapPoiDTO item : kakaoPois) {
@@ -469,10 +201,34 @@ public class BookingService {
         return new ArrayList<>(merged.values());
     }
 
+    private List<BookingResponse.MapPoiDTO> createDbMapPois(List<LodgingPoiRow> dbPoiRows) {
+        List<BookingResponse.MapPoiDTO> dbPois = new ArrayList<>();
+        for (LodgingPoiRow dbPoiRow : dbPoiRows) {
+            dbPois.add(createDbMapPoi(dbPoiRow));
+        }
+        return dbPois;
+    }
+
+    private BookingResponse.MapPoiDTO createDbMapPoi(LodgingPoiRow dbPoiRow) {
+        return BookingResponse.MapPoiDTO.createMapPoi(
+                dbPoiRow.externalPlaceId(),
+                dbPoiRow.name(),
+                dbPoiRow.phone(),
+                dbPoiRow.address(),
+                dbPoiRow.roadAddress(),
+                dbPoiRow.placeUrl(),
+                dbPoiRow.categoryName(),
+                dbPoiRow.categoryGroupCode(),
+                dbPoiRow.lat(),
+                dbPoiRow.lng(),
+                "hotel",
+                "DB");
+    }
+
     private List<BookingResponse.MapPoiDTO> convertToResponsePois(List<BookingRequest.MapPoiDTO> requestPois) {
         List<BookingResponse.MapPoiDTO> responsePois = new ArrayList<>();
         for (BookingRequest.MapPoiDTO req : requestPois) {
-            responsePois.add(new BookingResponse.MapPoiDTO(
+            responsePois.add(BookingResponse.MapPoiDTO.createMapPoi(
                     req.getExternalPlaceId(),
                     req.getName(),
                     req.getPhone(),
@@ -495,6 +251,121 @@ public class BookingService {
         } catch (Exception e) {
             return defaultDate;
         }
+    }
+
+    private User findUserOrNull(Integer userId) {
+        if (userId == null) {
+            return null;
+        }
+        return userQueryRepository.findUser(userId).orElse(null);
+    }
+
+    private TripPlan findTripPlanOrNull(Integer tripPlanId) {
+        if (tripPlanId == null) {
+            return null;
+        }
+        return tripPlanQueryRepository.findPlan(tripPlanId).orElse(null);
+    }
+
+    private BookingCompletionDraft createCompletionDraft(BookingRequest.CompleteBookingDTO reqDTO) {
+        LocalDate checkInDate = resolveDate(reqDTO.getCheckIn(), LocalDate.now());
+        LocalDate checkOutDate = resolveDate(reqDTO.getCheckOut(), LocalDate.now().plusDays(1));
+        TripRegion regionType = resolveBookingRegion(reqDTO.getRegionKey(), reqDTO.getLocation());
+
+        return new BookingCompletionDraft(
+                blankToDefault(reqDTO.getLodgingName(), "숙소"),
+                blankToDefault(reqDTO.getRoomName(), BookVar.DEFAULT_ROOM_NAME),
+                regionType,
+                checkInDate,
+                checkOutDate,
+                parseGuestCount(reqDTO.getGuests()),
+                reqDTO.getPricePerNight() == null ? 0 : reqDTO.getPricePerNight(),
+                reqDTO.getTaxAndServiceFee() == null ? 0 : reqDTO.getTaxAndServiceFee(),
+                blankToDefault(reqDTO.getImageUrl(), ""));
+    }
+
+    private TripPlan resolveCompletionPlan(User user, BookingCompletionDraft draft) {
+        return tripPlanQueryRepository.findByDates(user.getId(), draft.checkInDate(), draft.checkOutDate())
+                .orElseGet(() -> tripRepository.savePlan(createCompletionPlan(user, draft)));
+    }
+
+    private TripPlan createCompletionPlan(User user, BookingCompletionDraft draft) {
+        return TripPlan.create(
+                user,
+                "나의 여행 계획",
+                draft.regionType(),
+                null,
+                draft.checkInDate(),
+                draft.checkOutDate(),
+                draft.imageUrl());
+    }
+
+    private Booking buildCompletionBooking(User user, TripPlan plan, BookingCompletionDraft draft) {
+        return Booking.create(
+                user,
+                plan,
+                draft.lodgingName(),
+                draft.roomName(),
+                draft.checkInDate(),
+                draft.checkOutDate(),
+                draft.guestCount(),
+                draft.pricePerNight(),
+                draft.taxAndServiceFee(),
+                draft.regionType(),
+                draft.imageUrl());
+    }
+
+    private Booking buildCreatedBooking(User user, TripPlan plan, BookingRequest.CreateBookingDTO reqDTO) {
+        TripRegion regionType = resolveBookingRegion(reqDTO.getRegionKey(), reqDTO.getLocation());
+        return Booking.create(
+                user,
+                plan,
+                reqDTO.getLodgingName(),
+                reqDTO.getRoomName(),
+                reqDTO.getCheckIn(),
+                reqDTO.getCheckOut(),
+                reqDTO.getGuestCount(),
+                reqDTO.getPricePerNight(),
+                reqDTO.getTaxAndServiceFee(),
+                regionType,
+                reqDTO.getImageUrl());
+    }
+
+    private Booking findOwnedBooking(Integer sessionUserId, Integer bookingId) {
+        return bookingQueryRepository.findOwnedBooking(sessionUserId, bookingId)
+                .orElseThrow(() -> new Exception404("예약 정보를 찾을 수 없습니다."));
+    }
+
+    private void validateCancelableBooking(Booking booking) {
+        if (booking.isCancelled()) {
+            throw new Exception400("이미 취소된 예약입니다.");
+        }
+    }
+
+    private String normalizePlaceName(String name) {
+        return (name == null) ? "" : name.replaceAll("\\s+", "").toLowerCase();
+    }
+
+    private String findCachedPlaceImage(String normalizedName) {
+        if (normalizedName.isBlank()) {
+            return null;
+        }
+        return mapPlaceImageRepository.findImageUrlByNormalizedName(normalizedName).orElse(null);
+    }
+
+    private String resolvePlaceImage(BookingRequest.PlaceImageQueryDTO reqDTO) {
+        return resolveImageFromKakaoPlace(reqDTO.getPlaceUrl());
+    }
+
+    private void cachePlaceImage(String normalizedName, String name, String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank() || normalizedName.isBlank()) {
+            return;
+        }
+        mapPlaceImageRepository.upsertMapPlaceImage(
+                normalizedName,
+                blankToDefault(name, normalizedName),
+                imageUrl,
+                "KAKAO");
     }
 
     private int parseGuestCount(String guests) {
@@ -528,26 +399,69 @@ public class BookingService {
         return (value == null || value.isBlank()) ? defaultValue : value;
     }
 
+    private TripRegion resolveBookingRegion(String regionKey, String location) {
+        TripRegion region = TripRegion.fromCodeOrNull(regionKey);
+        if (region != null) {
+            return region;
+        }
+
+        String locationText = location == null ? "" : location.trim();
+        if (locationText.contains("서울")) {
+            return TripRegion.SEOUL;
+        }
+        if (locationText.contains("부산")) {
+            return TripRegion.BUSAN;
+        }
+        if (locationText.contains("대구")) {
+            return TripRegion.DAEGU;
+        }
+        if (locationText.contains("인천")) {
+            return TripRegion.INCHEON;
+        }
+        if (locationText.contains("광주")) {
+            return TripRegion.GWANGJU;
+        }
+        if (locationText.contains("대전")) {
+            return TripRegion.DAEJEON;
+        }
+        if (locationText.contains("울산")) {
+            return TripRegion.ULSAN;
+        }
+        if (locationText.contains("세종")) {
+            return TripRegion.SEJONG;
+        }
+        if (locationText.contains("경기")) {
+            return TripRegion.GYEONGGI;
+        }
+        if (locationText.contains("강원")) {
+            return TripRegion.GANGWON;
+        }
+        if (locationText.contains("충북")) {
+            return TripRegion.CHUNGBUK;
+        }
+        if (locationText.contains("충남")) {
+            return TripRegion.CHUNGNAM;
+        }
+        if (locationText.contains("전북")) {
+            return TripRegion.JEONBUK;
+        }
+        if (locationText.contains("전남")) {
+            return TripRegion.JEONNAM;
+        }
+        if (locationText.contains("경북")) {
+            return TripRegion.GYEONGBUK;
+        }
+        if (locationText.contains("경남")) {
+            return TripRegion.GYEONGNAM;
+        }
+        if (locationText.contains("제주")) {
+            return TripRegion.JEJU;
+        }
+        return TripRegion.fromCode(BookVar.DEFAULT_REGION_KEY);
+    }
+
     private BookingResponse.MapPoiDTO normalizePoi(BookingResponse.MapPoiDTO item, String defaultSource) {
-        if (item == null || !isValidCoordinate(item.getLat()) || !isValidCoordinate(item.getLng()))
-            return null;
-        BookingResponse.MapPoiDTO poi = new BookingResponse.MapPoiDTO();
-        poi.setExternalPlaceId(blankToDefault(item.getExternalPlaceId(), ""));
-        poi.setName(blankToDefault(item.getName(), "숙소"));
-        poi.setPhone(blankToDefault(item.getPhone(), ""));
-        poi.setAddress(blankToDefault(item.getAddress(), ""));
-        poi.setRoadAddress(blankToDefault(item.getRoadAddress(), ""));
-        poi.setPlaceUrl(blankToDefault(item.getPlaceUrl(), ""));
-        poi.setCategoryName(blankToDefault(item.getCategoryName(), ""));
-        poi.setCategoryGroupCode(blankToDefault(item.getCategoryGroupCode(), ""));
-        poi.setLat(item.getLat());
-        poi.setLng(item.getLng());
-        String type = blankToDefault(item.getType(), "");
-        if (type.isBlank())
-            type = "AD5".equalsIgnoreCase(poi.getCategoryGroupCode()) ? "hotel" : "attraction";
-        poi.setType(type);
-        poi.setSource(blankToDefault(item.getSource(), defaultSource));
-        return poi;
+        return BookingResponse.MapPoiDTO.createNormalizedMapPoi(item, defaultSource);
     }
 
     private String buildPoiKey(BookingResponse.MapPoiDTO item) {
@@ -584,5 +498,17 @@ public class BookingService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private record BookingCompletionDraft(
+            String lodgingName,
+            String roomName,
+            TripRegion regionType,
+            LocalDate checkInDate,
+            LocalDate checkOutDate,
+            int guestCount,
+            int pricePerNight,
+            int taxAndServiceFee,
+            String imageUrl) {
     }
 }

@@ -13,28 +13,30 @@
   <main class="app-main admin-main">
     <div class="container-xxl">
       <div class="admin-page-shell">
+        {{#model}}
         {{>partials/admin-sidebar}}
+        {{/model}}
 
         <section class="admin-content">
           <div class="admin-breadcrumb">
-            <span>홈</span>
+            <span>관리자</span>
             <span class="material-symbols-outlined">chevron_right</span>
             <span>대시보드</span>
           </div>
 
           <div class="admin-page-header">
             <div>
-              <h1 class="admin-page-title">관리자 홈 요약</h1>
-              <p class="admin-page-subtitle">사용자와 커뮤니티 현황을 빠르게 확인할 수 있도록 실데이터 기반 대시보드로 정리했습니다.</p>
+              <h1 class="admin-page-title">관리자 현황 요약</h1>
+              <p class="admin-page-subtitle">사용자와 커뮤니티 상태를 빠르게 확인할 수 있도록 핵심 지표를 정리했습니다.</p>
             </div>
             <div class="admin-summary-note">
               <span class="material-symbols-outlined">monitoring</span>
-              <span>유저/게시글 현황 요약</span>
+              <span>사용자/게시글 현황 요약</span>
             </div>
           </div>
 
           <div class="admin-metric-grid">
-            {{#page.metrics}}
+            {{#model.metrics}}
             <article class="admin-metric-card">
               <div class="admin-metric-card__top">
                 <div class="admin-metric-icon {{iconClass}}">
@@ -45,7 +47,7 @@
               <p class="admin-metric-value">{{valueLabel}}</p>
               <p class="admin-metric-helper">{{helperLabel}}</p>
             </article>
-            {{/page.metrics}}
+            {{/model.metrics}}
           </div>
 
           <div class="admin-grid-2 admin-grid-2--charts">
@@ -62,7 +64,7 @@
 
               <div class="admin-panel__body">
                 <div class="admin-chart-list">
-                  {{#page.userStatusItems}}
+                  {{#model.userStatusItems}}
                   <article class="admin-chart-row">
                     <div class="admin-chart-row__head">
                       <div class="admin-chart-row__title">
@@ -77,7 +79,7 @@
                       <div class="admin-chart-fill {{barClass}}" style="width: {{barWidth}}%;"></div>
                     </div>
                   </article>
-                  {{/page.userStatusItems}}
+                  {{/model.userStatusItems}}
                 </div>
               </div>
             </section>
@@ -89,13 +91,13 @@
                     <span class="material-symbols-outlined">stacked_bar_chart</span>
                     <span>게시글 카테고리 분포</span>
                   </h2>
-                  <p class="admin-panel__subtitle">커뮤니티 전체 글 기준 점유율</p>
+                  <p class="admin-panel__subtitle">커뮤니티 전체 글 기준</p>
                 </div>
               </div>
 
               <div class="admin-panel__body">
                 <div class="admin-chart-list">
-                  {{#page.boardCategoryItems}}
+                  {{#model.boardCategoryItems}}
                   <article class="admin-chart-row">
                     <div class="admin-chart-row__head">
                       <div class="admin-chart-row__title">
@@ -110,7 +112,7 @@
                       <div class="admin-chart-fill {{barClass}}" style="width: {{barWidth}}%;"></div>
                     </div>
                   </article>
-                  {{/page.boardCategoryItems}}
+                  {{/model.boardCategoryItems}}
                 </div>
               </div>
             </section>
@@ -121,15 +123,15 @@
               <div class="admin-panel__header">
                 <h2 class="admin-panel__title">
                   <span class="material-symbols-outlined">group</span>
-                  <span>최근 유저 리스트</span>
+                  <span>최근 가입 사용자</span>
                 </h2>
                 <a class="admin-link" href="/admin/users">전체보기</a>
               </div>
 
               <div class="admin-panel__body">
-                {{#page.hasRecentUsers}}
+                {{#model.hasRecentUsers}}
                 <div class="admin-feed-list">
-                  {{#page.recentUsers}}
+                  {{#model.recentUsers}}
                   <article class="admin-feed-item">
                     <div class="admin-feed-icon">
                       <span class="material-symbols-outlined">person</span>
@@ -138,21 +140,21 @@
                       <p class="admin-feed-title">{{username}}</p>
                       <p class="admin-feed-meta">
                         <span class="admin-status-badge {{statusClass}}">{{statusText}}</span>
-                        <span>•</span>
+                        <span>·</span>
                         <span>가입일: {{createdAtLabel}}</span>
                       </p>
                     </div>
                   </article>
-                  {{/page.recentUsers}}
+                  {{/model.recentUsers}}
                 </div>
-                {{/page.hasRecentUsers}}
+                {{/model.hasRecentUsers}}
 
-                {{^page.hasRecentUsers}}
+                {{^model.hasRecentUsers}}
                 <div class="admin-empty-state">
                   <span class="material-symbols-outlined">group_off</span>
-                  <p>표시할 최근 유저가 없습니다.</p>
+                  <p>표시할 최근 가입 사용자가 없습니다.</p>
                 </div>
-                {{/page.hasRecentUsers}}
+                {{/model.hasRecentUsers}}
               </div>
             </section>
 
@@ -160,15 +162,15 @@
               <div class="admin-panel__header">
                 <h2 class="admin-panel__title">
                   <span class="material-symbols-outlined">forum</span>
-                  <span>최근 게시글 리스트</span>
+                  <span>최근 게시글</span>
                 </h2>
                 <a class="admin-link" href="/admin/boards">전체보기</a>
               </div>
 
               <div class="admin-panel__body">
-                {{#page.hasRecentBoards}}
+                {{#model.hasRecentBoards}}
                 <div class="admin-feed-list">
-                  {{#page.recentBoards}}
+                  {{#model.recentBoards}}
                   <article class="admin-feed-item">
                     <div class="admin-feed-icon">
                       <span class="material-symbols-outlined">article</span>
@@ -176,22 +178,22 @@
                     <div class="flex-grow-1 min-w-0">
                       <p class="admin-feed-title">{{title}}</p>
                       <p class="admin-feed-meta">
-                        <span>작성자: {{userName}}</span>
-                        <span>•</span>
+                        <span>작성자 {{userName}}</span>
+                        <span>·</span>
                         <span>{{createdAtLabel}}</span>
                       </p>
                     </div>
                   </article>
-                  {{/page.recentBoards}}
+                  {{/model.recentBoards}}
                 </div>
-                {{/page.hasRecentBoards}}
+                {{/model.hasRecentBoards}}
 
-                {{^page.hasRecentBoards}}
+                {{^model.hasRecentBoards}}
                 <div class="admin-empty-state">
                   <span class="material-symbols-outlined">article_person</span>
                   <p>표시할 최근 게시글이 없습니다.</p>
                 </div>
-                {{/page.hasRecentBoards}}
+                {{/model.hasRecentBoards}}
               </div>
             </section>
           </div>

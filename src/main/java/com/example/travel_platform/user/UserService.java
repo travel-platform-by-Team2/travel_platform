@@ -1,7 +1,9 @@
 package com.example.travel_platform.user;
 
 import java.util.Optional;
+import java.util.UUID;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import com.example.travel_platform.booking.BookingRepository;
 import com.example.travel_platform.calendar.CalendarRepository;
 import com.example.travel_platform.trip.TripPlaceRepository;
 import com.example.travel_platform.trip.TripRepository;
+
 import lombok.RequiredArgsConstructor;
 
 @Transactional(readOnly = true)
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserQueryRepository userQueryRepository;
     private final BoardRepository boardRepository;
     private final BoardLikeRepository boardLikeRepository;
     private final ReplyRepository replyRepository;
@@ -30,88 +34,125 @@ public class UserService {
     private final TripPlaceRepository tripPlaceRepository;
     private final BookingRepository bookingRepository;
     private final CalendarRepository calendarRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // 회원가입 실패 : 중복 체크 후 예외발생 :지윤
     @Transactional
     public void join(UserRequest.JoinDTO reqDTO) {
-        // 1. 유저네임 중복 체크 (필터링)!!
-        Optional<User> optUser = userRepository.findByUsername(reqDTO.getUsername());
-
-        if (optUser.isPresent()) {
-            throw new Exception400("유저 네임이 중복되었습니다!!!");
-        }
-
-        User user = User.create(
-                reqDTO.getUsername(),
-                reqDTO.getPassword(),
-                reqDTO.getEmail(),
-                reqDTO.getTel(),
-                "USER");
-        userRepository.save(user);
+        validateJoinUsername(reqDTO.getUsername());
+        userRepository.save(createUserFromJoinRequest(reqDTO));
     }
 
-    // 로그인 실패: 이메일/비밀번호 확인 후 예외 발생 (지윤)
     public SessionUser login(UserRequest.LoginDTO reqDTO) {
+        User user = findUserByLoginEmail(reqDTO.getEmail());
+        validateLoginUser(user, reqDTO.getPassword());
+        return createSessionUser(user);
+    }
 
-        User findUser = userRepository.findByEmail(reqDTO.getEmail())
-                .orElseThrow(() -> new Exception400("email을 찾을 수가 없어요"));
-
-        if (!findUser.isAdmin() && !findUser.isActive()) {
-            throw new Exception403("현재 로그인할 수 없는 계정입니다.");
-        }
-
-        if (!findUser.getPassword().equals(reqDTO.getPassword())) {
-            throw new Exception401("패스워드가 일치하지 않아요");
-        }
-
-        return SessionUser.from(findUser);
+    @Transactional
+    public SessionUser loginWithSns(String email, String username, String provider, String providerId) {
+        UserAuthProvider providerType = resolveAuthProvider(provider);
+        User user = findOrCreateSnsUser(email, username, providerType, providerId);
+        ensureActiveSnsUser(user);
+        return createSessionUser(user);
     }
 
     @Transactional
     public SessionUser snsLogin(String email, String username, String provider, String providerId) {
-        // 1. 기존 유저 확인 (이메일 + 공급자)
-        User user = userRepository.findByEmailAndProvider(email, provider)
-                .orElseGet(() -> {
-                    // 2. 신규 SNS 유저면 자동 회원가입
-                    // username이 중복될 가능성을 최소화하기 위해 providerId 뒷 4자리를 붙임
-                    String suffix = providerId.length() > 4 ? providerId.substring(providerId.length() - 4) : providerId;
-                    String safeUsername = (username != null ? username : provider) + "_" + suffix;
-
-                    User newUser = User.createSNS(
-                            safeUsername,
-                            email,
-                            provider,
-                            providerId);
-                    newUser.setActive(true);
-                    return userRepository.save(newUser);
-                });
-
-        // 3. 기존 유저 활성화 보장
-        if (!user.isActive()) {
-            user.setActive(true);
-        }
-
-        return SessionUser.from(user);
+        return loginWithSns(email, username, provider, providerId);
     }
 
     public void withdrawAccount(Integer sessionUserId, String currentPassword) {
-        User user = userRepository.findById(sessionUserId)
-                .orElseThrow(() -> new Exception400("사용자 정보를 찾을 수 없습니다."));
+        User user = findUser(sessionUserId);
+        validateWithdraw(user, currentPassword);
+        deleteRelatedBoardData(sessionUserId);
+        deleteRelatedTripData(sessionUserId);
+        userRepository.delete(user);
+    }
 
+    private void validateJoinUsername(String username) {
+        Optional<User> user = userQueryRepository.findUserByUsername(username);
+        if (user.isPresent()) {
+            throw new Exception400("이미 사용 중인 사용자명입니다.");
+        }
+    }
+
+    private User createUserFromJoinRequest(UserRequest.JoinDTO reqDTO) {
+        return User.create(
+                reqDTO.getUsername(),
+                passwordEncoder.encode(normalize(reqDTO.getPassword())),
+                reqDTO.getEmail(),
+                reqDTO.getTel(),
+                "USER");
+    }
+
+    private User findUserByLoginEmail(String email) {
+        return userQueryRepository.findUserByEmail(email)
+                .orElseThrow(() -> new Exception400("해당 이메일 사용자를 찾을 수 없습니다."));
+    }
+
+    private void validateLoginUser(User user, String password) {
+        if (!user.isAdmin() && !user.isActive()) {
+            throw new Exception403("현재 로그인할 수 없는 계정입니다.");
+        }
+
+        if (!passwordEncoder.matches(normalize(password), normalize(user.getPassword()))) {
+            throw new Exception401("비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    private User findOrCreateSnsUser(String email, String username, UserAuthProvider provider, String providerId) {
+        return userQueryRepository.findSnsUserByProvider(provider, providerId)
+                .or(() -> userQueryRepository.findSnsUser(email, provider))
+                .orElseGet(() -> userRepository.save(createSnsUser(email, username, provider, providerId)));
+    }
+
+    private User createSnsUser(String email, String username, UserAuthProvider provider, String providerId) {
+        String safeBaseName = (username == null || username.isBlank()) ? provider.getCode() : username;
+        String suffix = providerId.length() > 4 ? providerId.substring(providerId.length() - 4) : providerId;
+        String baseUsername = safeBaseName + "_" + suffix;
+
+        String uniqueUsername = baseUsername;
+        int count = 1;
+        while (userQueryRepository.findUserByUsername(uniqueUsername).isPresent()) {
+            uniqueUsername = baseUsername + count++;
+        }
+
+        User user = User.createSNS(
+                uniqueUsername,
+                passwordEncoder.encode(UUID.randomUUID().toString()),
+                email,
+                provider.getCode(),
+                providerId);
+        user.setActive(true);
+        return user;
+    }
+
+    private void ensureActiveSnsUser(User user) {
+        if (!user.isActive()) {
+            user.setActive(true);
+        }
+    }
+
+    private SessionUser createSessionUser(User user) {
+        return SessionUser.fromUserEntity(user);
+    }
+
+    private User findUser(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new Exception400("사용자 정보를 찾을 수 없습니다."));
+    }
+
+    private void validateWithdraw(User user, String currentPassword) {
         if (user.isAdmin()) {
             throw new Exception403("관리자 계정은 탈퇴할 수 없습니다.");
         }
 
-        if (!normalize(user.getPassword()).equals(normalize(currentPassword))) {
+        if (!passwordEncoder.matches(normalize(currentPassword), normalize(user.getPassword()))) {
             throw new Exception400("현재 비밀번호가 일치하지 않습니다.");
         }
-
-        deleteBoardData(sessionUserId);
-        deleteTripData(sessionUserId);
-        userRepository.delete(user);
     }
 
-    private void deleteBoardData(Integer userId) {
+    private void deleteRelatedBoardData(Integer userId) {
         boardLikeRepository.deleteByUserId(userId);
         replyRepository.deleteByUserId(userId);
 
@@ -120,7 +161,7 @@ public class UserService {
         boardRepository.deleteByUserId(userId);
     }
 
-    private void deleteTripData(Integer userId) {
+    private void deleteRelatedTripData(Integer userId) {
         calendarRepository.deleteByUserId(userId);
         calendarRepository.deleteByTripPlanUserId(userId);
 
@@ -138,4 +179,11 @@ public class UserService {
         return value;
     }
 
+    private UserAuthProvider resolveAuthProvider(String providerCode) {
+        try {
+            return UserAuthProvider.fromCode(providerCode);
+        } catch (IllegalArgumentException e) {
+            throw new Exception401("지원하지 않는 SNS 제공자입니다.");
+        }
+    }
 }

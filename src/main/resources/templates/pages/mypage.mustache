@@ -10,32 +10,36 @@
 <body class="page-body page-body-sans">
   {{>partials/header}}
 
-  {{#passwordSuccessMessage}}
+  {{#model.passwordSuccessMessage}}
   <div class="mypage-feedback-toast-shell" aria-live="polite" aria-atomic="true">
     <div class="mypage-feedback-toast" data-feedback-toast role="status">
       <span class="material-symbols-outlined">check_circle</span>
-      <span>{{passwordSuccessMessage}}</span>
+      <span>{{model.passwordSuccessMessage}}</span>
     </div>
   </div>
-  {{/passwordSuccessMessage}}
+  {{/model.passwordSuccessMessage}}
 
   <main class="account-page mypage-screen">
     <div class="mypage-screen__inner">
       <section class="mypage-summary-card">
         <div class="mypage-summary-card__body">
-          <h1 class="mypage-summary-card__name">{{page.user.username}}</h1>
-          <p class="mypage-summary-card__email">{{page.user.email}}</p>
+          <h1 class="mypage-summary-card__name">{{model.profile.username}}</h1>
+          <p class="mypage-summary-card__email">{{model.profile.email}}</p>
         </div>
       </section>
 
       <section class="mypage-section">
-        <div class="mypage-section__head">
+        <div class="mypage-section__head mypage-section__head--action">
           <h2 class="mypage-section__title">예약된 일정</h2>
+          <a class="mypage-inline-link" href="{{model.bookingSection.listLink}}">
+            전체보기
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
         </div>
 
-        {{#page.hasBookings}}
+        {{#model.bookingSection.hasItems}}
         <div class="mypage-reservation-list">
-          {{#page.bookings}}
+          {{#model.bookingSection.items}}
           <article class="mypage-reservation-card">
             <div class="mypage-reservation-card__top">
               <div class="mypage-reservation-card__text">
@@ -48,16 +52,16 @@
             </div>
             <a class="mypage-primary-button" href="{{detailLink}}">상세 보기</a>
           </article>
-          {{/page.bookings}}
+          {{/model.bookingSection.items}}
         </div>
-        {{/page.hasBookings}}
+        {{/model.bookingSection.hasItems}}
 
-        {{^page.bookings}}
+        {{^model.bookingSection.hasItems}}
         <div class="mypage-empty-state">
           <span class="material-symbols-outlined">event_busy</span>
           <p>예정된 예약이 없습니다.</p>
         </div>
-        {{/page.bookings}}
+        {{/model.bookingSection.hasItems}}
       </section>
 
       <section class="mypage-section">
@@ -69,9 +73,9 @@
           </a>
         </div>
 
-        {{#page.hasTripPlans}}
+        {{#model.tripPlanSection.hasItems}}
         <div class="mypage-plan-grid">
-          {{#page.tripPlans}}
+          {{#model.tripPlanSection.items}}
           <article class="mypage-plan-card">
             <div class="mypage-plan-card__top">
               <div class="mypage-plan-card__text">
@@ -84,16 +88,16 @@
             </div>
             <a class="mypage-secondary-button" href="{{detailLink}}">상세 보기</a>
           </article>
-          {{/page.tripPlans}}
+          {{/model.tripPlanSection.items}}
         </div>
-        {{/page.hasTripPlans}}
+        {{/model.tripPlanSection.hasItems}}
 
-        {{^page.tripPlans}}
+        {{^model.tripPlanSection.hasItems}}
         <div class="mypage-empty-state">
           <span class="material-symbols-outlined">travel_explore</span>
           <p>다가오는 여행 계획이 없습니다.</p>
         </div>
-        {{/page.tripPlans}}
+        {{/model.tripPlanSection.hasItems}}
       </section>
 
       <section class="mypage-section mypage-section--account">
@@ -121,7 +125,7 @@
             </div>
             <span class="material-symbols-outlined">chevron_right</span>
           </a>
-          {{#page.user.withdrawAllowed}}
+          {{#model.profile.withdrawAllowed}}
           <button
             class="mypage-account-row mypage-account-row--danger"
             type="button"
@@ -135,15 +139,15 @@
             </div>
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
-          {{/page.user.withdrawAllowed}}
+          {{/model.profile.withdrawAllowed}}
         </div>
       </section>
     </div>
 
     <div
-      class="mypage-password-overlay {{^passwordModalOpen}}is-hidden{{/passwordModalOpen}}"
+      class="mypage-password-overlay {{^model.passwordModalOpen}}is-hidden{{/model.passwordModalOpen}}"
       data-password-modal-overlay
-      aria-hidden="{{^passwordModalOpen}}true{{/passwordModalOpen}}{{#passwordModalOpen}}false{{/passwordModalOpen}}"
+      aria-hidden="{{^model.passwordModalOpen}}true{{/model.passwordModalOpen}}{{#model.passwordModalOpen}}false{{/model.passwordModalOpen}}"
     >
       <div
         class="mypage-password-modal"
@@ -160,9 +164,9 @@
         </div>
 
         <form class="mypage-password-form" action="/mypage/password" method="post">
-          {{#passwordError}}
-          <p class="mypage-password-form__error">{{passwordError}}</p>
-          {{/passwordError}}
+          {{#model.passwordError}}
+          <p class="mypage-password-form__error">{{model.passwordError}}</p>
+          {{/model.passwordError}}
 
           <label class="mypage-password-field">
             <span>현재 비밀번호</span>
@@ -189,9 +193,9 @@
     </div>
 
     <div
-      class="mypage-password-overlay {{^withdrawModalOpen}}is-hidden{{/withdrawModalOpen}}"
+      class="mypage-password-overlay {{^model.withdrawModalOpen}}is-hidden{{/model.withdrawModalOpen}}"
       data-withdraw-modal-overlay
-      aria-hidden="{{^withdrawModalOpen}}true{{/withdrawModalOpen}}{{#withdrawModalOpen}}false{{/withdrawModalOpen}}"
+      aria-hidden="{{^model.withdrawModalOpen}}true{{/model.withdrawModalOpen}}{{#model.withdrawModalOpen}}false{{/model.withdrawModalOpen}}"
     >
       <div
         class="mypage-password-modal"
@@ -208,9 +212,9 @@
         </div>
 
         <form class="mypage-password-form" action="/mypage/withdraw" method="post">
-          {{#withdrawError}}
-          <p class="mypage-password-form__error">{{withdrawError}}</p>
-          {{/withdrawError}}
+          {{#model.withdrawError}}
+          <p class="mypage-password-form__error">{{model.withdrawError}}</p>
+          {{/model.withdrawError}}
 
           <p class="mypage-password-form__help">
             <span class="material-symbols-outlined">warning</span>
@@ -302,3 +306,4 @@
   </script>
 </body>
 </html>
+

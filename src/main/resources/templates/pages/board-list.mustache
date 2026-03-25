@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TripKorea - 커뮤니티</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="community-list-body-01">
   {{>partials/header}}
@@ -27,36 +28,24 @@
 <div class="community-list-div-02 community-board-hero">
   <div class="community-board-hero__backdrop"></div>
 
-  <div class="community-board-hero__tab-row">
-    <div class="community-board-hero__tabs chips-scroll-mask">
-      <a class="community-filter-btn cat-all {{^model.category}}is-active{{/model.category}}" href="/boards{{#model.sort}}?sort={{model.sort}}{{/model.sort}}{{#model.keyword}}{{#model.sort}}&{{/model.sort}}keyword={{model.keyword}}{{/model.keyword}}">
-        전체
-      </a>
+  <div class="community-board-hero__topline">
+    <details class="community-sort-dropdown community-board-category-dropdown">
+      <summary class="community-sort-summary community-board-sort-summary community-board-category-button{{^model.category}} cat-all{{/model.category}}{{#model.isTips}} cat-tips{{/model.isTips}}{{#model.isPlan}} cat-plan{{/model.isPlan}}{{#model.isFood}} cat-food{{/model.isFood}}{{#model.isReview}} cat-review{{/model.isReview}}{{#model.isQna}} cat-qna{{/model.isQna}}">
+        <span>{{^model.category}}전체{{/model.category}}{{#model.isTips}}여행 팁{{/model.isTips}}{{#model.isPlan}}여행 계획{{/model.isPlan}}{{#model.isFood}}맛집/카페{{/model.isFood}}{{#model.isReview}}숙소 후기{{/model.isReview}}{{#model.isQna}}질문/답변{{/model.isQna}}</span>
+        <span class="icon-ms-18">expand_more</span>
+      </summary>
 
-      <a class="community-filter-btn cat-tips {{#model.isTips}}is-active{{/model.isTips}}" href="/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
-        여행 팁
-      </a>
+      <div class="community-sort-menu community-board-sort-menu community-board-category-menu" aria-label="게시글 카테고리">
+        <a class="community-sort-option cat-all {{^model.category}}is-active{{/model.category}}" href="/boards{{#model.sort}}?sort={{model.sort}}{{/model.sort}}{{#model.keyword}}{{#model.sort}}&{{/model.sort}}keyword={{model.keyword}}{{/model.keyword}}">전체</a>
+        <a class="community-sort-option cat-tips {{#model.isTips}}is-active{{/model.isTips}}" href="/boards?category=tips{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 팁</a>
+        <a class="community-sort-option cat-plan {{#model.isPlan}}is-active{{/model.isPlan}}" href="/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">여행 계획</a>
+        <a class="community-sort-option cat-food {{#model.isFood}}is-active{{/model.isFood}}" href="/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">맛집/카페</a>
+        <a class="community-sort-option cat-review {{#model.isReview}}is-active{{/model.isReview}}" href="/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">숙소 후기</a>
+        <a class="community-sort-option cat-qna {{#model.isQna}}is-active{{/model.isQna}}" href="/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">질문/답변</a>
+      </div>
+    </details>
 
-      <a class="community-filter-btn cat-plan {{#model.isPlan}}is-active{{/model.isPlan}}" href="/boards?category=plan{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
-        여행 계획
-      </a>
-
-      <a class="community-filter-btn cat-food {{#model.isFood}}is-active{{/model.isFood}}" href="/boards?category=food{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
-        맛집/카페
-      </a>
-
-      <a class="community-filter-btn cat-review {{#model.isReview}}is-active{{/model.isReview}}" href="/boards?category=review{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
-        숙소 후기
-      </a>
-
-      <a class="community-filter-btn cat-qna {{#model.isQna}}is-active{{/model.isQna}}" href="/boards?category=qna{{#model.sort}}&sort={{model.sort}}{{/model.sort}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">
-        질문/답변
-      </a>
-    </div>
-  </div>
-
-  <div class="community-board-hero__controls">
-    <form action="/boards" method="get" class="community-board-search">
+    <form action="/boards" method="get" class="community-board-search community-board-search--toolbar">
       {{#model.category}}<input type="hidden" name="category" value="{{model.category}}">{{/model.category}}
       {{#model.sort}}<input type="hidden" name="sort" value="{{model.sort}}">{{/model.sort}}
       <div class="community-board-search__field">
@@ -73,13 +62,8 @@
       </button>
     </form>
 
-    <div class="community-board-sort-group">
-      <a class="community-board-reset" href="/boards">
-        <span class="icon-ms-18">restart_alt</span>
-        필터 초기화
-      </a>
-
-      <div class="community-sort-wrap">
+    <div class="community-board-sort-group community-board-sort-group--hero">
+      <div class="community-sort-wrap community-sort-wrap--hero">
         <details class="community-sort-dropdown">
           <summary class="community-sort-summary community-board-sort-summary">
             <span>{{model.sortLabel}}</span>
@@ -87,32 +71,38 @@
           </summary>
 
           <div class="community-sort-menu community-board-sort-menu" aria-label="게시글 정렬">
-            <a class="community-sort-option {{#model.isSortLatest}}is-active{{/model.isSortLatest}}"
-            href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↑</a>
+            <a class="community-sort-option{{model.latestClass}}"
+            href="/boards?sort=latest{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 최신 순</a>
 
-            <a class="community-sort-option {{#model.isSortDate}}is-active{{/model.isSortDate}}"
-            href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜순 ↓</a>
+            <a class="community-sort-option{{model.dateClass}}"
+            href="/boards?sort=date{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">날짜 오래된 순</a>
 
-            <a class="community-sort-option {{#model.isSortViews}}is-active{{/model.isSortViews}}"
-            href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↑</a>
+            <a class="community-sort-option{{model.viewClass}}"
+            href="/boards?sort=view{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 많은 순</a>
 
-            <a class="community-sort-option {{#model.isSortDownviews}}is-active{{/model.isSortDownviews}}"
-            href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회순 ↓</a>
+            <a class="community-sort-option{{model.lowViewClass}}"
+            href="/boards?sort=downview{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">조회수 적은 순</a>
 
-            <a class="community-sort-option {{#model.isSortLikes}}is-active{{/model.isSortLikes}}"
-            href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요순 ↑</a>
+            <a class="community-sort-option{{model.likeClass}}"
+            href="/boards?sort=likes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 많은 순</a>
 
-            <a class="community-sort-option {{#model.isSortDownlikes}}is-active{{/model.isSortDownlikes}}"
-            href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 ↓</a>
+            <a class="community-sort-option{{model.lowLikeClass}}"
+            href="/boards?sort=downlikes{{#model.category}}&category={{model.category}}{{/model.category}}{{#model.keyword}}&keyword={{model.keyword}}{{/model.keyword}}">좋아요 적은 순</a>
           </div>
         </details>
       </div>
+
+      <a class="community-board-reset" href="/boards">
+        <span class="icon-ms-18">restart_alt</span>
+        초기화
+      </a>
     </div>
   </div>
+
 </div>
 
 <div class="stack-gap-3">
-{{#model.boards}}
+{{#models}}
 <a class="place-card-row" href="/boards/{{id}}">
 <div class="community-list-div-04">
 <div class="inline-row-gap2-mb2">
@@ -146,10 +136,10 @@
 </div>
 </div>
 </a>
-{{/model.boards}}
-{{^model.boards}}
+{{/models}}
+{{^models}}
 <p class="text-muted-sm-truncate">아직 게시글이 없습니다.</p>
-{{/model.boards}}
+{{/models}}
 
 <div class="pagination-wrap">
   {{#model.prevPage}}

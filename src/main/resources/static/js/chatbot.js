@@ -12,6 +12,7 @@
   var input = form ? form.querySelector('input[name="message"]') : null;
   var sendButton = form ? form.querySelector('button') : null;
   var isSending = false;
+  var conversationHistory = [];
 
   function isOpen() {
     return !panel.classList.contains('d-none');
@@ -49,6 +50,18 @@
     msg.appendChild(bubble);
     chatBody.appendChild(msg);
     scrollToBottom();
+  }
+
+  function createHistoryItem(role, text) {
+    return {
+      role: role,
+      content: text
+    };
+  }
+
+  function appendConversationHistory(userMessage, answer) {
+    conversationHistory.push(createHistoryItem('user', userMessage));
+    conversationHistory.push(createHistoryItem('assistant', answer));
   }
 
   function appendTypingIndicator() {
@@ -101,6 +114,15 @@
       return null;
     }
 
+    if (
+      data.body &&
+      typeof data.body === 'object' &&
+      typeof data.body.answer === 'string' &&
+      data.body.answer.trim()
+    ) {
+      return data.body.answer.trim();
+    }
+
     if (typeof data.answer === 'string' && data.answer.trim()) {
       return data.answer.trim();
     }
@@ -119,6 +141,7 @@
   function buildRequestBody(message) {
     return {
       message: message,
+      history: conversationHistory.slice(),
       context: {
         page: window.location.pathname
       }
@@ -162,6 +185,7 @@
       typingNode = null;
       var answer = extractAnswer(data) || '응답 형식을 해석하지 못했어요. 잠시 후 다시 시도해주세요.';
       appendMessage('bot', answer);
+      appendConversationHistory(message, answer);
     } catch (error) {
       removeTypingIndicator(typingNode);
       typingNode = null;

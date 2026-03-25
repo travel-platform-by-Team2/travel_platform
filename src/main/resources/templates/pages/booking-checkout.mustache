@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>예약 확인 및 결제</title>
   {{>partials/head-assets}}
+  {{>partials/chatbot-assets}}
 </head>
 <body class="page-body">
   {{>partials/header}}
@@ -13,6 +14,7 @@
   <div class="layout-container"></div>
 </div>
 
+{{#model}}
 <main class="page-main-wrap">
   <div class="mb-8">
     <h1 class="checkout-page-title">예약 확인 및 결제</h1>
@@ -94,7 +96,8 @@
       <form action="/bookings/complete" method="get">
         <input type="hidden" name="lodgingName" value="{{lodgingName}}">
         <input type="hidden" name="roomName" value="{{roomName}}">
-        <input type="hidden" name="region" value="{{address}}">
+        <input type="hidden" name="region" value="{{regionLabel}}">
+        <input type="hidden" name="regionKey" value="{{regionKey}}">
         <input type="hidden" name="guests" value="{{guests}}">
         <input type="hidden" name="checkIn" value="{{checkIn}}">
         <input type="hidden" name="checkOut" value="{{checkOut}}">
@@ -120,15 +123,7 @@
           <div class="checkout-field-full">
             <label class="label-sm-strong" for="email">이메일</label>
             <input class="input-control" id="email" name="bookerEmail" placeholder="example@email.com" value="{{bookerEmail}}" type="email" required/>
-            <p class="checkout-help-text">예약 확정 메일이 발송됩니다.</p>
           </div>
-            <div class="checkout-field-full">
-              <label class="checkout-label-between" for="requests">
-                요청사항
-                <span class="checkout-label-optional">(선택)</span>
-              </label>
-              <textarea class="checkout-textarea" id="requests" name="requests" placeholder="호텔에 전달할 요청사항이 있다면 적어주세요. (예: 고층 객실 희망, 금연 객실 등)" rows="4"></textarea>
-            </div>
           </div>
         </div>
 
@@ -171,10 +166,12 @@
     </div>
   </div>
 </main>
+{{/model}}
 
   {{>partials/chatbot}}
   {{>partials/footer}}
   {{>partials/scripts}}
 </body>
 </html>
+
 

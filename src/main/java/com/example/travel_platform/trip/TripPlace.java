@@ -45,8 +45,14 @@ public class TripPlace {
     @Column(precision = 10, scale = 7)
     private BigDecimal longitude;
 
-    @Column(name = "day_order", nullable = false)
-    private Integer dayOrder;
+    @Column(name = "trip_day", nullable = false)
+    private Integer tripDay;
+
+    @Column(length = 511)
+    private String imgUrl;
+
+    @Column(name = "place_type", length = 20)
+    private String placeType;
 
     @Builder
     private TripPlace(TripPlan tripPlan,
@@ -54,28 +60,39 @@ public class TripPlace {
             String address,
             BigDecimal latitude,
             BigDecimal longitude,
-            Integer dayOrder) {
+            Integer tripDay,
+            String imgUrl,
+            String placeType) {
         this.tripPlan = tripPlan;
         this.placeName = placeName;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.dayOrder = dayOrder;
+        this.tripDay = tripDay;
+        this.imgUrl = imgUrl;
+        this.placeType = placeType;
     }
 
-    public static TripPlace create(TripPlan tripPlan,
-            String placeName,
-            String address,
-            BigDecimal latitude,
-            BigDecimal longitude,
-            Integer dayOrder) {
+    public static TripPlace create(TripPlan tripPlan, String placeName, String address, BigDecimal latitude,
+            BigDecimal longitude, Integer tripDay) {
+        return create(tripPlan, placeName, address, latitude, longitude, tripDay, null, null);
+    }
+
+    public static TripPlace create(TripPlan tripPlan, String placeName, String address, BigDecimal latitude,
+            BigDecimal longitude, Integer tripDay, String imgUrl, String placeType) {
         return TripPlace.builder()
                 .tripPlan(tripPlan)
                 .placeName(placeName)
                 .address(address)
                 .latitude(latitude)
                 .longitude(longitude)
-                .dayOrder(dayOrder)
+                .tripDay(tripDay)
+                .imgUrl(imgUrl)
+                .placeType(placeType)
                 .build();
+    }
+
+    public Integer getDayOrder() {
+        return tripDay;
     }
 }
