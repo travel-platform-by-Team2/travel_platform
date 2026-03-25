@@ -19,12 +19,10 @@ public class UserRepositoryTest {
 
     @Test
     public void save_test() {
-        // given
-        User user = User.createSNS("user1", "user1@metacoding.com", "kakao", "provider-1");
+        User user = User.createSNS("user1", "encoded-password", "user1@metacoding.com", "kakao", "provider-1");
 
-        // when
         userRepository.save(user);
-        // eye
+
         System.out.println("=======================");
         System.out.println("id : " + user.getId());
         System.out.println("username : " + user.getUsername());

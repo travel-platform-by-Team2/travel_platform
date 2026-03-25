@@ -18,7 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor // object mapping을 hibernate가 할 때 디폴트 생성자를 new 한다
+@NoArgsConstructor
 @Data
 @Entity
 @Table(name = "user_tb")
@@ -26,13 +26,16 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(unique = true) // pk, uk(unique) 일때 인덱스를 만들어준다
-    private String username; // unique 제약조건 추가 (username은 중복되면 안됨)
 
-    @Column(nullable = false, length = 100) // not null 제약조건 추가 (password는 null이 되면 안됨) length는 10자 이하
+    @Column(unique = true)
+    private String username;
+
+    @Column(nullable = false, length = 100)
     private String password;
+
     private String email;
     private String tel;
+
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @Enumerated(EnumType.STRING)
@@ -43,8 +46,9 @@ public class User {
     @Setter(AccessLevel.NONE)
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private UserAuthProvider provider;   // kakao, naver, google
-    private String providerId; // SNS 고유 식별값
+    private UserAuthProvider provider;
+
+    private String providerId;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -62,11 +66,15 @@ public class User {
         return user;
     }
 
-    // SNS 유저 전용 생성 메서드
-    public static User createSNS(String username, String email, String provider, String providerId) {
+    public static User createSNS(
+            String username,
+            String encodedPassword,
+            String email,
+            String provider,
+            String providerId) {
         User user = new User();
         user.username = username;
-        user.password = java.util.UUID.randomUUID().toString(); // 랜덤 비밀번호
+        user.password = encodedPassword;
         user.email = email;
         user.provider = UserAuthProvider.fromCode(provider);
         user.providerId = providerId;
@@ -118,7 +126,5 @@ public class User {
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", email=" + email
                 + ", tel=" + tel + ", role=" + getRole() + ", provider=" + getProvider() + ", createdAt=" + createdAt + "]";
-
     }
-
 }
