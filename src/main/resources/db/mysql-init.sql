@@ -64,6 +64,8 @@ create table trip_place_tb (
   latitude decimal(10,7),
   longitude decimal(10,7),
   trip_day int not null,
+  img_url varchar(511),
+  place_type varchar(20),
   constraint fk_trip_place_plan foreign key (trip_plan_id) references trip_plan_tb(id)
 );
 
