@@ -269,3 +269,45 @@ travel_platform
     <p align="center">                                                                                                                                                                                                   
     <sub>관리자 대시보드 / 관리자 사용자 관리 / 관리자 게시글 관리</sub>                                                                                                                                                                                  
   </p>
+
+## 8. 아키텍처 다이어그램
+
+```mermaid
+flowchart TB
+    Browser[사용자 브라우저]
+    Static[Static Assets<br/>CSS / JS / Images]
+    Templates[Mustache Templates<br/>pages / partials]
+
+    Browser --> SSR[@Controller<br/>SSR Controllers]
+    Browser --> API[@RestController<br/>API Controllers]
+    Browser --> Static
+
+    SSR --> Core[_core<br/>interceptor / handler / util / validation]
+    API --> Core
+    SSR --> Templates
+
+    SSR --> Service[Service Layer]
+    API --> Service
+
+    Service --> Repo[Repository / QueryRepository]
+    Repo --> MySQL[(MySQL)]
+    Service --> Redis[(Redis<br/>Session / Registry)]
+
+    subgraph Domains[Domain Packages]
+        User[user]
+        Trip[trip]
+        Booking[booking]
+        Calendar[calendar]
+        Board[board / reply]
+        Mypage[mypage]
+        Admin[admin]
+        Chatbot[chatbot]
+        Weather[weather]
+    end
+
+    Service --- Domains
+
+    Chatbot -. OpenAI 연동 .-> OpenAI[OpenAI Responses API]
+    Weather -. 날씨 조회 .-> Forecast[기상청 Open API]
+    Booking -. 지도 / 장소 보조 데이터 .-> ExternalMap[External Map / Place APIs]
+```
